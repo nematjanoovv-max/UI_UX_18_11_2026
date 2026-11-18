@@ -735,6 +735,49 @@
       this.canvas.addEventListener('touchstart', (e) => {
         this.isTouchDevice = true;
         audio.init();
+        if (this.state === 'TPS_3D' && this.tps3D) {
+          const t = this.tps3D;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const rect = this.canvas.getBoundingClientRect();
+            const tx = (touch.clientX - rect.left) * (1280 / rect.width);
+            const ty = (touch.clientY - rect.top) * (720 / rect.height);
+
+            if (tx < 160 && ty < 70) {
+              this.state = 'MENU';
+              audio.sell();
+              return;
+            }
+            if (Math.hypot(tx - 1200, ty - 620) <= 52) {
+              if (t.isBuilding) this.place3DTower(); else this.shoot3DTPS();
+              this.vibrate(22);
+              return;
+            }
+            if (Math.hypot(tx - 1080, ty - 640) <= 40) {
+              t.player.isAiming = !t.player.isAiming;
+              return;
+            }
+            if (Math.hypot(tx - 1200, ty - 500) <= 40) {
+              t.isBuilding = !t.isBuilding;
+              audio.upgrade();
+              return;
+            }
+            if (Math.hypot(tx - 1080, ty - 540) <= 35) {
+              this.reload3DTPS();
+              return;
+            }
+
+            if (tx < 500 && t.touch.moveId === null) {
+              t.touch.moveId = touch.identifier;
+              t.touch.moveStart = { x: tx, y: ty };
+              t.touch.moveVec = { x: 0, y: 0 };
+            } else if (tx >= 500 && t.touch.lookId === null) {
+              t.touch.lookId = touch.identifier;
+              t.touch.lookLast = { x: tx, y: ty };
+            }
+          }
+          return;
+        }
         if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
@@ -806,6 +849,35 @@
         this.mousePos = pos;
         this.updateHoverCell();
 
+        if (this.state === 'TPS_3D' && this.tps3D) {
+          e.preventDefault();
+          const t = this.tps3D;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            const rect = this.canvas.getBoundingClientRect();
+            const tx = (touch.clientX - rect.left) * (1280 / rect.width);
+            const ty = (touch.clientY - rect.top) * (720 / rect.height);
+
+            if (touch.identifier === t.touch.moveId) {
+              const dx = tx - t.touch.moveStart.x;
+              const dy = ty - t.touch.moveStart.y;
+              const dist = Math.hypot(dx, dy);
+              const maxR = 60;
+              t.touch.moveVec = {
+                x: (dist > 0 ? (dx / dist) * Math.min(1.0, dist / maxR) : 0),
+                y: (dist > 0 ? (dy / dist) * Math.min(1.0, dist / maxR) : 0)
+              };
+            } else if (touch.identifier === t.touch.lookId) {
+              const dx = tx - t.touch.lookLast.x;
+              const dy = ty - t.touch.lookLast.y;
+              t.player.yaw -= dx * 0.005;
+              t.player.pitch = Math.max(-0.4, Math.min(0.5, t.player.pitch + dy * 0.004));
+              t.touch.lookLast = { x: tx, y: ty };
+            }
+          }
+          return;
+        }
+
         if (this.touchState.dragging) {
           e.preventDefault();
           this.touchState.dragCurrent = pos;
@@ -816,6 +888,20 @@
         e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
+
+        if (this.state === 'TPS_3D' && this.tps3D) {
+          const t = this.tps3D;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier === t.touch.moveId) {
+              t.touch.moveId = null;
+              t.touch.moveVec = { x: 0, y: 0 };
+            } else if (touch.identifier === t.touch.lookId) {
+              t.touch.lookId = null;
+            }
+          }
+          return;
+        }
 
         if (this.touchState.dragging === 'HERO') {
           if (pos.y >= 60 && pos.y <= 620) {
@@ -847,9 +933,31 @@
         this.handleCanvasClick(pos.x, pos.y, false);
       }, { passive: false });
 
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (this.state === 'TPS_3D' && this.tps3D) {
+          if (k === 'w') this.tps3D.keys.w = false;
+          if (k === 's') this.tps3D.keys.s = false;
+          if (k === 'a') this.tps3D.keys.a = false;
+          if (k === 'd') this.tps3D.keys.d = false;
+          if (k === 'shift') this.tps3D.keys.shift = false;
+        }
+      });
+
       window.addEventListener('keydown', (e) => {
         audio.init();
         const k = e.key.toLowerCase();
+        if (this.state === 'TPS_3D' && this.tps3D) {
+          if (k === 'w') { this.tps3D.keys.w = true; return; }
+          if (k === 's') { this.tps3D.keys.s = true; return; }
+          if (k === 'a') { this.tps3D.keys.a = true; return; }
+          if (k === 'd') { this.tps3D.keys.d = true; return; }
+          if (k === 'shift') { this.tps3D.keys.shift = true; return; }
+          if (k === 'r') { this.reload3DTPS(); return; }
+          if (k === 'b') { this.tps3D.isBuilding = !this.tps3D.isBuilding; audio.upgrade(); return; }
+          if (e.code === 'Space') { e.preventDefault(); this.shoot3DTPS(); return; }
+          if (e.key === 'Escape') { this.state = 'MENU'; return; }
+        }
         if (e.key >= '1' && e.key <= '5') {
           const keys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
           this.selectBuildType(keys[parseInt(e.key) - 1]);
@@ -1023,9 +1131,42 @@
     }
 
     handleCanvasClick(x, y, isRightClick = false) {
+      if (this.state === 'TPS_3D') {
+        if (x >= 20 && x <= 160 && y >= 15 && y <= 65) {
+          this.state = 'MENU';
+          audio.sell();
+          return;
+        }
+        if (Math.hypot(x - 1200, y - 620) <= 52) {
+          if (this.tps3D.isBuilding) this.place3DTower();
+          else this.shoot3DTPS();
+          this.vibrate(22);
+          return;
+        }
+        if (Math.hypot(x - 1080, y - 640) <= 40) {
+          this.tps3D.player.isAiming = !this.tps3D.player.isAiming;
+          return;
+        }
+        if (Math.hypot(x - 1200, y - 500) <= 40) {
+          this.tps3D.isBuilding = !this.tps3D.isBuilding;
+          audio.upgrade();
+          return;
+        }
+        if (Math.hypot(x - 1080, y - 540) <= 35) {
+          this.reload3DTPS();
+          return;
+        }
+        if (x > 350) {
+          if (this.tps3D.isBuilding) this.place3DTower();
+          else this.shoot3DTPS();
+          return;
+        }
+        return;
+      }
       if (this.state === 'MENU') {
         // Generous touch hitboxes for mobile screens
-        if (y >= 310 && y <= 385 && x >= 380 && x <= 900) { this.startMission(0, 'CAMPAIGN'); return; }
+        if (y >= 260 && y <= 318 && x >= 380 && x <= 900) { this.start3DTPSMode(); return; }
+        else if (y >= 319 && y <= 375 && x >= 380 && x <= 900) { this.startMission(0, 'CAMPAIGN'); return; }
         else if (y >= 386 && y <= 445 && x >= 380 && x <= 900) { this.state = 'MAP_SELECT'; return; }
         else if (y >= 446 && y <= 505 && x >= 380 && x <= 900) { this.startMission(9, 'ENDLESS'); return; }
         else if (y >= 506 && y <= 560 && x >= 380 && x <= 635) { this.startMission(0, 'BOSS_RUSH'); return; }
@@ -1614,6 +1755,8 @@
 
         if (this.state === 'PLAYING') {
           for (let i = 0; i < this.speed; i++) this.update(dt);
+        } else if (this.state === 'TPS_3D') {
+          this.update3DTPS(dt);
         }
         this.render();
         requestAnimationFrame(step);
@@ -2285,6 +2428,7 @@
       else if (this.state === 'EDITOR') this.renderEditor();
       else if (this.state === 'DRAFT') this.renderDraftModal();
       else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
+      else if (this.state === 'TPS_3D') this.render3DTPS();
       else {
         this.renderBackgroundGrid();
         this.renderLanes();
@@ -4389,14 +4533,15 @@
 
       this.renderMiniButton(1140, 20, 100, 36, `LANG: ${this.lang.toUpperCase()}`);
 
-      this.renderMenuButton(440, 330, 400, 50, this.t("campaign"), "#00e5ff", "#05070d");
-      this.renderMenuButton(440, 390, 400, 50, this.t("sectorSelect"), "#162238", "#00e5ff", "#00e5ff");
-      this.renderMenuButton(440, 450, 400, 50, this.t("endless"), "#26133a", "#e040fb", "#e040fb");
-      this.renderMenuButton(440, 510, 190, 45, this.t("bossRush"), "#33121d", "#ff1744", "#ff1744");
-      this.renderMenuButton(650, 510, 190, 45, this.t("mapEditor"), "#132d2a", "#00e676", "#00e676");
-      this.renderMenuButton(440, 565, 190, 45, this.t("leaderboard"), "#142038", "#ffd600", "#ffd600");
-      this.renderMenuButton(650, 565, 190, 45, this.t("fieldManual"), "#182848", "#00e5ff", "#00e5ff");
-      this.renderMenuButton(440, 620, 400, 45, `📥 ${this.t("downloadOffline")}`, "#122033", "#ffd600", "#ffd600");
+      this.renderMenuButton(440, 270, 400, 46, "🎮 3D TPS ARENA REJIMI (BETA)", "#ff007f", "#ffffff", "#ffd600");
+      this.renderMenuButton(440, 325, 400, 46, this.t("campaign"), "#00e5ff", "#05070d");
+      this.renderMenuButton(440, 380, 400, 46, this.t("sectorSelect"), "#162238", "#00e5ff", "#00e5ff");
+      this.renderMenuButton(440, 435, 400, 46, this.t("endless"), "#26133a", "#e040fb", "#e040fb");
+      this.renderMenuButton(440, 490, 190, 42, this.t("bossRush"), "#33121d", "#ff1744", "#ff1744");
+      this.renderMenuButton(650, 490, 190, 42, this.t("mapEditor"), "#132d2a", "#00e676", "#00e676");
+      this.renderMenuButton(440, 545, 190, 42, this.t("leaderboard"), "#142038", "#ffd600", "#ffd600");
+      this.renderMenuButton(650, 545, 190, 42, this.t("fieldManual"), "#182848", "#00e5ff", "#00e5ff");
+      this.renderMenuButton(440, 600, 400, 42, `📥 ${this.t("downloadOffline")}`, "#122033", "#ffd600", "#ffd600");
     }
 
     renderMenuButton(x, y, w, h, text, bg, fg, border) {
@@ -4709,6 +4854,681 @@
       this.renderMenuButton(560, 460, 160, 50, "📊 ANALYTICS", "#162238", "#ffd600", "#ffd600");
       this.renderMenuButton(740, 460, 160, 50, this.t("mainMenu"), "#162238", "#ff1744", "#ff1744");
     }
+
+    // =========================================================================
+    // --- 3D THIRD-PERSON SHOOTER & BASE DEFENSE ARENA ENGINE (v3.4 3D) ---
+    // =========================================================================
+
+    start3DTPSMode() {
+      this.state = 'TPS_3D';
+      audio.victory();
+      this.tps3D = {
+        player: {
+          x: 0, y: 0, z: 12,
+          yaw: 0,
+          pitch: 0.08,
+          speed: 14.0,
+          isAiming: false,
+          health: 100, maxHealth: 100,
+          ammo: 30, maxAmmo: 30, reserveAmmo: 120,
+          isReloading: false, reloadTimer: 0,
+          fireCd: 0,
+          walkAnim: 0,
+          recoil: 0,
+          hasRedDot: true,
+          hasLaser: true
+        },
+        core: { x: 0, y: 0, z: -35, health: 500, maxHealth: 500, radius: 4 },
+        enemies: [],
+        towers: [],
+        bullets: [],
+        particles: [],
+        score: 0,
+        wave: 1,
+        waveTimer: 4.0,
+        waveActive: false,
+        spawnQueue: 0,
+        spawnInterval: 0,
+        isBuilding: false,
+        keys: { w: false, a: false, s: false, d: false, shift: false },
+        touch: {
+          moveId: null,
+          moveStart: { x: 0, y: 0 },
+          moveVec: { x: 0, y: 0 },
+          lookId: null,
+          lookLast: { x: 0, y: 0 }
+        }
+      };
+      this.addFloatingText("3D TPS ARENA: WELCOME COMMANDER!", 640, 180, "#00e5ff", 24);
+      this.startWave3DTPS();
+    }
+
+    startWave3DTPS() {
+      const t = this.tps3D;
+      t.waveActive = true;
+      t.spawnQueue = 6 + t.wave * 4;
+      t.spawnInterval = 1.0;
+      this.addFloatingText(`WAVE ${t.wave} INCOMING!`, 640, 220, "#ff1744", 26);
+    }
+
+    update3DTPS(dt) {
+      const t = this.tps3D;
+      const p = t.player;
+
+      // 1. Player Movement along Camera Yaw
+      let moveX = 0;
+      let moveZ = 0;
+      if (t.keys.w) moveZ -= 1;
+      if (t.keys.s) moveZ += 1;
+      if (t.keys.a) moveX -= 1;
+      if (t.keys.d) moveX += 1;
+
+      // Mobile Touch Joystick Input
+      if (t.touch.moveId !== null) {
+        moveX += t.touch.moveVec.x;
+        moveZ += t.touch.moveVec.y;
+      }
+
+      const inputLen = Math.hypot(moveX, moveZ);
+      if (inputLen > 0.05) {
+        const normX = moveX / inputLen;
+        const normZ = moveZ / inputLen;
+        const effSpeed = p.speed * (t.keys.shift ? 1.5 : 1.0) * (p.isAiming ? 0.6 : 1.0);
+
+        // Transform movement relative to camera yaw
+        const worldMoveX = Math.cos(p.yaw) * normX + Math.sin(p.yaw) * normZ;
+        const worldMoveZ = -Math.sin(p.yaw) * normX + Math.cos(p.yaw) * normZ;
+
+        p.x += worldMoveX * effSpeed * dt;
+        p.z += worldMoveZ * effSpeed * dt;
+        p.walkAnim += dt * (t.keys.shift ? 14 : 9);
+
+        // Clamp to 500x500m arena boundaries
+        p.x = Math.max(-55, Math.min(55, p.x));
+        p.z = Math.max(-65, Math.min(45, p.z));
+      } else {
+        p.walkAnim = 0;
+      }
+
+      // Gun Fire Cooldown & Recoil Decay
+      if (p.fireCd > 0) p.fireCd = Math.max(0, p.fireCd - dt);
+      if (p.recoil > 0) p.recoil = Math.max(0, p.recoil - dt * 10);
+
+      // Reloading
+      if (p.isReloading) {
+        p.reloadTimer -= dt;
+        if (p.reloadTimer <= 0) {
+          const needed = p.maxAmmo - p.ammo;
+          const load = Math.min(needed, p.reserveAmmo);
+          p.ammo += load;
+          p.reserveAmmo -= load;
+          p.isReloading = false;
+          audio.upgrade();
+        }
+      }
+
+      // 2. Wave Spawning
+      if (t.waveActive) {
+        t.spawnInterval -= dt;
+        if (t.spawnInterval <= 0 && t.spawnQueue > 0) {
+          t.spawnQueue--;
+          t.spawnInterval = 1.2;
+          const ang = Math.random() * Math.PI - Math.PI / 2;
+          const dist = 75;
+          const ex = Math.sin(ang) * dist;
+          const ez = -35 - Math.cos(ang) * (dist * 0.7);
+          const eType = Math.random() < 0.25 ? 'brute' : (Math.random() < 0.4 ? 'sprinter' : 'grunt');
+          t.enemies.push({
+            type: eType,
+            x: ex, y: 0, z: ez,
+            hp: eType === 'brute' ? 350 : (eType === 'sprinter' ? 60 : 120),
+            maxHp: eType === 'brute' ? 350 : (eType === 'sprinter' ? 60 : 120),
+            speed: eType === 'sprinter' ? 12 : (eType === 'brute' ? 4.5 : 7.0),
+            size: eType === 'brute' ? 1.8 : 1.1,
+            color: eType === 'brute' ? '#ffd600' : (eType === 'sprinter' ? '#ff9100' : '#ff1744'),
+            atkCd: 0
+          });
+        }
+        if (t.spawnQueue <= 0 && t.enemies.length === 0) {
+          t.waveActive = false;
+          t.wave++;
+          t.waveTimer = 6.0;
+          this.addFloatingText(`WAVE COMPLETE! +${t.wave * 100} PTS`, 640, 220, "#00e676", 24);
+        }
+      } else {
+        t.waveTimer -= dt;
+        if (t.waveTimer <= 0) this.startWave3DTPS();
+      }
+
+      // 3. Enemies Update
+      for (let i = t.enemies.length - 1; i >= 0; i--) {
+        const e = t.enemies[i];
+        const distToPlayer = Math.hypot(p.x - e.x, p.z - e.z);
+        let targetX = t.core.x;
+        let targetZ = t.core.z;
+
+        if (distToPlayer < 14) {
+          targetX = p.x;
+          targetZ = p.z;
+        }
+
+        const angleToTarget = Math.atan2(targetX - e.x, targetZ - e.z);
+        e.x += Math.sin(angleToTarget) * e.speed * dt;
+        e.z += Math.cos(angleToTarget) * e.speed * dt;
+
+        // Attack core
+        if (Math.hypot(e.x - t.core.x, e.z - t.core.z) < 4.5) {
+          e.atkCd = (e.atkCd || 0) - dt;
+          if (e.atkCd <= 0) {
+            e.atkCd = 1.0;
+            t.core.health = Math.max(0, t.core.health - 25);
+            this.screenShake = 4;
+            audio.leak();
+          }
+        }
+        // Attack player
+        if (distToPlayer < 2.2) {
+          e.atkCd = (e.atkCd || 0) - dt;
+          if (e.atkCd <= 0) {
+            e.atkCd = 1.2;
+            p.health = Math.max(0, p.health - 15);
+            this.screenShake = 6;
+            this.vibrate([60, 40, 60]);
+            audio.leak();
+          }
+        }
+      }
+
+      // 4. Towers Update
+      for (const tw of t.towers) {
+        tw.fireCd = (tw.fireCd || 0) - dt;
+        let nearest = null;
+        let minDist = 30;
+        for (const e of t.enemies) {
+          const d = Math.hypot(e.x - tw.x, e.z - tw.z);
+          if (d < minDist) { minDist = d; nearest = e; }
+        }
+        if (nearest) {
+          tw.angle = Math.atan2(nearest.x - tw.x, nearest.z - tw.z);
+          if (tw.fireCd <= 0) {
+            tw.fireCd = 0.2;
+            nearest.hp -= 20;
+            audio.shootPulse();
+            t.particles.push({
+              x: nearest.x, y: 1.0, z: nearest.z,
+              life: 0.25, maxLife: 0.25, color: "#ffd600"
+            });
+            if (nearest.hp <= 0) {
+              const idx = t.enemies.indexOf(nearest);
+              if (idx !== -1) t.enemies.splice(idx, 1);
+              t.score += 80;
+            }
+          }
+        }
+      }
+
+      // 5. Bullets Update
+      for (let i = t.bullets.length - 1; i >= 0; i--) {
+        const b = t.bullets[i];
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.z += b.vz * dt;
+        b.life -= dt;
+
+        for (let j = t.enemies.length - 1; j >= 0; j--) {
+          const e = t.enemies[j];
+          if (Math.hypot(b.x - e.x, b.z - e.z) < e.size && Math.abs(b.y - 1.0) < 1.5) {
+            e.hp -= b.damage;
+            b.life = 0;
+            this.screenShake = 2;
+            t.particles.push({ x: e.x, y: 1.2, z: e.z, life: 0.3, maxLife: 0.3, color: "#ff1744" });
+            if (e.hp <= 0) {
+              t.enemies.splice(j, 1);
+              t.score += 100;
+              audio.hit();
+            }
+            break;
+          }
+        }
+        if (b.life <= 0) t.bullets.splice(i, 1);
+      }
+
+      // 6. Particles Update
+      for (let i = t.particles.length - 1; i >= 0; i--) {
+        const pt = t.particles[i];
+        pt.life -= dt;
+        if (pt.life <= 0) t.particles.splice(i, 1);
+      }
+    }
+
+    shoot3DTPS() {
+      const t = this.tps3D;
+      const p = t.player;
+      if (p.isReloading || p.fireCd > 0) return;
+      if (p.ammo <= 0) { this.reload3DTPS(); return; }
+
+      p.ammo--;
+      p.fireCd = 0.12;
+      p.recoil = 1.0;
+      audio.shootPulse();
+      this.screenShake = 2;
+
+      const speed = 120;
+      const spread = p.hasRedDot ? 0.02 : 0.05;
+      const yawSpread = (Math.random() * 2 - 1) * spread;
+      const pitchSpread = (Math.random() * 2 - 1) * spread;
+
+      const aimYaw = p.yaw + yawSpread;
+      const aimPitch = p.pitch + pitchSpread;
+
+      t.bullets.push({
+        x: p.x + Math.sin(p.yaw) * 0.8,
+        y: 1.4,
+        z: p.z - Math.cos(p.yaw) * 0.8,
+        vx: Math.sin(aimYaw) * speed,
+        vy: -Math.sin(aimPitch) * speed,
+        vz: -Math.cos(aimYaw) * speed,
+        damage: 45,
+        life: 0.8
+      });
+    }
+
+    reload3DTPS() {
+      const p = this.tps3D.player;
+      if (p.isReloading || p.ammo === p.maxAmmo || p.reserveAmmo <= 0) return;
+      p.isReloading = true;
+      p.reloadTimer = 1.8;
+      audio.sell();
+    }
+
+    place3DTower() {
+      const t = this.tps3D;
+      const p = t.player;
+      const tx = p.x + Math.sin(p.yaw) * 4.5;
+      const tz = p.z - Math.cos(p.yaw) * 4.5;
+      t.towers.push({ x: tx, y: 0, z: tz, angle: 0, fireCd: 0 });
+      t.isBuilding = false;
+      audio.upgrade();
+      this.addFloatingText("3D GATLING TURRET DEPLOYED!", 640, 240, "#00e5ff", 22);
+    }
+
+    project3DPoint(wx, wy, wz, camX, camY, camZ, yaw, pitch, fov = 460) {
+      const dx = wx - camX;
+      const dy = wy - camY;
+      const dz = wz - camZ;
+
+      const cosY = Math.cos(-yaw);
+      const sinY = Math.sin(-yaw);
+      const x1 = dx * cosY - dz * sinY;
+      const z1 = dx * sinY + dz * cosY;
+
+      const cosP = Math.cos(-pitch);
+      const sinP = Math.sin(-pitch);
+      const y2 = dy * cosP - z1 * sinP;
+      const z2 = dy * sinP + z1 * cosP;
+
+      if (z2 <= 0.4) return null;
+
+      const scale = fov / z2;
+      return {
+        x: 640 + x1 * scale,
+        y: 360 - y2 * scale,
+        z: z2,
+        scale: scale
+      };
+    }
+
+    render3DTPS() {
+      const ctx = this.ctx;
+      const t = this.tps3D;
+      const p = t.player;
+
+      // 1. Cyber Skybox & Atmosphere
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 720);
+      skyGrad.addColorStop(0, "#030712");
+      skyGrad.addColorStop(0.5, "#0b1329");
+      skyGrad.addColorStop(1, "#111827");
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      const camDist = p.isAiming ? 2.0 : 3.8;
+      const shoulderX = p.isAiming ? 0.35 : 0.75;
+      const camX = p.x - Math.sin(p.yaw) * camDist + Math.cos(p.yaw) * shoulderX;
+      const camZ = p.z + Math.cos(p.yaw) * camDist + Math.sin(p.yaw) * shoulderX;
+      const camY = 1.9 + Math.sin(p.pitch) * camDist;
+
+      // 2. 3D Perspective Ground Grid
+      ctx.lineWidth = 1;
+      for (let x = -50; x <= 50; x += 10) {
+        const p1 = this.project3DPoint(x, 0, -80, camX, camY, camZ, p.yaw, p.pitch);
+        const p2 = this.project3DPoint(x, 0, 40, camX, camY, camZ, p.yaw, p.pitch);
+        if (p1 && p2) {
+          ctx.strokeStyle = (x === 0) ? "rgba(0, 229, 255, 0.4)" : "rgba(0, 229, 255, 0.12)";
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+      for (let z = -80; z <= 40; z += 10) {
+        const p1 = this.project3DPoint(-50, 0, z, camX, camY, camZ, p.yaw, p.pitch);
+        const p2 = this.project3DPoint(50, 0, z, camX, camY, camZ, p.yaw, p.pitch);
+        if (p1 && p2) {
+          ctx.strokeStyle = (z === -35) ? "rgba(255, 23, 68, 0.5)" : "rgba(0, 229, 255, 0.12)";
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+
+      // 3. Central Base Core in 3D
+      const coreProj = this.project3DPoint(t.core.x, 0, t.core.z, camX, camY, camZ, p.yaw, p.pitch);
+      if (coreProj) {
+        const cr = 4.0 * coreProj.scale;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.beginPath();
+        ctx.ellipse(coreProj.x, coreProj.y, cr * 1.4, cr * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#0c1527";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = (Math.PI / 3) * i;
+          const px = coreProj.x + Math.cos(a) * cr;
+          const py = coreProj.y + Math.sin(a) * cr * 0.6;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        const orbY = coreProj.y - 2.5 * coreProj.scale;
+        const orbGrad = ctx.createRadialGradient(coreProj.x, orbY, 2, coreProj.x, orbY, cr * 0.6);
+        orbGrad.addColorStop(0, "#ffffff");
+        orbGrad.addColorStop(0.5, "#00e5ff");
+        orbGrad.addColorStop(1, "rgba(0, 110, 255, 0)");
+        ctx.fillStyle = orbGrad;
+        ctx.beginPath();
+        ctx.arc(coreProj.x, orbY, cr * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = `bold ${Math.max(10, Math.round(12 * coreProj.scale / 20))}px monospace`;
+        ctx.textAlign = "center";
+        ctx.fillText(`BASE CORE [${t.core.health}/${t.core.maxHealth}]`, coreProj.x, orbY - cr * 0.7);
+      }
+
+      // 4. 3D Defense Towers
+      for (const tw of t.towers) {
+        const tp = this.project3DPoint(tw.x, 0, tw.z, camX, camY, camZ, p.yaw, p.pitch);
+        if (tp) {
+          const sz = 2.0 * tp.scale;
+          ctx.fillStyle = "#1e293b";
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(tp.x - sz / 2, tp.y - sz, sz, sz);
+          ctx.strokeRect(tp.x - sz / 2, tp.y - sz, sz, sz);
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.arc(tp.x, tp.y - sz * 1.1, sz * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 5. 3D Enemies (Sorted back to front)
+      const renderList = [];
+      for (const e of t.enemies) {
+        const ep = this.project3DPoint(e.x, 0, e.z, camX, camY, camZ, p.yaw, p.pitch);
+        if (ep) renderList.push({ type: 'enemy', e: e, proj: ep, z: ep.z });
+      }
+      renderList.sort((a, b) => b.z - a.z);
+
+      for (const item of renderList) {
+        const e = item.e;
+        const ep = item.proj;
+        const eh = e.size * 1.8 * ep.scale;
+        const ew = e.size * 0.9 * ep.scale;
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+        ctx.beginPath();
+        ctx.ellipse(ep.x, ep.y, ew * 0.9, ew * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const eGrad = ctx.createLinearGradient(ep.x - ew / 2, ep.y - eh, ep.x + ew / 2, ep.y);
+        eGrad.addColorStop(0, "#475569");
+        eGrad.addColorStop(0.5, e.color);
+        eGrad.addColorStop(1, "#0f172a");
+        ctx.fillStyle = eGrad;
+        ctx.beginPath();
+        ctx.roundRect(ep.x - ew / 2, ep.y - eh, ew, eh, [ew * 0.3]);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#ff1744";
+        ctx.fillRect(ep.x - ew * 0.35, ep.y - eh * 0.85, ew * 0.7, eh * 0.15);
+
+        const barW = Math.max(24, ew * 1.4);
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(ep.x - barW / 2, ep.y - eh - 8, barW, 4);
+        ctx.fillStyle = e.color;
+        ctx.fillRect(ep.x - barW / 2, ep.y - eh - 8, barW * (e.hp / e.maxHp), 4);
+      }
+
+      // 6. 3D Bullets
+      for (const b of t.bullets) {
+        const bp = this.project3DPoint(b.x, b.y, b.z, camX, camY, camZ, p.yaw, p.pitch);
+        if (bp) {
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.arc(bp.x, bp.y, Math.max(2, 2.5 * bp.scale / 20), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 7. 3D Player Mech (Over-The-Shoulder TPS Character)
+      const pp = this.project3DPoint(p.x, 0, p.z, camX, camY, camZ, p.yaw, p.pitch);
+      if (pp) {
+        const pw = 1.3 * pp.scale;
+        const ph = 2.4 * pp.scale;
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.beginPath();
+        ctx.ellipse(pp.x, pp.y, pw * 0.8, pw * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const mechGrad = ctx.createLinearGradient(pp.x - pw / 2, pp.y - ph, pp.x + pw / 2, pp.y);
+        mechGrad.addColorStop(0, "#334155");
+        mechGrad.addColorStop(0.5, "#1e293b");
+        mechGrad.addColorStop(1, "#090d16");
+        ctx.fillStyle = mechGrad;
+        ctx.beginPath();
+        ctx.roundRect(pp.x - pw * 0.4, pp.y - ph * 0.9, pw * 0.8, ph * 0.65, [pw * 0.2]);
+        ctx.fill();
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.beginPath();
+        ctx.arc(pp.x, pp.y - ph * 0.6, pw * 0.16, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#090d16";
+        ctx.beginPath();
+        ctx.arc(pp.x, pp.y - ph * 0.95, pw * 0.26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(pp.x - pw * 0.2, pp.y - ph * 0.98, pw * 0.4, ph * 0.1);
+
+        const recoilOffset = p.recoil * 10;
+        const gunX = pp.x + pw * 0.45;
+        const gunY = pp.y - ph * 0.55 + recoilOffset;
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(gunX - 4, gunY - 3, 24, 7);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(gunX + 16, gunY - 2, 8, 3);
+
+        if (p.hasLaser && !p.isAiming) {
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(gunX + 24, gunY);
+          ctx.lineTo(640, 360);
+          ctx.stroke();
+        }
+      }
+
+      // 8. 3D Building Ghost
+      if (t.isBuilding) {
+        const buildX = p.x + Math.sin(p.yaw) * 5.0;
+        const buildZ = p.z - Math.cos(p.yaw) * 5.0;
+        const bp = this.project3DPoint(buildX, 0, buildZ, camX, camY, camZ, p.yaw, p.pitch);
+        if (bp) {
+          const bs = 3.0 * bp.scale;
+          ctx.strokeStyle = "#00e676";
+          ctx.fillStyle = "rgba(0, 230, 118, 0.25)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bp.x - bs / 2, bp.y - bs / 2, bs, bs);
+          ctx.fillRect(bp.x - bs / 2, bp.y - bs / 2, bs, bs);
+          ctx.fillStyle = "#00e676";
+          ctx.font = "bold 12px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("TAP [FIRE] TO DEPLOY TURRET", bp.x, bp.y - bs / 2 - 8);
+        }
+      }
+
+      // 9. Precision Crosshair (Center Screen)
+      const cx = 640;
+      const cy = 360;
+      if (p.isAiming) {
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = "#ff1744";
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2;
+        const gap = 8 + p.recoil * 14;
+        const len = 12;
+        ctx.beginPath();
+        ctx.moveTo(cx - gap - len, cy); ctx.lineTo(cx - gap, cy);
+        ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + gap + len, cy);
+        ctx.moveTo(cx, cy - gap - len); ctx.lineTo(cx, cy - gap);
+        ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + gap + len);
+        ctx.stroke();
+      }
+
+      // 10. Tactical 3D HUD & Controls
+      this.renderMiniButton(30, 20, 110, 36, "← MENYU");
+
+      ctx.fillStyle = "#0c1527";
+      ctx.fillRect(160, 18, 960, 40);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(160, 18, 960, 40);
+
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 15px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`WAVE: ${t.wave}`, 180, 43);
+      ctx.fillText(`SCORE: ${t.score}`, 320, 43);
+
+      ctx.fillStyle = "#cfd8dc";
+      ctx.fillText(`BASE CORE:`, 480, 43);
+      ctx.fillStyle = "#090d16";
+      ctx.fillRect(590, 28, 200, 18);
+      ctx.fillStyle = t.core.health > 150 ? "#00e676" : "#ff1744";
+      ctx.fillRect(590, 28, 200 * (t.core.health / t.core.maxHealth), 18);
+      ctx.strokeStyle = "#ffffff";
+      ctx.strokeRect(590, 28, 200, 18);
+
+      ctx.fillStyle = "#0c1527";
+      ctx.fillRect(30, 640, 240, 60);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.strokeRect(30, 640, 240, 60);
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 20px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`AMMO: ${p.ammo} / ${p.reserveAmmo}`, 45, 675);
+      if (p.isReloading) {
+        ctx.fillStyle = "#ff1744";
+        ctx.font = "bold 12px monospace";
+        ctx.fillText("RELOADING...", 175, 675);
+      }
+
+      // Mobile Touch Action Buttons (Right side)
+      ctx.fillStyle = "rgba(255, 23, 68, 0.75)";
+      ctx.beginPath();
+      ctx.arc(1200, 620, 48, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("💥 OTISH", 1200, 626);
+
+      ctx.fillStyle = p.isAiming ? "rgba(0, 229, 255, 0.85)" : "rgba(15, 23, 42, 0.75)";
+      ctx.beginPath();
+      ctx.arc(1080, 640, 36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = p.isAiming ? "#000" : "#fff";
+      ctx.font = "bold 12px monospace";
+      ctx.fillText("🎯 DURBIN", 1080, 645);
+
+      ctx.fillStyle = t.isBuilding ? "rgba(0, 230, 118, 0.85)" : "rgba(15, 23, 42, 0.75)";
+      ctx.beginPath();
+      ctx.arc(1200, 500, 36, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e676";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = t.isBuilding ? "#000" : "#fff";
+      ctx.font = "bold 12px monospace";
+      ctx.fillText("🏗️ QURISH", 1200, 505);
+
+      ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+      ctx.beginPath();
+      ctx.arc(1080, 540, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText("🔄 O'Q", 1080, 544);
+
+      if (t.touch.moveId !== null) {
+        ctx.fillStyle = "rgba(0, 229, 255, 0.2)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(t.touch.moveStart.x, t.touch.moveStart.y, 65, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd600";
+        ctx.beginPath();
+        ctx.arc(t.touch.moveStart.x + t.touch.moveVec.x * 55, t.touch.moveStart.y + t.touch.moveVec.y * 55, 24, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
   }
 
   window.addEventListener('DOMContentLoaded', () => {

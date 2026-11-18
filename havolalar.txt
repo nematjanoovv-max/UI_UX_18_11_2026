@@ -1,7 +1,7 @@
 ================================================================================
 LOYIHA NOMI:
-07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 + Web 2D)
-Versiya: v3.3.0 (Realistic CGI Engine & Dynamic Lighting Reliz)
+07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter
+Versiya: v3.4.0 (3D TPS Cyber-Arena Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -18,29 +18,20 @@ https://last-grid-td.vercel.app/api
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-v3.3.0 REALIZM VA VIZUAL GRAFIKA YANGILANISHLARI (MULTFILMDAN HAQIQIY O'YINGA):
+v3.4.0 YANGI 3D TPS ARENA REJIMI IMKONIYATLARI (PUBG/GTA USLUBIDA):
 
-1. 🌑 Zamin Kontakt Soyalari (Contact Shadows & Ambient Occlusion):
-   - Har bir minora, Qahramon Mech va 8 dushman ostida yumshoq zamin soyalari chiziladi.
-   - Birliklar qog'ozdek uchib turmasdan, xarita zaminiga mustahkam bog'lanadi.
+1. 🎮 Jonli 3D Third-Person Shooter (TPS) Rejimi:
+   - Saytga (https://last-grid-td.vercel.app) kiring va bosh menyuda eng yuqoridagi "🎮 3D TPS ARENA REJIMI (BETA)" tugmasini bosing!
+   - Siz darhol 3-shaxs kamerasida kiber-poligonga tushasiz.
 
-2. 🛡️ Metallik Gradientlar va Specular Chamferlar:
-   - Apex-01 Qahramoni: Ko'p qatlamli titan zirh, gidravlik oyoqlar, aylanuvchi mis halqali Ark-Reaktor, shisha visor va dinamik egri nur iz qoldiruvchi Plazma Katana.
-   - Minoralar: 45° qirqimli metall korpus, gaykalar, sovutish ventilyatsiyalari, sariq/qora chevrons.
-   - Dushmanlar: Zamonaviy kiber-soldatlar, uglerodli Stalker, qora tutun chiqaruvchi Goliath Brute, optik kamuflyajli Phantom, suzuvchi Eye of Chronos, va ulkan Colossus MK-IV.
+2. 🕹️ Boshqaruv:
+   - Kompyuterda: [W, A, S, D] yugurish, [Shift] tez yugurish, [Sichqoncha] kamerani 360° burish, [Space / Chap tugma] otish, [R] qayta o'qlash, [B] 3D minora qurish.
+   - Telefonda: Ekranning chap tomonida virtual harakat joystigi, o'ng tomonda barmog'ingiz bilan kamerani burish va [💥 OTISH], [🎯 DURBIN], [🏗️ QURISH], [🔄 O'Q] tugmalari.
 
-3. 💡 Dinamik Additiv Yorug'lik Qatlami (Dynamic Lightmaps):
-   - Qurollar otilganda tumshuqda yorqin muzzle flash chaqnashi.
-   - Reaktor yadrosidan va o'qlardan atrofga nur yog'dusi taralishi.
-   - Portlashlar maydonni real vaqtda yoritadi.
+3. 🛡️ Baza Himoyasi va Minoralar:
+   - [🏗️ QURISH] tugmasini bosib, 3D maydonga avtomatik nishonga oluvchi Gatling minoralarini o'rnating.
+   - Minoralar va o'zingiz birgalikda Kvant Bazasini dushmanlar to'lqinidan himoya qiling!
 
-4. 💥 Jang Fizikasi va Qurolning Orqaga Tepishi (Weapon Recoil & Casings):
-   - O'q otilganda stvol fizik jihatdan orqaga tepadi (`recoilTimer`).
-   - Otilgan latun patron gilzalari yerga sakrab, pol ustida aylanib tushadi.
-   - Portlagan bombalar yerda kuygan qora kraterlar qoldiradi.
-
-5. 📱 Telefonda 100% Qulay Touch Boshqaruvi:
-   - Kingdom Rush uslubidagi Radial Quick-Build aylanasi.
-   - Avtomatik landshaft fullscreen rejimi.
-   - Aniq debouns qilingan sensor teginishlari.
+4. 🤖 Godot 4.3 3D Dasturiy Modullari:
+   - Barcha GDScript 3D kontrollerlari, Qurol modifikatsiyalari va 3D scenalari GitHub repozitoriyasiga joylashtirildi.
 ================================================================================

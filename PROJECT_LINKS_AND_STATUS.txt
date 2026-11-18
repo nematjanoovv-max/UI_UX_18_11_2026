@@ -1,9 +1,9 @@
 ================================================================================
 LOYIHA NOMI VA MA'LUMOTLARI:
-07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
-Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
+07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter O'yini
+Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 3D/2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.3.0 Realistic CGI Engine & Dynamic Lighting Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.4.0 3D TPS Cyber-Arena Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,32 +22,35 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.3.0 REALISTIC CGI ENGINE & 2D REALIZMNING 5 TA ASOSIY USTUNI:
+2. v3.4.0 3D TPS CYBER-ARENA YANGILIKLARI (PUBG/GTA USLUBIDAGI 3D SHOOTER):
 
-[1] ZAMIN KONTAKT SOYALARI VA AMBIENT OCCLUSION (LAYERED GROUND CONTACT SHADOWS):
-    - Har bir personaj, minora, reaktor yadrosi va dushman ostiga ko'p qatlamli silliq ellips zamin soyalari qo'shildi (`renderUnitShadows()`).
-    - Birliklar endi tekis qog'ozdek uchib turmaydi, balki yuqori yorug'lik manbasi hisobiga polga tabiiy tushuvchi yumshoq radial soyalarga ega.
-    - Minoralarning stvoli burilishiga qarab yo'naltirilgan soyalar tushadi.
+[1] TO'G'RIDAN-TO'G'RI JONLI 3D TPS ARENA REJIMI:
+    - Bosh menyuda "🎮 3D TPS ARENA REJIMI (BETA)" yorqin pushti tugmasi ochildi.
+    - O'yinchi to'liq 3D fazoga o'tadi:
+      * 3-shaxs kamerasi (Over-the-shoulder, PUBG/GTA kabi qahramonning o'ng yelkasi ortidan).
+      * 500x500 metrli kiber-poligon zamin to'ri (Perspektiv 3D grid).
+      * Boshqaruv: PC-da [W, A, S, D] yugurish, [Shift] tez yugurish, [Space / Click] o'q otish, [R] qayta o'qlash, [B] 3D minoralar o'rnatish.
+      * Mobilda: Ekran chap tomonida suzuvchi virtual 3D harakat joystigi, o'ng tomonda [💥 OTISH], [🎯 DURBIN (ADS)], [🏗️ QURISH] va [🔄 O'QLASH] tugmalari.
 
-[2] METALLIK KO'P BOSQICHLI GRADIENTLAR VA 3D CHESHTLAR (SPECULAR BEVELS & SHADING):
-    - Qahramon Mech (Apex-01): Titan zirh plitalari, gidravlik tizza porshenlari, aylanuvchi mis magnitli Ark-Reaktor yadrosi, ikki qavatli shisha kiber-visor va elektr chaqmoqlari bilan yonuvchi Yuqori-Chastotali Plazma Katana (harakatda kavisli nurli iz qoldiradi).
-    - Minoralar: 45 darajali metall qirqimlari (bevels), zanglamas po'lat gaykalar, sovutish radiatorlari, ogohlantiruvchi qora/sariq chevrons.
-    - 8 ta Kiber Dushman va 3 Boss: Multfilm uslubidagi oddiy shakllar o'rniga zamonaviy harbiy kiber-mashinalar (kamuflyajli taktik zirh, tungi ko'rish visorlari, uglerod tolali Stalker, qora tutun chiqaruvchi Goliath Brute, optik kamuflyajli Phantom, zanjirli Leviathan, gimbelli Eye of Chronos, Colossus MK-IV lazerli tanki).
+[2] QUROL VA MODIFIKATSIYALAR (ATTACHMENTS):
+    - Pulse Carbine avtomati: 30 patronli magazin, orqaga tepish (recoil), stvoldan chiqadigan nurli lazer nishon (Laser Sight) va Red-Dot durbin nishoni.
+    - [🎯 DURBIN] bosilganda kamera ADS zoom rejimiga o'tib, markazda qizil kollimator nuqtasi yonadi.
 
-[3] DINAMIK ADDITIV YORIG'LIK TIZIMI (DYNAMIC LIGHTING & LIGHTMAPS):
-    - Canvas-da `globalCompositeOperation = "lighter"` orqali to'liq yorug'lik qatlami (`renderDynamicLightingLayer()`).
-    - Minoralardan o'q otilganda tumshuqda yorqin sariq/olovrang nur chaqnashi (muzzle flash bloom).
-    - Reaktor yadrosidan atrofga pulsatsiyalanuvchi kiber-ko'k radial yog'du taralishi.
-    - O'qlar va artilleriya snaryadlari uchib borayotganda o'z ortidan yerga tushuvchi yorug'lik doirasi.
+[3] 3D BAZA VA HIMOYACHI MINORALAR QURILISHI:
+    - Maydon markazida ulkan 3D Kvant Reaktori (`Base Core [500/500]`).
+    - Dushmanlar uzoq gorizontdan to'lqin bo'lib yugurib keladi.
+    - [🏗️ QURISH] tugmasi bosilganda yer sathida yashil 3D kub proyeksiya qilinadi va bitta teginishda to'g'ridan-to'g'ri maydonga avtomatik nishonga oluvchi 3D Gatling minorasi o'rnatiladi.
 
-[4] JANG MIKRO-FIZIKASI VA QUROL SILKINISHI (RECOIL & WEAPON PHYSICS):
-    - Qurollarning orqaga tepishi (Physical Recoil Kickback): Stvol o'q otilgan onda -6px orqaga silkinadi va amortizator orqali joyiga qaytadi.
-    - Otilgan patron gilzalari (Spent Brass Shell Casings): Kinetik minoralardan otilgan haqiqiy latun rangidagi patron gilzalari havoga uchib, yerga sakrab tushadi va pol ustida bir necha soniya aylanib turadi.
-    - Artilleriya portlash kraterlari (Scorch Marks): Mina va raketalar tushgan joyda zamin ustida kuygan qora kraterlar va darz ketgan izlar qoladi.
-    - Tutun va oyoq izlari: Qahramon mech va tanklar yurganda chang ko'tariladi va yengil izlar qoladi.
+[4] GODOT 4.3 3D SCENALARI VA ARXITEKTURASI (REPOZITORIYDA):
+    - `scenes/arena_3d/arena_3d.tscn` — Master 3D jangovar poligon.
+    - `scenes/arena_3d/player_3d.tscn` — CharacterBody3D, SpringArm3D va qurol tizimi.
+    - `scenes/arena_3d/enemy_3d.tscn` — 3D dushman NavigationAgent3D bilan.
+    - `scenes/arena_3d/tower_3d.tscn` — 360° aylanuvchi 3D minora.
+    - `scripts/controllers/player_3d.gd` — To'liq TPS kontrolleri.
+    - `scripts/weapons/weapon_controller_3d.gd` — Qurol va modifikatsiyalar.
+    - `scripts/ui/mobile_tps_touch.gd` — Mobil dual-joystik tizimi.
 
-[5] TELEFONDA 100% QULAY MOBIL BOSHQARUV (v3.2 BILAN BIRGALIKDA):
-    - Kingdom Rush uslubidagi Radial Quick-Build doirasi.
-    - NaN xatolari bartaraf etilgan aniq sensor teginishi (`e.changedTouches[0]`).
-    - Avtomatik landshaft rejimi (Auto-Rotate Fullscreen).
+[5] 2D REALIZM & 3D HAMKORLIK:
+    - Klassik 2D Taktik rejim ham 100% saqlangan (v3.3 realizm va CGI effektlari bilan).
+    - Foydalanuvchi xohlagan paytda 3D TPS rejimiga o'tib, maydonda qurolda otib o'ynashi mumkin.
 ================================================================================
