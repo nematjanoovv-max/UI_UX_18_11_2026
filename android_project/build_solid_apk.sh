@@ -6,6 +6,8 @@ ROOT_DIR="$(cd "$DIR/.." && pwd)"
 ANDROID_JAR="$ROOT_DIR/android-sdk/android.jar"
 
 echo "=== 1. Syncing assets ==="
+mkdir -p "$DIR/assets/www"
+cp -r "$ROOT_DIR/assets" "$DIR/assets/www/"
 cp "$ROOT_DIR/index.html" "$DIR/assets/www/"
 cp "$ROOT_DIR/game.js" "$DIR/assets/www/"
 cp "$ROOT_DIR/manifest.json" "$DIR/assets/www/"
@@ -56,7 +58,7 @@ if [ ! -f "$KEYSTORE" ]; then
 fi
 
 echo "=== 10. Signing APK with Official Google apksigner (v1 + v2 + v3) ==="
-FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v3.5.0.apk"
+FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v3.6.0.apk"
 apksigner sign \
     --ks "$KEYSTORE" \
     --ks-key-alias lastgrid \

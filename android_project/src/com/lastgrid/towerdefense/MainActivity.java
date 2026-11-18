@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
                         String assetPath = null;
                         if (path.startsWith("/android_asset/")) {
                             assetPath = path.substring("/android_asset/".length());
-                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css")) {
+                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav")) {
                             assetPath = "www" + (path.startsWith("/") ? path : "/" + path);
                             if (assetPath.equals("www/")) assetPath = "www/index.html";
                         }
@@ -85,6 +85,8 @@ public class MainActivity extends Activity {
                                 else if (assetPath.endsWith(".json")) mime = "application/json";
                                 else if (assetPath.endsWith(".png")) mime = "image/png";
                                 else if (assetPath.endsWith(".svg")) mime = "image/svg+xml";
+                                else if (assetPath.endsWith(".mp3")) mime = "audio/mpeg";
+                                else if (assetPath.endsWith(".wav")) mime = "audio/wav";
                                 return new WebResourceResponse(mime, "UTF-8", is);
                             } catch (Exception e) {}
                         }
@@ -179,7 +181,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getVersion() {
-            return "3.5.0-android-apk";
+            return "3.6.0-android-apk";
         }
 
         @JavascriptInterface

@@ -11,10 +11,15 @@ export/
 # APK tracking
 *.apk
 !TowerDefense_LastGrid_v3.5.0.apk
+!TowerDefense_LastGrid_v3.6.0.apk
 !last-grid.apk
 !web/TowerDefense_LastGrid_v3.5.0.apk
+!web/TowerDefense_LastGrid_v3.6.0.apk
 !web/last-grid.apk
 *.idsig
+
+# Raw dataset archives
+data/datasets/
 
 # Offline zips
 *.zip

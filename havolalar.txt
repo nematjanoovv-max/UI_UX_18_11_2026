@@ -1,12 +1,12 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter
-Versiya: v3.5.0 (Standalone Android APK Reliz)
+Versiya: v3.6.0 (Pro Balans & Studio SFX Reliz)
 Sana: 2026-11-18
 ================================================================================
 
 1. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
-https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.5.0.apk
+https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.6.0.apk
 Qisqa havola:
 https://last-grid-td.vercel.app/last-grid.apk
 
@@ -27,12 +27,13 @@ ANDROID APK IMKONIYATLARI VA O'RNATISH QO'LLANMASI:
 
 1. 📲 O'rnatish:
    - Yuqoridagi APK havolasini bosing yoki Vercel saytidagi "📲 ANDROID APK" tugmasini bosing.
-   - Yuklangan `TowerDefense_LastGrid_v3.5.0.apk` faylini ochib, "O'rnatish" (Install) tugmasini bosing.
+   - Yuklangan `TowerDefense_LastGrid_v3.6.0.apk` faylini ochib, "O'rnatish" (Install) tugmasini bosing.
    - Ilova telefoningiz ishchi stolida "Tower Defense: Last Grid" nomi va kiber-minora ikonasi bilan paydo bo'ladi.
 
-2. 🚀 Xususiyatlari:
-   - 100% Oflayn ishlaydi — internet kerak emas!
-   - Ekranni to'liq egallaydi (Landscape Fullscreen, PUBG/GTA kabi).
-   - Taktil sensorli tebranish (Haptic feedback) qo'llab-quvvatlanadi.
-   - Barcha 10 ta xarita, Kiber-Airdroplar, Red Zone artilleriyasi, Buziluvchan to'siqlar va 3D TPS Arena rejimi mavjud!
+2. 🚀 Yangiliklar (v3.6.0):
+   - Kaggle Bloons TD 6 dataseti asosida 30 ta to'lqin mukammal muvozanatlandi!
+   - Cyberpunk 2077 & Valorant qurollar statistikasi (Armor Shred, Tech Sniper 2.5x Crit, AoE Napalm).
+   - CC0 Professional studiya ovozlari (haqiqiy metall-taktil tugmalar, lazer va og'ir portlashlar).
+   - 3D TPS rejimida masofaga bog'liq ballistika va boshga tekkanda 2.2x kiber-kritik zarar.
+   - 100% Oflayn ishlaydi — barcha audio va grafikalar APK ichida!
 ================================================================================
