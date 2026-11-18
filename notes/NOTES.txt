@@ -32,3 +32,12 @@
 - Implemented scripts/gameplay/build_controller.gd with placement preview and grid validation.
 - Unit tests tests/unit/test_targeting.gd verified all targeting priority modes, tie-breaks, and phasing immunity.
 - Gate M3 passed.
+[2026-11-18 19:17] [NOTES] Completed M4 Economy, Waves, Bosses & Full Run (MVP Checkpoint):
+- Implemented scripts/managers/economy_manager.gd for gold deduction, bounties, wave bonus, early-call bonus.
+- Implemented scripts/gameplay/upgrade_controller.gd for tier upgrades, sell refund (70%), and target mode cycling.
+- Implemented scripts/gameplay/wave_manager.gd with full wave lifecycle: countdown, early call, spawning, active tracking including splits/summons.
+- Generated all 30 wave configurations in data/waves/wave_01.tres ... wave_30.tres following spec §8.3.
+- Implemented enemy death splits and healing traits.
+- Implemented scenes/ui/battle_hud.tscn and scripts/ui/battle_hud.gd.
+- Integration tests in tests/integration/test_full_run.gd verified acceptance criteria #3 (wave completion, economy atomic transactions, base loss defeat).
+- Gate M4 reached.

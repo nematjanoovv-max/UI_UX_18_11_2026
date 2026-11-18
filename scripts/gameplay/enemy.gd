@@ -5,6 +5,7 @@ extends Node2D
 
 signal reached_base(damage: int)
 signal died(killed_by_player: bool)
+signal spawn_child_requested(enemy_id: String, progress_px: float, lane_id: int)
 
 static var _next_uid: int = 1
 
@@ -28,7 +29,10 @@ var status_effects: StatusEffects
 var is_active: bool = false
 var has_phase_trait: bool = false
 var has_shield_regen_trait: bool = false
+var has_split_trait: bool = false
+var has_heal_trait: bool = false
 var shield_regen_timer: float = 0.0
+var heal_pulse_timer: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var hp_bar: ProgressBar = $HpBar
@@ -62,7 +66,10 @@ func setup(enemy_data: EnemyData, lane: int, network: PathNetwork, wave_index: i
 	
 	has_phase_trait = "phase" in enemy_data.traits
 	has_shield_regen_trait = "shield_regen" in enemy_data.traits
+	has_split_trait = "split_on_death" in enemy_data.traits
+	has_heal_trait = "heal_aura" in enemy_data.traits
 	shield_regen_timer = 0.0
+	heal_pulse_timer = 0.0
 	
 	status_effects.reset()
 	is_active = true
@@ -145,6 +152,11 @@ func _on_reach_base() -> void:
 		EventBus.enemy_reached_base.emit(self, base_damage)
 
 func _on_death(killed_by_player: bool) -> void:
+	if has_split_trait and killed_by_player:
+		# Spec §8.1: Splitter spawns 2 swarmlings on death
+		spawn_child_requested.emit("swarmling", progress_px, lane_id)
+		spawn_child_requested.emit("swarmling", maxf(0.0, progress_px - 15.0), lane_id)
+		
 	is_active = false
 	visible = false
 	died.emit(killed_by_player)

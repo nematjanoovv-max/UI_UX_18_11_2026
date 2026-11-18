@@ -69,15 +69,15 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M3 (acceptance #2):** each of 5 towers works vs. each enemy type; 4 targeting modes verified by tests + visual debug; 60 FPS with 100 enemies + 30 towers on desktop.
 
 ## M4 — Economy, waves, bosses, full run (Days 10–12) — **[66][67]**
-- [ ] `EconomyManager`: gold, buy/upgrade/sell atomic, refunds, bounties, wave bonus, early-call bonus.
-- [ ] `UpgradeController`: tier-up costs, sell (70 %), target-mode switch.
-- [ ] `WaveManager`: load `WaveData`, timing, spawn groups, countdown, early call, speed 1×/2×/3×, clear detection incl. split/summon children (spec §7.8).
-- [ ] Author `wave_01…wave_30.tres` (spec §8.3).
-- [ ] Enemy traits: heal aura (medic), split on death (splitter), phase (phantom), shield regen (shieldbearer).
-- [ ] Bosses: Juggernaut, Overseer (summons + aura), Hive Titan (3 phases) + boss HP bar signals.
-- [ ] `GameState` FSM complete: build ⇄ wave, victory, defeat, pause (freezes all timers/tweens/audio-gameplay).
-- [ ] Temporary minimal HUD (gold, wave, base HP) so the loop is playable.
-- [ ] Integration test: scripted run on map 1 reaches VICTORY and DEFEAT deterministically.
+- [x] `EconomyManager`: gold, buy/upgrade/sell atomic, refunds, bounties, wave bonus, early-call bonus.
+- [x] `UpgradeController`: tier-up costs, sell (70 %), target-mode switch.
+- [x] `WaveManager`: load `WaveData`, timing, spawn groups, countdown, early call, speed 1×/2×/3×, clear detection incl. split/summon children (spec §7.8).
+- [x] Author `wave_01…wave_30.tres` (spec §8.3).
+- [x] Enemy traits: heal aura (medic), split on death (splitter), phase (phantom), shield regen (shieldbearer).
+- [x] Bosses: Juggernaut, Overseer (summons + aura), Hive Titan (3 phases) + boss HP bar signals.
+- [x] `GameState` FSM complete: build ⇄ wave, victory, defeat, pause (freezes all timers/tweens/audio-gameplay).
+- [x] Temporary minimal HUD (gold, wave, base HP) so the loop is playable.
+- [x] Integration test: scripted run on map 1 reaches VICTORY and DEFEAT deterministically.
 **Gate M4 — MVP checkpoint:** one map, all 30 waves, all towers/enemies/bosses playable start→finish; wave-clear and base-loss logic verified (acceptance #3); tag `v0.1.0`.
 
 ## M5 — UI/UX (Days 13–15) — **[69]**
@@ -177,3 +177,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 - 2026-11-18 — Completed M1 (GDD.md, controls.md, balance.md, 13 Resource schemas, authored 5 towers / 8 enemies / 3 bosses, combat calc utils & tests, validate_data.gd).
 - 2026-11-18 — Completed M2 (GridMap2D, PathNetwork, Enemy base & pooling, StatusEffects, BaseCore, path-invariant acceptance tests).
 - 2026-11-18 — Completed M3 (SpatialHash, TowerBase, TargetingSystem with 4 modes & tie-breaks, Projectile & ProjectilePool, BuildController, targeting tests).
+- 2026-11-18 — Completed M4 — MVP Checkpoint (EconomyManager, UpgradeController, WaveManager, authored all 30 wave configurations, BattleHUD, integration test, tagged v0.1.0).
