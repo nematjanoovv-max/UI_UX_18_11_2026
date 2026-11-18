@@ -1928,15 +1928,20 @@
         }
       }
 
-      // 3. Hero Click or Move
+      // 3. Hero Click or Move with Kinetic Booster Dash
       if (this.hero.selected) {
         if (y >= 60 && y <= 620) {
           this.hero.targetX = x;
           this.hero.targetY = y;
           this.hero.selected = false;
+          // Trigger Kinetic Booster Rocket Dash
+          this.hero.dashSpeedBoost = 2.4;
+          this.hero.dashTimer = 0.45;
+          this.spawnShockwave(this.hero.x, this.hero.y, 45, "#00e5ff");
           this.spawnShockwave(x, y, 35, "#ffd600");
-          audio.upgrade();
-          this.vibrate(20);
+          this.addFloatingText("⚡ KINETIC DASH!", this.hero.x, this.hero.y - 25, "#00e5ff", 16);
+          if (audio) audio.shootPulse();
+          this.vibrate([20, 20, 35]);
           return;
         }
       }
@@ -3097,6 +3102,54 @@
           if (e.shieldRegenTimer > 3.0) e.shield = Math.min(e.maxShield, e.shield + 20 * dt);
         }
 
+        // Advanced Boss AI Behavior Modeling
+        if (e.isBoss) {
+          e.abilityTimer = (e.abilityTimer || 0) + dt;
+
+          // 1. Juggernaut Enrage (Phase 2 at 50% HP)
+          if (e.type === 'juggernaut' && !e.enraged && e.hp <= e.maxHp * 0.5) {
+            e.enraged = true;
+            e.speed *= 1.35;
+            this.screenShake = 18;
+            this.addFloatingText("☠️ JUGGERNAUT ENRAGED!", e.x, e.y - 35, "#ff1744", 24);
+            this.triggerRadioComm("HQ OVERWATCH", "⚠️ DIQQAT: Juggernaut 50% HP! Enrage rejimi: tezlik va zarba oshdi!", 4.0);
+            this.spawnShockwave(e.x, e.y, 90, "#ff1744");
+            if (audio) audio.artilleryBlast();
+          }
+
+          // 2. Overseer Energy Shield Pulse (Every 6.5s)
+          if (e.type === 'overseer' && e.abilityTimer >= 6.5) {
+            e.abilityTimer = 0;
+            this.spawnShockwave(e.x, e.y, 140, "#651fff");
+            this.addFloatingText("🛡️ SHIELD PULSE AURA!", e.x, e.y - 32, "#00b0ff", 18);
+            if (audio) audio.shootCryo();
+            for (const other of this.enemies) {
+              if (Math.hypot(other.x - e.x, other.y - e.y) <= 140) {
+                other.shield = Math.min(other.maxShield || 150, (other.shield || 0) + 75);
+                other.maxShield = Math.max(other.maxShield || 0, other.shield);
+              }
+            }
+          }
+
+          // 3. Hive Titan Swarm Deployment (Every 5.5s)
+          if (e.type === 'hive_titan' && e.abilityTimer >= 5.5) {
+            e.abilityTimer = 0;
+            this.spawnShockwave(e.x, e.y, 80, "#f50057");
+            this.addFloatingText("☣️ SWARM DEPLOYED!", e.x, e.y - 35, "#ffab00", 18);
+            for (let k = -1; k <= 1; k += 2) {
+              this.enemies.push({
+                uid: this.nextUid++,
+                type: 'swarmling',
+                laneIdx: e.laneIdx,
+                progress: Math.max(0, e.progress + k * 18),
+                hp: 35, maxHp: 35, shield: 0, maxShield: 0, armor: 0,
+                speed: 95, bounty: 2, size: 7, color: '#ffab00', marker: '◆', isBoss: false,
+                slowRatio: 0, slowTimer: 0, x: e.x, y: e.y, angle: e.angle
+              });
+            }
+          }
+        }
+
         const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 1.0, e.slowRatio));
 
         // Battlefield Destructible Barricade blocking & attack
@@ -3277,15 +3330,17 @@
       if (h.currentUltCd > 0) h.currentUltCd = Math.max(0, h.currentUltCd - dt);
       if (h.ultActiveTime > 0) h.ultActiveTime = Math.max(0, h.ultActiveTime - dt);
       if (h.slashAnim > 0) h.slashAnim = Math.max(0, h.slashAnim - dt);
+      if (h.dashTimer > 0) h.dashTimer = Math.max(0, h.dashTimer - dt);
 
       // Hero Movement toward target
       const distToTarget = Math.hypot(h.targetX - h.x, h.targetY - h.y);
       if (distToTarget > 4) {
-        const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0);
+        const dashMult = (h.dashTimer > 0) ? 2.4 : 1.0;
+        const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0) * dashMult;
         h.angle = Math.atan2(h.targetY - h.y, h.targetX - h.x);
         h.x += Math.cos(h.angle) * moveSpd * dt;
         h.y += Math.sin(h.angle) * moveSpd * dt;
-        h.walkAnim = (h.walkAnim || 0) + dt * 10;
+        h.walkAnim = (h.walkAnim || 0) + dt * (h.dashTimer > 0 ? 20 : 10);
 
         // Footstep dust & imprints
         if (Math.random() < 0.22) {
