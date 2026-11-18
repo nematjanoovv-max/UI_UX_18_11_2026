@@ -2,111 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <title>Tower Defense: Last Grid</title>
+  <meta name="description" content="Cyber-Neon Tactical Tower Defense Game with 10 Maps, 5 Towers, 8 Enemies, 3 Bosses, and 30 Waves.">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: #05070d;
-      color: #00e5ff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-    #game-container {
-      position: relative;
-      width: 1280px;
-      max-width: 98vw;
-      height: 720px;
-      max-height: 56.25vw;
-      background: radial-gradient(circle at center, #0d1527 0%, #05070d 100%);
-      border: 2px solid #00e5ff;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    canvas {
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    html, body {
       width: 100%;
       height: 100%;
-      display: block;
-    }
-    .neon-title {
-      font-size: 2.8rem;
-      font-weight: 800;
-      letter-spacing: 3px;
+      background-color: #05070d;
       color: #00e5ff;
-      text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 229, 255, 0.4);
-      margin-bottom: 8px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, monospace, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
-    .neon-sub {
-      font-size: 1.1rem;
-      color: #ff007f;
-      text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
-      margin-bottom: 24px;
-    }
-    .status-badge {
-      padding: 6px 16px;
-      background: rgba(0, 229, 255, 0.1);
-      border: 1px solid #00e5ff;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      color: #fff;
-      margin-bottom: 24px;
-    }
-    .btn {
-      background: #0d1a2d;
-      color: #00e5ff;
-      border: 2px solid #00e5ff;
-      padding: 12px 32px;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
-      transition: all 0.2s ease;
-    }
-    .btn:hover {
-      background: #00e5ff;
-      color: #05070d;
-      box-shadow: 0 0 24px rgba(0, 229, 255, 0.8);
-    }
-    .controls-hint {
-      margin-top: 24px;
+    #header-bar {
+      width: 100%;
+      max-width: 1280px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #090e1a;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
       font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+    #header-bar .brand {
+      font-weight: 800;
+      color: #00e5ff;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+    }
+    #header-bar .meta {
       color: #78909c;
+    }
+    #header-bar .meta a {
+      color: #00e5ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    #header-bar .meta a:hover {
+      text-decoration: underline;
+    }
+    #canvas-container {
+      position: relative;
+      width: 100vw;
+      height: calc(100vh - 76px);
+      max-width: 1280px;
+      max-height: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+    }
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      cursor: crosshair;
+    }
+    #footer-bar {
+      width: 100%;
+      max-width: 1280px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background: #090e1a;
+      border-top: 1px solid rgba(0, 229, 255, 0.2);
+      font-size: 0.8rem;
+      color: #546e7a;
+    }
+    #footer-bar .hotkeys {
+      color: #00e5ff;
     }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <div class="neon-title">TOWER DEFENSE: LAST GRID</div>
-    <div class="neon-sub">10 MAPS &bull; 5 TOWERS &bull; 8 ENEMIES &bull; 3 BOSSES &bull; 30 WAVES</div>
-    <div class="status-badge">Godot 4 Web Compatibility Engine Ready</div>
-    <button class="btn" onclick="startApp()">LAUNCH MISSION INTERFACE</button>
-    <div class="controls-hint">Controls: [1-5] Select Towers | [Space] Start Wave | [Esc] Pause | [U] Upgrade | [S] Sell | [T] Target Priority</div>
+  <div id="header-bar">
+    <div class="brand">⚡ TOWER DEFENSE: LAST GRID</div>
+    <div class="meta">
+      Engine: <span>Godot 4.3 + Web 2D</span> | 
+      <a href="https://github.com/nematjanoovv-max/UI_UX_18_11_2026" target="_blank" rel="noopener">GitHub Source &amp; Releases</a>
+    </div>
   </div>
 
-  <script>
-    function startApp() {
-      const container = document.getElementById('game-container');
-      container.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <h2 style="color: #00e5ff; margin-bottom: 12px;">TACTICAL GRID ONLINE</h2>
-          <p style="color: #cfd8dc; margin-bottom: 20px;">Audio subsystem unlocked. Initializing 20x11 GridMap2D and 30 wave configurations...</p>
-          <div style="width: 300px; height: 10px; background: #1a233a; border-radius: 5px; overflow: hidden; margin: 0 auto;">
-            <div style="width: 100%; height: 100%; background: #00e5ff; animation: pulse 1.5s infinite;"></div>
-          </div>
-          <p style="color: #78909c; margin-top: 16px; font-size: 0.85rem;">Ready to deploy into Map 01: Training Grid</p>
-        </div>
-      `;
-    }
-  </script>
+  <div id="canvas-container">
+    <canvas id="game-canvas" width="1280" height="720"></canvas>
+  </div>
+
+  <div id="footer-bar">
+    <div class="hotkeys">Hotkeys: [1-5] Towers &bull; [Space] Next Wave &bull; [U] Upgrade &bull; [S] Sell (70%) &bull; [T] Target &bull; [Esc] Pause</div>
+    <div class="version">v1.0.0 Release</div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
