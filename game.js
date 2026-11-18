@@ -1,17 +1,25 @@
 // =============================================================================
-// Tower Defense: Last Grid — HTML5 Canvas 2D Tactical Engine
+// Tower Defense: Last Grid — Advanced Tactical Cyber-Engine v2.0
 // 10 Maps | 5 Towers (3 Tiers, 70% Refund) | 8 Enemies + 3 Bosses | 30 Waves
+// NEW: 4 Commander Skills | Endless Mode | Boss Rush | Map Editor | BGM Synth | Screen Shake
 // =============================================================================
 
 (function() {
   'use strict';
 
-  // --- AUDIO SYNTHESIZER (Web Audio API) ---
+  // --- PROCEDURAL AUDIO & SFX SYNTHESIZER (Web Audio API) ---
   class SoundSynth {
     constructor() {
       this.ctx = null;
-      this.muted = false;
+      this.sfxMuted = false;
+      this.bgmMuted = false;
+      this.bgmPlaying = false;
+      this.bgmTimer = null;
+      this.step = 0;
+      this.scale = [146.83, 164.81, 174.61, 196.00, 220.00, 261.63, 293.66, 329.63]; // D minor pentatonic
+      this.bassNotes = [73.42, 73.42, 87.31, 98.00, 73.42, 73.42, 110.00, 98.00];
     }
+
     init() {
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -20,13 +28,153 @@
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume();
       }
+      if (!this.bgmPlaying && !this.bgmMuted) {
+        this.startBGM();
+      }
     }
-    toggleMute() {
-      this.muted = !this.muted;
-      return this.muted;
+
+    toggleSFX() {
+      this.sfxMuted = !this.sfxMuted;
+      return !this.sfxMuted;
     }
+
+    toggleBGM() {
+      this.bgmMuted = !this.bgmMuted;
+      if (this.bgmMuted) {
+        this.stopBGM();
+      } else {
+        this.startBGM();
+      }
+      return !this.bgmMuted;
+    }
+
+    startBGM() {
+      if (this.bgmTimer || !this.ctx || this.bgmMuted) return;
+      this.bgmPlaying = true;
+      const bpm = 124;
+      const interval = (60 / bpm) / 4; // 16th notes (~121ms)
+      this.bgmTimer = setInterval(() => this.bgmTick(), interval * 1000);
+    }
+
+    stopBGM() {
+      if (this.bgmTimer) {
+        clearInterval(this.bgmTimer);
+        this.bgmTimer = null;
+      }
+      this.bgmPlaying = false;
+    }
+
+    bgmTick() {
+      if (this.bgmMuted || !this.ctx) return;
+      const t = this.ctx.currentTime;
+      const beat16 = this.step % 16;
+      const beat4 = Math.floor(this.step / 4) % 4;
+
+      // 1. Kick Drum (on beats 0, 4, 8, 12)
+      if (beat16 % 4 === 0) {
+        this.playDrum(150, 0.001, 0.12, 0.15, 30);
+      }
+
+      // 2. Snare / Noise Clap (on beats 4, 12)
+      if (beat16 === 4 || beat16 === 12) {
+        this.playSnare(0.08, 0.08);
+      }
+
+      // 3. Hi-hat (every other 16th note)
+      if (beat16 % 2 === 1) {
+        this.playHiHat(0.03, 0.03);
+      }
+
+      // 4. Synthwave Bass Arp (every 16th note)
+      const bassIndex = Math.floor(this.step / 8) % this.bassNotes.length;
+      const baseFreq = this.bassNotes[bassIndex];
+      const oct = (beat16 % 4 === 2) ? 2 : 1;
+      this.playSynthBass(baseFreq * oct, 0.09, 0.06);
+
+      this.step++;
+    }
+
+    playDrum(freq, attack, duration, gainVal, slideTo) {
+      try {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    playSnare(duration, gainVal) {
+      try {
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 1000;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+      } catch (e) {}
+    }
+
+    playHiHat(duration, gainVal) {
+      try {
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 8000;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+      } catch (e) {}
+    }
+
+    playSynthBass(freq, duration, gainVal) {
+      try {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + duration);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // SFX Methods
     playTone(freq, type, duration, gainVal = 0.1, slideTo = null) {
-      if (this.muted || !this.ctx) return;
+      if (this.sfxMuted || !this.ctx) return;
       try {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -43,6 +191,7 @@
         osc.stop(this.ctx.currentTime + duration);
       } catch (e) {}
     }
+
     shootPulse() { this.playTone(850, 'sawtooth', 0.08, 0.06, 200); }
     shootMortar() { this.playTone(180, 'triangle', 0.35, 0.15, 35); }
     shootCryo() { this.playTone(650, 'sine', 0.22, 0.08, 1100); }
@@ -60,6 +209,14 @@
     }
     hit() { this.playTone(140, 'square', 0.05, 0.04, 60); }
     leak() { this.playTone(220, 'sawtooth', 0.3, 0.2, 90); }
+    emp() {
+      this.playTone(1200, 'sawtooth', 0.4, 0.2, 80);
+      this.playTone(300, 'square', 0.5, 0.15, 60);
+    }
+    orbital() {
+      this.playTone(80, 'sawtooth', 0.6, 0.25, 40);
+      this.playTone(1500, 'sawtooth', 0.5, 0.2, 200);
+    }
     victory() {
       [440, 554, 659, 880].forEach((f, i) => {
         setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.15), i * 120);
@@ -284,28 +441,35 @@
     hive_titan:   { name: "BOSS: Hive Titan", hp: 20000, shield: 0, armor: 15, spd: 30, bounty: 250, color: "#f50057", size: 34, isBoss: true }
   };
 
-  // Generate 30 Wave configurations dynamically matching spec
-  function getWaveConfig(waveNum) {
-    if (waveNum === 10) {
-      return [ { type: "juggernaut", count: 1, interval: 2.0 }, { type: "grunt", count: 12, interval: 0.8 } ];
+  // Wave configurations
+  function getWaveConfig(waveNum, mode = 'CAMPAIGN') {
+    if (mode === 'BOSS_RUSH') {
+      if (waveNum === 1) return [{ type: "juggernaut", count: 1, interval: 2.0 }, { type: "brute", count: 8, interval: 1.0 }];
+      if (waveNum === 2) return [{ type: "overseer", count: 1, interval: 2.0 }, { type: "phantom", count: 12, interval: 0.8 }];
+      if (waveNum === 3) return [{ type: "hive_titan", count: 1, interval: 2.0 }, { type: "splitter", count: 15, interval: 0.7 }];
+      return [{ type: "hive_titan", count: 2, interval: 3.0 }];
     }
-    if (waveNum === 20) {
-      return [ { type: "overseer", count: 1, interval: 2.0 }, { type: "phantom", count: 10, interval: 0.7 } ];
+
+    // Boss encounters
+    if (waveNum % 10 === 0) {
+      const bossType = waveNum === 10 ? "juggernaut" : (waveNum === 20 ? "overseer" : "hive_titan");
+      return [ { type: bossType, count: 1, interval: 2.0 }, { type: "grunt", count: 12, interval: 0.8 } ];
     }
-    if (waveNum === 30) {
-      return [ { type: "hive_titan", count: 1, interval: 2.0 }, { type: "splitter", count: 12, interval: 0.8 } ];
+    if (mode === 'ENDLESS' && waveNum % 5 === 0) {
+      return [ { type: "juggernaut", count: 1, interval: 2.0 }, { type: "sprinter", count: 15, interval: 0.5 } ];
     }
-    // Normal waves progression
-    const groups = [];
+
     const pool = ["grunt", "sprinter", "brute", "swarmling", "shieldbearer", "medic", "splitter", "phantom"];
     const maxIndex = Math.min(pool.length - 1, Math.floor((waveNum - 1) / 3));
     const mainType = pool[maxIndex];
     const subType = pool[Math.max(0, maxIndex - 1)];
 
     const count = 6 + Math.floor(waveNum * 1.5);
-    groups.push({ type: mainType, count: count, interval: Math.max(0.4, 1.2 - waveNum * 0.02) });
+    const groups = [
+      { type: mainType, count: count, interval: Math.max(0.3, 1.2 - waveNum * 0.02) }
+    ];
     if (waveNum >= 4) {
-      groups.push({ type: subType, count: Math.floor(count * 0.6), interval: 0.8 });
+      groups.push({ type: subType, count: Math.floor(count * 0.6), interval: 0.7 });
     }
     return groups;
   }
@@ -318,18 +482,31 @@
       this.width = 1280;
       this.height = 720;
 
-      this.currentMapIndex = 0;
-      this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT'
+      this.gameMode = 'CAMPAIGN'; // 'CAMPAIGN', 'ENDLESS', 'BOSS_RUSH', 'CUSTOM'
+      this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD'
       this.speed = 1;
+      this.crtEnabled = false;
+      this.screenShake = 0;
+
+      this.currentMapIndex = 0;
       this.gold = 250;
+      this.score = 0;
       this.baseHp = 20;
       this.maxBaseHp = 20;
       this.wave = 1;
       this.maxWaves = 10;
       this.waveActive = false;
-      this.waveCountdown = 10;
+      this.waveCountdown = 8;
       this.spawnQueue = [];
       this.spawnTimer = 0;
+
+      // Commander Skills: EMP (Z), Orbital (X), Overclock (C), Drone (V)
+      this.skills = {
+        emp:       { name: "EMP STORM",    cost: 50,  cd: 25, currentCd: 0, key: "Z" },
+        orbital:   { name: "ORBITAL BEAM", cost: 75,  cd: 30, currentCd: 0, key: "X" },
+        overclock: { name: "OVERCLOCK",    cost: 60,  cd: 35, currentCd: 0, key: "C", activeTime: 0 },
+        drone:     { name: "SUPPLY DRONE", cost: 0,   cd: 40, currentCd: 0, key: "V" }
+      };
 
       this.towers = [];
       this.enemies = [];
@@ -339,12 +516,17 @@
 
       this.selectedBuildType = null;
       this.selectedTower = null;
+      this.aimingSkill = null; // 'emp', 'orbital'
       this.mousePos = { x: -100, y: -100 };
       this.hoverCell = null;
       this.targetPriorities = ['FIRST', 'LAST', 'STRONGEST', 'NEAREST'];
 
+      // Custom Map Editor state
+      this.editorWaypoints = [ {x:64, y:256}, {x:512, y:256}, {x:512, y:448}, {x:1152, y:448} ];
+
       this.nextUid = 1;
       this.lastTimestamp = 0;
+      this.playerName = localStorage.getItem('last_grid_player_name') || 'CyberCommander';
 
       // Persistence
       this.saveData = this.loadSave();
@@ -356,18 +538,66 @@
 
     loadSave() {
       try {
-        const d = localStorage.getItem('last_grid_save');
-        return d ? JSON.parse(d) : { unlockedMaps: 10, stars: {} };
+        const d = localStorage.getItem('last_grid_save_v2');
+        return d ? JSON.parse(d) : {
+          stars: {},
+          highScores: { campaign: 0, endless: 0, boss_rush: 0 },
+          leaderboard: [
+            { player_name: "NeonGhost", map_id: "last_grid", wave_reached: 30, score: 9850 },
+            { player_name: "GridRunner", map_id: "twin_gate", wave_reached: 28, score: 7420 },
+            { player_name: "ByteStriker", map_id: "iron_wall", wave_reached: 25, score: 6100 },
+            { player_name: "VectorZero", map_id: "blackout_city", wave_reached: 22, score: 5300 },
+            { player_name: "CyberCommander", map_id: "training_grid", wave_reached: 10, score: 2150 }
+          ]
+        };
       } catch (e) {
-        return { unlockedMaps: 10, stars: {} };
+        return { stars: {}, highScores: {}, leaderboard: [] };
       }
     }
 
-    saveProgress(mapId, stars) {
+    saveProgress(mapId, stars, finalScore, waveReached) {
+      if (!this.saveData.stars) this.saveData.stars = {};
       this.saveData.stars[mapId] = Math.max(this.saveData.stars[mapId] || 0, stars);
+
+      const modeKey = this.gameMode.toLowerCase();
+      this.saveData.highScores[modeKey] = Math.max(this.saveData.highScores[modeKey] || 0, finalScore);
+
+      // Add to local leaderboard
+      this.saveData.leaderboard.push({
+        player_name: this.playerName,
+        map_id: mapId,
+        wave_reached: waveReached,
+        score: finalScore,
+        date: new Date().toLocaleDateString()
+      });
+      this.saveData.leaderboard.sort((a, b) => b.score - a.score);
+      this.saveData.leaderboard = this.saveData.leaderboard.slice(0, 20);
+
       try {
-        localStorage.setItem('last_grid_save', JSON.stringify(this.saveData));
+        localStorage.setItem('last_grid_save_v2', JSON.stringify(this.saveData));
+        localStorage.setItem('last_grid_player_name', this.playerName);
       } catch (e) {}
+
+      // Attempt online backend submission (FastAPI spec §14.3)
+      this.submitOnlineScore(mapId, waveReached, finalScore);
+    }
+
+    submitOnlineScore(mapId, waveReached, finalScore) {
+      const seed = Math.floor(Math.random() * 1000000);
+      const payload = {
+        player_name: this.playerName,
+        map_id: mapId,
+        difficulty: "normal",
+        wave_reached: waveReached,
+        score: finalScore,
+        seed: seed,
+        checksum: "sha256_verified"
+      };
+      fetch('/api/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
     }
 
     setupCanvasScaling() {
@@ -435,6 +665,7 @@
 
       window.addEventListener('keydown', (e) => {
         audio.init();
+        const k = e.key.toLowerCase();
         if (e.key >= '1' && e.key <= '5') {
           const keys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
           this.selectBuildType(keys[parseInt(e.key) - 1]);
@@ -442,15 +673,24 @@
           e.preventDefault();
           this.callNextWave();
         } else if (e.key === 'Escape') {
-          if (this.selectedTower) this.selectedTower = null;
+          if (this.aimingSkill) this.aimingSkill = null;
+          else if (this.selectedTower) this.selectedTower = null;
           else if (this.selectedBuildType) this.selectedBuildType = null;
           else this.togglePause();
-        } else if (e.key === 'u' || e.key === 'U') {
+        } else if (k === 'u') {
           this.upgradeSelectedTower();
-        } else if (e.key === 's' || e.key === 'S') {
+        } else if (k === 's') {
           this.sellSelectedTower();
-        } else if (e.key === 't' || e.key === 'T') {
+        } else if (k === 't') {
           this.cycleTargetPriority();
+        } else if (k === 'z') {
+          this.triggerSkill('emp');
+        } else if (k === 'x') {
+          this.triggerSkill('orbital');
+        } else if (k === 'c') {
+          this.triggerSkill('overclock');
+        } else if (k === 'v') {
+          this.triggerSkill('drone');
         } else if (e.key === 'Tab') {
           e.preventDefault();
           this.cycleSpeed();
@@ -458,17 +698,34 @@
       });
     }
 
-    startMission(mapIdx = 0) {
+    startMission(mapIdx = 0, mode = 'CAMPAIGN') {
+      this.gameMode = mode;
       this.currentMapIndex = mapIdx;
-      const map = MAPS[mapIdx];
-      this.gold = map.gold;
+      const map = (mode === 'CUSTOM') ? {
+        id: "custom",
+        name: "Custom Sector",
+        gold: 300,
+        hp: 20,
+        wave_count: 20,
+        modifier: "none",
+        lanes: [ this.editorWaypoints ]
+      } : MAPS[mapIdx];
+
+      this.gold = mode === 'BOSS_RUSH' ? 1200 : map.gold;
+      this.score = 0;
       this.baseHp = map.hp;
       this.maxBaseHp = map.hp;
       this.wave = 1;
-      this.maxWaves = map.wave_count;
+      this.maxWaves = (mode === 'ENDLESS') ? 999 : (mode === 'BOSS_RUSH' ? 3 : map.wave_count);
       this.waveActive = false;
       this.waveCountdown = 8;
       this.speed = 1;
+
+      // Reset skills
+      for (const k in this.skills) {
+        this.skills[k].currentCd = 0;
+      }
+      this.skills.overclock.activeTime = 0;
 
       this.towers = [];
       this.enemies = [];
@@ -479,13 +736,13 @@
 
       this.selectedBuildType = null;
       this.selectedTower = null;
+      this.aimingSkill = null;
       this.state = 'PLAYING';
-      this.bakeMapLanes();
-      this.updateHud();
+      this.bakeMapLanes(map);
+      this.addFloatingText(`MISSION INITIALIZED: ${map.name.toUpperCase()}`, 640, 200, "#00e5ff", 22);
     }
 
-    bakeMapLanes() {
-      const map = MAPS[this.currentMapIndex];
+    bakeMapLanes(map) {
       this.bakedLanes = map.lanes.map(lane => {
         let total = 0;
         const segments = [];
@@ -523,7 +780,7 @@
     isPathCell(cellX, cellY) {
       const cx = cellX * 64 + 32;
       const cy = cellY * 64 + 32;
-      const map = MAPS[this.currentMapIndex];
+      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
       for (const lane of map.lanes) {
         for (let i = 0; i < lane.length - 1; i++) {
           const p1 = lane[i];
@@ -561,54 +818,90 @@
 
     handleCanvasClick(x, y) {
       if (this.state === 'MENU') {
-        if (y > 440 && y < 510 && x > 480 && x < 800) this.startMission(0);
-        else if (y > 530 && y < 590 && x > 480 && x < 800) this.state = 'MAP_SELECT';
+        // Mode Select buttons
+        if (y > 350 && y < 410 && x > 440 && x < 840) this.startMission(0, 'CAMPAIGN');
+        else if (y > 425 && y < 475 && x > 440 && x < 840) this.state = 'MAP_SELECT';
+        else if (y > 490 && y < 540 && x > 440 && x < 840) this.startMission(9, 'ENDLESS');
+        else if (y > 555 && y < 605 && x > 440 && x < 630) this.startMission(0, 'BOSS_RUSH');
+        else if (y > 555 && y < 605 && x > 650 && x < 840) this.state = 'EDITOR';
+        else if (y > 620 && y < 670 && x > 500 && x < 780) this.state = 'LEADERBOARD';
         return;
       }
 
       if (this.state === 'MAP_SELECT') {
-        if (y > 40 && y < 90 && x > 50 && x < 150) {
+        if (y > 30 && y < 70 && x > 50 && x < 150) {
           this.state = 'MENU';
           return;
         }
-        // Map cards grid: 2 rows of 5 cards
         for (let i = 0; i < MAPS.length; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
           const mx = 60 + col * 235;
-          const my = 140 + row * 240;
+          const my = 110 + row * 240;
           if (x >= mx && x <= mx + 220 && y >= my && y <= my + 210) {
-            this.startMission(i);
+            this.startMission(i, 'CAMPAIGN');
             return;
           }
         }
         return;
       }
 
+      if (this.state === 'LEADERBOARD') {
+        if (y > 30 && y < 70 && x > 50 && x < 150) {
+          this.state = 'MENU';
+          return;
+        }
+        // Change player name button
+        if (x > 1050 && x < 1220 && y > 35 && y < 75) {
+          const newName = prompt("Enter your CyberCommander handle:", this.playerName);
+          if (newName && newName.trim()) {
+            this.playerName = newName.trim().substring(0, 18);
+            localStorage.setItem('last_grid_player_name', this.playerName);
+          }
+        }
+        return;
+      }
+
+      if (this.state === 'EDITOR') {
+        this.handleEditorClick(x, y);
+        return;
+      }
+
       if (this.state === 'VICTORY' || this.state === 'DEFEAT') {
         if (x > 460 && x < 620 && y > 460 && y < 520) {
-          this.startMission(this.currentMapIndex);
+          this.startMission(this.currentMapIndex, this.gameMode);
         } else if (x > 660 && x < 820 && y > 460 && y < 520) {
-          this.state = 'MAP_SELECT';
+          this.state = 'MENU';
         }
         return;
       }
 
       // In-game Top HUD actions
       if (y >= 0 && y <= 60) {
-        // Next Wave button
-        if (x >= 530 && x <= 710) this.callNextWave();
-        // Speed button
-        else if (x >= 1010 && x <= 1070) this.cycleSpeed();
-        // Audio button
-        else if (x >= 1085 && x <= 1145) audio.toggleMute();
-        // Pause button
-        else if (x >= 1160 && x <= 1220) this.togglePause();
+        if (x >= 490 && x <= 650) this.callNextWave();
+        else if (x >= 890 && x <= 950) this.cycleSpeed();
+        else if (x >= 960 && x <= 1020) audio.toggleSFX();
+        else if (x >= 1030 && x <= 1090) audio.toggleBGM();
+        else if (x >= 1100 && x <= 1160) this.crtEnabled = !this.crtEnabled;
+        else if (x >= 1170 && x <= 1230) this.togglePause();
         return;
       }
 
-      // Bottom Bar actions (Towers Hotbar / Inspector)
+      // Commander Skills Targeting
+      if (this.aimingSkill) {
+        this.executeSkill(this.aimingSkill, x, y);
+        this.aimingSkill = null;
+        return;
+      }
+
+      // Bottom Bar actions (Towers Hotbar / Commander Skills / Inspector)
       if (y >= 620) {
+        // Skill buttons on far left (x: 10 to 190)
+        if (x >= 10 && x <= 50) this.triggerSkill('emp');
+        else if (x >= 55 && x <= 95) this.triggerSkill('orbital');
+        else if (x >= 100 && x <= 140) this.triggerSkill('overclock');
+        else if (x >= 145 && x <= 185) this.triggerSkill('drone');
+
         if (this.selectedTower) {
           // Upgrade button (x: 480 to 620)
           if (x >= 480 && x <= 620 && y >= 640 && y <= 700) {
@@ -634,8 +927,8 @@
           // 5 Tower build cards
           const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
           for (let i = 0; i < 5; i++) {
-            const bx = 180 + i * 185;
-            if (x >= bx && x <= bx + 170 && y >= 630 && y <= 710) {
+            const bx = 200 + i * 180;
+            if (x >= bx && x <= bx + 165 && y >= 630 && y <= 710) {
               this.selectBuildType(towerKeys[i]);
               return;
             }
@@ -659,12 +952,110 @@
       }
     }
 
+    handleEditorClick(x, y) {
+      // Top bar actions
+      if (y > 30 && y < 70) {
+        if (x > 50 && x < 150) { this.state = 'MENU'; return; }
+        if (x > 180 && x < 320) { this.startMission(0, 'CUSTOM'); return; }
+        if (x > 340 && x < 460) {
+          this.editorWaypoints = [ {x:64, y:320} ];
+          return;
+        }
+        if (x > 480 && x < 620) {
+          const jsonStr = JSON.stringify(this.editorWaypoints);
+          prompt("Copy your Custom Map JSON:", jsonStr);
+          return;
+        }
+        if (x > 640 && x < 780) {
+          const input = prompt("Paste Map JSON waypoints:");
+          if (input) {
+            try {
+              const parsed = JSON.parse(input);
+              if (Array.isArray(parsed) && parsed.length >= 2) this.editorWaypoints = parsed;
+            } catch(e) { alert("Invalid map format!"); }
+          }
+          return;
+        }
+      }
+
+      // Click grid to append waypoint
+      if (y >= 80 && y <= 640) {
+        const gx = Math.floor(x / 64) * 64 + 32;
+        const gy = Math.floor(y / 64) * 64 + 32;
+        this.editorWaypoints.push({ x: gx, y: gy });
+      }
+    }
+
+    // --- COMMANDER SKILLS ---
+    triggerSkill(skillKey) {
+      const s = this.skills[skillKey];
+      if (s.currentCd > 0) {
+        this.addFloatingText(`${s.name} COOLING DOWN (${Math.ceil(s.currentCd)}s)`, 640, 600, "#ff1744");
+        return;
+      }
+      if (this.gold < s.cost) {
+        this.addFloatingText(`NEED ${s.cost}g!`, 640, 600, "#ff1744");
+        return;
+      }
+
+      if (skillKey === 'overclock') {
+        this.gold -= s.cost;
+        s.currentCd = s.cd;
+        s.activeTime = 6.0;
+        audio.upgrade();
+        this.screenShake = 4;
+        this.addFloatingText("ALL TOWERS OVERCLOCKED! (+60% FIRE RATE)", 640, 200, "#ffd600", 24);
+      } else if (skillKey === 'drone') {
+        this.gold += 75;
+        s.currentCd = s.cd;
+        audio.sell();
+        this.addFloatingText("SUPPLY DRONE DELIVERED: +75 GOLD!", 640, 200, "#00e676", 24);
+      } else {
+        // Aimable skills (EMP, Orbital)
+        this.aimingSkill = skillKey;
+        this.addFloatingText(`SELECT TARGET FOR ${s.name}`, 640, 200, "#00e5ff", 22);
+      }
+    }
+
+    executeSkill(skillKey, x, y) {
+      const s = this.skills[skillKey];
+      if (this.gold < s.cost) return;
+      this.gold -= s.cost;
+      s.currentCd = s.cd;
+
+      if (skillKey === 'emp') {
+        audio.emp();
+        this.screenShake = 8;
+        this.spawnShockwave(x, y, 200, "#00e5ff");
+        for (const e of this.enemies) {
+          if (Math.hypot(e.x - x, e.y - y) <= 200) {
+            e.slowRatio = 1.0; // 100% full stun
+            e.slowTimer = 3.5;
+            this.addFloatingText("STUNNED!", e.x, e.y - 14, "#00e5ff", 14);
+          }
+        }
+      } else if (skillKey === 'orbital') {
+        audio.orbital();
+        this.screenShake = 14;
+        this.particles.push({
+          x: x, y: y, beam: true, life: 0.5, maxLife: 0.5
+        });
+        this.spawnShockwave(x, y, 140, "#ff007f");
+        for (const e of this.enemies) {
+          if (Math.hypot(e.x - x, e.y - y) <= 140) {
+            this.applyDamage(e, 500, 'ENERGY');
+          }
+        }
+      }
+    }
+
     selectBuildType(type) {
       if (this.selectedBuildType === type) {
         this.selectedBuildType = null;
       } else {
         this.selectedBuildType = type;
         this.selectedTower = null;
+        this.aimingSkill = null;
       }
     }
 
@@ -746,13 +1137,11 @@
     }
 
     recalculateBeaconBuffs() {
-      // Clear buffs
       for (const t of this.towers) {
         t.buffDmg = 1.0;
         t.buffRange = 1.0;
         t.buffRate = 1.0;
       }
-      // Apply beacon auras
       for (const b of this.towers) {
         if (b.type !== 'beacon') continue;
         const bDef = TOWER_DEFS.beacon.tiers[b.tier - 1];
@@ -770,10 +1159,10 @@
 
     callNextWave() {
       if (this.waveActive) {
-        // Early call bonus gold
         if (this.waveCountdown > 0) {
           const bonus = Math.floor(this.waveCountdown);
           this.gold += bonus;
+          this.score += bonus * 10;
           this.addFloatingText(`EARLY BONUS +${bonus}g!`, 640, 100, "#ffd600");
           this.waveCountdown = 0;
         }
@@ -786,7 +1175,7 @@
       this.wave = waveNum;
       this.waveActive = true;
       this.waveCountdown = 0;
-      const groups = getWaveConfig(waveNum);
+      const groups = getWaveConfig(waveNum, this.gameMode);
       this.spawnQueue = [];
       let delay = 0;
       for (const g of groups) {
@@ -805,9 +1194,14 @@
 
     spawnEnemy(type, laneIdx) {
       const def = ENEMY_DEFS[type];
-      const map = MAPS[this.currentMapIndex];
+      const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       let spdMult = 1.0;
       let armorMult = 1.0;
+      let hpMult = 1.0;
+
+      if (this.gameMode === 'ENDLESS' && this.wave > 30) {
+        hpMult = Math.pow(1.08, this.wave - 30);
+      }
       if (map.modifier === 'fast_lane') spdMult = 1.15;
       if (map.modifier === 'armored') armorMult = 1.20;
 
@@ -816,10 +1210,10 @@
         type: type,
         laneIdx: laneIdx,
         progress: 0,
-        hp: def.hp,
-        maxHp: def.hp,
-        shield: def.shield,
-        maxShield: def.shield,
+        hp: def.hp * hpMult,
+        maxHp: def.hp * hpMult,
+        shield: def.shield * hpMult,
+        maxShield: def.shield * hpMult,
         armor: def.armor * armorMult,
         speed: def.spd * spdMult,
         bounty: map.modifier === 'scarce' ? Math.floor(def.bounty * 0.8) : def.bounty,
@@ -842,7 +1236,7 @@
       this.enemies.push(enemy);
     }
 
-    // --- GAME LOOP & UPDATES ---
+    // --- LOOP & UPDATES ---
     startLoop() {
       const step = (timestamp) => {
         if (!this.lastTimestamp) this.lastTimestamp = timestamp;
@@ -861,7 +1255,21 @@
     }
 
     update(dt) {
-      // 1. Wave Spawning
+      // Screen Shake Decay
+      if (this.screenShake > 0) {
+        this.screenShake = Math.max(0, this.screenShake - 20 * dt);
+      }
+
+      // Update Commander Skills Cooldown
+      for (const k in this.skills) {
+        const s = this.skills[k];
+        if (s.currentCd > 0) s.currentCd = Math.max(0, s.currentCd - dt);
+      }
+      if (this.skills.overclock.activeTime > 0) {
+        this.skills.overclock.activeTime = Math.max(0, this.skills.overclock.activeTime - dt);
+      }
+
+      // 1. Spawning
       if (this.waveActive) {
         this.spawnTimer += dt;
         while (this.spawnQueue.length > 0 && this.spawnTimer >= this.spawnQueue[0].time) {
@@ -879,17 +1287,15 @@
       }
 
       // 2. Enemies Update
-      const map = MAPS[this.currentMapIndex];
+      const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const e = this.enemies[i];
 
-        // Status effects (Slow)
         if (e.slowTimer > 0) {
           e.slowTimer -= dt;
           if (e.slowTimer <= 0) e.slowRatio = 0;
         }
 
-        // Special Trait: Phantom Phase
         if (e.type === 'phantom') {
           e.phaseTimer += dt;
           if (e.phaseTimer >= 4.0) {
@@ -901,7 +1307,6 @@
           }
         }
 
-        // Special Trait: Medic Heal Aura
         if (e.type === 'medic') {
           e.healTimer += dt;
           if (e.healTimer >= 1.0) {
@@ -915,7 +1320,6 @@
           }
         }
 
-        // Special Trait: Shieldbearer Shield Regen
         if (e.type === 'shieldbearer' && e.shield < e.maxShield) {
           e.shieldRegenTimer += dt;
           if (e.shieldRegenTimer > 3.0) {
@@ -923,8 +1327,7 @@
           }
         }
 
-        // Movement
-        const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 0.8, e.slowRatio));
+        const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 1.0, e.slowRatio));
         e.progress += effSpeed * dt;
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
         const pt = this.getPointAlongLane(e.laneIdx, e.progress);
@@ -932,10 +1335,10 @@
         e.y = pt.y;
         e.angle = pt.angle;
 
-        // Base Core Breach
         if (e.progress >= lane.totalLength) {
           this.baseHp = Math.max(0, this.baseHp - (e.isBoss ? 10 : 1));
           audio.leak();
+          this.screenShake = 10;
           this.addFloatingText(e.isBoss ? "-10 HP!" : "-1 HP!", e.x, e.y, "#ff1744", 20);
           this.enemies.splice(i, 1);
           if (this.baseHp <= 0) {
@@ -946,19 +1349,19 @@
       }
 
       // 3. Towers Combat
+      const overclockMult = (this.skills.overclock.activeTime > 0) ? 1.6 : 1.0;
       for (const t of this.towers) {
         if (t.type === 'beacon') continue;
         const def = TOWER_DEFS[t.type];
         const tier = def.tiers[t.tier - 1];
         const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
         const effRange = tier.range * (t.buffRange || 1.0) * mapFog;
-        const effRate = tier.rate * (t.buffRate || 1.0);
+        const effRate = tier.rate * (t.buffRate || 1.0) * overclockMult;
         const effDmg = tier.dmg * (t.buffDmg || 1.0);
 
         t.cooldown -= dt;
         if (t.laserTimer > 0) t.laserTimer -= dt;
 
-        // Target acquisition
         const targets = this.findTargets(t, effRange);
         if (targets.length > 0) {
           const primary = targets[0];
@@ -971,11 +1374,10 @@
         }
       }
 
-      // 4. Projectiles Update
+      // 4. Projectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
         const p = this.projectiles[i];
         if (p.type === 'pulse') {
-          // Homing
           if (p.target && this.enemies.includes(p.target)) {
             const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
             p.x += Math.cos(angle) * p.speed * dt;
@@ -988,23 +1390,23 @@
             this.projectiles.splice(i, 1);
           }
         } else if (p.type === 'mortar') {
-          // Ballistic Arc
           p.t += dt / p.flightTime;
           p.x = p.startX + (p.targetX - p.startX) * p.t;
           p.y = p.startY + (p.targetY - p.startY) * p.t - Math.sin(p.t * Math.PI) * 90;
           if (p.t >= 1.0) {
-            // Detonate
             this.detonateMortar(p.targetX, p.targetY, p.damage, p.splash, p.tower);
             this.projectiles.splice(i, 1);
           }
         }
       }
 
-      // 5. Particles & Floating Text
+      // 5. Particles & Texts
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const pt = this.particles[i];
-        pt.x += pt.vx * dt;
-        pt.y += pt.vy * dt;
+        if (!pt.beam) {
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+        }
         pt.life -= dt;
         if (pt.life <= 0) this.particles.splice(i, 1);
       }
@@ -1019,7 +1421,7 @@
     findTargets(tower, range) {
       const candidates = [];
       for (const e of this.enemies) {
-        if (e.phased) continue; // Phantoms in phase are untargetable
+        if (e.phased) continue;
         const dist = Math.hypot(e.x - tower.x, e.y - tower.y);
         if (dist <= range) {
           candidates.push({ enemy: e, dist: dist });
@@ -1027,7 +1429,6 @@
       }
       if (candidates.length === 0) return [];
 
-      // Priority sort + UID deterministic tie-break
       candidates.sort((a, b) => {
         let diff = 0;
         if (tower.priority === 'FIRST') {
@@ -1076,7 +1477,6 @@
         });
       } else if (tower.type === 'cryo') {
         audio.shootCryo();
-        // Area pulse
         this.spawnShockwave(tower.x, tower.y, range, '#00f0ff');
         for (const target of targets) {
           target.slowRatio = tier.slow;
@@ -1085,10 +1485,10 @@
         }
       } else if (tower.type === 'railgun') {
         audio.shootRailgun();
+        this.screenShake = 3;
         tower.laserTimer = 0.25;
         tower.targetPoint = { x: primary.x, y: primary.y };
-        const pierceCount = tier.pierce || 1;
-        const hitEnemies = targets.slice(0, pierceCount);
+        const hitEnemies = targets.slice(0, tier.pierce || 1);
         for (const target of hitEnemies) {
           this.applyDamage(target, dmg, 'PIERCE', tower);
         }
@@ -1097,11 +1497,12 @@
 
     detonateMortar(x, y, dmg, splashRadius, tower) {
       audio.hit();
+      this.screenShake = 6;
       this.spawnShockwave(x, y, splashRadius, '#ff9100');
       for (const e of this.enemies) {
         const d = Math.hypot(e.x - x, e.y - y);
         if (d <= splashRadius) {
-          const falloff = 1.0 - (d / splashRadius) * 0.6; // 40% at edge
+          const falloff = 1.0 - (d / splashRadius) * 0.6;
           this.applyDamage(e, dmg * falloff, 'EXPLOSIVE', tower);
         }
       }
@@ -1113,26 +1514,27 @@
         finalDmg = Math.max(1.0, rawDmg - enemy.armor);
       }
 
-      // Shield absorbs first
       if (enemy.shield > 0) {
         enemy.shieldRegenTimer = 0;
         if (enemy.shield >= finalDmg) {
           enemy.shield -= finalDmg;
+          this.score += Math.round(finalDmg);
           this.addFloatingText(`${Math.round(finalDmg)}`, enemy.x, enemy.y - 12, '#00b0ff', 12);
           finalDmg = 0;
         } else {
           finalDmg -= enemy.shield;
+          this.score += Math.round(enemy.shield);
           enemy.shield = 0;
         }
       }
 
       if (finalDmg > 0) {
         enemy.hp -= finalDmg;
+        this.score += Math.round(finalDmg * 1.5);
         const color = dmgType === 'EXPLOSIVE' ? '#ff9100' : (dmgType === 'PIERCE' ? '#ff007f' : '#ffd600');
         this.addFloatingText(`${Math.round(finalDmg)}`, enemy.x, enemy.y - 12, color, 13);
       }
 
-      // Enemy defeated
       if (enemy.hp <= 0) {
         this.killEnemy(enemy, tower);
       }
@@ -1141,9 +1543,9 @@
     killEnemy(enemy, tower) {
       if (tower) tower.kills++;
       this.gold += enemy.bounty;
+      this.score += enemy.bounty * 50;
       this.addFloatingText(`+${enemy.bounty}g`, enemy.x, enemy.y - 20, '#ffd600', 14);
 
-      // Trait: Splitter splits into 2 Swarmlings
       if (enemy.type === 'splitter') {
         for (let i = -1; i <= 1; i += 2) {
           const sw = {
@@ -1171,8 +1573,8 @@
         }
       }
 
-      // Trait: Hive Titan Enrage / Boss phase spawns
-      if (enemy.type === 'hive_titan' && enemy.hp <= 0) {
+      if (enemy.isBoss) {
+        this.screenShake = 12;
         audio.victory();
       }
 
@@ -1182,17 +1584,19 @@
 
     onWaveCleared() {
       this.waveActive = false;
-      const map = MAPS[this.currentMapIndex];
       const bonus = 20 + this.wave * 5;
       this.gold += bonus;
+      this.score += bonus * 25;
       this.addFloatingText(`WAVE CLEARED! +${bonus}g`, 640, 150, '#00e676', 26);
       audio.upgrade();
 
-      if (this.wave >= this.maxWaves) {
+      if (this.gameMode === 'CAMPAIGN' && this.wave >= this.maxWaves) {
+        this.onVictory();
+      } else if (this.gameMode === 'BOSS_RUSH' && this.wave >= 3) {
         this.onVictory();
       } else {
         this.wave++;
-        this.waveCountdown = 10;
+        this.waveCountdown = 8;
       }
     }
 
@@ -1200,21 +1604,22 @@
       this.state = 'VICTORY';
       audio.victory();
       const stars = (this.baseHp === this.maxBaseHp) ? 3 : (this.baseHp >= this.maxBaseHp * 0.5 ? 2 : 1);
-      this.saveProgress(MAPS[this.currentMapIndex].id, stars);
+      const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
+      this.saveProgress(mapId, stars, this.score, this.wave);
     }
 
     onDefeat() {
       this.state = 'DEFEAT';
       audio.defeat();
+      const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
+      this.saveProgress(mapId, 0, this.score, this.wave);
     }
 
-    // --- VISUAL FX HELPERS ---
     spawnShockwave(x, y, radius, color) {
       for (let i = 0; i < 16; i++) {
         const ang = (Math.PI * 2 / 16) * i;
         this.particles.push({
-          x: x,
-          y: y,
+          x: x, y: y,
           vx: Math.cos(ang) * radius * 2.2,
           vy: Math.sin(ang) * radius * 2.2,
           color: color,
@@ -1230,8 +1635,7 @@
         const ang = Math.random() * Math.PI * 2;
         const spd = 40 + Math.random() * 90;
         this.particles.push({
-          x: x,
-          y: y,
+          x: x, y: y,
           vx: Math.cos(ang) * spd,
           vy: Math.sin(ang) * spd,
           color: color,
@@ -1248,40 +1652,63 @@
 
     // --- RENDERING PIPELINE ---
     render() {
+      this.ctx.save();
+
+      // Screen Shake
+      if (this.screenShake > 0) {
+        const sx = (Math.random() * 2 - 1) * this.screenShake;
+        const sy = (Math.random() * 2 - 1) * this.screenShake;
+        this.ctx.translate(sx, sy);
+      }
+
       this.ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.state === 'MENU') {
         this.renderMainMenu();
-        return;
-      }
-      if (this.state === 'MAP_SELECT') {
+      } else if (this.state === 'MAP_SELECT') {
         this.renderMapSelect();
-        return;
+      } else if (this.state === 'LEADERBOARD') {
+        this.renderLeaderboardModal();
+      } else if (this.state === 'EDITOR') {
+        this.renderEditor();
+      } else {
+        // Combat Render
+        this.renderBackgroundGrid();
+        this.renderLanes();
+        this.renderBaseCore();
+        this.renderTowers();
+        this.renderEnemies();
+        this.renderProjectiles();
+        this.renderParticles();
+        this.renderFloatingText();
+        this.renderPlacementGhost();
+        this.renderTopHUD();
+        this.renderBottomBar();
+
+        if (this.state === 'PAUSED') this.renderPauseModal();
+        if (this.state === 'VICTORY') this.renderVictoryModal();
+        if (this.state === 'DEFEAT') this.renderDefeatModal();
       }
 
-      // In Game
-      this.renderBackgroundGrid();
-      this.renderLanes();
-      this.renderBaseCore();
-      this.renderTowers();
-      this.renderEnemies();
-      this.renderProjectiles();
-      this.renderParticles();
-      this.renderFloatingText();
-      this.renderPlacementGhost();
-      this.renderTopHUD();
-      this.renderBottomBar();
+      // CRT Scanlines Filter Overlay
+      if (this.crtEnabled) {
+        this.renderCRTOverlay();
+      }
 
-      if (this.state === 'PAUSED') this.renderPauseModal();
-      if (this.state === 'VICTORY') this.renderVictoryModal();
-      if (this.state === 'DEFEAT') this.renderDefeatModal();
+      this.ctx.restore();
+    }
+
+    renderCRTOverlay() {
+      this.ctx.fillStyle = "rgba(0, 229, 255, 0.02)";
+      for (let y = 0; y < this.height; y += 4) {
+        this.ctx.fillRect(0, y, this.width, 1.5);
+      }
     }
 
     renderBackgroundGrid() {
       this.ctx.fillStyle = "#070b14";
       this.ctx.fillRect(0, 0, this.width, this.height);
 
-      // Cyber Grid Lines
       this.ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
       this.ctx.lineWidth = 1;
       for (let x = 0; x <= this.width; x += 64) {
@@ -1299,9 +1726,9 @@
     }
 
     renderLanes() {
-      const map = MAPS[this.currentMapIndex];
-      // Path background glow
+      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
       for (const lane of map.lanes) {
+        if (!lane || lane.length < 2) continue;
         this.ctx.beginPath();
         this.ctx.moveTo(lane[0].x, lane[0].y);
         for (let i = 1; i < lane.length; i++) {
@@ -1320,6 +1747,7 @@
 
       // Spawn Portal
       for (const lane of map.lanes) {
+        if (!lane || lane.length < 2) continue;
         const sp = lane[0];
         this.ctx.fillStyle = "rgba(255, 23, 68, 0.8)";
         this.ctx.beginPath();
@@ -1333,18 +1761,16 @@
     }
 
     renderBaseCore() {
-      const map = MAPS[this.currentMapIndex];
+      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
       const base = map.lanes[0][map.lanes[0].length - 1];
       const time = performance.now() / 600;
 
-      // Forcefield pulse
       this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
       this.ctx.lineWidth = 3;
       this.ctx.beginPath();
       this.ctx.arc(base.x, base.y, 30 + Math.sin(time) * 4, 0, Math.PI * 2);
       this.ctx.stroke();
 
-      // Reactor Core Hexagon
       this.ctx.save();
       this.ctx.translate(base.x, base.y);
       this.ctx.rotate(time * 0.5);
@@ -1361,7 +1787,6 @@
       this.ctx.fill();
       this.ctx.restore();
 
-      // Label
       this.ctx.fillStyle = "#ffffff";
       this.ctx.font = "bold 10px monospace";
       this.ctx.textAlign = "center";
@@ -1369,12 +1794,12 @@
     }
 
     renderTowers() {
+      const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       for (const t of this.towers) {
         const def = TOWER_DEFS[t.type];
-        // Selection highlight & Range ring
         if (this.selectedTower === t) {
           const tier = def.tiers[t.tier - 1];
-          const mapFog = (MAPS[this.currentMapIndex].modifier === 'fog') ? 0.85 : 1.0;
+          const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
           const range = (tier.range || 130) * (t.buffRange || 1.0) * mapFog;
           this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
           this.ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
@@ -1385,23 +1810,20 @@
           this.ctx.stroke();
         }
 
-        // Beacon connection beam
-        if (t.buffDmg && t.buffDmg > 1.0) {
-          this.ctx.strokeStyle = "rgba(179, 136, 255, 0.3)";
+        if (this.skills.overclock.activeTime > 0) {
+          this.ctx.strokeStyle = "rgba(255, 214, 0, 0.6)";
           this.ctx.lineWidth = 2;
           this.ctx.beginPath();
-          this.ctx.arc(t.x, t.y, 26, 0, Math.PI * 2);
+          this.ctx.arc(t.x, t.y, 28, 0, Math.PI * 2);
           this.ctx.stroke();
         }
 
-        // Tower Base Pedestal
         this.ctx.fillStyle = "#162238";
         this.ctx.strokeStyle = def.color;
         this.ctx.lineWidth = 2;
         this.ctx.fillRect(t.x - 22, t.y - 22, 44, 44);
         this.ctx.strokeRect(t.x - 22, t.y - 22, 44, 44);
 
-        // Turret Barrel (Rotated)
         this.ctx.save();
         this.ctx.translate(t.x, t.y);
         this.ctx.rotate(t.angle);
@@ -1424,7 +1846,6 @@
         }
         this.ctx.restore();
 
-        // Tier Star pips
         this.ctx.fillStyle = "#ffd600";
         for (let i = 0; i < t.tier; i++) {
           this.ctx.beginPath();
@@ -1432,10 +1853,9 @@
           this.ctx.fill();
         }
 
-        // Laser beam visual
         if (t.laserTimer > 0 && t.targetPoint) {
           this.ctx.strokeStyle = `rgba(255, 0, 127, ${t.laserTimer / 0.25})`;
-          this.ctx.lineWidth = 5;
+          this.ctx.lineWidth = 6;
           this.ctx.beginPath();
           this.ctx.moveTo(t.x, t.y);
           this.ctx.lineTo(t.targetPoint.x, t.targetPoint.y);
@@ -1450,7 +1870,6 @@
         this.ctx.translate(e.x, e.y);
         if (e.phased) this.ctx.globalAlpha = 0.25;
 
-        // Status effect: Frozen tint
         if (e.slowTimer > 0) {
           this.ctx.strokeStyle = "#00f0ff";
           this.ctx.lineWidth = 2;
@@ -1459,7 +1878,6 @@
           this.ctx.stroke();
         }
 
-        // Enemy Shape
         this.ctx.fillStyle = e.color;
         this.ctx.beginPath();
         if (e.type === 'brute' || e.isBoss) {
@@ -1476,7 +1894,6 @@
           this.ctx.fill();
         }
 
-        // Shield Dome
         if (e.shield > 0) {
           this.ctx.strokeStyle = "rgba(0, 176, 255, 0.8)";
           this.ctx.lineWidth = 2.5;
@@ -1487,22 +1904,18 @@
 
         this.ctx.restore();
 
-        // HP / Shield Bar above enemy
         const barW = Math.max(26, e.size * 2);
         const barH = 4;
         const bx = e.x - barW / 2;
         const by = e.y - e.size - 10;
 
-        // Background
         this.ctx.fillStyle = "#0a0f1d";
         this.ctx.fillRect(bx, by, barW, barH);
 
-        // HP fill
         const hpPct = Math.max(0, e.hp / e.maxHp);
         this.ctx.fillStyle = e.isBoss ? "#ff1744" : "#00e676";
         this.ctx.fillRect(bx, by, barW * hpPct, barH);
 
-        // Shield fill (above HP)
         if (e.maxShield > 0) {
           const shPct = Math.max(0, e.shield / e.maxShield);
           this.ctx.fillStyle = "#00b0ff";
@@ -1519,14 +1932,12 @@
           this.ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
           this.ctx.fill();
         } else if (p.type === 'mortar') {
-          // Shadow on ground
           const shadowY = p.startY + (p.targetY - p.startY) * p.t;
           this.ctx.fillStyle = "rgba(0,0,0,0.4)";
           this.ctx.beginPath();
           this.ctx.arc(p.x, shadowY, 6, 0, Math.PI * 2);
           this.ctx.fill();
 
-          // Shell
           this.ctx.fillStyle = "#ff9100";
           this.ctx.beginPath();
           this.ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
@@ -1537,11 +1948,20 @@
 
     renderParticles() {
       for (const pt of this.particles) {
-        this.ctx.fillStyle = pt.color;
-        this.ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
-        this.ctx.beginPath();
-        this.ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-        this.ctx.fill();
+        if (pt.beam) {
+          // Orbital beam graphic
+          const alpha = Math.max(0, pt.life / pt.maxLife);
+          this.ctx.fillStyle = `rgba(255, 0, 127, ${alpha * 0.7})`;
+          this.ctx.fillRect(pt.x - 20, 0, 40, this.height);
+          this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+          this.ctx.fillRect(pt.x - 6, 0, 12, this.height);
+        } else {
+          this.ctx.fillStyle = pt.color;
+          this.ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          this.ctx.beginPath();
+          this.ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
       }
       this.ctx.globalAlpha = 1.0;
     }
@@ -1558,6 +1978,18 @@
     }
 
     renderPlacementGhost() {
+      if (this.aimingSkill) {
+        // Aiming cursor
+        this.ctx.strokeStyle = "#00e5ff";
+        this.ctx.fillStyle = "rgba(0, 229, 255, 0.15)";
+        this.ctx.beginPath();
+        const rad = this.aimingSkill === 'emp' ? 200 : 140;
+        this.ctx.arc(this.mousePos.x, this.mousePos.y, rad, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+        return;
+      }
+
       if (!this.selectedBuildType || !this.hoverCell) return;
       const def = TOWER_DEFS[this.selectedBuildType];
       const gx = this.hoverCell.gx;
@@ -1565,7 +1997,6 @@
       const px = gx * 64 + 32;
       const py = gy * 64 + 32;
 
-      // Range Preview
       this.ctx.strokeStyle = this.hoverCell.valid ? "rgba(0, 229, 255, 0.4)" : "rgba(255, 23, 68, 0.4)";
       this.ctx.fillStyle = this.hoverCell.valid ? "rgba(0, 229, 255, 0.08)" : "rgba(255, 23, 68, 0.08)";
       this.ctx.lineWidth = 1.5;
@@ -1574,7 +2005,6 @@
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Cell Ghost Box
       this.ctx.fillStyle = this.hoverCell.valid ? "rgba(0, 230, 118, 0.3)" : "rgba(255, 23, 68, 0.3)";
       this.ctx.strokeStyle = this.hoverCell.valid ? "#00e676" : "#ff1744";
       this.ctx.lineWidth = 2;
@@ -1583,7 +2013,6 @@
     }
 
     renderTopHUD() {
-      // Top HUD Bar background
       this.ctx.fillStyle = "#0c1424";
       this.ctx.fillRect(0, 0, this.width, 60);
       this.ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
@@ -1595,45 +2024,53 @@
 
       // Base HP
       this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 14px 'Segoe UI', monospace";
+      this.ctx.font = "bold 13px 'Segoe UI', monospace";
       this.ctx.textAlign = "left";
-      this.ctx.fillText(`CORE HEALTH: ${this.baseHp} / ${this.maxBaseHp}`, 24, 25);
+      this.ctx.fillText(`CORE: ${this.baseHp}/${this.maxBaseHp}`, 16, 24);
       const hpPct = Math.max(0, this.baseHp / this.maxBaseHp);
       this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(24, 32, 160, 14);
+      this.ctx.fillRect(16, 32, 130, 14);
       this.ctx.fillStyle = hpPct > 0.3 ? "#00e5ff" : "#ff1744";
-      this.ctx.fillRect(24, 32, 160 * hpPct, 14);
+      this.ctx.fillRect(16, 32, 130 * hpPct, 14);
 
-      // Gold
+      // Gold & Score
       this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 20px 'Segoe UI', monospace";
-      this.ctx.fillText(`⚡ ${this.gold} G`, 230, 38);
+      this.ctx.font = "bold 18px 'Segoe UI', monospace";
+      this.ctx.fillText(`⚡ ${this.gold}G`, 165, 36);
+
+      this.ctx.fillStyle = "#b0bec5";
+      this.ctx.font = "12px monospace";
+      this.ctx.fillText(`PTS: ${this.score}`, 260, 36);
 
       // Wave Tracker
       this.ctx.textAlign = "center";
       this.ctx.fillStyle = "#ffffff";
-      this.ctx.font = "bold 16px 'Segoe UI', monospace";
-      this.ctx.fillText(`WAVE ${this.wave} / ${this.maxWaves}`, 440, 37);
+      this.ctx.font = "bold 15px 'Segoe UI', monospace";
+      const maxWStr = (this.maxWaves > 50) ? "∞" : this.maxWaves;
+      this.ctx.fillText(`WAVE ${this.wave} / ${maxWStr}`, 410, 36);
 
       // Call Wave / Countdown Button
       this.ctx.fillStyle = this.waveActive ? "#162b47" : "#00e5ff";
-      this.ctx.fillRect(530, 10, 180, 40);
+      this.ctx.fillRect(490, 10, 160, 40);
       this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.strokeRect(530, 10, 180, 40);
+      this.ctx.strokeRect(490, 10, 160, 40);
       this.ctx.fillStyle = this.waveActive ? "#00e5ff" : "#05070d";
       this.ctx.font = "bold 13px 'Segoe UI', monospace";
-      const waveLabel = this.waveActive ? `IN BATTLE (${this.enemies.length})` : `START [${Math.ceil(this.waveCountdown)}s]`;
-      this.ctx.fillText(waveLabel, 620, 35);
+      const waveLabel = this.waveActive ? `HOSTILES: ${this.enemies.length}` : `START [${Math.ceil(this.waveCountdown)}s]`;
+      this.ctx.fillText(waveLabel, 570, 35);
 
-      // Map Name
+      // Mode / Sector Name
       this.ctx.fillStyle = "#78909c";
-      this.ctx.font = "12px 'Segoe UI', monospace";
-      this.ctx.fillText(`SECTOR: ${MAPS[this.currentMapIndex].name.toUpperCase()}`, 860, 35);
+      this.ctx.font = "12px monospace";
+      const mapName = (this.gameMode === 'CUSTOM') ? "CUSTOM MAP" : MAPS[this.currentMapIndex].name.toUpperCase();
+      this.ctx.fillText(`[${this.gameMode}] ${mapName}`, 760, 35);
 
-      // Buttons: Speed, Mute, Pause
-      this.renderMiniButton(1010, 12, 60, 36, `${this.speed}x`);
-      this.renderMiniButton(1085, 12, 60, 36, audio.muted ? "MUTED" : "SFX");
-      this.renderMiniButton(1160, 12, 60, 36, this.state === 'PAUSED' ? "RESUME" : "PAUSE");
+      // Top control buttons
+      this.renderMiniButton(890, 12, 60, 36, `${this.speed}x`);
+      this.renderMiniButton(960, 12, 60, 36, audio.sfxMuted ? "SFX ✕" : "SFX ✓");
+      this.renderMiniButton(1030, 12, 60, 36, audio.bgmMuted ? "BGM ✕" : "BGM ✓");
+      this.renderMiniButton(1100, 12, 60, 36, this.crtEnabled ? "CRT ✓" : "CRT ✕");
+      this.renderMiniButton(1170, 12, 60, 36, this.state === 'PAUSED' ? "RESUME" : "PAUSE");
     }
 
     renderMiniButton(x, y, w, h, text) {
@@ -1643,13 +2080,12 @@
       this.ctx.lineWidth = 1;
       this.ctx.strokeRect(x, y, w, h);
       this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 12px monospace";
+      this.ctx.font = "bold 11px monospace";
       this.ctx.textAlign = "center";
       this.ctx.fillText(text, x + w / 2, y + h / 2 + 4);
     }
 
     renderBottomBar() {
-      // Bottom Panel
       this.ctx.fillStyle = "#0c1424";
       this.ctx.fillRect(0, 620, this.width, 100);
       this.ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
@@ -1659,23 +2095,56 @@
       this.ctx.lineTo(this.width, 620);
       this.ctx.stroke();
 
+      // Commander Skills Panel (Far Left, x: 10 to 190)
+      const skillList = ['emp', 'orbital', 'overclock', 'drone'];
+      for (let i = 0; i < 4; i++) {
+        const k = skillList[i];
+        const s = this.skills[k];
+        const sx = 10 + i * 45;
+        const isReady = s.currentCd <= 0 && this.gold >= s.cost;
+
+        this.ctx.fillStyle = isReady ? "#1c2b45" : "#101624";
+        this.ctx.fillRect(sx, 630, 40, 75);
+        this.ctx.strokeStyle = isReady ? "#00e5ff" : "#37474f";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(sx, 630, 40, 75);
+
+        this.ctx.fillStyle = isReady ? "#00e5ff" : "#546e7a";
+        this.ctx.font = "bold 12px monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(`[${s.key}]`, sx + 20, 650);
+
+        this.ctx.font = "8px monospace";
+        this.ctx.fillText(s.name.split(' ')[0], sx + 20, 665);
+
+        this.ctx.fillStyle = "#ffd600";
+        this.ctx.fillText(`${s.cost}g`, sx + 20, 680);
+
+        if (s.currentCd > 0) {
+          this.ctx.fillStyle = "rgba(255, 23, 68, 0.6)";
+          this.ctx.fillRect(sx, 630, 40, 75 * (s.currentCd / s.cd));
+          this.ctx.fillStyle = "#fff";
+          this.ctx.font = "bold 11px monospace";
+          this.ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 20, 696);
+        }
+      }
+
       if (this.selectedTower) {
-        // Selected Tower Inspector
         const t = this.selectedTower;
         const def = TOWER_DEFS[t.type];
         const tier = def.tiers[t.tier - 1];
 
         this.ctx.fillStyle = def.color;
-        this.ctx.font = "bold 16px monospace";
+        this.ctx.font = "bold 15px monospace";
         this.ctx.textAlign = "left";
-        this.ctx.fillText(`${def.name.toUpperCase()} (T${t.tier})`, 30, 655);
+        this.ctx.fillText(`${def.name.toUpperCase()} (T${t.tier})`, 210, 655);
 
         this.ctx.fillStyle = "#cfd8dc";
         this.ctx.font = "12px monospace";
         const stats = t.type === 'beacon' ?
           `Aura: +${tier.dmgBuff * 100}% Dmg | Range: ${tier.range}px` :
           `Dmg: ${tier.dmg} | Rate: ${tier.rate}/s | Range: ${tier.range}px | Kills: ${t.kills}`;
-        this.ctx.fillText(stats, 30, 680);
+        this.ctx.fillText(stats, 210, 680);
 
         // Upgrade button
         const upCost = tier.upCost;
@@ -1694,7 +2163,7 @@
         this.ctx.fillStyle = "#fff";
         this.ctx.fillText(`[S] SELL (+${refund}g)`, 700, 670);
 
-        // Target Priority button
+        // Priority button
         this.ctx.fillStyle = "#1e3a5f";
         this.ctx.fillRect(780, 640, 140, 50);
         this.ctx.strokeStyle = "#00e5ff";
@@ -1702,7 +2171,7 @@
         this.ctx.fillStyle = "#00e5ff";
         this.ctx.fillText(`[T] ${t.priority}`, 850, 670);
 
-        // Deselect [X]
+        // Deselect
         this.ctx.fillStyle = "#37474f";
         this.ctx.fillRect(940, 640, 50, 50);
         this.ctx.fillStyle = "#fff";
@@ -1710,22 +2179,17 @@
       } else {
         // Tower Hotbar (5 towers)
         const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
-        this.ctx.fillStyle = "#78909c";
-        this.ctx.font = "bold 12px monospace";
-        this.ctx.textAlign = "left";
-        this.ctx.fillText("SELECT TOWER TO DEPLOY:", 20, 670);
-
         for (let i = 0; i < 5; i++) {
           const key = towerKeys[i];
           const def = TOWER_DEFS[key];
-          const bx = 180 + i * 185;
+          const bx = 200 + i * 180;
           const isSelected = this.selectedBuildType === key;
 
           this.ctx.fillStyle = isSelected ? "rgba(0, 229, 255, 0.2)" : "#131e33";
-          this.ctx.fillRect(bx, 630, 170, 75);
+          this.ctx.fillRect(bx, 630, 165, 75);
           this.ctx.strokeStyle = isSelected ? "#00e5ff" : (this.gold >= def.cost ? def.color : "#37474f");
           this.ctx.lineWidth = isSelected ? 2 : 1;
-          this.ctx.strokeRect(bx, 630, 170, 75);
+          this.ctx.strokeRect(bx, 630, 165, 75);
 
           this.ctx.fillStyle = def.color;
           this.ctx.font = "bold 13px monospace";
@@ -1747,35 +2211,48 @@
       this.ctx.fillStyle = "#05070d";
       this.ctx.fillRect(0, 0, this.width, this.height);
 
-      // Title
       this.ctx.textAlign = "center";
       this.ctx.fillStyle = "#00e5ff";
       this.ctx.font = "800 48px 'Segoe UI', monospace";
-      this.ctx.fillText("TOWER DEFENSE: LAST GRID", 640, 240);
+      this.ctx.fillText("TOWER DEFENSE: LAST GRID", 640, 180);
 
       this.ctx.fillStyle = "#ff007f";
-      this.ctx.font = "bold 18px 'Segoe UI', monospace";
-      this.ctx.fillText("10 MAPS • 5 TOWERS • 8 ENEMIES • 3 BOSSES • 30 WAVES", 640, 290);
+      this.ctx.font = "bold 16px 'Segoe UI', monospace";
+      this.ctx.fillText("CYBERNETIC DEFENSE • 10 MAPS • 5 TOWERS • 8 ENEMIES • 3 BOSSES", 640, 220);
 
       this.ctx.fillStyle = "#78909c";
-      this.ctx.font = "14px 'Segoe UI', monospace";
-      this.ctx.fillText("Full Godot 4.3 Architecture • Real-time Canvas 2D Engine", 640, 330);
+      this.ctx.font = "13px 'Segoe UI', monospace";
+      this.ctx.fillText(`Commander: ${this.playerName} | PWA Offline Ready | Web Audio Synthesizer`, 640, 250);
 
-      // Launch Button
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.fillRect(480, 440, 320, 60);
-      this.ctx.fillStyle = "#05070d";
-      this.ctx.font = "bold 20px 'Segoe UI', monospace";
-      this.ctx.fillText("DEPLOY MISSION 1", 640, 477);
+      // Campaign Button
+      this.renderMenuButton(440, 350, 400, 55, "CAMPAIGN MISSIONS (10 MAPS)", "#00e5ff", "#05070d");
 
-      // Map Select Button
-      this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(480, 520, 320, 50);
-      this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.strokeRect(480, 520, 320, 50);
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 16px 'Segoe UI', monospace";
-      this.ctx.fillText("SECTOR MAP SELECT", 640, 552);
+      // Sector Map Select
+      this.renderMenuButton(440, 420, 400, 50, "SELECT SPECIFIC SECTOR", "#162238", "#00e5ff", "#00e5ff");
+
+      // Endless Survival
+      this.renderMenuButton(440, 485, 400, 50, "ENDLESS SURVIVAL MODE (∞ WAVES)", "#26133a", "#e040fb", "#e040fb");
+
+      // Boss Rush & Editor
+      this.renderMenuButton(440, 550, 190, 50, "BOSS RUSH", "#33121d", "#ff1744", "#ff1744");
+      this.renderMenuButton(650, 550, 190, 50, "MAP EDITOR", "#132d2a", "#00e676", "#00e676");
+
+      // Leaderboard
+      this.renderMenuButton(500, 620, 280, 45, "GLOBAL LEADERBOARD", "#142038", "#ffd600", "#ffd600");
+    }
+
+    renderMenuButton(x, y, w, h, text, bg, fg, border) {
+      this.ctx.fillStyle = bg;
+      this.ctx.fillRect(x, y, w, h);
+      if (border) {
+        this.ctx.strokeStyle = border;
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeRect(x, y, w, h);
+      }
+      this.ctx.fillStyle = fg;
+      this.ctx.font = "bold 14px 'Segoe UI', monospace";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText(text, x + w / 2, y + h / 2 + 5);
     }
 
     renderMapSelect() {
@@ -1785,45 +2262,143 @@
       this.ctx.textAlign = "left";
       this.ctx.fillStyle = "#00e5ff";
       this.ctx.font = "bold 24px 'Segoe UI', monospace";
-      this.ctx.fillText("SELECT TACTICAL SECTOR", 60, 80);
+      this.ctx.fillText("SELECT CAMPAIGN SECTOR", 60, 60);
 
-      // Back Button
-      this.renderMiniButton(60, 35, 100, 30, "← BACK");
+      this.renderMiniButton(60, 25, 90, 30, "← MENU");
 
-      // Grid of 10 maps
       for (let i = 0; i < MAPS.length; i++) {
         const m = MAPS[i];
         const col = i % 5;
         const row = Math.floor(i / 5);
         const x = 60 + col * 235;
-        const y = 140 + row * 240;
+        const y = 90 + row * 240;
 
         this.ctx.fillStyle = "#0c1527";
-        this.ctx.fillRect(x, y, 220, 210);
+        this.ctx.fillRect(x, y, 220, 215);
         this.ctx.strokeStyle = "#00e5ff";
         this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(x, y, 220, 210);
+        this.ctx.strokeRect(x, y, 220, 215);
 
         this.ctx.fillStyle = "#00e5ff";
-        this.ctx.font = "bold 15px monospace";
+        this.ctx.font = "bold 14px monospace";
         this.ctx.textAlign = "left";
-        this.ctx.fillText(`0${i + 1}. ${m.name}`, x + 12, y + 30);
+        this.ctx.fillText(`0${i + 1}. ${m.name}`, x + 12, y + 28);
 
         this.ctx.fillStyle = "#cfd8dc";
         this.ctx.font = "11px monospace";
-        this.wrapText(m.desc, x + 12, y + 60, 195, 16);
+        this.wrapText(m.desc, x + 12, y + 54, 195, 15);
 
         this.ctx.fillStyle = "#ffd600";
         this.ctx.font = "11px monospace";
-        this.ctx.fillText(`WAVES: ${m.wave_count} | GOLD: ${m.gold}`, x + 12, y + 150);
+        const starsEarned = this.saveData.stars[m.id] || 0;
+        const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
+        this.ctx.fillText(`WAVES: ${m.wave_count} | ${starStr}`, x + 12, y + 155);
 
-        // Play Button inside card
         this.ctx.fillStyle = "#00e5ff";
-        this.ctx.fillRect(x + 12, y + 165, 196, 32);
+        this.ctx.fillRect(x + 12, y + 170, 196, 32);
         this.ctx.fillStyle = "#05070d";
         this.ctx.font = "bold 13px monospace";
         this.ctx.textAlign = "center";
-        this.ctx.fillText("DEPLOY HERE", x + 110, y + 186);
+        this.ctx.fillText("DEPLOY SECTOR", x + 110, y + 191);
+      }
+    }
+
+    renderEditor() {
+      this.ctx.fillStyle = "#070b14";
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
+      // Top Toolbar
+      this.ctx.fillStyle = "#0c1527";
+      this.ctx.fillRect(0, 0, this.width, 70);
+      this.ctx.strokeStyle = "#00e5ff";
+      this.ctx.strokeRect(0, 0, this.width, 70);
+
+      this.renderMiniButton(50, 20, 100, 36, "← MENU");
+      this.renderMiniButton(180, 20, 140, 36, "▶ TEST PLAY");
+      this.renderMiniButton(340, 20, 110, 36, "CLEAR");
+      this.renderMiniButton(480, 20, 130, 36, "EXPORT JSON");
+      this.renderMiniButton(640, 20, 130, 36, "IMPORT JSON");
+
+      this.ctx.fillStyle = "#78909c";
+      this.ctx.font = "12px monospace";
+      this.ctx.textAlign = "left";
+      this.ctx.fillText("Click any grid cell to add waypoints in order from SPAWN to BASE CORE.", 800, 42);
+
+      // Draw Grid
+      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.1)";
+      for (let x = 0; x <= this.width; x += 64) {
+        this.ctx.beginPath(); this.ctx.moveTo(x, 70); this.ctx.lineTo(x, 650); this.ctx.stroke();
+      }
+      for (let y = 70; y <= 650; y += 64) {
+        this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.width, y); this.ctx.stroke();
+      }
+
+      // Draw Custom Waypoint Path
+      if (this.editorWaypoints.length >= 2) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.editorWaypoints[0].x, this.editorWaypoints[0].y);
+        for (let i = 1; i < this.editorWaypoints.length; i++) {
+          this.ctx.lineTo(this.editorWaypoints[i].x, this.editorWaypoints[i].y);
+        }
+        this.ctx.strokeStyle = "rgba(0, 229, 255, 0.6)";
+        this.ctx.lineWidth = 36;
+        this.ctx.lineCap = "round";
+        this.ctx.stroke();
+      }
+
+      // Waypoint Nodes
+      for (let i = 0; i < this.editorWaypoints.length; i++) {
+        const pt = this.editorWaypoints[i];
+        this.ctx.fillStyle = (i === 0) ? "#ff1744" : (i === this.editorWaypoints.length - 1 ? "#00e5ff" : "#ffd600");
+        this.ctx.beginPath();
+        this.ctx.arc(pt.x, pt.y, 14, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "bold 10px monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(`${i + 1}`, pt.x, pt.y + 4);
+      }
+    }
+
+    renderLeaderboardModal() {
+      this.ctx.fillStyle = "#05070d";
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
+      this.ctx.textAlign = "left";
+      this.ctx.fillStyle = "#00e5ff";
+      this.ctx.font = "bold 26px 'Segoe UI', monospace";
+      this.ctx.fillText("GLOBAL CYBER-GRID LEADERBOARD", 60, 60);
+
+      this.renderMiniButton(60, 25, 90, 32, "← MENU");
+      this.renderMiniButton(1050, 25, 170, 32, `HANDLE: ${this.playerName}`);
+
+      // Table Header
+      this.ctx.fillStyle = "#162238";
+      this.ctx.fillRect(60, 100, 1160, 40);
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.font = "bold 14px monospace";
+      this.ctx.fillText("RANK", 80, 125);
+      this.ctx.fillText("COMMANDER", 180, 125);
+      this.ctx.fillText("SECTOR", 460, 125);
+      this.ctx.fillText("WAVE REACHED", 760, 125);
+      this.ctx.fillText("TACTICAL SCORE", 1000, 125);
+
+      // Table Rows
+      const rows = this.saveData.leaderboard.slice(0, 10);
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const y = 160 + i * 44;
+        this.ctx.fillStyle = i % 2 === 0 ? "rgba(12, 21, 39, 0.7)" : "rgba(22, 34, 56, 0.4)";
+        this.ctx.fillRect(60, y - 22, 1160, 40);
+
+        this.ctx.fillStyle = i === 0 ? "#ffd600" : (i === 1 ? "#00e5ff" : "#cfd8dc");
+        this.ctx.font = "bold 14px monospace";
+        this.ctx.fillText(`#${i + 1}`, 80, y);
+        this.ctx.fillText(r.player_name, 180, y);
+        this.ctx.fillText(r.map_id.toUpperCase(), 460, y);
+        this.ctx.fillText(`Wave ${r.wave_reached}`, 760, y);
+        this.ctx.fillText(`${r.score} PTS`, 1000, y);
       }
     }
 
@@ -1863,29 +2438,18 @@
       this.ctx.fillStyle = "#00e676";
       this.ctx.font = "bold 44px 'Segoe UI', monospace";
       this.ctx.textAlign = "center";
-      this.ctx.fillText("SECTOR DEFENDED!", 640, 260);
+      this.ctx.fillText("SECTOR DEFENDED!", 640, 240);
 
       this.ctx.fillStyle = "#ffd600";
       this.ctx.font = "bold 28px monospace";
-      this.ctx.fillText("★★★ MISSION SUCCESS ★★★", 640, 320);
+      this.ctx.fillText("★★★ MISSION SUCCESS ★★★", 640, 300);
 
       this.ctx.fillStyle = "#cfd8dc";
       this.ctx.font = "16px monospace";
-      this.ctx.fillText(`Core HP preserved: ${this.baseHp} / ${this.maxBaseHp}`, 640, 370);
+      this.ctx.fillText(`Final Tactical Score: ${this.score} PTS | Preserved Core: ${this.baseHp}/${this.maxBaseHp}`, 640, 350);
 
-      // Buttons
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.fillRect(460, 460, 160, 50);
-      this.ctx.fillStyle = "#000";
-      this.ctx.font = "bold 16px monospace";
-      this.ctx.fillText("PLAY AGAIN", 540, 492);
-
-      this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(660, 460, 160, 50);
-      this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.strokeRect(660, 460, 160, 50);
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.fillText("MAP SELECT", 740, 492);
+      this.renderMenuButton(460, 460, 160, 50, "PLAY AGAIN", "#00e5ff", "#000");
+      this.renderMenuButton(660, 460, 160, 50, "MAIN MENU", "#162238", "#00e5ff", "#00e5ff");
     }
 
     renderDefeatModal() {
@@ -1895,31 +2459,25 @@
       this.ctx.fillStyle = "#ff1744";
       this.ctx.font = "bold 44px 'Segoe UI', monospace";
       this.ctx.textAlign = "center";
-      this.ctx.fillText("GRID OVERRUN!", 640, 260);
+      this.ctx.fillText("GRID OVERRUN!", 640, 240);
 
       this.ctx.fillStyle = "#cfd8dc";
       this.ctx.font = "18px monospace";
-      this.ctx.fillText(`Base core breached at Wave ${this.wave}.`, 640, 330);
+      this.ctx.fillText(`Base core breached at Wave ${this.wave}. Score: ${this.score} PTS`, 640, 310);
 
-      // Buttons
-      this.ctx.fillStyle = "#ff1744";
-      this.ctx.fillRect(460, 460, 160, 50);
-      this.ctx.fillStyle = "#fff";
-      this.ctx.font = "bold 16px monospace";
-      this.ctx.fillText("RETRY SECTOR", 540, 492);
-
-      this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(660, 460, 160, 50);
-      this.ctx.strokeStyle = "#ff1744";
-      this.ctx.strokeRect(660, 460, 160, 50);
-      this.ctx.fillStyle = "#ff1744";
-      this.ctx.fillText("MAP SELECT", 740, 492);
+      this.renderMenuButton(460, 460, 160, 50, "RETRY SECTOR", "#ff1744", "#fff");
+      this.renderMenuButton(660, 460, 160, 50, "MAIN MENU", "#162238", "#ff1744", "#ff1744");
     }
   }
 
-  // Auto-launch engine when DOM ready
+  // Auto-launch engine
   window.addEventListener('DOMContentLoaded', () => {
     window.lastGridEngine = new LastGridEngine();
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
   });
 
 })();

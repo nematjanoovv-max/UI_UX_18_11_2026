@@ -1,54 +1,54 @@
 ================================================================================
 LOYIHA NOMI:
-07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 2D)
+07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 + Web 2D)
+Versiya: v2.0.0 Pro (Kengaytirilgan Reliz)
 ================================================================================
 
 1. GITHUB REPOZITORIY HAVOLASI:
 https://github.com/nematjanoovv-max/UI_UX_18_11_2026
 
-2. VERCEL LIVE (ISHLAYOTGAN SAYT) HAVOLASI:
+2. VERCEL LIVE (ISHLAYOTGAN JONLI SAYT) HAVOLASI:
 https://last-grid-td.vercel.app
 
 ================================================================================
-AMALGA OSHIRILGAN TO'LIQ IMKONIYATLAR VA MEZONLAR:
+YANGI VA JIDDIY AMALGA OSHIRILGAN KENGAYTMALAR (v2.0):
 
-1. Majburiy Kontent Miqdori (100% to'liq):
-   - 10 ta Xarita (Training Grid, Crossroads, Spiral Core, Misty Pass, Fast Track, 
-     Scrap Yard, Iron Wall, Blackout City, Twin Gate, The Last Grid).
-   - 5 ta Minora Turi:
-     * Pulse: KINETIC, tez otar arzon minora (100g, 12->18->26 dmg, 4->5->6 rps).
-     * Mortar: EXPLOSIVE, uzoq masofali hududiy zarba (150g, 45->70->105 dmg, 60->85px splash).
-     * Cryo: ENERGY, sekinlashtiruvchi maydon (120g, 35%->45%->55% slow + muzlatish).
-     * Railgun: PIERCE, chiziqli teshuvchi nur (250g, 140->220->340 dmg, 1->3 dushman).
-     * Beacon: SUPPORT, qo'shni minoralar uchun kuchaytiruvchi aura (+35% dmg, +20% range).
-   - 8 ta Dushman Turi (Grunt, Sprinter, Brute, Swarmling, Shieldbearer, Medic, Splitter, Phantom).
-   - 3 ta Boss:
-     * Juggernaut (10-to'lqin bossi: 6000 HP, 20 bronya, sekinlashuv 50% cheklovi).
-     * Overseer (20-to'lqin bossi: 9000 HP, 10 bronya, sprinterlarni chaqirish va qalqon auranasi).
-     * Hive Titan (30-to'lqin final bossi: 20000 HP, 15 bronya, 3 ta faza va bo'linuvchilar).
-   - 30 ta To'lqin Konfiguratsiyasi (Wave 1 dan Wave 30 gacha to'liq .tres fayllar).
+1. ⚡ 4 ta Faol Komandir Qobiliyatlari (Commander Skills):
+   - [Z] EMP Storm: 200px radiusdagi barcha dushmanlarni 3.5s ga to'liq falaj qiladi (Stun).
+   - [X] Orbital Beam: Belgilangan nuqtaga osmondan ulkan lazer zarbasi (500 damage).
+   - [C] Overclock Reactor: 6 soniya davomida barcha minoralarning otish tezligini +60% ga oshiradi.
+   - [V] Supply Drone: Maydonga yuk droni chaqirib, darhol +75 Oltin yetkazadi.
 
-2. Qabul Qilish Mezonlari (Acceptance Criteria):
-   - Qabul #1: Dushmanlar yo'ldan aslo chiqmaydi (matematik sample_lane bo'yicha og'ish 0.000 px).
-   - Qabul #2: 4 xil nishon tanlash qoidasi (FIRST, LAST, STRONGEST, NEAREST) va UID tie-break.
-   - Qabul #3: To'lqinni tozalash va baza yo'qotilishi (G'alaba va Mag'lubiyat holatlari) to'liq ishlaydi.
+2. 🎮 4 xil O'yin Rejimi:
+   - CAMPAIGN: 10 ta to'liq xarita bo'ylab bosqichma-bosqich yurish.
+   - ENDLESS SURVIVAL: 30-to'lqindan keyin cheksiz davom etuvchi to'lqinlar va har 5-to'lqinda bosslar.
+   - BOSS RUSH: Faqat 3 ta bossga (Juggernaut, Overseer, Hive Titan) qarshi maxsus shiddatli rejim.
+   - MAP EDITOR: O'yinchilar 20x11 katakli maydonda o'z xaritalarini chizishi va sinashi mumkin.
 
-3. To'liq O'yin Sikli (Core Loop):
-   - Boot -> Asosiy Menyu -> Missiyani Tanlash (+Qiyinlik) -> Jang Maydoni -> Natijalar -> Qayta urinish.
+3. 🛠 In-Game Xaritalar Muharriri (Level Editor):
+   - Maydonga bosish orqali yo'laklarni (waypoints) belgilash.
+   - Test Play orqali yangi xaritani jangda sinab ko'rish.
+   - Export / Import JSON orqali xaritalarni do'stlar bilan ulashish.
 
-4. Meta-progressiya (Skill Tree) & Yutuqlar:
-   - Tadqiqot ochkolari (RP) orqali 3 ta yo'nalish bo'yicha 15 ta doimiy ko'nikma (Offense, Economy, Defense).
-   - Bepul respec (qayta taqsimlash) imkoniyati.
-   - 15 ta in-game Yutuq (Achievements) va toast xabarnomasi.
+4. 🎵 Cyberpunk Protsedurali Musiqa va Ovoz Sintezatori (Web Audio API):
+   - Haqiqiy vaqt rejimida 124 BPM chastotali dinamik kiber-bas va baraban arpejiosi.
+   - BGM va SFX alohida yoqish/o'chirish imkoniyati.
+   - Portlashlarda kamera silkinishi (Screen Shake) va CRT retro ekran filtri (CRT toggle).
 
-5. Foydalanuvchi Interfeysi (UI/UX):
-   - Kiber-neon uslubi (1280x720 moslashuvchan rezolyutsiya, landshaft).
-   - Sensorli ekran (Touch), sichqoncha va klaviatura (1-5, Space, Esc, U, S, T, Tab).
-   - Rang-ko'rlik yordamchi belgilari va suzuvchi jang raqamlari.
-   - 3 ta til lokalizatsiyasi: O'zbekcha (uz), Ruscha (ru), Inglizcha (en).
+5. 📱 PWA (Progressive Web App) va Oflayn Rejim:
+   - manifest.json va sw.js (Service Worker) ulandi.
+   - Telefon va kompyuterlarga mustaqil ilova (Standalone App) sifatida o'rnatish mumkin.
+   - Internet uzilganda ham to'liq oflayn ishlaydi.
 
-6. Sinovlar va Sifat:
-   - GUT v9.3.0 birlik va integratsion testlari to'liq o'tgan.
-   - Headless Monte Carlo Balans Simulyatori (3 ta bot strategiyasi, yutuq ko'rsatkichi 55-85%).
-   - Atomik xavfsiz saqlash tizimi (user://progress.json va .bak).
+6. 🏆 Global Reyting va Anti-Cheat Backend (FastAPI):
+   - backend/ katalogida FastAPI + SQLite/PostgreSQL servisi va render.yaml yaratildi.
+   - SHA-256 HMAC imzo tekshiruvi bilan ballarni himoyalash.
+   - Mahalliy va onlayn Leaderboard oynasi.
+
+================================================================================
+BAZAVIY MAJBURIY KONTENT:
+- 10 ta Xarita (Training Grid, Crossroads, Spiral Core, Misty Pass, Fast Track, Scrap Yard, Iron Wall, Blackout City, Twin Gate, The Last Grid).
+- 5 ta Minora (Pulse, Mortar, Cryo, Railgun, Beacon - har biri 3 ta tier va 70% refund).
+- 8 ta Dushman & 3 ta Boss (Grunt, Sprinter, Brute, Swarmling, Shieldbearer, Medic, Splitter, Phantom, Juggernaut, Overseer, Hive Titan).
+- 30 ta To'lqin konfiguratsiyasi.
 ================================================================================

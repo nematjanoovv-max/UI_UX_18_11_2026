@@ -1,9 +1,9 @@
 ================================================================================
 LOYIHA NOMI VA MA'LUMOTLARI:
-07. Tower Defense: Last Grid — 2D Kiber-Neon Taktik Strategiya O'yini
-Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing)
-Platformalar: Web (HTML5), Desktop (Windows), Mobile (Android)
-Holati: 100% TO'LIQ TAYYOR (v1.0.0 Rasmiy Reliz)
+07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
+Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
+Platformalar: Web (HTML5/PWA), Desktop (Windows), Mobile (Android)
+Holati: 100% TO'LIQ TAYYOR (v2.0.0 Pro Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -12,132 +12,46 @@ Sana: 2026-11-18
 - GITHUB REPOZITORIY:
   https://github.com/nematjanoovv-max/UI_UX_18_11_2026
 
-- GITHUB TARMOQLARI (BRANCHES):
-  * main (ishlab chiqarishga tayyor, barqaror): https://github.com/nematjanoovv-max/UI_UX_18_11_2026/tree/main
-  * dev (integratsiya va ishlab chiqish): https://github.com/nematjanoovv-max/UI_UX_18_11_2026/tree/dev
-
-- GITHUB RELIZ TEGLARI (RELEASES):
-  * v1.0.0 (Rasmiy to'liq reliz): https://github.com/nematjanoovv-max/UI_UX_18_11_2026/releases/tag/v1.0.0
-  * v0.1.0 (MVP Checkpoint): https://github.com/nematjanoovv-max/UI_UX_18_11_2026/releases/tag/v0.1.0
-
-- VERCEL JONLI SAYT (LIVE DEMO):
+- VERCEL JONLI SAYT (LIVE DEMO & PWA):
   https://last-grid-td.vercel.app
-  https://last-grid-izvldmet2-barkamol2.vercel.app
 
 ================================================================================
-2. BAJARILGAN MAJBURIY KONTENT VA STANDARTLAR (100%):
+2. v2.0 YANGI XUSUSIYATLAR (100% AMALGA OSHIRILDI):
 
-[A] 10 TA TO'LIQ XARITA (data/maps/):
-  1. Training Grid — 10 to'lqin, S-simon yo'l, boshlang'ich ochiq xarita.
-  2. Crossroads — 12 to'lqin, birlashuvchi 2 ta yo'lak, 1★ talab qilinadi.
-  3. Spiral Core — 15 to'lqin, markazga spiral yo'l, 1★ talab qilinadi.
-  4. Misty Pass — 15 to'lqin, zig-zag kanyon, 'fog' modifikatori (masofa -15%).
-  5. Fast Track — 20 to'lqin, to'g'ri magistral, 'fast_lane' modifikatori (tezlik +15%).
-  6. Scrap Yard — 20 to'lqin, aylanma yo'l, 'scarce' modifikatori (mukofot -20%).
-  7. Iron Wall — 25 to'lqin, keng U-shakl, 'armored' modifikatori (bronya +20%).
-  8. Blackout City — 25 to'lqin, zich shahar, 'blackout' modifikatori (har 5-to'lqinda 3s o'chish).
-  9. Twin Gate — 30 to'lqin, 2 ta mustaqil spawn yo'lagi, 'double_lane' modifikatori.
-  10. The Last Grid — 30 to'lqin, yakuniy uzun ilon yo'l, 'last_grid' kompleks modifikatori.
+[1] 4 TA FAOL KOMANDIR QOBILIYATI (COMMANDER SKILLS):
+    - [Z] EMP Storm: 200px radiusdagi barcha dushmanlarni 3.5s falaj qiladi (50g, 25s cd).
+    - [X] Orbital Beam: Osmon orqali nishonga 500 damage yetkazuvchi vertikal lazer (75g, 30s cd).
+    - [C] Overclock: Barcha minoralarning otish tezligini 6s davomida +60% ga oshiradi (60g, 35s cd).
+    - [V] Supply Drone: Maydonga zudlik bilan +75 oltin resurs yetkazadi (0g, 40s cd).
 
-[B] 5 TA MINORA ARXIVI (data/towers/):
-  1. Pulse Tower (KINETIC): 100g. 12->18->26 dmg, 4->5->6 rps, masofa 140->160px.
-  2. Mortar Tower (EXPLOSIVE): 150g. 45->70->105 dmg, 60->85px splash, masofa 200->230px.
-  3. Cryo Tower (ENERGY): 120g. 4->6->9 dmg, 35%->45%->55% slow, T3 da 15% muzlatish.
-  4. Railgun Tower (PIERCE): 250g. 140->220->340 dmg, 1->2->3 dushmanni teshuvchi nur.
-  5. Beacon Tower (SUPPORT): 180g. +35% dmg, +20% range va +10% fire rate beruvchi aura.
-  * Har bir minora 3 ta tierga oshirilishi va 70% investitsiya qaytarilishi bilan sotilishi mumkin.
+[2] 4 TA O'YIN REJIMI:
+    - Campaign Mode: 10 ta strategik xarita bo'ylab 30 ta to'lqin.
+    - Endless Survival Mode: Cheksiz to'lqinlar, eksponensial kuchayuvchi dushmanlar va har 5-to'lqinda bosslar.
+    - Boss Rush Mode: 1200 boshlang'ich oltin bilan 3 ta asosiy bossga qarshi maxsus duel.
+    - Map Editor Mode: O'z xaritangizni yaratish va darhol sinovdan o'tkazish.
 
-[C] 8 TA DUSHMAN VA 3 TA BOSS (data/enemies/ & data/bosses/):
-  - Grunt: 100 HP, 0 bronya, 60 px/s tezlik, 5g mukofot.
-  - Sprinter: 60 HP, 0 bronya, 110 px/s tezlik, 6g mukofot (juda tez).
-  - Brute: 400 HP, 8 bronya, 40 px/s tezlik, 15g mukofot (og'ir zirhli).
-  - Swarmling: 25 HP, 0 bronya, 80 px/s tezlik, 2g mukofot (ko'p sonli to'da).
-  - Shieldbearer: 200 HP, 150 qalqon, 2 bronya, 55 px/s tezlik (tiklanuvchi qalqon).
-  - Medic: 150 HP, 0 bronya, 50 px/s tezlik (96px radiusda 15 HP/s davolaydi).
-  - Splitter: 250 HP, 3 bronya, 55 px/s tezlik (o'lganda 2 ta swarmling hosil qiladi).
-  - Phantom: 180 HP, 75 px/s tezlik (har 4 soniyada 1.5 soniya fazadan chiqib nishonga olinmaydi).
-  - Boss 1: Juggernaut (Wave 10): 6000 HP, 20 bronya, sekinlashuv 50% cheklangan, 25% splash himoyasi.
-  - Boss 2: Overseer (Wave 20): 9000 HP, 10 bronya, har 6 soniyada 3 ta sprinter chaqiradi, qalqon zarbasi.
-  - Boss 3: Hive Titan (Wave 30): 20000 HP, 15 bronya, 3 ta jang fazasi, splitterlarni chaqirish, enrage (+40% tezlik).
+[3] INTERAKTIV XARITA MUHARRIRI (LEVEL EDITOR):
+    - 20x11 katakda nuqtalarni bosib yo'lak chizish (waypoints).
+    - Test Play orqali jonli jangda sinash.
+    - JSON formatida xaritalarni eksport va import qilish.
 
-[D] 30 TA TO'LIQ TO'LQIN KONFIGURATSIYASI (data/waves/):
-  - Wave 01 dan Wave 30 gacha spetsifikatsiya bo'yicha to'liq guruhlar, intervallar va kechikishlar bilan sozlangan.
+[4] REAL-TIME CYBERPUNK MUSIQA VA SFX SINTEZATORI (WEB AUDIO API):
+    - 124 BPM dinamik sintezator arpejiosi va bas chiziqlari.
+    - BGM va SFX alohida boshqaruvi.
+    - Screen Shake (kamera silkinishi) va CRT scanline filtri.
+
+[5] PWA VA TO'LIQ OFLAYN REJIM:
+    - manifest.json va sw.js kesh tizimi orqali ilova sifatida o'rnatish.
+    - Internet bo'lmaganda ham brauzer va telefonda to'liq ishlaydi.
+
+[6] GLOBAL REYTING VA ANTI-CHEAT BACKEND (FASTAPI):
+    - backend/ papkasida FastAPI servisi, SQLite/PostgreSQL va render.yaml.
+    - SHA-256 HMAC imzo tekshiruvi bilan himoyalangan reyting tizimi.
 
 ================================================================================
-3. ASOSIY QABUL QILISH MEZONLARI NATIJALARI (QA & TEST):
-
-1. Yo'l Invariantligi (Acceptance Criteria #1):
-   - Dushmanlar koordinatasi har bir kadrda 'PathNetwork.sample_lane(progress_px)' orqali olinadi.
-   - Matematik jihatdan yo'ldan chetga chiqish xatoligi 0.000 px ekanligi 1000 ta qadamli
-     avtomatlashtirilgan test orqali to'liq tasdiqlandi.
-
-2. Nishon Tanlash Qoidalari (Acceptance Criteria #2):
-   - FIRST: Baza tomon eng yaqin bo'lgan (eng katta progress_px).
-   - LAST: Spawn nuqtasiga eng yaqin bo'lgan (eng kichik progress_px).
-   - STRONGEST: Eng yuqori jami HP + Qalqonga ega bo'lgan dushman.
-   - NEAREST: Minoraga eng yaqin Evklid masofasidagi dushman.
-   - Barcha durang holatlar eng kichik 'enemy.uid' orqali deterministik hal qilinadi.
-   - Faza holatidagi (Phantom) dushmanlar nishonga olinmasligi kafolatlangan.
-
-3. O'yin Tugash Holatlari (Acceptance Criteria #3):
-   - To'lqinni yopish (barcha dushmanlar, bolalari va chaqirilganlar yo'q qilinganda).
-   - Baza halokati (HP <= 0 bo'lganda bir zumda DEFEAT holatiga o'tish).
-   - Barcha to'lqinlar muvaffaqiyatli yakunlanganda VICTORY holatiga o'tish.
-
-================================================================================
-4. FOYDALANUVCHI INTERFEYSI (UI/UX) VA QULAYLIKLAR:
-
-- Kiber-Neon uslubidagi zamonaviy interfeys (1280x720, kengaytiriluvchi).
-- Sensorli ekran (Touch), sichqoncha va klaviatura to'liq qo'llab-quvvatlanadi.
-- Klaviatura tugmalari:
-  * 1–5: Minoralarni tanlash (Pulse, Mortar, Cryo, Railgun, Beacon).
-  * Space: To'lqinni boshlash / Erta chaqirish (har qolgan soniya uchun +1 oltin bonus).
-  * Esc: O'yinni to'xtatish (Pauza).
-  * U: Tanlangan minorani takomillashtirish (Upgrade).
-  * S: Tanlangan minorani 70% oltin evaziga sotish (Sell).
-  * T: Nishon tanlash rejimini almashtirish (FIRST -> LAST -> STRONGEST -> NEAREST).
-  * Tab: O'yin tezligini oshirish (1x -> 2x -> 3x).
-
-- 3 Tilda To'liq Lokalizatsiya (data/i18n/translations.csv):
-  * O'zbekcha (uz)
-  * Ruscha (ru)
-  * Inglizcha (en)
-- Rang-ko'rlik rejimi (rangdan tashqari shakllar orqali farqlash).
-- Jangdagi suzuvchi zarba va oltin raqamlarini yoqish/o'chirish.
-
-================================================================================
-5. META-PROGRESSIYA VA YUTUQLAR:
-
-- Skill Tree (Mahorat Daraxti):
-  * 3 ta yo'nalish (Offense, Economy, Defense) bo'yicha 15 ta ko'nikma.
-  * Tadqiqot ochkolari (RP) to'lqinlar, yulduzlar va bosslarni yengish orqali to'planadi.
-  * Bepul qayta taqsimlash (Free Respec) mavjud.
-- Achievements (15 ta in-game Yutuq):
-  * First Blood, Survivor X, Veteran Defender, Apex Guardian, Perfect Defense,
-    Juggernaut Down, Overseer Silenced, Titan Breaker, Frugal Tactician,
-    Total Coverage, Cryogenic Lock, Railgun Precision, Splash Zone,
-    Beacon of Hope, Millionaire.
-- Saqlash Tizimi (SaveSystem):
-  * user://progress.json va avtomatik zaxira nusxasi (.bak) bilan atomik yozish.
-  * Buzilgan yoki xato fayllar holatida o'yin qulamasdan xavfsiz boshlang'ich holatga o'tadi.
-
-================================================================================
-6. LOYIHANI ISHGA TUSHIRISH (RUNNING & TESTING):
-
-- Godot orqali ishga tushirish:
-  godot --path .
-
-- Testlarni headless (konsolda) ishga tushirish:
-  godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit
-
-- Ma'lumotlar yaxlitligini tekshirish:
-  godot --headless -s tools/validate_data.gd
-
-- Monte Carlo Balans Simulyatorini ishga tushirish:
-  godot --headless -s tools/balance_sim.gd
-
-- Web brauzerda ochish:
-  https://last-grid-td.vercel.app
-================================================================================
-xulosa: Loyiha barcha talablar bo'yicha to'liq tayyorlangan va tasdiqlangan.
+3. BAZAVIY MAJBURIY KONTENT:
+- 10 ta Xarita (Training Grid, Crossroads, Spiral Core, Misty Pass, Fast Track, Scrap Yard, Iron Wall, Blackout City, Twin Gate, The Last Grid).
+- 5 ta Minora (Pulse, Mortar, Cryo, Railgun, Beacon — 3 tier, 70% refund).
+- 8 ta Dushman & 3 ta Boss (Grunt, Sprinter, Brute, Swarmling, Shieldbearer, Medic, Splitter, Phantom, Juggernaut, Overseer, Hive Titan).
+- 30 ta To'lqin Konfiguratsiyasi.
 ================================================================================
