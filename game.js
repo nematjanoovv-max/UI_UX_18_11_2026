@@ -683,14 +683,20 @@
 
     setupCanvasScaling() {
       window.addEventListener('resize', () => this.resizeCanvas());
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => this.resizeCanvas(), 150);
+      });
+      document.addEventListener('fullscreenchange', () => {
+        setTimeout(() => this.resizeCanvas(), 150);
+      });
       this.resizeCanvas();
     }
 
     resizeCanvas() {
       const wrapper = document.getElementById('canvas-container');
       if (!wrapper) return;
-      const w = wrapper.clientWidth;
-      const h = wrapper.clientHeight;
+      const w = wrapper.clientWidth || window.innerWidth;
+      const h = wrapper.clientHeight || window.innerHeight;
       const aspect = 1280 / 720;
       let targetW = w;
       let targetH = w / aspect;
@@ -698,8 +704,8 @@
         targetH = h;
         targetW = h * aspect;
       }
-      this.canvas.style.width = `${targetW}px`;
-      this.canvas.style.height = `${targetH}px`;
+      this.canvas.style.width = `${Math.floor(targetW)}px`;
+      this.canvas.style.height = `${Math.floor(targetH)}px`;
     }
 
     getCanvasPos(e) {
@@ -719,20 +725,25 @@
     }
 
     initEvents() {
+      let lastTouchTime = 0;
       const handleMove = (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
       };
       this.canvas.addEventListener('mousemove', handleMove);
-      this.canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleMove(e); }, { passive: false });
+      this.canvas.addEventListener('touchmove', (e) => {
+        handleMove(e);
+      }, { passive: true });
 
       const handleClick = (e) => {
+        if (Date.now() - lastTouchTime < 500) return;
         audio.init();
         const pos = this.getCanvasPos(e);
         this.handleCanvasClick(pos.x, pos.y);
       };
       this.canvas.addEventListener('click', handleClick);
       this.canvas.addEventListener('touchend', (e) => {
+        lastTouchTime = Date.now();
         if (e.changedTouches && e.changedTouches.length > 0) {
           audio.init();
           const rect = this.canvas.getBoundingClientRect();
