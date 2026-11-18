@@ -3,7 +3,7 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows), Mobile (Android)
-Holati: 100% TO'LIQ TAYYOR (v2.0.0 Pro Reliz)
+Holati: 100% TO'LIQ TAYYOR (v2.1.0 Ultimate Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -15,38 +15,50 @@ Sana: 2026-11-18
 - VERCEL JONLI SAYT (LIVE DEMO & PWA):
   https://last-grid-td.vercel.app
 
-================================================================================
-2. v2.0 YANGI XUSUSIYATLAR (100% AMALGA OSHIRILDI):
+- LIVE GLOBAL LEADERBOARD API:
+  https://last-grid-td.vercel.app/api
 
-[1] 4 TA FAOL KOMANDIR QOBILIYATI (COMMANDER SKILLS):
+- DIRECT OFFLINE ZIP DOWNLOAD:
+  https://last-grid-td.vercel.app/last-grid-offline-v2.zip
+
+================================================================================
+2. v2.1 ULTIMATE YUTUQLARI (100% AMALGA OSHIRILDI):
+
+[1] JONLI SERVERLESS FASTAPI LEADERBOARD:
+    - Vercel Serverless Python orqali `/api` manzili global leaderboard xizmatini taqdim etadi.
+    - POST orqali yuborilgan har bir o'yinchi natijasi saqlanadi va real vaqtda jadval yangilanadi.
+
+[2] 3 TILLI LOKALIZATSIYA (UZ, EN, RU):
+    - O'zbekcha, Inglizcha va Ruscha to'liq tarjimalar to'plami.
+    - Bosh menyu va HUD orqali bitta tugma bilan real vaqtda tilni almashtirish.
+
+[3] INTERAKTIV ENSIKLOPEDIYA (FIELD MANUAL):
+    - 5 ta minora (Pulse, Mortar, Cryo, Railgun, Beacon), ularning tierlari va auralari.
+    - 8 ta dushman va 3 ta boss (Juggernaut, Overseer, Hive Titan) xususiyatlari.
+    - Komandir qobiliyatlari tavsifi.
+
+[4] RANG-KO'RLIK (COLORBLIND MODE) REJIMI:
+    - Dushmanlar ustiga o'ziga xos geometrik piktogrammalar (●, ▲, ■, ◆, 🛡, ✚, ✦, ★, ☠) chiziladi.
+
+[5] 4 TA FAOL KOMANDIR QOBILIYATI (COMMANDER SKILLS):
     - [Z] EMP Storm: 200px radiusdagi barcha dushmanlarni 3.5s falaj qiladi (50g, 25s cd).
     - [X] Orbital Beam: Osmon orqali nishonga 500 damage yetkazuvchi vertikal lazer (75g, 30s cd).
     - [C] Overclock: Barcha minoralarning otish tezligini 6s davomida +60% ga oshiradi (60g, 35s cd).
     - [V] Supply Drone: Maydonga zudlik bilan +75 oltin resurs yetkazadi (0g, 40s cd).
 
-[2] 4 TA O'YIN REJIMI:
+[6] 4 TA O'YIN REJIMI:
     - Campaign Mode: 10 ta strategik xarita bo'ylab 30 ta to'lqin.
     - Endless Survival Mode: Cheksiz to'lqinlar, eksponensial kuchayuvchi dushmanlar va har 5-to'lqinda bosslar.
     - Boss Rush Mode: 1200 boshlang'ich oltin bilan 3 ta asosiy bossga qarshi maxsus duel.
-    - Map Editor Mode: O'z xaritangizni yaratish va darhol sinovdan o'tkazish.
+    - Map Editor Mode: O'z xaritangizni yaratish, sinash va JSON orqali ulashish.
 
-[3] INTERAKTIV XARITA MUHARRIRI (LEVEL EDITOR):
-    - 20x11 katakda nuqtalarni bosib yo'lak chizish (waypoints).
-    - Test Play orqali jonli jangda sinash.
-    - JSON formatida xaritalarni eksport va import qilish.
-
-[4] REAL-TIME CYBERPUNK MUSIQA VA SFX SINTEZATORI (WEB AUDIO API):
+[7] REAL-TIME CYBERPUNK MUSIQA VA SFX SINTEZATORI (WEB AUDIO API):
     - 124 BPM dinamik sintezator arpejiosi va bas chiziqlari.
-    - BGM va SFX alohida boshqaruvi.
     - Screen Shake (kamera silkinishi) va CRT scanline filtri.
 
-[5] PWA VA TO'LIQ OFLAYN REJIM:
-    - manifest.json va sw.js kesh tizimi orqali ilova sifatida o'rnatish.
-    - Internet bo'lmaganda ham brauzer va telefonda to'liq ishlaydi.
-
-[6] GLOBAL REYTING VA ANTI-CHEAT BACKEND (FASTAPI):
-    - backend/ papkasida FastAPI servisi, SQLite/PostgreSQL va render.yaml.
-    - SHA-256 HMAC imzo tekshiruvi bilan himoyalangan reyting tizimi.
+[8] PWA VA TO'LIQ OFLAYN YUKLAB OLISH:
+    - manifest.json va sw.js kesh tizimi orqali mustaqil ilova sifatida o'rnatish.
+    - last-grid-offline-v2.zip orqali internetsiz to'liq oflayn o'ynash.
 
 ================================================================================
 3. BAZAVIY MAJBURIY KONTENT:
