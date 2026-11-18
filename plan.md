@@ -48,13 +48,13 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M1:** validator passes; balance table reviewed (no tower strictly dominated); GDD committed.
 
 ## M2 — Path & enemy movement prototype (Days 4–5) — **[62][63]**
-- [ ] `GridMap2D` (cell types, world↔cell conversion, buildable mask) + debug overlay.
-- [ ] `PathNetwork`: waypoint polyline → baked length, `sample(progress)`, tangent; multi-lane.
-- [ ] `Enemy` base scene driven by `progress_px` (spec §7.1) + object pool.
-- [ ] Enemy stats: HP, shield, armor, speed, base damage; `StatusEffects` (slow) hook.
-- [ ] Base node: HP, `enemy_reached_base`, defeat signal.
-- [ ] Temporary spawner (1 enemy/s) on Training Grid layout.
-- [ ] Tests: **path-invariant** (position always on polyline ≤ 0.5 px for all lanes/speeds/3× sub-stepping), reaching base deals correct damage, pooling reuse is clean.
+- [x] `GridMap2D` (cell types, world↔cell conversion, buildable mask) + debug overlay.
+- [x] `PathNetwork`: waypoint polyline → baked length, `sample(progress)`, tangent; multi-lane.
+- [x] `Enemy` base scene driven by `progress_px` (spec §7.1) + object pool.
+- [x] Enemy stats: HP, shield, armor, speed, base damage; `StatusEffects` (slow) hook.
+- [x] Base node: HP, `enemy_reached_base`, defeat signal.
+- [x] Temporary spawner (1 enemy/s) on Training Grid layout.
+- [x] Tests: **path-invariant** (position always on polyline ≤ 0.5 px for all lanes/speeds/3× sub-stepping), reaching base deals correct damage, pooling reuse is clean.
 **Gate M2 (acceptance #1):** 1000 enemies at 1×/2×/3× never leave the path; base takes exact damage; no leaks of nodes (monitor shows stable object count).
 
 ## M3 — Towers, targeting, projectiles (Days 6–9) — **[64][65]**
@@ -175,3 +175,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 - 2026-11-18 — Initial plan created from the source technical assignment (Project 07).
 - 2026-11-18 — Completed M0 foundation tasks (notes, project.godot, autoloads, GUT v9.3.0, workflows, initial git commit).
 - 2026-11-18 — Completed M1 (GDD.md, controls.md, balance.md, 13 Resource schemas, authored 5 towers / 8 enemies / 3 bosses, combat calc utils & tests, validate_data.gd).
+- 2026-11-18 — Completed M2 (GridMap2D, PathNetwork, Enemy base & pooling, StatusEffects, BaseCore, path-invariant acceptance tests).

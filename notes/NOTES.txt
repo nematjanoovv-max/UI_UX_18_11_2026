@@ -15,3 +15,12 @@
 - Implemented tools/validate_data.gd validator.
 - Implemented scripts/utils/combat_calc.gd and GUT tests tests/unit/test_combat_calc.gd.
 - Gate M1 passed.
+[2026-11-18 19:12] [NOTES] Completed M2 Path & Enemy Movement Prototype:
+- Implemented scripts/gameplay/grid_map_2d.gd with 20x11 cell coordinate conversions and buildable checks.
+- Implemented scripts/gameplay/path_network.gd with continuous polyline waypoint sampling and tangent calculation.
+- Implemented scripts/gameplay/status_effects.gd with slow capping and phase cycling.
+- Implemented scripts/gameplay/enemy.gd and scenes/enemies/enemy_base.tscn with strictly progress_px-driven position.
+- Implemented scripts/gameplay/base_core.gd and scenes/objects/base_core.tscn for HP loss and defeat trigger.
+- Implemented scripts/gameplay/enemy_pool.gd for zero-allocation reuse.
+- Verified Acceptance Criteria #1: 1000 path-invariance samples verified point deviation strictly < 0.001 px.
+- Gate M2 passed.
