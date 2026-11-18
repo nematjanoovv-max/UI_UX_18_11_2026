@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/boss_phase.gd" id="1_phase"]
+[ext_resource type="Script" path="res://scripts/data_defs/boss_data.gd" id="2_data"]
+
+[sub_resource type="Resource" id="Resource_p1"]
+script = ExtResource("1_phase")
+hp_threshold_ratio = 0.50
+speed_multiplier = 1.15
+armor_bonus = 5.0
+spawn_minion_id = "sprinter"
+spawn_minion_count = 3
+spawn_interval = 6.0
+description = "Overseer summons sprinters and emits armor shield pulses"
+
+[resource]
+script = ExtResource("2_data")
+id = "overseer"
+display_key = "boss_overseer_name"
+hp = 9000.0
+shield = 0.0
+armor = 10.0
+speed = 40.0
+bounty = 200
+base_damage = 10
+visual_scale = 1.9
+traits = Array[String](["boss", "summoner"])
+tags = Array[String](["ground", "boss"])
+is_boss = true
+slow_cap = 0.50
+splash_resistance_ratio = 0.0
+intro_cutscene = true
+phases = [SubResource("Resource_p1")]

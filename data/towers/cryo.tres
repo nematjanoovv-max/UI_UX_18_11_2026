@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="TowerData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/tower_tier.gd" id="1_tier"]
+[ext_resource type="Script" path="res://scripts/data_defs/tower_data.gd" id="2_data"]
+
+[sub_resource type="Resource" id="Resource_t1"]
+script = ExtResource("1_tier")
+tier_level = 1
+damage = 4.0
+fire_rate = 2.0
+range_px = 120.0
+projectile_speed = 450.0
+splash_radius = 40.0
+slow_ratio = 0.35
+slow_duration = 2.0
+upgrade_cost = 90
+pierce_count = 1
+
+[sub_resource type="Resource" id="Resource_t2"]
+script = ExtResource("1_tier")
+tier_level = 2
+damage = 6.0
+fire_rate = 2.0
+range_px = 130.0
+projectile_speed = 480.0
+splash_radius = 45.0
+slow_ratio = 0.45
+slow_duration = 2.0
+upgrade_cost = 180
+pierce_count = 1
+
+[sub_resource type="Resource" id="Resource_t3"]
+script = ExtResource("1_tier")
+tier_level = 3
+damage = 9.0
+fire_rate = 2.0
+range_px = 140.0
+projectile_speed = 520.0
+splash_radius = 50.0
+slow_ratio = 0.55
+slow_duration = 2.0
+upgrade_cost = 0
+pierce_count = 1
+
+[resource]
+script = ExtResource("2_data")
+id = "cryo"
+display_key = "tower_cryo_name"
+desc_key = "tower_cryo_desc"
+damage_type = 2
+cost = 120
+sell_ratio = 0.7
+targeting_default = 0
+can_target_ground = true
+can_target_air = true
+tiers = Array[ExtResource("1_tier")]([SubResource("Resource_t1"), SubResource("Resource_t2"), SubResource("Resource_t3")])

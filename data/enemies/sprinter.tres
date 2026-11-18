@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/enemy_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = "sprinter"
+display_key = "enemy_sprinter_name"
+hp = 60.0
+shield = 0.0
+armor = 0.0
+speed = 110.0
+bounty = 6
+base_damage = 1
+visual_scale = 0.9
+traits = Array[String]([])
+tags = Array[String](["ground", "fast"])
+is_boss = false

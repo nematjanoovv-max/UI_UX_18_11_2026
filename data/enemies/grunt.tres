@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/enemy_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = "grunt"
+display_key = "enemy_grunt_name"
+hp = 100.0
+shield = 0.0
+armor = 0.0
+speed = 60.0
+bounty = 5
+base_damage = 1
+visual_scale = 1.0
+traits = Array[String]([])
+tags = Array[String](["ground"])
+is_boss = false

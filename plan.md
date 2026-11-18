@@ -38,13 +38,13 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M0:** project opens & runs a blank scene on desktop + Web export of blank scene loads; CI green; notes files exist.
 
 ## M1 — Design docs & data (Days 2–3) — **[61]**
-- [ ] Write `docs/GDD.md` (core loop, controls, mechanics, win/lose, levels, difficulty) from spec.
-- [ ] Write `docs/controls.md`.
-- [ ] Create Resource classes: `TowerData, TowerTier, EnemyData, BossData, BossPhase, WaveData, SpawnGroup, MapData, LaneData, SkillNodeData, AchievementData, ModifierData, DifficultyData`.
-- [ ] Author data: 5 towers, 8 enemies, 3 bosses (spec §7.5, §8.1–8.2) as `.tres`.
-- [ ] Spreadsheet-like **economy & balance table** in `docs/balance.md` (cost vs DPS vs range, cost-efficiency per tower, enemy EHP per wave, gold income per wave).
-- [ ] `tools/validate_data.gd` + CI step.
-- [ ] Unit tests: data validation, damage formula pure functions (spec §7.3).
+- [x] Write `docs/GDD.md` (core loop, controls, mechanics, win/lose, levels, difficulty) from spec.
+- [x] Write `docs/controls.md`.
+- [x] Create Resource classes: `TowerData, TowerTier, EnemyData, BossData, BossPhase, WaveData, SpawnGroup, MapData, LaneData, SkillNodeData, AchievementData, ModifierData, DifficultyData`.
+- [x] Author data: 5 towers, 8 enemies, 3 bosses (spec §7.5, §8.1–8.2) as `.tres`.
+- [x] Spreadsheet-like **economy & balance table** in `docs/balance.md` (cost vs DPS vs range, cost-efficiency per tower, enemy EHP per wave, gold income per wave).
+- [x] `tools/validate_data.gd` + CI step.
+- [x] Unit tests: data validation, damage formula pure functions (spec §7.3).
 **Gate M1:** validator passes; balance table reviewed (no tower strictly dominated); GDD committed.
 
 ## M2 — Path & enemy movement prototype (Days 4–5) — **[62][63]**
@@ -174,3 +174,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 ## Change log (append-only)
 - 2026-11-18 — Initial plan created from the source technical assignment (Project 07).
 - 2026-11-18 — Completed M0 foundation tasks (notes, project.godot, autoloads, GUT v9.3.0, workflows, initial git commit).
+- 2026-11-18 — Completed M1 (GDD.md, controls.md, balance.md, 13 Resource schemas, authored 5 towers / 8 enemies / 3 bosses, combat calc utils & tests, validate_data.gd).

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/enemy_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = "phantom"
+display_key = "enemy_phantom_name"
+hp = 180.0
+shield = 0.0
+armor = 0.0
+speed = 75.0
+bounty = 16
+base_damage = 2
+visual_scale = 1.05
+traits = Array[String](["phase"])
+tags = Array[String](["ground", "stealth"])
+is_boss = false

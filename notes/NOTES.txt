@@ -8,3 +8,10 @@
 [2026-11-18 19:07] [NOTES] Cloned and installed GUT v9.3.0 into addons/gut, authored smoke test tests/unit/test_smoke.gd.
 [2026-11-18 19:07] [NOTES] Created CI/CD workflows (.github/workflows/ci.yml, deploy-web.yml, release.yml).
 [2026-11-18 19:07] [NOTES] Initialized git repo on branch main and dev, committed chore: bootstrap project.
+[2026-11-18 19:11] [NOTES] Completed M1 Design Docs & Data:
+- Authored docs/GDD.md, docs/controls.md, docs/balance.md.
+- Created all 13 Resource schemas under scripts/data_defs/ with static typing.
+- Authored 5 tower .tres files, 8 enemy .tres files, 3 boss .tres files with multi-phase definitions.
+- Implemented tools/validate_data.gd validator.
+- Implemented scripts/utils/combat_calc.gd and GUT tests tests/unit/test_combat_calc.gd.
+- Gate M1 passed.
