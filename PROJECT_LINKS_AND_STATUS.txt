@@ -3,7 +3,7 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.1.0 Mobile Touch Sensors & Contemporary Sci-Fi Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.2.0 Mobile Touch Pro & Radial Quick-Build Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,61 +22,38 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.1.0 MOBILE SENSORS & HOZIRGI ZAMON KIBER DIZAYNI (100% AMALGA OSHIRILDI):
+2. v3.2.0 MOBILE TOUCH PRO YANGILIKLARI (TELEFONDA 100% QULAY O'YNASH):
 
-[1] TELEFON VA PLANSHETLAR UCHUN TO'LIQ SENSORLI BOSHQARUV TIZIMI:
-    - Haptic Sensor Vibratsiyasi (navigator.vibrate):
-      * Ekrandagi tugmalarni bosishda: 12ms mikro-taktil tebranish.
-      * Minora qurish va ixtisoslashuv tarmoqlariga yangilashda: [25, 30, 25]ms sezilarli taktil bosish.
-      * Qahramon Mechga ko'chish buyrug'i berilganda: 25ms haptik signal.
-      * Qahramon Cyber-Slash Ultimasini ishga tushirganda: [40, 25, 70]ms kuchli zarba to'lqini titrashi.
-      * Baza yadrosiga dushman buzib kirganda: [80, 40, 80]ms ogohlantiruvchi qizil signal tebranishi.
-    - Touch Drag-to-Build (Sensor orqali sudrab o'rnatish):
-      * O'yinchi pastki paneldagi minora kartasini barmog'i bilan ushlab maydonga sudraganda, barmog'i ostida minoraning shaffof gologrammasi va hujum masofasi aylanasi ko'rinadi. Barmog'ini kerakli katakka qo'yib yuborishi bilan minora darhol quriladi.
-    - Qahramon Mech Sensorli Vektori va Double-Tap Ult:
-      * Qahramon Mech ustiga teginib maydon bo'ylab sudraganda, neon lazerli taktik yo'nalish vektori va maqsad nishoni chiziladi. Barmog'ini qo'yib yuborganda Mech o'sha nuqtaga yo'l oladi.
-      * Qahramon Mech ustiga ikki marta tez teginish (Double-Tap) orqali uning "Cyber-Slash Wave" ultimasini bir zumda ishga tushirish mumkin.
-    - O'ng Qo'l Bosh Barmoq Rejimidagi Suzuvchi Neon Tugmalar (Floating Mobile Thumb HUD):
-      * O'ng pastki burchakda yirik suzuvchi [⚡ ULT] tugmasi (cooldown doirasi bilan).
-      * O'ng yuqori burchakda yirik [▶ START / ⏩ SPEED] to'lqinni ishga tushirish va tezlikni o'zgartirish tugmasi.
+[1] TELEFONDA TEGINISH TUZATISHLARI (CRITICAL TOUCH ENGINE FIXES):
+    - NaN Koordinata xatosi to'liq bartaraf etildi:
+      * Mobil brauzerlarda barmoq ekrandan ko'tarilganda (`touchend` hodisasida) `e.touches` bo'sh ro'yxat bo'ladi. Ilgari bu xato `clientX = undefined` va natijada `{ x: NaN, y: NaN }` berib, ekranga bosilgan hech bir tugma ishlamayotgan edi. Endi `e.changedTouches[0]` orqali har bir teginish 100% aniqlikda hisoblanadi.
+    - CSS `!important` va `object-fit: contain` xatosi olib tashlandi:
+      * Ilgari CSS-dagi `width: 100vw !important` inline o'lchamlarni buzib, ekrandagi o'yin tasviri atrofida qora hoshiyalar hosil qilgan va barcha tugmalar koordinatasi 200-300 pikselga siljib ketgan edi. Endi canvas o'lchamlari ekranga 1:1 nisbatda moslashadi va bosilgan har bir nuqta mukammal mos keladi.
+    - Sintetik dublikat bosilishlar (Ghost Clicks) bloklandi:
+      * `touchend` da `e.preventDefault()` chaqirilib, brauzerning 300ms kechikish bilan ikkinchi marta synthetic `click` yuborishi to'liq to'xtatildi (ilgari bu tugmani tanlab darhol bekor qilib yuborayotgan edi).
 
-[2] HOZIRGI ZAMON KIBER-FANTASTIKA PERSONAJLARI VA DIZAYNI (CONTEMPORARY DESIGN):
-    - Maydon Qahramoni Mech ("Apex-01"):
-      * Ikki oyoqli yuruvchi bipedal mexanik shassi, qadam tashlash animatsiyasi (hydraulic servos).
-      * Karbon-tolali zirhli korpus va ko'krakdagi chaqnab turuvchi yadroviy Arc-Reactor.
-      * Orqadagi ikki kamerali ion turbinasi (ko'k plazma uchqunlari iz qoldiradi).
-      * Aerodinamik kiber-shlem va yorqin kiber-neon ko'k visir chizig'i.
-      * O'ng qo'lda Yuqori-Chastotali Plazma Katana (oq issiq yadro, ko'k nur taratuvchi pichoq va qilich zarbasi chiziqlari).
-      * Chap qo'lda taktik golografik himoya qalqoni.
-      * Ultima paytida 360 darajali aylanuvchi mandala qilich bo'roni va energetik to'lqinlar.
-    - 8 ta Zamonaviy Kiber-Dushmanlar (Maxsus Protsedural Vektor Spritlar):
-      * Grunt (Kiber-Piyoda): Taktik shlem, qizil visir, harbiy kiber-ekzoskelet, qo'lida avtomat karabin va harakatlanuvchi oyoqlar.
-      * Sprinter (Kiber-Tazi / Stalker Mech): To'rt oyoqli yirtqich robot, past aerodinamik korpus, qizil optik ko'zlar va orqa reaktiv turbinalardan alanga uchqunlari.
-      * Brute (Goliath Og'ir Jang Mechi): Ikki oyoqli yuruvchi tank, perchinli titan korpus, sariq-qora xavf chiziqlari, ikkita aylanuvchi Gatling pulemyoti.
-      * Swarmling (Nano-Dron Skarab): Yuqori tezlikdagi mikrodron, shaffof aylanuvchi energiya parraklari va sariq kiber-ko'z.
-      * Shieldbearer (Aegis Paladin Android): Titan zirhli politsiya roboti, oldida lazerlarni qaytaruvchi yarim shaffof egri golografik energiya qalqoni.
-      * Medic (Nanite Bio-Synth Dron): Havoda muallaq uchuvchi shar, 4 ta aylanuvchi nanit kapsulasi, yashil tibbiyot kresti va yaradorlarga ulanuvchi yashil lazer nuri.
-      * Splitter (Singan Kristall Yadrosi): 4 ta jagged qora kristall parchasi va markazda tebranib turuvchi o'ta zich giper-plazma yadrosi.
-      * Phantom (Ko'rinmas Ruh Qotili): Faol kamuflyaj, xromatik aberratsiya (RGB split), kiber-tutun izi va qo'lida ikkita ko'k energiya xanjari.
-    - 3 ta Gigant Zamonaviy Bosslar:
-      * Colossus MK-IV (Juggernaut): 4 ta og'ir gidravlik oyoqli yuruvchi qamal qal'asi, yelkalaridagi og'ir relsli artilleriya, qizil reaktor ko'zi va tutun chiqaruvchi mo'rilar.
-      * Eye of Chronos (Overseer): 3 ta har xil o'qda aylanuvchi kiber-giroskop halqalari bilan o'ralgan omnipotent kvant AI shar, o'yinchini kuzatuvchi raqamli ko'z va fazoviy buzilish to'lqinlari.
-      * Leviathan Core (Hive Titan): Segmentlangan titan xitinli ulkan bio-mexanik kiber-ajdaho/qurt, segmentlar orasida qizil plazma oqimlari va ochilib-yopiluvchi jag'lar.
-    - Zamonaviy Minoralar va Baza Yadrosi:
-      * Olti burchakli mustahkamlangan asoslar, murvatlar va quvvat kabellari.
-      * Barcha 10 ta ixtisoslashgan tarmoqlar (Gatling, Sniper, Cluster, Napalm, Blizzard, Tesla, Hyper Beam, Ion Disrupter, Overcharge, Radar) uchun o'ziga xos vizual modellar.
-      * Baza Yadrosi: 3 ta aylanuvchi magnit halqa, radial gradientli kvant plazma sferasi va energiya xavf signallari.
+[2] MOBIL QURILMALAR UCHUN RADIAL QUICK-BUILD TIZIMI (KINGDOM RUSH STYLE):
+    - Maydondagi har qanday bo'sh katakka barmoq bilan teginilsa, o'sha katak atrofida 5 ta yirik kiber-tugma (`[⚡ Pulse 100g]`, `[💣 Mortar 150g]`, `[❄️ Cryo 120g]`, `[🎯 Railgun 250g]`, `[📡 Beacon 180g]`) ochiladi.
+    - O'yinchi xohlagan minorasini barmog'i bilan bitta teginishda to'g'ridan-to'g'ri o'sha katakda quradi. Pastki paneldan maydonga qo'l cho'zish shart emas!
+
+[3] AVTOMATIK LANDSHAFT FULLSCREEN ROTATSIYASI (AUTO-ROTATE):
+    - Mobil dialogda "🚀 TO'LIQ EKRANDA O'YNASH (AUTO-ROTATE)" tugmasi qo'shildi (`screen.orientation.lock('landscape')`).
+    - Bitta tugma bilan telefon avtomatik ravishda yonbosh holatga o'tadi va butun ekranni egallaydi.
+
+[4] SENSORLI VA HAPTIK BOSHQARUV:
+    - Bosh menyu tugmalariga keng teginish tolerantligi berildi (barmoq bilan oson bosiladi).
+    - Qahramon Mechga teginib, xaritadagi xohlagan nuqtaga yuborish.
+    - O'ng bosh barmoq sohasida yirik suzuvchi `[⚡ ULT]` va `[▶ START / ⏩ SPEED]` neon boshqaruv disklari.
+    - `navigator.vibrate` orqali har bir harakatda sezilarli taktil tebranish.
 
 ================================================================================
-3. BARCHA TIZIMLARNING TO'LIQ RO'YXATI:
-- 10 ta Minora Ixtisoslashuv Tarmoqlari (Branching Specializations).
-- Maydonda Erkin Harakatlanuvchi Qahramon Mech ("Apex-01").
+3. HOZIRGI ZAMON KIBER DIZAYNI VA TAKTIK IMKONIYATLAR:
+- Maydon Qahramoni Mech (Apex-01) — 2 oyoqli yuruvchi shassi, ion turbinasi, Yuqori-Chastotali Plazma Katana, 360 darajali bo'ron ulti.
+- 8 ta Zamonaviy Kiber-Dushman (Cyborg Grunt, Cyber-Hound Sprinter, Goliath Brute Mech, Nano-Scarab Drone, Aegis Paladin Android with shield, Nanite Bio-Synth Medic with heal beam, Fracture Crystal Splitter, Phantom Stealth Assassin).
+- 3 ta Gigant Zamonaviy Boss (Colossus MK-IV, Eye of Chronos, Leviathan Core).
+- 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations at Tier 3).
 - Roguelike Perk va Draft Tizimi (Augment Drafts).
-- Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics).
-- Sensorli va Haptik Boshqaruv (Touch Drag-to-Build, Vector Move, Double-Tap Ult, navigator.vibrate).
-- Jonli Serverless FastAPI Leaderboard (/api) Vercel Python orqali.
-- 10 ta Strategik Xarita, Map Editor, 4 ta O'yin Rejimi.
-- Web Audio API 124 BPM Synthwave BGM va Procedural SFX.
-- 3 Tilli Lokalizatsiya (UZ, EN, RU), Colorblind va CRT filtrlari.
-- PWA va last-grid-offline-v2.zip orqali 100% internetsiz oflayn o'ynash.
+- Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics & MVP).
+- Jonli Serverless FastAPI Leaderboard (/api).
+- PWA va last-grid-offline-v2.zip orqali to'liq oflayn o'ynash.
 ================================================================================

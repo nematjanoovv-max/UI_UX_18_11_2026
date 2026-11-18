@@ -544,6 +544,8 @@
         lastTapTime: 0,
         lastTapPos: { x: 0, y: 0 }
       };
+      this.radialBuildCell = null; // Mobile Radial Touch Quick-Build
+      this.lastTouchActionTime = 0;
       this.isTouchDevice = (typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)));
 
       this.towers = [];
@@ -665,10 +667,9 @@
     }
 
     resizeCanvas() {
-      const wrapper = document.getElementById('canvas-container');
-      if (!wrapper) return;
-      const w = wrapper.clientWidth || window.innerWidth;
-      const h = wrapper.clientHeight || window.innerHeight;
+      const container = document.getElementById('canvas-container') || document.body;
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
       const aspect = 1280 / 720;
       let targetW = w;
       let targetH = w / aspect;
@@ -678,45 +679,44 @@
       }
       this.canvas.style.width = `${Math.floor(targetW)}px`;
       this.canvas.style.height = `${Math.floor(targetH)}px`;
+      this.canvas.style.display = 'block';
     }
 
     getCanvasPos(e) {
       const rect = this.canvas.getBoundingClientRect();
-      const scaleX = 1280 / rect.width;
-      const scaleY = 720 / rect.height;
-      let clientX = e.clientX;
-      let clientY = e.clientY;
-      if (e.touches && e.touches.length > 0) {
+      let clientX = 0;
+      let clientY = 0;
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+      } else if (e.touches && e.touches.length > 0) {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
+      } else if (typeof e.clientX === 'number') {
+        clientX = e.clientX;
+        clientY = e.clientY;
       }
-      return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
-      };
+      const rw = rect.width || 1280;
+      const rh = rect.height || 720;
+      const scaleX = 1280 / rw;
+      const scaleY = 720 / rh;
+      const x = Math.max(0, Math.min(1280, (clientX - rect.left) * scaleX));
+      const y = Math.max(0, Math.min(720, (clientY - rect.top) * scaleY));
+      return { x, y };
     }
 
     initEvents() {
-      const getPos = (clientX, clientY) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const scaleX = 1280 / rect.width;
-        const scaleY = 720 / rect.height;
-        return {
-          x: (clientX - rect.left) * scaleX,
-          y: (clientY - rect.top) * scaleY
-        };
-      };
-
       // Desktop Mouse Move
       this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
       });
 
-      // Desktop Click
+      // Desktop Click (strictly ignores synthetic touch events)
       this.canvas.addEventListener('click', (e) => {
-        if (Date.now() - this.touchState.lastTapTime < 450) return;
+        if (Date.now() - this.lastTouchActionTime < 700) return;
         audio.init();
+        if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
         const pos = this.getCanvasPos(e);
         this.handleCanvasClick(pos.x, pos.y, e.button === 2);
       });
@@ -727,22 +727,23 @@
         this.handleCanvasClick(pos.x, pos.y, true);
       });
 
-      // MOBILE TOUCH GESTURES & SENSOR SYSTEM
+      // MOBILE TOUCH GESTURES & SENSORS
       this.canvas.addEventListener('touchstart', (e) => {
         this.isTouchDevice = true;
         audio.init();
-        if (!e.touches || e.touches.length === 0) return;
-        const pos = getPos(e.touches[0].clientX, e.touches[0].clientY);
+        if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
+        this.lastTouchActionTime = Date.now();
+        const pos = this.getCanvasPos(e);
         this.mousePos = pos;
         this.updateHoverCell();
 
         const now = Date.now();
         const isDoubleTap = (now - this.touchState.lastTapTime < 350) &&
-                            (Math.hypot(pos.x - this.touchState.lastTapPos.x, pos.y - this.touchState.lastTapPos.y) < 40);
+                            (Math.hypot(pos.x - this.touchState.lastTapPos.x, pos.y - this.touchState.lastTapPos.y) < 45);
 
         if (this.state === 'PLAYING') {
-          // Floating Hero Ult Button (x: 1210, y: 540, radius: 38)
-          if (Math.hypot(pos.x - 1210, pos.y - 540) <= 38) {
+          // Floating Hero Ult Button (x: 1210, y: 540, radius: 45)
+          if (Math.hypot(pos.x - 1210, pos.y - 540) <= 45) {
             e.preventDefault();
             this.triggerHeroUlt();
             this.vibrate([40, 25, 70]);
@@ -750,8 +751,8 @@
             this.touchState.lastTapPos = pos;
             return;
           }
-          // Floating Wave / Speed Button (x: 1210, y: 90, radius: 32)
-          if (Math.hypot(pos.x - 1210, pos.y - 90) <= 32) {
+          // Floating Wave / Speed Button (x: 1210, y: 90, radius: 40)
+          if (Math.hypot(pos.x - 1210, pos.y - 90) <= 40) {
             e.preventDefault();
             if (!this.waveActive) this.callNextWave();
             else this.cycleSpeed();
@@ -761,29 +762,17 @@
             return;
           }
 
-          // Check Hero Direct Interaction
+          // Hero Double Tap
           const distToHero = Math.hypot(this.hero.x - pos.x, this.hero.y - pos.y);
-          if (distToHero <= 38) {
+          if (distToHero <= 45 && isDoubleTap) {
             e.preventDefault();
-            if (isDoubleTap) {
-              // Double Tap on Hero -> Cast Cyber-Slash Ult
-              this.triggerHeroUlt();
-              this.vibrate([40, 25, 70]);
-              this.touchState.lastTapTime = 0;
-              return;
-            } else {
-              // Start Dragging Hero to new position
-              this.touchState.dragging = 'HERO';
-              this.touchState.dragCurrent = { x: pos.x, y: pos.y };
-              this.hero.selected = true;
-              this.vibrate(15);
-              this.touchState.lastTapTime = now;
-              this.touchState.lastTapPos = pos;
-              return;
-            }
+            this.triggerHeroUlt();
+            this.vibrate([40, 25, 70]);
+            this.touchState.lastTapTime = 0;
+            return;
           }
 
-          // Check Bottom Bar Tower Hotbar Drag-to-Build
+          // Check Bottom Bar Tower Hotbar Drag
           if (pos.y >= 620 && !this.selectedTower) {
             const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
             for (let i = 0; i < 5; i++) {
@@ -809,8 +798,7 @@
       }, { passive: false });
 
       this.canvas.addEventListener('touchmove', (e) => {
-        if (!e.touches || e.touches.length === 0) return;
-        const pos = getPos(e.touches[0].clientX, e.touches[0].clientY);
+        const pos = this.getCanvasPos(e);
         this.mousePos = pos;
         this.updateHoverCell();
 
@@ -821,11 +809,11 @@
       }, { passive: false });
 
       this.canvas.addEventListener('touchend', (e) => {
-        if (!e.changedTouches || e.changedTouches.length === 0) return;
-        const pos = getPos(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
+        this.lastTouchActionTime = Date.now();
+        const pos = this.getCanvasPos(e);
 
         if (this.touchState.dragging === 'HERO') {
-          e.preventDefault();
           if (pos.y >= 60 && pos.y <= 620) {
             this.hero.targetX = pos.x;
             this.hero.targetY = pos.y;
@@ -839,9 +827,10 @@
         }
 
         if (this.touchState.dragging === 'TOWER_HOTBAR') {
-          e.preventDefault();
-          if (this.hoverCell && this.hoverCell.valid && pos.y >= 60 && pos.y < 620) {
-            this.buildTower(this.touchState.draggedTowerType, this.hoverCell.gx, this.hoverCell.gy);
+          const gx = Math.floor(pos.x / 64);
+          const gy = Math.floor(pos.y / 64);
+          if (this.isValidBuildCell(gx, gy) && pos.y >= 60 && pos.y < 620) {
+            this.buildTower(this.touchState.draggedTowerType, gx, gy);
             this.vibrate([25, 30, 25]);
           }
           this.touchState.dragging = null;
@@ -849,7 +838,7 @@
           return;
         }
 
-        // Tap action with haptic feedback
+        // Tap action
         this.vibrate(12);
         this.handleCanvasClick(pos.x, pos.y, false);
       }, { passive: false });
@@ -868,6 +857,7 @@
           if (this.aimingSkill) this.aimingSkill = null;
           else if (this.selectedTower) this.selectedTower = null;
           else if (this.selectedBuildType) this.selectedBuildType = null;
+          else if (this.radialBuildCell) this.radialBuildCell = null;
           else if (this.hero.selected) this.hero.selected = false;
           else this.togglePause();
         } else if (k === 'u') this.upgradeSelectedTower();
@@ -1001,6 +991,13 @@
       return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
+        isValidBuildCell(gx, gy) {
+      if (gx < 0 || gx >= 20 || gy < 1 || gy >= 10) return false;
+      const isPath = this.isPathCell(gx, gy);
+      const hasTower = this.towers.some(t => t.cellX === gx && t.cellY === gy);
+      return !isPath && !hasTower;
+    }
+
     updateHoverCell() {
       if (this.mousePos.y < 60 || this.mousePos.y > 620) {
         this.hoverCell = null;
@@ -1019,20 +1016,20 @@
 
     handleCanvasClick(x, y, isRightClick = false) {
       if (this.state === 'MENU') {
-        if (y > 330 && y < 380 && x > 440 && x < 840) this.startMission(0, 'CAMPAIGN');
-        else if (y > 390 && y < 440 && x > 440 && x < 840) this.state = 'MAP_SELECT';
-        else if (y > 450 && y < 500 && x > 440 && x < 840) this.startMission(9, 'ENDLESS');
-        else if (y > 510 && y < 555 && x > 440 && x < 630) this.startMission(0, 'BOSS_RUSH');
-        else if (y > 510 && y < 555 && x > 650 && x < 840) this.state = 'EDITOR';
-        else if (y > 565 && y < 610 && x > 440 && x < 630) this.state = 'LEADERBOARD';
-        else if (y > 565 && y < 610 && x > 650 && x < 840) this.state = 'MANUAL';
-        else if (y > 620 && y < 665 && x > 440 && x < 840) this.downloadOfflineZip();
-        if (x > 1140 && x < 1240 && y > 20 && y < 60) this.toggleLang();
+        // Generous touch hitboxes for mobile screens
+        if (y >= 310 && y <= 385 && x >= 380 && x <= 900) { this.startMission(0, 'CAMPAIGN'); return; }
+        else if (y >= 386 && y <= 445 && x >= 380 && x <= 900) { this.state = 'MAP_SELECT'; return; }
+        else if (y >= 446 && y <= 505 && x >= 380 && x <= 900) { this.startMission(9, 'ENDLESS'); return; }
+        else if (y >= 506 && y <= 560 && x >= 380 && x <= 635) { this.startMission(0, 'BOSS_RUSH'); return; }
+        else if (y >= 506 && y <= 560 && x >= 645 && x <= 900) { this.state = 'EDITOR'; return; }
+        else if (y >= 561 && y <= 615 && x >= 380 && x <= 635) { this.state = 'LEADERBOARD'; return; }
+        else if (y >= 561 && y <= 615 && x >= 645 && x <= 900) { this.state = 'MANUAL'; return; }
+        else if (y >= 616 && y <= 675 && x >= 380 && x <= 900) { this.downloadOfflineZip(); return; }
+        if (x > 1080 && x < 1260 && y > 10 && y < 65) this.toggleLang();
         return;
       }
 
       if (this.state === 'DRAFT') {
-        // Choose 1 of 3 cards
         for (let i = 0; i < this.draftCards.length; i++) {
           const cx = 180 + i * 320;
           if (x >= cx && x <= cx + 280 && y >= 200 && y <= 520) {
@@ -1044,18 +1041,18 @@
       }
 
       if (this.state === 'ANALYTICS') {
-        if (x > 540 && x < 740 && y > 630 && y < 680) this.state = 'MENU';
+        if (x > 500 && x < 780 && y > 620 && y < 690) this.state = 'MENU';
         return;
       }
 
       if (this.state === 'MANUAL') {
-        if (y > 25 && y < 65 && x > 50 && x < 150) this.state = 'MENU';
+        if (x > 1000 && x < 1200 && y > 30 && y < 75) this.state = 'MENU';
         return;
       }
 
       if (this.state === 'MAP_SELECT') {
         if (y > 25 && y < 65 && x > 50 && x < 150) { this.state = 'MENU'; return; }
-        for (let i = 0; i < MAPS.length; i++) {
+        for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
           const mx = 60 + col * 235;
@@ -1086,56 +1083,91 @@
       }
 
       if (this.state === 'VICTORY' || this.state === 'DEFEAT') {
-        if (x > 380 && x < 540 && y > 460 && y < 520) this.startMission(this.currentMapIndex, this.gameMode);
-        else if (x > 560 && x < 720 && y > 460 && y < 520) this.state = 'ANALYTICS';
-        else if (x > 740 && x < 900 && y > 460 && y < 520) this.state = 'MENU';
+        if (x > 360 && x < 540 && y > 450 && y < 530) this.startMission(this.currentMapIndex, this.gameMode);
+        else if (x > 550 && x < 730 && y > 450 && y < 530) this.state = 'ANALYTICS';
+        else if (x > 740 && x < 920 && y > 450 && y < 530) this.state = 'MENU';
         return;
       }
 
-      // Mobile Floating Action Buttons (Ult & Wave/Speed)
-      if (Math.hypot(x - 1210, y - 540) <= 38) {
+      // 1. Mobile Floating Thumb Buttons (⚡ ULT & ▶ WAVE/SPEED)
+      if (Math.hypot(x - 1210, y - 540) <= 45) {
         this.triggerHeroUlt();
         this.vibrate([40, 25, 70]);
         return;
       }
-      if (Math.hypot(x - 1210, y - 90) <= 32) {
+      if (Math.hypot(x - 1210, y - 90) <= 40) {
         if (!this.waveActive) this.callNextWave();
         else this.cycleSpeed();
         this.vibrate(20);
         return;
       }
 
-      // In-Game Field Actions: Right Click or Move Hero Command
-      if (isRightClick || this.hero.selected) {
+      // 2. Mobile Quick Radial Build Wheel Clicks
+      if (this.radialBuildCell) {
+        const rc = this.radialBuildCell;
+        const options = [
+          { key: 'pulse', ang: -Math.PI * 0.8 },
+          { key: 'mortar', ang: -Math.PI * 0.5 },
+          { key: 'cryo', ang: -Math.PI * 0.2 },
+          { key: 'railgun', ang: Math.PI * 0.15 },
+          { key: 'beacon', ang: Math.PI * 0.85 }
+        ];
+        let chosen = null;
+        for (const opt of options) {
+          const bx = rc.px + Math.cos(opt.ang) * 65;
+          const by = rc.py + Math.sin(opt.ang) * 65;
+          if (Math.hypot(x - bx, y - by) <= 28) {
+            chosen = opt.key;
+            break;
+          }
+        }
+        if (chosen) {
+          this.buildTower(chosen, rc.gx, rc.gy);
+          this.radialBuildCell = null;
+          this.vibrate([25, 30, 25]);
+          return;
+        } else {
+          // Tapped outside radial buttons -> dismiss radial
+          this.radialBuildCell = null;
+        }
+      }
+
+      // 3. Hero Click or Move
+      if (this.hero.selected) {
         if (y >= 60 && y <= 620) {
           this.hero.targetX = x;
           this.hero.targetY = y;
           this.hero.selected = false;
-          this.spawnShockwave(x, y, 30, "#ffd600");
+          this.spawnShockwave(x, y, 35, "#ffd600");
           audio.upgrade();
+          this.vibrate(20);
           return;
         }
       }
 
-      // Check if Hero was clicked directly
-      if (Math.hypot(this.hero.x - x, this.hero.y - y) <= 28) {
+      if (Math.hypot(this.hero.x - x, this.hero.y - y) <= 38) {
         this.hero.selected = !this.hero.selected;
         this.selectedTower = null;
         this.selectedBuildType = null;
+        this.radialBuildCell = null;
+        if (this.hero.selected) {
+          this.addFloatingText("HERO SELECTED: TAP MAP TO MOVE", this.hero.x, this.hero.y - 30, "#ffd600", 14);
+        }
         audio.hit();
+        this.vibrate(15);
         return;
       }
 
-      // Top HUD Bar clicks
+      // 4. Top HUD Bar clicks
       if (y >= 0 && y <= 60) {
-        if (x >= 470 && x <= 620) this.callNextWave();
-        else if (x >= 800 && x <= 850) this.cycleSpeed();
-        else if (x >= 860 && x <= 915) audio.toggleSFX();
-        else if (x >= 925 && x <= 980) audio.toggleBGM();
-        else if (x >= 990 && x <= 1045) this.crtEnabled = !this.crtEnabled;
-        else if (x >= 1055 && x <= 1110) this.colorblind = !this.colorblind;
-        else if (x >= 1120 && x <= 1170) this.toggleLang();
-        else if (x >= 1180 && x <= 1240) this.togglePause();
+        if (x >= 450 && x <= 630) this.callNextWave();
+        else if (x >= 790 && x <= 855) this.cycleSpeed();
+        else if (x >= 856 && x <= 920) audio.toggleSFX();
+        else if (x >= 921 && x <= 985) audio.toggleBGM();
+        else if (x >= 986 && x <= 1050) this.crtEnabled = !this.crtEnabled;
+        else if (x >= 1051 && x <= 1115) this.colorblind = !this.colorblind;
+        else if (x >= 1116 && x <= 1175) this.toggleLang();
+        else if (x >= 1176 && x <= 1250) this.togglePause();
         return;
       }
 
@@ -1145,10 +1177,12 @@
         return;
       }
 
-      // Bottom Bar actions
+      // 5. Bottom Bar actions
       if (y >= 620) {
-        // Hero Ult button at x: 10 to 60
-        if (x >= 10 && x <= 60) { this.triggerHeroUlt(); return; }
+        this.radialBuildCell = null;
+
+        // Hero Ult button at x: 5 to 65
+        if (x >= 5 && x <= 65) { this.triggerHeroUlt(); this.vibrate([40, 25, 70]); return; }
 
         // Skills at x: 65 to 225
         if (x >= 65 && x <= 100) this.triggerSkill('emp');
@@ -1162,17 +1196,17 @@
 
           // Tier 3 Branch A and Branch B buttons
           if (t.tier === 2) {
-            if (x >= 450 && x <= 590 && y >= 635 && y <= 695) { this.upgradeBranch('A'); return; }
-            if (x >= 605 && x <= 745 && y >= 635 && y <= 695) { this.upgradeBranch('B'); return; }
+            if (x >= 450 && x <= 590 && y >= 635 && y <= 695) { this.upgradeBranch('A'); this.vibrate([25, 30, 25]); return; }
+            if (x >= 605 && x <= 745 && y >= 635 && y <= 695) { this.upgradeBranch('B'); this.vibrate([25, 30, 25]); return; }
           } else {
             // Normal Upgrade (Tier 1 -> Tier 2)
-            if (x >= 480 && x <= 620 && y >= 640 && y <= 700) { this.upgradeSelectedTower(); return; }
+            if (x >= 480 && x <= 620 && y >= 640 && y <= 700) { this.upgradeSelectedTower(); this.vibrate([25, 30, 25]); return; }
           }
 
           // Sell button
-          if (x >= 760 && x <= 870 && y >= 640 && y <= 700) { this.sellSelectedTower(); return; }
+          if (x >= 760 && x <= 870 && y >= 640 && y <= 700) { this.sellSelectedTower(); this.vibrate(20); return; }
           // Priority button
-          if (x >= 885 && x <= 1000 && y >= 640 && y <= 700) { this.cycleTargetPriority(); return; }
+          if (x >= 885 && x <= 1000 && y >= 640 && y <= 700) { this.cycleTargetPriority(); this.vibrate(15); return; }
           // Close button
           if (x >= 1015 && x <= 1060 && y >= 640 && y <= 700) { this.selectedTower = null; return; }
         } else {
@@ -1182,6 +1216,7 @@
             const bx = 240 + i * 175;
             if (x >= bx && x <= bx + 160 && y >= 630 && y <= 710) {
               this.selectBuildType(towerKeys[i]);
+              this.vibrate(15);
               return;
             }
           }
@@ -1189,7 +1224,7 @@
         return;
       }
 
-      // Grid placement
+      // 6. Grid Cell Taps (Radial Quick-Build or Direct Build)
       const gx = Math.floor(x / 64);
       const gy = Math.floor(y / 64);
       const clickedTower = this.towers.find(t => t.cellX === gx && t.cellY === gy);
@@ -1198,10 +1233,22 @@
         this.selectedTower = clickedTower;
         this.selectedBuildType = null;
         this.hero.selected = false;
-      } else if (this.selectedBuildType && this.hoverCell && this.hoverCell.valid) {
-        this.buildTower(this.selectedBuildType, this.hoverCell.gx, this.hoverCell.gy);
+        this.radialBuildCell = null;
+        this.vibrate(15);
+      } else if (this.selectedBuildType && this.isValidBuildCell(gx, gy)) {
+        this.buildTower(this.selectedBuildType, gx, gy);
+        this.selectedBuildType = null;
+        this.radialBuildCell = null;
+        this.vibrate([25, 30, 25]);
+      } else if (y >= 60 && y <= 620 && this.isValidBuildCell(gx, gy)) {
+        // Open Radial Quick Build on empty valid cell!
+        this.radialBuildCell = { gx, gy, px: gx * 64 + 32, py: gy * 64 + 32 };
+        this.selectedTower = null;
+        this.selectedBuildType = null;
+        this.vibrate(15);
       } else {
         this.selectedTower = null;
+        this.radialBuildCell = null;
       }
     }
 
@@ -2112,6 +2159,7 @@
         this.renderFloatingText();
         this.renderPlacementGhost();
         this.renderTacticalDragVector();
+        this.renderRadialBuildWheel();
         this.renderTopHUD();
         this.renderBottomBar();
         this.renderMobileFloatingButtons();
@@ -3042,6 +3090,68 @@
           ctx.fillRect(this.hoverCell.gx * 64 + 2, this.hoverCell.gy * 64 + 2, 60, 60);
           ctx.strokeRect(this.hoverCell.gx * 64 + 2, this.hoverCell.gy * 64 + 2, 60, 60);
         }
+      }
+    }
+
+    renderRadialBuildWheel() {
+      if (!this.radialBuildCell) return;
+      const ctx = this.ctx;
+      const rc = this.radialBuildCell;
+
+      // 1. Highlight selected cell
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2.5;
+      ctx.fillStyle = "rgba(0, 229, 255, 0.2)";
+      ctx.fillRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
+      ctx.strokeRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
+
+      // 2. Connecting dashed spokes
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+
+      const options = [
+        { key: 'pulse', ang: -Math.PI * 0.8, icon: "⚡", label: "PULSE" },
+        { key: 'mortar', ang: -Math.PI * 0.5, icon: "💣", label: "MORTAR" },
+        { key: 'cryo', ang: -Math.PI * 0.2, icon: "❄️", label: "CRYO" },
+        { key: 'railgun', ang: Math.PI * 0.15, icon: "🎯", label: "RAILGUN" },
+        { key: 'beacon', ang: Math.PI * 0.85, icon: "📡", label: "BEACON" }
+      ];
+
+      for (const opt of options) {
+        const bx = rc.px + Math.cos(opt.ang) * 65;
+        const by = rc.py + Math.sin(opt.ang) * 65;
+        ctx.beginPath();
+        ctx.moveTo(rc.px, rc.py);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // 3. Five Big Glowing Touch Buttons
+      for (const opt of options) {
+        const def = TOWER_DEFS[opt.key];
+        const canAfford = this.gold >= def.cost;
+        const bx = rc.px + Math.cos(opt.ang) * 65;
+        const by = rc.py + Math.sin(opt.ang) * 65;
+        const br = 24;
+
+        ctx.fillStyle = canAfford ? "#0f172a" : "#1e293b";
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = canAfford ? def.color : "#475569";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.font = "14px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(opt.icon, bx, by - 2);
+
+        ctx.fillStyle = canAfford ? "#ffd600" : "#ff1744";
+        ctx.font = "bold 9px monospace";
+        ctx.fillText(`${def.cost}g`, bx, by + 12);
       }
     }
 

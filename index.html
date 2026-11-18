@@ -60,9 +60,6 @@
       text-decoration: none;
       font-weight: 600;
     }
-    #header-bar .meta a:hover {
-      text-decoration: underline;
-    }
 
     #canvas-container {
       position: relative;
@@ -77,16 +74,14 @@
       border: 1px solid rgba(0, 229, 255, 0.3);
       box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
       flex-grow: 1;
+      overflow: hidden;
     }
 
     #game-canvas {
-      width: 100%;
-      height: 100%;
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      cursor: crosshair;
+      display: block;
       touch-action: none;
+      -webkit-touch-callout: none;
+      cursor: crosshair;
     }
 
     #footer-bar {
@@ -117,22 +112,23 @@
     /* FLOATING FULLSCREEN TOGGLE FOR MOBILE */
     #fullscreen-btn {
       position: fixed;
-      top: 8px;
+      top: 10px;
       right: 12px;
       z-index: 999;
-      background: rgba(12, 21, 39, 0.85);
-      border: 1px solid #00e5ff;
+      background: rgba(12, 21, 39, 0.9);
+      border: 1.5px solid #00e5ff;
       color: #00e5ff;
-      border-radius: 4px;
-      padding: 5px 10px;
-      font-size: 0.75rem;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 0.8rem;
       font-weight: bold;
       cursor: pointer;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
       display: none;
     }
 
-    /* AUTOMATIC MOBILE ADAPTATION: HIDE BARS TO GIVE 100% SCREEN TO CANVAS */
+    /* MOBILE ADAPTATION: 100% SCREEN FOR CANVAS CONTAINER */
     @media (max-width: 960px), (max-height: 560px) {
       #header-bar {
         display: none !important;
@@ -150,14 +146,11 @@
         max-height: 100vh !important;
         border: none !important;
         box-shadow: none !important;
-      }
-      #game-canvas {
-        width: 100vw !important;
-        height: 100vh !important;
+        padding: 0 !important;
       }
     }
 
-    /* PORTRAIT ORIENTATION PROMPT FOR PHONES */
+    /* PORTRAIT ORIENTATION DIALOG FOR PHONES */
     #rotate-device-prompt {
       display: none;
       position: fixed;
@@ -165,7 +158,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(5, 7, 13, 0.96);
+      background: rgba(5, 7, 13, 0.98);
       z-index: 99999;
       flex-direction: column;
       align-items: center;
@@ -175,29 +168,42 @@
     }
     #rotate-device-prompt .rotate-icon {
       font-size: 3.5rem;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       animation: rotate-anim 2s infinite ease-in-out;
     }
     #rotate-device-prompt h3 {
       font-size: 1.5rem;
       color: #00e5ff;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       letter-spacing: 2px;
     }
     #rotate-device-prompt p {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: #cfd8dc;
       line-height: 1.5;
       max-width: 320px;
     }
-    #rotate-device-prompt .continue-btn {
+    #rotate-device-prompt .fullscreen-play-btn {
       margin-top: 24px;
-      background: #162238;
-      border: 1px solid #00e5ff;
-      color: #00e5ff;
-      padding: 8px 20px;
+      background: #00e5ff;
+      border: none;
+      color: #05070d;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+      letter-spacing: 1px;
+    }
+    #rotate-device-prompt .continue-btn {
+      margin-top: 14px;
+      background: transparent;
+      border: 1px solid #455a64;
+      color: #90a4ae;
+      padding: 8px 18px;
       border-radius: 4px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
     }
 
@@ -208,7 +214,7 @@
     }
 
     @media (orientation: portrait) and (max-width: 768px) {
-      #rotate-device-prompt {
+      #rotate-device-prompt.active {
         display: flex;
       }
     }
@@ -216,7 +222,7 @@
 </head>
 <body>
   <div id="header-bar">
-    <div class="brand">⚡ TOWER DEFENSE: LAST GRID</div>
+    <div class="brand">⚡ TOWER DEFENSE: LAST GRID (v3.2)</div>
     <div class="meta">
       Auto-Fit: <span>PC &amp; Mobile Responsive</span> | 
       <a href="https://github.com/nematjanoovv-max/UI_UX_18_11_2026" target="_blank" rel="noopener">GitHub Source &amp; Releases</a>
@@ -228,30 +234,47 @@
   </div>
 
   <div id="footer-bar">
-    <div class="hotkeys">[Touch/Drag] Mobile Sensors &bull; [1-5] Towers &bull; [Space] Wave/Ult &bull; [Z] EMP &bull; [X] Orbital &bull; [C] Overclock &bull; [V] Drone &bull; [U] Upgrade &bull; [S] Sell &bull; [T] Priority</div>
-    <div class="version">v3.1.0 Touch Edition</div>
+    <div class="hotkeys">[Touch/Drag] Mobile Radial Build &bull; [1-5] Towers &bull; [Space] Wave/Ult &bull; [Z] EMP &bull; [X] Orbital &bull; [C] Overclock &bull; [V] Drone &bull; [U] Upgrade &bull; [S] Sell &bull; [T] Priority</div>
+    <div class="version">v3.2.0 Touch Pro</div>
   </div>
 
-  <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶ FULLSCREEN</button>
+  <button id="fullscreen-btn" onclick="startFullscreenLandscape()">⛶ FULLSCREEN</button>
 
-  <div id="rotate-device-prompt">
+  <div id="rotate-device-prompt" class="active">
     <div class="rotate-icon">📲</div>
-    <h3>YONBOSHGA BURING</h3>
-    <p>O'yinni to'liq ekranda qulay o'ynash uchun telefoningizni yonboshga (landshaftga) buring.</p>
-    <p style="font-size: 0.85rem; color: #78909c; margin-top: 8px;">Please rotate your phone to landscape mode.</p>
-    <button class="continue-btn" onclick="dismissRotatePrompt()">DAVOM ETISH / CONTINUE ANYWAY</button>
+    <h3>TELEFONDA O'YNASH</h3>
+    <p>O'yinni to'liq ekranda eng qulay o'ynash uchun quyidagi tugmani bosing:</p>
+    <button class="fullscreen-play-btn" onclick="startFullscreenLandscape()">🚀 TO'LIQ EKRANDA O'YNASH (AUTO-ROTATE)</button>
+    <button class="continue-btn" onclick="dismissRotatePrompt()">YOKI PORTRETDA DAVOM ETISH</button>
   </div>
 
   <script>
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
+    function startFullscreenLandscape() {
+      dismissRotatePrompt();
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().then(() => {
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+          }
+        }).catch(() => {});
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
       }
+      setTimeout(() => {
+        if (window.lastGridEngine) window.lastGridEngine.resizeCanvas();
+      }, 250);
     }
+
     function dismissRotatePrompt() {
-      document.getElementById('rotate-device-prompt').style.display = 'none';
+      const p = document.getElementById('rotate-device-prompt');
+      if (p) {
+        p.classList.remove('active');
+        p.style.display = 'none';
+      }
+      setTimeout(() => {
+        if (window.lastGridEngine) window.lastGridEngine.resizeCanvas();
+      }, 100);
     }
   </script>
   <script src="game.js"></script>

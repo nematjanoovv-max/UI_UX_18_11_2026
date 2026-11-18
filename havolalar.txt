@@ -1,7 +1,7 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 + Web 2D)
-Versiya: v3.1.0 (Mobile Sensors & Contemporary Sci-Fi Overhaul)
+Versiya: v3.2.0 (Mobile Touch Pro & Radial Quick-Build Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -18,26 +18,25 @@ https://last-grid-td.vercel.app/api
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-BARCHA AMALGA OSHIRILGAN YANGI IMKONIYATLAR:
+TELEFONDA O'YNASH BO'YICHA 100% YECHILGAN MASALALAR:
 
-1. 📱 Telefon Uchun Sensorli va Haptik Boshqaruv (Touch & Sensors):
-   - navigator.vibrate orqali har bir harakatda real taktil tebranish hissi (qurish, zarba, qahramon ultimasida kuchli silkiniyotgan haptika).
-   - Minoralarni barmoq bilan ushlab maydonga sudrab o'rnatish (Touch Drag-to-Build).
-   - Qahramon Mech ustiga teginib sudraganda neon taktik yo'nalish vektori chiziladi, ikki marta tez teginish (Double-Tap) esa uning ultimasini ishga tushiradi.
-   - O'ng bosh barmoq zonasida yirik suzuvchi [⚡ ULT] va [▶ START / ⏩ SPEED] boshqaruv tugmalari.
+1. 🎯 Tebranish va Teginish Koordinatalari To'liq Tuzatildi:
+   - Mobil brauzerlarda barmoq ko'tarilganda (`touchend`) koordinata `NaN` bo'lib qolishi to'liq bartaraf etildi.
+   - CSS-dagi `width: 100vw !important` va `object-fit: contain` olib tashlanib, ekranga 1:1 o'lchamda moslashuvchi canvas o'rnatildi (barcha tugmalar o'z joyida to'g'ri bosiladi).
+   - Sintetik dublikat bosilishlar bloklandi (tugmalar o'z-o'zidan bekor bo'lmaydi).
 
-2. 🤖 Hozirgi Zamon Kiber-Fantastika Personajlari va Dizayni:
-   - Maydon Qahramoni Mech (Apex-01): 2 oyoqli harakatlanuvchi shassi, ion turbinasi plazma izi, Arc-Reactor ko'krak nuri, Yuqori-Chastotali Plazma Katana (oq yadro, ko'k porlash va qilich zarbasi animatsiyalari), 360 darajali bo'ron ultimasini namoyish etadi.
-   - 8 ta Zamonaviy Kiber-Dushman: Kiber-Piyoda (Grunt), Kiber-Tazi (Sprinter), Og'ir Jang Mechi (Brute), Nano-Dron (Swarmling), Egri energiya qalqonli Paladin (Shieldbearer), Shifokor Dron (Medic), Kristall yadro (Splitter), Ko'rinmas qotil (Phantom).
-   - 3 ta Gigant Zamonaviy Boss: Colossus MK-IV, Eye of Chronos, Leviathan Core.
-   - Zamonaviy Minoralar: 10 ta maxsus branch modellari, o'rnatish murvatlari va quvvat kabellari.
-   - Baza Yadrosi: 3 ta aylanuvchi magnit halqali Kvant Plazma Reaktori.
+2. ⭕ Radial Quick-Build Tizimi (Kingdom Rush Usulida):
+   - Maydondagi bo'sh katakka barmog'ingiz bilan teginishingiz bilan, o'sha katak atrofida 5 ta minoraning chiroyli doiraviy menyusi chiqadi.
+   - Kerakli minoraga bitta teginish orqali uni o'sha yerning o'zida qurasiz.
 
-3. ⚡ 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations).
-4. 🃏 Roguelike Perk va Draft Tizimi (Augment Drafts).
-5. 📊 Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics & MVP).
-6. 🌐 Jonli Serverless FastAPI Global Reyting Tizimi (/api).
-7. 🌍 3 Tilli Lokalizatsiya (UZ / EN / RU).
-8. 🎮 4 xil O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Xarita Muharriri.
-9. 🎵 Web Audio API orqali Procedural Synthwave BGM va Kiber SFX.
+3. 🚀 Avtomatik Landshaft Rejimiga O'tish (Auto-Rotate):
+   - "TO'LIQ EKRANDA O'YNASH" tugmasi orqali telefon avtomatik tarzda yonboshga buriladi va butun ekranni egallaydi.
+
+4. 🤖 Zamonaviy Kiber-Fantastika Personajlari:
+   - Apex-01 Field Hero Mech (Plazma Katana, yuruvchi oyoqlar, ion turbinasi, 360 bo'ron ulti).
+   - 8 ta kiber-dushman (Cyborg Grunt, Cyber-Hound Sprinter, Goliath Brute Mech, Nano-Scarab Drone, Aegis Paladin Android, Nanite Medic, Fracture Crystal Splitter, Phantom Stealth Assassin).
+   - 3 ta ulkan zamonaviy boss (Colossus MK-IV, Eye of Chronos, Leviathan Core).
+   - 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations).
+   - Roguelike Augment Draft tizimi (har 5-to'lqinda 3 ta kiber-perk).
+   - Jang yakuni DPS grafiklari va MVP reytingi.
 ================================================================================
