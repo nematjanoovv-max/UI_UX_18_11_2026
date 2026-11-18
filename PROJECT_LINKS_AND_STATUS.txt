@@ -3,7 +3,7 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.0.0 Grand Tactical Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.1.0 Mobile Touch Sensors & Contemporary Sci-Fi Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,62 +22,61 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.0.0 GRAND TACTICAL YANGILIKLARI (100% AMALGA OSHIRILDI):
+2. v3.1.0 MOBILE SENSORS & HOZIRGI ZAMON KIBER DIZAYNI (100% AMALGA OSHIRILDI):
 
-[1] 10 TA IKKILAMCHI MINORA TARMOQLARI (TOWER BRANCHING SPECIALIZATIONS):
-    - Har bir minora Tier 2 ga yetganda 2 ta noyob yo'nalishga shoxlanadi:
-      * Pulse Laser:
-        -> [A] Gatling Shredder: 7.5x otish tezligi, nishonning zirhini erituvchi o'qlar.
-        -> [B] Sniper Rail-Pulse: 260px masofa, 160 kritik kinetik zarar.
-      * Mortar Launcher:
-        -> [A] Cluster Bomb: Portlashdan so'ng 4 ta kichik klaster bombaga bo'linadi.
-        -> [B] Napalm Cyber-Fire: Maydonda 4 soniya davom etuvchi olov hovuzini hosil qiladi.
-      * Cryo Emitter:
-        -> [A] Blizzard Zero: 70% harakatni so'ndiruvchi ultra-muzlatgich.
-        -> [B] Tesla Chain-Frost: 3 ta yonma-yon dushmanga zanjirli elektr yoyi uzatadi.
-      * Railgun Cannon:
-        -> [A] Hyper Beam Laser: Barcha dushmanlarni teshib o'tuvchi 280 damage nur.
-        -> [B] Ion Disrupter: Dushmanlarning energiya qalqonlarini bir zumda yo'q qiladi.
-      * Energy Beacon:
-        -> [A] Overcharge Reactor: Qo'shni minoralarga +55% zarar bonusi beradi.
-        -> [B] Tactical Radar: 200px radiusdagi minoralarning masofasini +40% oshiradi.
+[1] TELEFON VA PLANSHETLAR UCHUN TO'LIQ SENSORLI BOSHQARUV TIZIMI:
+    - Haptic Sensor Vibratsiyasi (navigator.vibrate):
+      * Ekrandagi tugmalarni bosishda: 12ms mikro-taktil tebranish.
+      * Minora qurish va ixtisoslashuv tarmoqlariga yangilashda: [25, 30, 25]ms sezilarli taktil bosish.
+      * Qahramon Mechga ko'chish buyrug'i berilganda: 25ms haptik signal.
+      * Qahramon Cyber-Slash Ultimasini ishga tushirganda: [40, 25, 70]ms kuchli zarba to'lqini titrashi.
+      * Baza yadrosiga dushman buzib kirganda: [80, 40, 80]ms ogohlantiruvchi qizil signal tebranishi.
+    - Touch Drag-to-Build (Sensor orqali sudrab o'rnatish):
+      * O'yinchi pastki paneldagi minora kartasini barmog'i bilan ushlab maydonga sudraganda, barmog'i ostida minoraning shaffof gologrammasi va hujum masofasi aylanasi ko'rinadi. Barmog'ini kerakli katakka qo'yib yuborishi bilan minora darhol quriladi.
+    - Qahramon Mech Sensorli Vektori va Double-Tap Ult:
+      * Qahramon Mech ustiga teginib maydon bo'ylab sudraganda, neon lazerli taktik yo'nalish vektori va maqsad nishoni chiziladi. Barmog'ini qo'yib yuborganda Mech o'sha nuqtaga yo'l oladi.
+      * Qahramon Mech ustiga ikki marta tez teginish (Double-Tap) orqali uning "Cyber-Slash Wave" ultimasini bir zumda ishga tushirish mumkin.
+    - O'ng Qo'l Bosh Barmoq Rejimidagi Suzuvchi Neon Tugmalar (Floating Mobile Thumb HUD):
+      * O'ng pastki burchakda yirik suzuvchi [⚡ ULT] tugmasi (cooldown doirasi bilan).
+      * O'ng yuqori burchakda yirik [▶ START / ⏩ SPEED] to'lqinni ishga tushirish va tezlikni o'zgartirish tugmasi.
 
-[2] JANG MAYDONIDA HARAKATLANUVCHI QAHRAMON MECH ("APEX-01"):
-    - Sichqonchaning o'ng tugmasi yoki [H] tugmasi bilan boshqariladi.
-    - Bir vaqtning o'zida 2 ta dushmanni to'xtatib turadi (bloklaydi) va yaqin masofadan zarba beradi.
-    - Dushmanlarni yo'q qilish orqali Level 1 dan Level 10 gacha tajriba (XP) to'playdi, HP va zarari oshadi.
-    - [SPACE] yoki HUD tugmasi orqali "Cyber-Slash Wave (ULT)" kuchli energetik to'lqin zarbasini amalga oshiradi.
+[2] HOZIRGI ZAMON KIBER-FANTASTIKA PERSONAJLARI VA DIZAYNI (CONTEMPORARY DESIGN):
+    - Maydon Qahramoni Mech ("Apex-01"):
+      * Ikki oyoqli yuruvchi bipedal mexanik shassi, qadam tashlash animatsiyasi (hydraulic servos).
+      * Karbon-tolali zirhli korpus va ko'krakdagi chaqnab turuvchi yadroviy Arc-Reactor.
+      * Orqadagi ikki kamerali ion turbinasi (ko'k plazma uchqunlari iz qoldiradi).
+      * Aerodinamik kiber-shlem va yorqin kiber-neon ko'k visir chizig'i.
+      * O'ng qo'lda Yuqori-Chastotali Plazma Katana (oq issiq yadro, ko'k nur taratuvchi pichoq va qilich zarbasi chiziqlari).
+      * Chap qo'lda taktik golografik himoya qalqoni.
+      * Ultima paytida 360 darajali aylanuvchi mandala qilich bo'roni va energetik to'lqinlar.
+    - 8 ta Zamonaviy Kiber-Dushmanlar (Maxsus Protsedural Vektor Spritlar):
+      * Grunt (Kiber-Piyoda): Taktik shlem, qizil visir, harbiy kiber-ekzoskelet, qo'lida avtomat karabin va harakatlanuvchi oyoqlar.
+      * Sprinter (Kiber-Tazi / Stalker Mech): To'rt oyoqli yirtqich robot, past aerodinamik korpus, qizil optik ko'zlar va orqa reaktiv turbinalardan alanga uchqunlari.
+      * Brute (Goliath Og'ir Jang Mechi): Ikki oyoqli yuruvchi tank, perchinli titan korpus, sariq-qora xavf chiziqlari, ikkita aylanuvchi Gatling pulemyoti.
+      * Swarmling (Nano-Dron Skarab): Yuqori tezlikdagi mikrodron, shaffof aylanuvchi energiya parraklari va sariq kiber-ko'z.
+      * Shieldbearer (Aegis Paladin Android): Titan zirhli politsiya roboti, oldida lazerlarni qaytaruvchi yarim shaffof egri golografik energiya qalqoni.
+      * Medic (Nanite Bio-Synth Dron): Havoda muallaq uchuvchi shar, 4 ta aylanuvchi nanit kapsulasi, yashil tibbiyot kresti va yaradorlarga ulanuvchi yashil lazer nuri.
+      * Splitter (Singan Kristall Yadrosi): 4 ta jagged qora kristall parchasi va markazda tebranib turuvchi o'ta zich giper-plazma yadrosi.
+      * Phantom (Ko'rinmas Ruh Qotili): Faol kamuflyaj, xromatik aberratsiya (RGB split), kiber-tutun izi va qo'lida ikkita ko'k energiya xanjari.
+    - 3 ta Gigant Zamonaviy Bosslar:
+      * Colossus MK-IV (Juggernaut): 4 ta og'ir gidravlik oyoqli yuruvchi qamal qal'asi, yelkalaridagi og'ir relsli artilleriya, qizil reaktor ko'zi va tutun chiqaruvchi mo'rilar.
+      * Eye of Chronos (Overseer): 3 ta har xil o'qda aylanuvchi kiber-giroskop halqalari bilan o'ralgan omnipotent kvant AI shar, o'yinchini kuzatuvchi raqamli ko'z va fazoviy buzilish to'lqinlari.
+      * Leviathan Core (Hive Titan): Segmentlangan titan xitinli ulkan bio-mexanik kiber-ajdaho/qurt, segmentlar orasida qizil plazma oqimlari va ochilib-yopiluvchi jag'lar.
+    - Zamonaviy Minoralar va Baza Yadrosi:
+      * Olti burchakli mustahkamlangan asoslar, murvatlar va quvvat kabellari.
+      * Barcha 10 ta ixtisoslashgan tarmoqlar (Gatling, Sniper, Cluster, Napalm, Blizzard, Tesla, Hyper Beam, Ion Disrupter, Overcharge, Radar) uchun o'ziga xos vizual modellar.
+      * Baza Yadrosi: 3 ta aylanuvchi magnit halqa, radial gradientli kvant plazma sferasi va energiya xavf signallari.
 
-[3] ROGUELIKE PERK VA DRAFT TIZIMI (AUGMENT DRAFTS):
-    - Har 5-to'lqinda (Wave 5, 10, 15, 20, 25) tasodifiy 3 ta kiber-perk kartasi taklif etiladi:
-      * Bounty Hunter: Dushmanlardan +35% qo'shimcha oltin.
-      * Shatter Frost: Sekinlashgan dushmanlarga +80% kuchaytirilgan zarar.
-      * Titan Slayer: Boss va og'ir dushmanlarga +45% qo'shimcha zarar.
-      * Overclock Matrix: Minoralarning hujum tezligiga doimiy +25% bonus.
-      * Superconductors: Railgun o'qlaridan qo'shimcha energiya uchqunlari.
-      * Reactive Core: Baza yadro sig'imi +10 ga kengayadi.
-      * Nanite Repair: Har to'lqin oxirida bazani +2 HP ga avtomatik ta'mirlaydi.
-      * Cluster Munitions: Mortar portlash radiusi +35% ga oshadi.
-      * Hero Overdrive: Qahramon Mechga +60% yaqin jang zarari va +25% harakat tezligi.
-
-[4] JANG YAKUNI TAHLILI VA DPS GRAFIKLARI (POST-MATCH COMBAT ANALYTICS):
-    - Har bir jangdan so'ng (G'alaba yoki Mag'lubiyat) "📊 ANALYTICS" bo'limi ochiladi.
-    - Har bir minora turi, qahramon va komandir qobiliyatlari tomonidan yetkazilgan jami zarar (DMG) rangli grafiklarda namoyish etiladi.
-    - Eng ko'p zarar yetkazgan jangovar birlik "MVP UNIT" sifatida e'tirof etiladi.
-
-[5] TELEFON VA KOMPYUTERGA AVTOMATIK MOSLASHUVCHANLIK (MOBILE & PC RESPONSIVE):
-    - Landshaft rejimida smartfon va planshetlarda to'liq ekranga (100% viewport) kengayadi.
-    - 0ms sensorli sensor ekran teginishlari (double-tap bug va synthetic click to'liq bartaraf etilgan).
-    - Portret rejimida avtomatik "Telefonni burang" ogohlantirishi va maxsus [⛶ FULLSCREEN] tugmasi.
-
-===============================================================================
-3. BAZAVIY VA QO'SHIMCHA XUSUSIYATLAR:
-- Jonli Serverless FastAPI Leaderboard (/api) — Vercel Python orqali real vaqtda saqlanadi.
-- 10 ta Strategik Xarita va O'z xaritalarini chizuvchi Xarita Muharriri (Map Editor).
-- 4 ta O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Maxsus Xaritalar.
-- 4 ta Faol Komandir Qobiliyatlari: [Z] EMP Storm, [X] Orbital Beam, [C] Overclock, [V] Supply Drone.
-- 3 Tilli Lokalizatsiya (UZ, EN, RU).
-- Web Audio API orqali procedural 124 BPM Synthwave musiqa va SFX sintezatori.
-- Rang-ko'rlik (Colorblind) va CRT kiber-ekran filtri.
-- PWA (Progressive Web App) va last-grid-offline-v2.zip orqali 100% internetsiz o'ynash imkoniyati.
+================================================================================
+3. BARCHA TIZIMLARNING TO'LIQ RO'YXATI:
+- 10 ta Minora Ixtisoslashuv Tarmoqlari (Branching Specializations).
+- Maydonda Erkin Harakatlanuvchi Qahramon Mech ("Apex-01").
+- Roguelike Perk va Draft Tizimi (Augment Drafts).
+- Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics).
+- Sensorli va Haptik Boshqaruv (Touch Drag-to-Build, Vector Move, Double-Tap Ult, navigator.vibrate).
+- Jonli Serverless FastAPI Leaderboard (/api) Vercel Python orqali.
+- 10 ta Strategik Xarita, Map Editor, 4 ta O'yin Rejimi.
+- Web Audio API 124 BPM Synthwave BGM va Procedural SFX.
+- 3 Tilli Lokalizatsiya (UZ, EN, RU), Colorblind va CRT filtrlari.
+- PWA va last-grid-offline-v2.zip orqali 100% internetsiz oflayn o'ynash.
 ================================================================================

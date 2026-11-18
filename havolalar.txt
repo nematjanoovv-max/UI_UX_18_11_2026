@@ -1,7 +1,7 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 + Web 2D)
-Versiya: v3.0.0 Grand Tactical (Branching, Hero Mech, Roguelike & Analytics Reliz)
+Versiya: v3.1.0 (Mobile Sensors & Contemporary Sci-Fi Overhaul)
 Sana: 2026-11-18
 ================================================================================
 
@@ -20,35 +20,24 @@ https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 ================================================================================
 BARCHA AMALGA OSHIRILGAN YANGI IMKONIYATLAR:
 
-1. ⚡ 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations):
-   - Har bir minora Tier 2 da ikkita o'ziga xos taktik yo'nalishga ajraladi (Gatling/Sniper, Cluster/Napalm, Blizzard/Tesla, Hyper Beam/Ion Disrupter, Overcharge/Radar).
+1. 📱 Telefon Uchun Sensorli va Haptik Boshqaruv (Touch & Sensors):
+   - navigator.vibrate orqali har bir harakatda real taktil tebranish hissi (qurish, zarba, qahramon ultimasida kuchli silkiniyotgan haptika).
+   - Minoralarni barmoq bilan ushlab maydonga sudrab o'rnatish (Touch Drag-to-Build).
+   - Qahramon Mech ustiga teginib sudraganda neon taktik yo'nalish vektori chiziladi, ikki marta tez teginish (Double-Tap) esa uning ultimasini ishga tushiradi.
+   - O'ng bosh barmoq zonasida yirik suzuvchi [⚡ ULT] va [▶ START / ⏩ SPEED] boshqaruv tugmalari.
 
-2. 🤖 Jang Maydonidagi Qahramon Mech ("Apex-01"):
-   - Erkin harakatlanadi, 2 ta dushmanni bloklaydi, Level 1 dan 10 gacha kuchayadi va Cyber-Slash Wave ultimasiga ega.
+2. 🤖 Hozirgi Zamon Kiber-Fantastika Personajlari va Dizayni:
+   - Maydon Qahramoni Mech (Apex-01): 2 oyoqli harakatlanuvchi shassi, ion turbinasi plazma izi, Arc-Reactor ko'krak nuri, Yuqori-Chastotali Plazma Katana (oq yadro, ko'k porlash va qilich zarbasi animatsiyalari), 360 darajali bo'ron ultimasini namoyish etadi.
+   - 8 ta Zamonaviy Kiber-Dushman: Kiber-Piyoda (Grunt), Kiber-Tazi (Sprinter), Og'ir Jang Mechi (Brute), Nano-Dron (Swarmling), Egri energiya qalqonli Paladin (Shieldbearer), Shifokor Dron (Medic), Kristall yadro (Splitter), Ko'rinmas qotil (Phantom).
+   - 3 ta Gigant Zamonaviy Boss: Colossus MK-IV, Eye of Chronos, Leviathan Core.
+   - Zamonaviy Minoralar: 10 ta maxsus branch modellari, o'rnatish murvatlari va quvvat kabellari.
+   - Baza Yadrosi: 3 ta aylanuvchi magnit halqali Kvant Plazma Reaktori.
 
-3. 🃏 Roguelike Perk va Draft Tizimi (Augment Drafts):
-   - Har 5-to'lqinda 3 ta kiber-perkdan birini tanlab, o'z strategiyangizni shakllantirish imkoniyati.
-
-4. 📊 Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics):
-   - Har bir minora va qahramon yetkazgan zararlarining rangli bar chartlari hamda eng yaxshi jangchi (MVP) aniqlanadi.
-
-5. 📱 Telefon va Kompyuterga Avtomatik Moslashuv (Mobile & PC):
-   - 0ms sensorli sensor ekran teginishlari, gorizontal avto-kengayish va to'liq ekran rejimi.
-
-6. 🌐 Jonli Serverless FastAPI Global Reyting Tizimi:
-   - Vercel Serverless Python orqali `/api` manzilida natijalarni doimiy saqlash.
-
-7. 🌍 3 Tilli Lokalizatsiya (UZ / EN / RU):
-   - O'zbekcha, Inglizcha va Ruscha to'liq til qo'llab-quvvatlovi.
-
-8. 📖 Interaktiv Ensiklopediya ("Field Manual"):
-   - Barcha minoralar, dushmanlar, bosslar va komandir ko'nikmalari haqida batafsil ma'lumot.
-
-9. 👁 Rang-Ko'rlik (Colorblind) va CRT Retrowave Filtrlari.
-
-10. ⚡ 4 ta Faol Komandir Qobiliyatlari: EMP Storm, Orbital Beam, Overclock Reactor, Supply Drone.
-
-11. 🎮 4 xil O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Xarita Muharriri (Map Editor).
-
-12. 🎵 Web Audio API orqali Procedural Synthwave BGM va Kiber SFX Dvigateli.
+3. ⚡ 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations).
+4. 🃏 Roguelike Perk va Draft Tizimi (Augment Drafts).
+5. 📊 Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics & MVP).
+6. 🌐 Jonli Serverless FastAPI Global Reyting Tizimi (/api).
+7. 🌍 3 Tilli Lokalizatsiya (UZ / EN / RU).
+8. 🎮 4 xil O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Xarita Muharriri.
+9. 🎵 Web Audio API orqali Procedural Synthwave BGM va Kiber SFX.
 ================================================================================

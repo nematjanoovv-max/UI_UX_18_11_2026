@@ -520,6 +520,7 @@
       };
 
       // Controllable Field Hero Mech (Apex-01)
+      // Controllable Field Hero Mech (Apex-01)
       this.hero = {
         name: "Apex-01 Mech",
         x: 300, y: 350,
@@ -529,8 +530,21 @@
         speed: 130,
         atkDmg: 80, atkRate: 1.3, atkCooldown: 0,
         ultCd: 22, currentUltCd: 0, ultActiveTime: 0,
-        selected: false
+        selected: false,
+        angle: 0,
+        walkAnim: 0,
+        slashAnim: 0
       };
+
+      // Touch Gesture & Sensor State (Mobile Optimization)
+      this.touchState = {
+        dragging: null, // null | 'HERO' | 'TOWER_HOTBAR'
+        draggedTowerType: null,
+        dragCurrent: { x: 0, y: 0 },
+        lastTapTime: 0,
+        lastTapPos: { x: 0, y: 0 }
+      };
+      this.isTouchDevice = (typeof window !== 'undefined' && (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)));
 
       this.towers = [];
       this.enemies = [];
@@ -557,6 +571,14 @@
       this.setupCanvasScaling();
       this.fetchLiveScores();
       this.startLoop();
+    }
+
+    vibrate(pattern) {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(pattern);
+        }
+      } catch (e) {}
     }
 
     t(key) {
@@ -675,38 +697,162 @@
     }
 
     initEvents() {
-      let lastTouchTime = 0;
-      const handleMove = (e) => {
+      const getPos = (clientX, clientY) => {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = 1280 / rect.width;
+        const scaleY = 720 / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      };
+
+      // Desktop Mouse Move
+      this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
-      };
-      this.canvas.addEventListener('mousemove', handleMove);
-      this.canvas.addEventListener('touchmove', (e) => handleMove(e), { passive: true });
+      });
 
-      const handleClick = (e) => {
-        if (Date.now() - lastTouchTime < 450) return;
+      // Desktop Click
+      this.canvas.addEventListener('click', (e) => {
+        if (Date.now() - this.touchState.lastTapTime < 450) return;
         audio.init();
         const pos = this.getCanvasPos(e);
         this.handleCanvasClick(pos.x, pos.y, e.button === 2);
-      };
-      this.canvas.addEventListener('click', handleClick);
+      });
+
       this.canvas.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         const pos = this.getCanvasPos(e);
         this.handleCanvasClick(pos.x, pos.y, true);
       });
-      this.canvas.addEventListener('touchend', (e) => {
-        lastTouchTime = Date.now();
-        if (e.changedTouches && e.changedTouches.length > 0) {
-          audio.init();
-          const rect = this.canvas.getBoundingClientRect();
-          const scaleX = 1280 / rect.width;
-          const scaleY = 720 / rect.height;
-          const x = (e.changedTouches[0].clientX - rect.left) * scaleX;
-          const y = (e.changedTouches[0].clientY - rect.top) * scaleY;
-          this.handleCanvasClick(x, y, false);
+
+      // MOBILE TOUCH GESTURES & SENSOR SYSTEM
+      this.canvas.addEventListener('touchstart', (e) => {
+        this.isTouchDevice = true;
+        audio.init();
+        if (!e.touches || e.touches.length === 0) return;
+        const pos = getPos(e.touches[0].clientX, e.touches[0].clientY);
+        this.mousePos = pos;
+        this.updateHoverCell();
+
+        const now = Date.now();
+        const isDoubleTap = (now - this.touchState.lastTapTime < 350) &&
+                            (Math.hypot(pos.x - this.touchState.lastTapPos.x, pos.y - this.touchState.lastTapPos.y) < 40);
+
+        if (this.state === 'PLAYING') {
+          // Floating Hero Ult Button (x: 1210, y: 540, radius: 38)
+          if (Math.hypot(pos.x - 1210, pos.y - 540) <= 38) {
+            e.preventDefault();
+            this.triggerHeroUlt();
+            this.vibrate([40, 25, 70]);
+            this.touchState.lastTapTime = now;
+            this.touchState.lastTapPos = pos;
+            return;
+          }
+          // Floating Wave / Speed Button (x: 1210, y: 90, radius: 32)
+          if (Math.hypot(pos.x - 1210, pos.y - 90) <= 32) {
+            e.preventDefault();
+            if (!this.waveActive) this.callNextWave();
+            else this.cycleSpeed();
+            this.vibrate(20);
+            this.touchState.lastTapTime = now;
+            this.touchState.lastTapPos = pos;
+            return;
+          }
+
+          // Check Hero Direct Interaction
+          const distToHero = Math.hypot(this.hero.x - pos.x, this.hero.y - pos.y);
+          if (distToHero <= 38) {
+            e.preventDefault();
+            if (isDoubleTap) {
+              // Double Tap on Hero -> Cast Cyber-Slash Ult
+              this.triggerHeroUlt();
+              this.vibrate([40, 25, 70]);
+              this.touchState.lastTapTime = 0;
+              return;
+            } else {
+              // Start Dragging Hero to new position
+              this.touchState.dragging = 'HERO';
+              this.touchState.dragCurrent = { x: pos.x, y: pos.y };
+              this.hero.selected = true;
+              this.vibrate(15);
+              this.touchState.lastTapTime = now;
+              this.touchState.lastTapPos = pos;
+              return;
+            }
+          }
+
+          // Check Bottom Bar Tower Hotbar Drag-to-Build
+          if (pos.y >= 620 && !this.selectedTower) {
+            const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
+            for (let i = 0; i < 5; i++) {
+              const bx = 240 + i * 175;
+              if (pos.x >= bx && pos.x <= bx + 160 && pos.y >= 630 && pos.y <= 710) {
+                e.preventDefault();
+                const key = towerKeys[i];
+                this.touchState.dragging = 'TOWER_HOTBAR';
+                this.touchState.draggedTowerType = key;
+                this.touchState.dragCurrent = { x: pos.x, y: pos.y };
+                this.selectedBuildType = key;
+                this.vibrate(20);
+                this.touchState.lastTapTime = now;
+                this.touchState.lastTapPos = pos;
+                return;
+              }
+            }
+          }
         }
-      });
+
+        this.touchState.lastTapTime = now;
+        this.touchState.lastTapPos = pos;
+      }, { passive: false });
+
+      this.canvas.addEventListener('touchmove', (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        const pos = getPos(e.touches[0].clientX, e.touches[0].clientY);
+        this.mousePos = pos;
+        this.updateHoverCell();
+
+        if (this.touchState.dragging) {
+          e.preventDefault();
+          this.touchState.dragCurrent = pos;
+        }
+      }, { passive: false });
+
+      this.canvas.addEventListener('touchend', (e) => {
+        if (!e.changedTouches || e.changedTouches.length === 0) return;
+        const pos = getPos(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+
+        if (this.touchState.dragging === 'HERO') {
+          e.preventDefault();
+          if (pos.y >= 60 && pos.y <= 620) {
+            this.hero.targetX = pos.x;
+            this.hero.targetY = pos.y;
+            this.hero.selected = false;
+            this.spawnShockwave(pos.x, pos.y, 35, "#ffd600");
+            audio.upgrade();
+            this.vibrate(25);
+          }
+          this.touchState.dragging = null;
+          return;
+        }
+
+        if (this.touchState.dragging === 'TOWER_HOTBAR') {
+          e.preventDefault();
+          if (this.hoverCell && this.hoverCell.valid && pos.y >= 60 && pos.y < 620) {
+            this.buildTower(this.touchState.draggedTowerType, this.hoverCell.gx, this.hoverCell.gy);
+            this.vibrate([25, 30, 25]);
+          }
+          this.touchState.dragging = null;
+          this.selectedBuildType = null;
+          return;
+        }
+
+        // Tap action with haptic feedback
+        this.vibrate(12);
+        this.handleCanvasClick(pos.x, pos.y, false);
+      }, { passive: false });
 
       window.addEventListener('keydown', (e) => {
         audio.init();
@@ -943,6 +1089,19 @@
         if (x > 380 && x < 540 && y > 460 && y < 520) this.startMission(this.currentMapIndex, this.gameMode);
         else if (x > 560 && x < 720 && y > 460 && y < 520) this.state = 'ANALYTICS';
         else if (x > 740 && x < 900 && y > 460 && y < 520) this.state = 'MENU';
+        return;
+      }
+
+      // Mobile Floating Action Buttons (Ult & Wave/Speed)
+      if (Math.hypot(x - 1210, y - 540) <= 38) {
+        this.triggerHeroUlt();
+        this.vibrate([40, 25, 70]);
+        return;
+      }
+      if (Math.hypot(x - 1210, y - 90) <= 32) {
+        if (!this.waveActive) this.callNextWave();
+        else this.cycleSpeed();
+        this.vibrate(20);
         return;
       }
 
@@ -1488,6 +1647,7 @@
 
         const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 1.0, e.slowRatio));
         e.progress += effSpeed * dt;
+        e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
         const pt = this.getPointAlongLane(e.laneIdx, e.progress);
         e.x = pt.x;
@@ -1498,6 +1658,7 @@
           this.baseHp = Math.max(0, this.baseHp - (e.isBoss ? 10 : 1));
           audio.leak();
           this.screenShake = 10;
+          this.vibrate([80, 40, 80]);
           this.addFloatingText(e.isBoss ? "-10 HP!" : "-1 HP!", e.x, e.y, "#ff1744", 20);
 
           // Reactive Core augment perk
@@ -1586,28 +1747,48 @@
       const h = this.hero;
       if (h.currentUltCd > 0) h.currentUltCd = Math.max(0, h.currentUltCd - dt);
       if (h.ultActiveTime > 0) h.ultActiveTime = Math.max(0, h.ultActiveTime - dt);
+      if (h.slashAnim > 0) h.slashAnim = Math.max(0, h.slashAnim - dt);
 
       // Hero Movement toward target
       const distToTarget = Math.hypot(h.targetX - h.x, h.targetY - h.y);
       if (distToTarget > 4) {
         const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0);
-        const ang = Math.atan2(h.targetY - h.y, h.targetX - h.x);
-        h.x += Math.cos(ang) * moveSpd * dt;
-        h.y += Math.sin(ang) * moveSpd * dt;
+        h.angle = Math.atan2(h.targetY - h.y, h.targetX - h.x);
+        h.x += Math.cos(h.angle) * moveSpd * dt;
+        h.y += Math.sin(h.angle) * moveSpd * dt;
+        h.walkAnim = (h.walkAnim || 0) + dt * 10;
+
+        // Thruster sparks
+        if (Math.random() < 0.35) {
+          const backX = h.x - Math.cos(h.angle) * 16;
+          const backY = h.y - Math.sin(h.angle) * 16;
+          this.particles.push({
+            x: backX + (Math.random() * 6 - 3),
+            y: backY + (Math.random() * 6 - 3),
+            vx: -Math.cos(h.angle) * 30 + (Math.random() * 10 - 5),
+            vy: -Math.sin(h.angle) * 30 + (Math.random() * 10 - 5),
+            color: "#00e5ff", size: 2.5, life: 0.25, maxLife: 0.25
+          });
+        }
+      } else {
+        h.walkAnim = (h.walkAnim || 0) + dt * 2;
       }
 
       // Hero In-Combat / Melee Attack
       h.atkCooldown -= dt;
       let inCombat = false;
       for (const e of this.enemies) {
-        if (Math.hypot(e.x - h.x, e.y - h.y) <= 45) {
+        if (Math.hypot(e.x - h.x, e.y - h.y) <= 50) {
           inCombat = true;
+          h.angle = Math.atan2(e.y - h.y, e.x - h.x);
           if (h.atkCooldown <= 0) {
             h.atkCooldown = 1.0 / h.atkRate;
+            h.slashAnim = 0.22;
             audio.heroSlash();
+            this.vibrate(18);
             const dmg = h.atkDmg * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
             this.applyDamage(e, dmg, 'HERO', null, 'hero');
-            this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 4, life: 0.3, maxLife: 0.3 });
+            this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 5, life: 0.35, maxLife: 0.35 });
           }
           break;
         }
@@ -1930,8 +2111,10 @@
         this.renderParticles();
         this.renderFloatingText();
         this.renderPlacementGhost();
+        this.renderTacticalDragVector();
         this.renderTopHUD();
         this.renderBottomBar();
+        this.renderMobileFloatingButtons();
 
         if (this.state === 'PAUSED') this.renderPauseModal();
         if (this.state === 'VICTORY') this.renderVictoryModal();
@@ -2006,218 +2189,931 @@
       }
     }
 
+    // --- HIGH-TECH PROCEDURAL SCI-FI RENDERING PIPELINE ---
+
     renderBaseCore() {
       const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
       const base = map.lanes[0][map.lanes[0].length - 1];
-      const time = performance.now() / 600;
+      const time = performance.now() * 0.002;
+      const ctx = this.ctx;
+      const hpPct = Math.max(0, this.baseHp / this.maxBaseHp);
 
-      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-      this.ctx.lineWidth = 3;
-      this.ctx.beginPath();
-      this.ctx.arc(base.x, base.y, 30 + Math.sin(time) * 4, 0, Math.PI * 2);
-      this.ctx.stroke();
+      ctx.save();
+      ctx.translate(base.x, base.y);
 
-      this.ctx.save();
-      this.ctx.translate(base.x, base.y);
-      this.ctx.rotate(time * 0.5);
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.beginPath();
+      // 1. Reinforced Hexagonal Platform
+      ctx.fillStyle = "#0c1527";
+      ctx.strokeStyle = hpPct < 0.3 ? "#ff1744" : "rgba(0, 229, 255, 0.6)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
       for (let i = 0; i < 6; i++) {
         const a = (Math.PI / 3) * i;
-        const rx = Math.cos(a) * 20;
-        const ry = Math.sin(a) * 20;
-        if (i === 0) this.ctx.moveTo(rx, ry);
-        else this.ctx.lineTo(rx, ry);
+        const px = Math.cos(a) * 36;
+        const py = Math.sin(a) * 36;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
       }
-      this.ctx.closePath();
-      this.ctx.fill();
-      this.ctx.restore();
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-      this.ctx.fillStyle = "#ffffff";
-      this.ctx.font = "bold 10px monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText("CORE", base.x, base.y + 4);
+      // Hazard chevrons on foundation
+      ctx.fillStyle = hpPct < 0.3 ? "rgba(255, 23, 68, 0.3)" : "rgba(0, 229, 255, 0.15)";
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        ctx.arc(Math.cos(a) * 28, Math.sin(a) * 28, 4, 0, Math.PI * 2);
+      }
+      ctx.fill();
+
+      // 2. Counter-Rotating Gyro Containment Rings
+      ctx.save();
+      ctx.rotate(time * 0.8);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.8)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 24, 0, Math.PI * 1.6);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.save();
+      ctx.rotate(-time * 1.2);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.6)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 18, 0, Math.PI * 1.4);
+      ctx.stroke();
+      ctx.restore();
+
+      // 3. Central Quantum Plasma Reactor Core (Radial Glow)
+      const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, 14);
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(0.4, hpPct < 0.3 ? "#ff1744" : "#00e5ff");
+      grad.addColorStop(1, hpPct < 0.3 ? "rgba(255, 23, 68, 0)" : "rgba(0, 110, 255, 0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 14 + Math.sin(time * 4) * 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pulse Flare Ring
+      ctx.strokeStyle = hpPct < 0.3 ? "rgba(255, 23, 68, 0.7)" : "rgba(0, 229, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 30 + Math.sin(time * 3) * 3, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Tactical Holographic Label
+      ctx.fillStyle = hpPct < 0.3 ? "#ff1744" : "#ffffff";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(hpPct < 0.3 ? "CRITICAL" : "CORE", base.x, base.y + 4);
     }
 
     renderHero() {
       const h = this.hero;
-      this.ctx.save();
-      this.ctx.translate(h.x, h.y);
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.translate(h.x, h.y);
 
-      // Selection ring
-      if (h.selected) {
-        this.ctx.strokeStyle = "#ffd600";
-        this.ctx.lineWidth = 2;
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, 28, 0, Math.PI * 2);
-        this.ctx.stroke();
-      }
-
-      // Ult Spin animation
+      // 1. Ult Holographic Mandala Blade Storm
       if (h.ultActiveTime > 0) {
-        this.ctx.strokeStyle = "rgba(0, 229, 255, 0.8)";
-        this.ctx.lineWidth = 8;
-        this.ctx.beginPath();
-        this.ctx.arc(0, 0, 60, 0, Math.PI * 2);
-        this.ctx.stroke();
+        const ultProg = h.ultActiveTime / 0.6;
+        ctx.save();
+        ctx.rotate(performance.now() * 0.015);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.9)";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(0, 0, 80 * (1.1 - ultProg * 0.3), 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(255, 214, 0, 0.8)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 120 * (1.0 - ultProg * 0.4), 0, Math.PI * 2);
+        ctx.stroke();
+
+        for (let i = 0; i < 4; i++) {
+          const ang = (Math.PI / 2) * i;
+          ctx.beginPath();
+          ctx.arc(0, 0, 70, ang, ang + Math.PI / 3);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
-      // Hero Mech Body
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.beginPath();
-      this.ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      this.ctx.fill();
+      // 2. Selection Halo (Dashed Holographic Target Ring)
+      if (h.selected) {
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, 32, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.fillRect(-6, -6, 12, 12);
+      // 3. Facing Orientation & Articulated Bipedal Mesh
+      const ang = h.angle || 0;
+      ctx.rotate(ang);
 
-      this.ctx.restore();
+      const walkCycle = Math.sin(h.walkAnim || 0);
 
-      // Hero Level & HP Bar
-      const barW = 38;
+      // Bipedal Mechanical Legs
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(-10 + walkCycle * 4, -14, 8, 5);
+      ctx.strokeRect(-10 + walkCycle * 4, -14, 8, 5);
+      ctx.fillRect(-10 - walkCycle * 4, 9, 8, 5);
+      ctx.strokeRect(-10 - walkCycle * 4, 9, 8, 5);
+
+      // Dual Ion Thruster Backpack
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(-14, -8, 6, 16);
+      ctx.fillStyle = "#00e5ff";
+      ctx.fillRect(-16, -6, 2, 4);
+      ctx.fillRect(-16, 2, 2, 4);
+
+      // Armored Carbon-Fiber Torso Chassis
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.moveTo(-10, -10);
+      ctx.lineTo(8, -8);
+      ctx.lineTo(12, 0);
+      ctx.lineTo(8, 8);
+      ctx.lineTo(-10, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Glowing Arc-Reactor Core
+      ctx.fillStyle = "#ffd600";
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Angular Cockpit / Helmet with Glowing Neon Cyan Visor
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.moveTo(2, -5);
+      ctx.lineTo(13, -3);
+      ctx.lineTo(15, 0);
+      ctx.lineTo(13, 3);
+      ctx.lineTo(2, 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(7, -3);
+      ctx.lineTo(13, 0);
+      ctx.lineTo(7, 3);
+      ctx.stroke();
+
+      // Tactical Left Arm Energy Buckler
+      ctx.fillStyle = "#00b0ff";
+      ctx.fillRect(0, -13, 6, 4);
+
+      // High-Frequency Cyan Plasma Katana (Right Arm)
+      const slashAngle = (h.slashAnim > 0) ? ((0.22 - h.slashAnim) / 0.22) * Math.PI : 0;
+      ctx.save();
+      ctx.translate(4, 10);
+      ctx.rotate(slashAngle);
+
+      // Katana Hilt
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(-2, -2, 5, 4);
+      // Outer Plasma Energy Bloom
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.75)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(3, 0);
+      ctx.lineTo(26, 0);
+      ctx.stroke();
+      // Inner White Hot Energy Core
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(3, 0);
+      ctx.lineTo(25, 0);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.restore();
+
+      // Floating Modern Health Bar & Level Badge
+      const barW = 46;
       const bx = h.x - barW / 2;
-      const by = h.y - 24;
-      this.ctx.fillStyle = "#0a0f1d";
-      this.ctx.fillRect(bx, by, barW, 4);
-      this.ctx.fillStyle = "#00e676";
-      this.ctx.fillRect(bx, by, barW * (h.hp / h.maxHp), 4);
+      const by = h.y - 28;
 
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 10px monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(`HERO LV${h.level}`, h.x, by - 4);
+      ctx.fillStyle = "#ffd600";
+      ctx.beginPath();
+      ctx.arc(bx - 8, by + 2, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${h.level}`, bx - 8, by + 5);
+
+      ctx.fillStyle = "#090e17";
+      ctx.fillRect(bx, by, barW, 5);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bx, by, barW, 5);
+
+      const hpPct = Math.max(0, h.hp / h.maxHp);
+      ctx.fillStyle = hpPct > 0.3 ? "#00e676" : "#ff1744";
+      ctx.fillRect(bx, by, barW * hpPct, 5);
     }
 
     renderTowers() {
       const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
+      const ctx = this.ctx;
+
       for (const t of this.towers) {
         const def = TOWER_DEFS[t.type];
         const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
 
+        // 1. Selection Range Indicator
         if (this.selectedTower === t) {
           const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
           const range = (spec.range || 130) * (t.buffRange || 1.0) * mapFog;
-          this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-          this.ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
-          this.ctx.lineWidth = 1.5;
-          this.ctx.beginPath();
-          this.ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
-          this.ctx.fill();
-          this.ctx.stroke();
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+          ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
         }
 
+        // Overclock Aura
         if (this.skills.overclock.activeTime > 0) {
-          this.ctx.strokeStyle = "rgba(255, 214, 0, 0.6)";
-          this.ctx.lineWidth = 2;
-          this.ctx.beginPath();
-          this.ctx.arc(t.x, t.y, 28, 0, Math.PI * 2);
-          this.ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 214, 0, 0.6)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, 28, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
-        // Tower pedestal
+        // 2. High-Tech Octagonal Pedestal Base
         const color = t.branch ? spec.color : def.color;
-        this.ctx.fillStyle = "#162238";
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = t.branch ? 3 : 2;
-        this.ctx.fillRect(t.x - 22, t.y - 22, 44, 44);
-        this.ctx.strokeRect(t.x - 22, t.y - 22, 44, 44);
+        ctx.fillStyle = "#0f172a";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = t.branch ? 3 : 2;
+        ctx.beginPath();
+        const r = 24;
+        for (let i = 0; i < 8; i++) {
+          const a = (Math.PI / 4) * i;
+          const px = t.x + Math.cos(a) * r;
+          const py = t.y + Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
 
-        this.ctx.save();
-        this.ctx.translate(t.x, t.y);
-        this.ctx.rotate(t.angle);
-
-        this.ctx.fillStyle = color;
-        if (t.type === 'pulse') this.ctx.fillRect(0, -5, t.branch === 'A' ? 24 : 20, 10);
-        else if (t.type === 'mortar') this.ctx.fillRect(-6, -8, 22, 16);
-        else if (t.type === 'cryo') { this.ctx.beginPath(); this.ctx.arc(0, 0, 12, 0, Math.PI * 2); this.ctx.fill(); }
-        else if (t.type === 'railgun') this.ctx.fillRect(0, -3, 28, 6);
-        else if (t.type === 'beacon') { this.ctx.beginPath(); this.ctx.arc(0, 0, 14, 0, Math.PI * 2); this.ctx.fill(); }
-        this.ctx.restore();
-
-        // Stars / Tier markers
-        this.ctx.fillStyle = "#ffd600";
-        for (let i = 0; i < t.tier; i++) {
-          this.ctx.beginPath();
-          this.ctx.arc(t.x - 12 + i * 12, t.y + 16, 3, 0, Math.PI * 2);
-          this.ctx.fill();
+        // Corner Mounting Bolts
+        ctx.fillStyle = "#475569";
+        for (let i = 0; i < 4; i++) {
+          const a = (Math.PI / 2) * i + Math.PI / 4;
+          ctx.fillRect(t.x + Math.cos(a) * 16 - 2, t.y + Math.sin(a) * 16 - 2, 4, 4);
         }
 
+        // 3. Rotating Turret Head Assembly
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.angle);
+
+        ctx.fillStyle = color;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+
+        if (t.type === 'pulse') {
+          if (t.branch === 'A') {
+            // Gatling Shredder: 6-barrel rotary minigun
+            const spin = performance.now() * 0.02;
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(0, -6, 26, 12);
+            ctx.fillStyle = "#00e5ff";
+            for (let b = 0; b < 6; b++) {
+              const ba = spin + (Math.PI / 3) * b;
+              ctx.fillRect(26, Math.sin(ba) * 5 - 1, 6, 2);
+            }
+          } else if (t.branch === 'B') {
+            // Sniper Rail-Pulse: Ultra-long rifle with optic scope
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-6, -5, 14, 10);
+            ctx.fillStyle = "#00b0ff";
+            ctx.fillRect(8, -2, 32, 4);
+            ctx.fillStyle = "#ffd600";
+            ctx.fillRect(14, -5, 10, 3); // Scope
+          } else {
+            // Dual autocannon barrels
+            ctx.fillStyle = color;
+            ctx.fillRect(2, -7, 22, 5);
+            ctx.fillRect(2, 2, 22, 5);
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(-8, -8, 16, 16);
+          }
+        } else if (t.type === 'mortar') {
+          if (t.branch === 'A') {
+            // Cluster Bomb: Quad rocket pod
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-8, -10, 24, 20);
+            ctx.fillStyle = "#ff9100";
+            ctx.fillRect(16, -8, 4, 6);
+            ctx.fillRect(16, 2, 4, 6);
+          } else if (t.branch === 'B') {
+            // Napalm Cyber-Fire: Fuel tanks & flame igniter
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-6, -9, 22, 18);
+            ctx.fillStyle = "#ff3d00";
+            ctx.fillRect(-10, -7, 6, 14); // Fuel tank
+            ctx.fillStyle = "#ffd600";
+            ctx.fillRect(16, -2, 8, 4); // Igniter
+          } else {
+            // Heavy howitzer artillery barrel
+            ctx.fillStyle = color;
+            ctx.fillRect(-6, -7, 24, 14);
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(-10, -9, 14, 18);
+          }
+        } else if (t.type === 'cryo') {
+          if (t.branch === 'A') {
+            // Blizzard Zero: Crystalline spire with frost aura
+            ctx.fillStyle = "#00f0ff";
+            ctx.beginPath();
+            ctx.moveTo(18, 0); ctx.lineTo(-8, -10); ctx.lineTo(-4, 0); ctx.lineTo(-8, 10);
+            ctx.closePath();
+            ctx.fill();
+          } else if (t.branch === 'B') {
+            // Tesla Chain-Frost: Dual lightning prongs
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-6, -8, 16, 16);
+            ctx.strokeStyle = "#76ff03";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(10, -7); ctx.lineTo(24, -4);
+            ctx.moveTo(10, 7); ctx.lineTo(24, 4);
+            ctx.stroke();
+          } else {
+            // Cryogenic sphere with claws
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, 13, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        } else if (t.type === 'railgun') {
+          if (t.branch === 'A') {
+            // Hyper Beam Laser: Optical prism array
+            ctx.fillStyle = "#ff007f";
+            ctx.fillRect(0, -4, 30, 8);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(28, -6, 6, 12);
+          } else if (t.branch === 'B') {
+            // Ion Disrupter: Magnetic disruptor rings
+            ctx.fillStyle = "#d500f9";
+            ctx.fillRect(0, -3, 28, 6);
+            ctx.strokeStyle = "#e040fb";
+            ctx.lineWidth = 2;
+            for (let r = 8; r <= 24; r += 8) {
+              ctx.strokeRect(r, -6, 3, 12);
+            }
+          } else {
+            // Magnetic rails with induction coils
+            ctx.fillStyle = color;
+            ctx.fillRect(0, -3, 30, 6);
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-8, -7, 14, 14);
+            ctx.fillStyle = "#ffd600";
+            ctx.fillRect(10, -5, 4, 10);
+            ctx.fillRect(20, -5, 4, 10);
+          }
+        } else if (t.type === 'beacon') {
+          if (t.branch === 'A') {
+            // Overcharge Reactor: Arcing lightning sphere
+            ctx.fillStyle = "#b388ff";
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffd600";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else if (t.branch === 'B') {
+            // Tactical Radar: 360-degree radar dish
+            ctx.fillStyle = "#e040fb";
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, -Math.PI / 3, Math.PI / 3);
+            ctx.lineTo(0, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+          } else {
+            // Satellite dish with glowing power crystal
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(-2, -2, 4, 4);
+          }
+        }
+        ctx.restore();
+
+        // 4. Tier Markers (Stars)
+        ctx.fillStyle = "#ffd600";
+        for (let i = 0; i < t.tier; i++) {
+          ctx.beginPath();
+          ctx.arc(t.x - 12 + i * 12, t.y + 16, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 5. Laser Beam FX
         if (t.laserTimer > 0 && t.targetPoint) {
-          this.ctx.strokeStyle = (t.branch === 'A') ? "rgba(255, 0, 127, 0.9)" : `rgba(213, 0, 249, ${t.laserTimer / 0.25})`;
-          this.ctx.lineWidth = (t.branch === 'A') ? 8 : 5;
-          this.ctx.beginPath();
-          this.ctx.moveTo(t.x, t.y);
-          this.ctx.lineTo(t.targetPoint.x, t.targetPoint.y);
-          this.ctx.stroke();
+          ctx.strokeStyle = (t.branch === 'A') ? "rgba(255, 0, 127, 0.9)" : `rgba(213, 0, 249, ${t.laserTimer / 0.25})`;
+          ctx.lineWidth = (t.branch === 'A') ? 8 : 5;
+          ctx.beginPath();
+          ctx.moveTo(t.x, t.y);
+          ctx.lineTo(t.targetPoint.x, t.targetPoint.y);
+          ctx.stroke();
         }
       }
     }
 
     renderEnemies() {
+      const ctx = this.ctx;
+
       for (const e of this.enemies) {
-        this.ctx.save();
-        this.ctx.translate(e.x, e.y);
-        if (e.phased) this.ctx.globalAlpha = 0.25;
+        ctx.save();
+        ctx.translate(e.x, e.y);
 
+        if (e.phased) ctx.globalAlpha = 0.25;
+
+        // Slow Frost Field Aura
         if (e.slowTimer > 0) {
-          this.ctx.strokeStyle = "#00f0ff";
-          this.ctx.lineWidth = 2;
-          this.ctx.beginPath();
-          this.ctx.arc(0, 0, e.size + 4, 0, Math.PI * 2);
-          this.ctx.stroke();
+          ctx.strokeStyle = "#00f0ff";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.size + 6, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
-        this.ctx.fillStyle = e.color;
-        this.ctx.beginPath();
-        if (e.type === 'brute' || e.isBoss) {
-          this.ctx.fillRect(-e.size, -e.size, e.size * 2, e.size * 2);
-        } else if (e.type === 'sprinter') {
-          this.ctx.rotate(e.angle);
-          this.ctx.moveTo(e.size * 1.5, 0);
-          this.ctx.lineTo(-e.size, -e.size);
-          this.ctx.lineTo(-e.size, e.size);
-          this.ctx.closePath();
-          this.ctx.fill();
-        } else {
-          this.ctx.arc(0, 0, e.size, 0, Math.PI * 2);
-          this.ctx.fill();
-        }
-
-        if (this.colorblind) {
-          this.ctx.fillStyle = "#ffffff";
-          this.ctx.font = "bold 12px monospace";
-          this.ctx.textAlign = "center";
-          this.ctx.fillText(e.marker, 0, 4);
-        }
-
+        // Energy Shield Dome
         if (e.shield > 0) {
-          this.ctx.strokeStyle = "rgba(0, 176, 255, 0.8)";
-          this.ctx.lineWidth = 2.5;
-          this.ctx.beginPath();
-          this.ctx.arc(0, 0, e.size + 6, 0, Math.PI * 2);
-          this.ctx.stroke();
+          ctx.strokeStyle = "rgba(0, 176, 255, 0.85)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.size + 8, 0, Math.PI * 2);
+          ctx.stroke();
         }
 
-        this.ctx.restore();
+        // --- CONTEMPORARY PROCEDURAL CHARACTER DESIGNS ---
+        if (e.type === 'grunt') {
+          // Cyborg Mercenary Trooper
+          const walk = Math.sin(e.walkAnim || 0) * 3;
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-7 + walk, -6, 5, 3);
+          ctx.fillRect(-7 - walk, 3, 5, 3);
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(-5, -5, 10, 10);
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-5, -5, 10, 10);
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.arc(3, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = e.color;
+          ctx.fillRect(3, -2, 3, 4);
+          ctx.fillStyle = "#475569";
+          ctx.fillRect(4, 3, 9, 2);
+        } else if (e.type === 'sprinter') {
+          // Cyber-Hound / Stalker Mech
+          const run = Math.sin(e.walkAnim || 0) * 5;
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-8 + run, -8, 4, 3);
+          ctx.fillRect(-8 - run, 5, 4, 3);
+          ctx.fillRect(4 - run, -9, 4, 3);
+          ctx.fillRect(4 + run, 6, 4, 3);
+          ctx.fillStyle = "#451a03";
+          ctx.beginPath();
+          ctx.moveTo(12, 0); ctx.lineTo(-10, -7); ctx.lineTo(-6, 0); ctx.lineTo(-10, 7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = "#ff1744";
+          ctx.fillRect(6, -2, 3, 4);
+          ctx.fillStyle = "#ff9100";
+          ctx.fillRect(-12, -4, 3, 3);
+          ctx.fillRect(-12, 1, 3, 3);
+        } else if (e.type === 'brute') {
+          // Goliath Heavy War-Mech
+          const stomp = Math.sin(e.walkAnim || 0) * 3;
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(-14 + stomp, -16, 8, 6);
+          ctx.fillRect(-14 - stomp, 10, 8, 6);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-12, -13, 22, 26);
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(-12, -13, 22, 26);
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(-10, -11, 4, 22);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(-4, -11, 4, 22);
+          ctx.fillStyle = "#475569";
+          ctx.fillRect(6, -17, 14, 5);
+          ctx.fillRect(6, 12, 14, 5);
+          ctx.fillStyle = "#ff1744";
+          ctx.fillRect(4, -3, 6, 6);
+        } else if (e.type === 'swarmling') {
+          // Nano-Drone Scarab
+          ctx.rotate(e.angle);
+          ctx.save();
+          ctx.rotate(performance.now() * 0.02);
+          ctx.strokeStyle = "rgba(255, 171, 0, 0.7)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 10, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.moveTo(8, 0); ctx.lineTo(0, -6); ctx.lineTo(-7, 0); ctx.lineTo(0, 6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(-1, -1, 3, 3);
+        } else if (e.type === 'shieldbearer') {
+          // Aegis Paladin Android
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-10, -9, 14, 18);
+          ctx.strokeStyle = "#00b0ff";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-10, -9, 14, 18);
+          ctx.fillStyle = "#00e5ff";
+          ctx.fillRect(0, -2, 4, 4);
+          ctx.strokeStyle = "rgba(0, 176, 255, 0.9)";
+          ctx.fillStyle = "rgba(0, 229, 255, 0.25)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(10, 0, 18, -Math.PI / 2.3, Math.PI / 2.3);
+          ctx.stroke();
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(8, -2, 3, 4);
+        } else if (e.type === 'medic') {
+          // Nanite Bio-Synth Drone
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#064e3b";
+          ctx.beginPath();
+          ctx.arc(0, 0, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#00e676";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = "#00e676";
+          ctx.fillRect(-2, -6, 4, 12);
+          ctx.fillRect(-6, -2, 12, 4);
+          const orbit = performance.now() * 0.004;
+          for (let i = 0; i < 4; i++) {
+            const a = orbit + (Math.PI / 2) * i;
+            ctx.fillStyle = "#69f0ae";
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * 15, Math.sin(a) * 15, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (e.type === 'splitter') {
+          // Fracture Crystal Core
+          const pulse = Math.sin(performance.now() * 0.008) * 2;
+          const spin = performance.now() * 0.003;
+          ctx.fillStyle = "#1e1b4b";
+          ctx.strokeStyle = "#e040fb";
+          ctx.lineWidth = 1.5;
+          for (let i = 0; i < 4; i++) {
+            const a = spin + (Math.PI / 2) * i;
+            const cx = Math.cos(a) * 16;
+            const cy = Math.sin(a) * 16;
+            ctx.fillRect(cx - 3, cy - 3, 6, 6);
+            ctx.strokeRect(cx - 3, cy - 3, 6, 6);
+          }
+          ctx.fillStyle = "#f43f5e";
+          ctx.beginPath();
+          ctx.arc(0, 0, 8 + pulse, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.arc(0, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (e.type === 'phantom') {
+          // Stealth Ghost Assassin
+          const shimmer = Math.sin(performance.now() * 0.01) * 3;
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "rgba(255, 0, 127, 0.4)";
+          ctx.fillRect(-8 + shimmer, -6, 14, 12);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
+          ctx.fillRect(-8 - shimmer, -6, 14, 12);
+          ctx.fillStyle = "rgba(124, 77, 255, 0.7)";
+          ctx.beginPath();
+          ctx.moveTo(10, 0); ctx.lineTo(-10, -7); ctx.lineTo(-6, 0); ctx.lineTo(-10, 7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(8, -5); ctx.lineTo(16, -2);
+          ctx.moveTo(8, 5); ctx.lineTo(16, 2);
+          ctx.stroke();
+        } else if (e.type === 'juggernaut') {
+          // BOSS 1: Colossus MK-IV Siege Fortress
+          const walkB = Math.sin(e.walkAnim || 0) * 4;
+          ctx.rotate(e.angle);
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(-22 + walkB, -24, 12, 10);
+          ctx.fillRect(-22 - walkB, 14, 12, 10);
+          ctx.fillRect(10 - walkB, -24, 12, 10);
+          ctx.fillRect(10 + walkB, 14, 12, 10);
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-18, -18, 36, 36);
+          ctx.strokeStyle = "#ff1744";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(-18, -18, 36, 36);
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(4, -22, 22, 6);
+          ctx.fillRect(4, 16, 22, 6);
+          ctx.strokeStyle = "rgba(255, 23, 68, 0.6)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(26, -19); ctx.lineTo(120, -19);
+          ctx.moveTo(26, 19); ctx.lineTo(120, 19);
+          ctx.stroke();
+          ctx.fillStyle = "#ff1744";
+          ctx.beginPath();
+          ctx.arc(2, 0, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.arc(2, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (e.type === 'overseer') {
+          // BOSS 2: Eye of Chronos Quantum AI
+          const gyro1 = performance.now() * 0.002;
+          const gyro2 = performance.now() * -0.003;
+          ctx.strokeStyle = "rgba(101, 31, 255, 0.8)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 32, 14, gyro1, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(224, 64, 251, 0.8)";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 26, 12, gyro2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = "#1e1b4b";
+          ctx.beginPath();
+          ctx.arc(0, 0, 16, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#d500f9";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = "#00e5ff";
+          ctx.beginPath();
+          ctx.arc(0, 0, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(2, 0, 3, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (e.type === 'hive_titan') {
+          // BOSS 3: Leviathan Core Bio-Mechanical Centipede
+          ctx.rotate(e.angle);
+          for (let s = 3; s >= 0; s--) {
+            const sx = -s * 10;
+            const segW = 26 - s * 3;
+            const segH = 24 - s * 3;
+            ctx.fillStyle = s % 2 === 0 ? "#1e293b" : "#374151";
+            ctx.fillRect(sx - segW / 2, -segH / 2, segW, segH);
+            ctx.strokeStyle = "#f50057";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sx - segW / 2, -segH / 2, segW, segH);
+            ctx.fillStyle = "#ff1744";
+            ctx.fillRect(sx - 2, -3, 4, 6);
+          }
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.moveTo(14, 0); ctx.lineTo(4, -12); ctx.lineTo(4, 12);
+          ctx.closePath();
+          ctx.fill();
+          const snap = Math.sin(performance.now() * 0.008) * 3;
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(8, -10); ctx.lineTo(20 + snap, -5);
+          ctx.moveTo(8, 10); ctx.lineTo(20 + snap, 5);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = e.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-        const barW = Math.max(26, e.size * 2);
-        const barH = 4;
+        // Colorblind Indicator Icon
+        if (this.colorblind) {
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 12px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(e.marker, 0, 4);
+        }
+
+        ctx.restore();
+
+        // Modern Floating Health Bar
+        const barW = Math.max(30, e.size * 2.2);
+        const barH = e.isBoss ? 6 : 4;
         const bx = e.x - barW / 2;
-        const by = e.y - e.size - 10;
+        const by = e.y - e.size - 12;
 
-        this.ctx.fillStyle = "#0a0f1d";
-        this.ctx.fillRect(bx, by, barW, barH);
+        ctx.fillStyle = "#0a0f1d";
+        ctx.fillRect(bx, by, barW, barH);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(bx, by, barW, barH);
 
         const hpPct = Math.max(0, e.hp / e.maxHp);
-        this.ctx.fillStyle = e.isBoss ? "#ff1744" : "#00e676";
-        this.ctx.fillRect(bx, by, barW * hpPct, barH);
+        ctx.fillStyle = e.isBoss ? "#ff1744" : "#00e676";
+        ctx.fillRect(bx, by, barW * hpPct, barH);
 
         if (e.maxShield > 0) {
           const shPct = Math.max(0, e.shield / e.maxShield);
-          this.ctx.fillStyle = "#00b0ff";
-          this.ctx.fillRect(bx, by - 3, barW * shPct, 2);
+          ctx.fillStyle = "#00b0ff";
+          ctx.fillRect(bx, by - 3, barW * shPct, 2);
         }
       }
+    }
+
+    // --- TACTICAL DRAG-AND-DROP & MOBILE TOUCH OVERLAYS ---
+
+    renderTacticalDragVector() {
+      const ctx = this.ctx;
+
+      // 1. Hero Drag Tactical Vector Line
+      if (this.touchState.dragging === 'HERO') {
+        const cur = this.touchState.dragCurrent;
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.moveTo(this.hero.x, this.hero.y);
+        ctx.lineTo(cur.x, cur.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Animated destination target reticle
+        ctx.strokeStyle = "#ffd600";
+        ctx.fillStyle = "rgba(255, 214, 0, 0.2)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cur.x, cur.y, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("TARGET", cur.x, cur.y + 4);
+      }
+
+      // 2. Tower Hotbar Drag-to-Build Ghost
+      if (this.touchState.dragging === 'TOWER_HOTBAR' && this.touchState.draggedTowerType) {
+        const cur = this.touchState.dragCurrent;
+        const def = TOWER_DEFS[this.touchState.draggedTowerType];
+
+        // Draw floating turret under finger
+        ctx.save();
+        ctx.translate(cur.x, cur.y);
+        ctx.fillStyle = def.color;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        // If hovering over grid, render placement range and tile box
+        if (this.hoverCell && cur.y >= 60 && cur.y <= 620) {
+          const px = this.hoverCell.gx * 64 + 32;
+          const py = this.hoverCell.gy * 64 + 32;
+          const valid = this.hoverCell.valid;
+
+          ctx.strokeStyle = valid ? "rgba(0, 229, 255, 0.5)" : "rgba(255, 23, 68, 0.5)";
+          ctx.fillStyle = valid ? "rgba(0, 229, 255, 0.1)" : "rgba(255, 23, 68, 0.1)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(px, py, def.tiers[0].range, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.strokeStyle = valid ? "#00e676" : "#ff1744";
+          ctx.fillStyle = valid ? "rgba(0, 230, 118, 0.3)" : "rgba(255, 23, 68, 0.3)";
+          ctx.fillRect(this.hoverCell.gx * 64 + 2, this.hoverCell.gy * 64 + 2, 60, 60);
+          ctx.strokeRect(this.hoverCell.gx * 64 + 2, this.hoverCell.gy * 64 + 2, 60, 60);
+        }
+      }
+    }
+
+    renderMobileFloatingButtons() {
+      const ctx = this.ctx;
+
+      // 1. Floating Hero Ult Thumb Action Button (Bottom Right)
+      const isUltReady = this.hero.currentUltCd <= 0;
+      const ux = 1210;
+      const uy = 540;
+      const ur = 36;
+
+      ctx.save();
+      ctx.fillStyle = isUltReady ? "#1c355e" : "#131a29";
+      ctx.beginPath();
+      ctx.arc(ux, uy, ur, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = isUltReady ? "#ffd600" : "#455a64";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      if (isUltReady) {
+        ctx.strokeStyle = "rgba(255, 214, 0, 0.4)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(ux, uy, ur + 4, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        // Cooldown sweep arc
+        const pct = this.hero.currentUltCd / this.hero.ultCd;
+        ctx.fillStyle = "rgba(255, 23, 68, 0.35)";
+        ctx.beginPath();
+        ctx.moveTo(ux, uy);
+        ctx.arc(ux, uy, ur, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = isUltReady ? "#ffd600" : "#90a4ae";
+      ctx.font = "bold 13px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡ ULT", ux, uy + 4);
+      if (!isUltReady) {
+        ctx.fillStyle = "#ff1744";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`${Math.ceil(this.hero.currentUltCd)}s`, ux, uy + 17);
+      }
+      ctx.restore();
+
+      // 2. Floating Wave / Speed Thumb Action Button (Top Right)
+      const wx = 1210;
+      const wy = 90;
+      const wr = 30;
+
+      ctx.save();
+      ctx.fillStyle = this.waveActive ? "#162b47" : "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(wx, wy, wr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = this.waveActive ? "#00e5ff" : "#05070d";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      if (!this.waveActive) {
+        ctx.fillText("▶ START", wx, wy + 4);
+      } else {
+        ctx.fillText(`${this.speed}x SPD`, wx, wy + 4);
+      }
+      ctx.restore();
     }
 
     renderProjectiles() {
