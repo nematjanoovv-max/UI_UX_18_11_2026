@@ -1,0 +1,6 @@
+# KNOWN_BUGS.txt — Issue Tracking & Bug Log
+[2026-11-18 19:01] [NOTES] Bug tracker initialized. No bugs reported yet.
+
+## OPEN BUGS
+
+## FIXED BUGS

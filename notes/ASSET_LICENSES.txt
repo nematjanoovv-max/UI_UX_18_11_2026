@@ -1,0 +1,5 @@
+# ASSET_LICENSES.txt — Third-Party and Custom Asset Licenses
+[2026-11-18 19:01] [NOTES] Asset register initialized.
+- Custom vector graphics: Generated / built-in Godot primitives and SVG icons (MIT / Project original).
+- GUT (Godot Unit Test): MIT License, bitwes/Gut.
+- Sounds & Music: CC0 / Public Domain / Original synthesizers.

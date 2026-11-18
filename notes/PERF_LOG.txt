@@ -1,0 +1,6 @@
+# PERF_LOG.txt — Performance Benchmarks & Targets
+[2026-11-18 19:01] [PERF] Targets:
+- Desktop: 60 FPS stable with 300 active entities.
+- Android: >= 45 FPS with 150 enemies + 40 towers + 200 projectiles.
+- Web: Initial package <= 40 MB, start <= 8s, >= 50 FPS.
+- Memory: <= 300 MB.

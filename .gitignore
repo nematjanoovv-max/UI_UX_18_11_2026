@@ -1,0 +1,25 @@
+# Godot 4 
+.godot/
+*.translation
+
+# Exports
+export/
+*.apk
+*.aab
+*.exe
+*.zip
+*.pck
+
+# Keystores & Secrets
+*.keystore
+*.jks
+.env*
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Test logs / temp
+.import/

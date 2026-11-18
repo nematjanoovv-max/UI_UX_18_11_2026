@@ -1,0 +1,3 @@
+# GDToolkit linting configuration
+disable:
+  - line-length

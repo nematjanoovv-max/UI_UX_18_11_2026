@@ -1,0 +1,3 @@
+# NOTES.txt — Tower Defense: Last Grid
+[2026-11-18 19:01] [IMPORTANT] Project initialized. Following agents.md, spec.md, and plan.md.
+[2026-11-18 19:01] [NOTES] Starting Milestone M0: Foundation & Setup.

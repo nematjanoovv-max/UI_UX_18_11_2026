@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Godot Engine
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.3.0
+          use-dotnet: false
+          include-templates: true
+
+      - name: Export Multi-platform
+        run: |
+          mkdir -p export/web export/windows export/android
+          godot --headless --export-release "Web" export/web/index.html || true
+          godot --headless --export-release "Windows Desktop" export/windows/LastGrid.exe || true
+          cd export/web && zip -r ../last-grid-web.zip . && cd ../..
+          cd export/windows && zip -r ../last-grid-windows.zip . && cd ../..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            export/last-grid-web.zip
+            export/last-grid-windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

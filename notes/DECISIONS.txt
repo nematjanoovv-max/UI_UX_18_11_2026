@@ -1,0 +1,5 @@
+# DECISIONS.txt — Architecture & Design Decisions
+[2026-11-18 19:01] [DECISION] Pinned Godot engine version to 4.3-stable (standard 4.x compatible, reliable Compatibility renderer).
+[2026-11-18 19:01] [DECISION] Viewport base set to 1280x720, aspect=expand, stretch_mode=canvas_items, orientation=landscape.
+[2026-11-18 19:01] [DECISION] GDScript static typing enforced with warning treated as errors for untyped declarations.
+[2026-11-18 19:01] [DECISION] Web target deployed on Vercel as single-threaded web export; Render kept as optional stretch.

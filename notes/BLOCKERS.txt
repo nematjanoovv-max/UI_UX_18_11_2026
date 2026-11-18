@@ -1,0 +1,2 @@
+# BLOCKERS.txt — Blocking issues and required user actions
+[2026-11-18 19:01] [BLOCKER] None currently. Local development and file structure setup progressing normally.

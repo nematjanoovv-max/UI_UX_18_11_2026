@@ -1,0 +1,7 @@
+# DEPLOY_CHECKLIST.txt — Production Deployment Procedures
+[2026-11-18 19:01] [NOTES] Deployment checklist initialized.
+[ ] GitHub repository created and remotes configured (Human-gated)
+[ ] GitHub Actions workflows committed: ci.yml, deploy-web.yml, release.yml
+[ ] Vercel project linked for Web exports (Human-gated)
+[ ] Android release keystore generated (Human-gated)
+[ ] Windows/Web/Android export presets verified

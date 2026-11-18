@@ -1,0 +1,4 @@
+# ASSUMPTIONS.txt — Specifications & Design Interpretations
+[2026-11-18 19:01] [ASSUMPTION] Grid size is 20x11 playable cells with 64x64px cell size, fitting inside 1280x720 base viewport with UI margins.
+[2026-11-18 19:01] [ASSUMPTION] Enemy movement uses pre-baked waypoint path sampling; progress_px strictly governs position so deviation is mathematically impossible.
+[2026-11-18 19:01] [ASSUMPTION] Offline single-player mode is prioritized first for MVP; all progression saves to user://progress.json.

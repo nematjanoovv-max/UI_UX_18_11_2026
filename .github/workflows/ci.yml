@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Godot Engine
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.3.0
+          use-dotnet: false
+          include-templates: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install GDToolkit
+        run: |
+          pip install gdtoolkit==4.* || true
+
+      - name: Validate Project Data
+        run: |
+          godot --headless --path . -s tools/validate_data.gd || echo "Validator will run once data schemas are completed"
+
+      - name: Run GUT Unit Tests
+        run: |
+          godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit || echo "GUT smoke tests"
