@@ -1,0 +1,53 @@
+keys,en,uz,ru
+app_title,Tower Defense: Last Grid,Minora Mudofaasi: So'nggi Katak,Защита Башни: Последняя Сетка
+play_campaign,PLAY CAMPAIGN,KAMPANIYANI BOSHLASH,ИГРАТЬ КАМПАНИЮ
+skill_tree,SKILL TREE,MAHORAT DARAXTI,ДРЕВО НАВЫКОВ
+encyclopedia,ENCYCLOPEDIA,ENSIKLOPEDIYA,ЭНЦИКЛОПЕДИЯ
+achievements,ACHIEVEMENTS,YUTUQLAR,ДОСТИЖЕНИЯ
+settings,SETTINGS,SOZLAMALAR,НАСТРОЙКИ
+quit,QUIT,CHIQISH,ВЫХОД
+mission_select,MISSION SELECT,MISSINI TANLASH,ВЫБОР МИССИИ
+difficulty,Difficulty,Qiyinlik darajasi,Сложность
+deploy_mission,DEPLOY MISSION,JANGGA CHIQISH,НАЧАТЬ МИССИЮ
+back,BACK,ORQAGA,НАЗАД
+save_and_back,SAVE & BACK,SAQLASH VA ORQAGA,СОХРАНИТЬ И НАЗАД
+game_paused,GAME PAUSED,O'YIN TO'XTATILDI,ИГРА ПРИОСТАНОВЛЕНА
+resume,RESUME,DAVOM ETTIRISH,ПРОДОЛЖИТЬ
+restart_run,RESTART RUN,QAYTADAN BOSHLASH,НАЧАТЬ ЗАНОВО
+quit_to_menu,QUIT TO MENU,MENYUGA QAYTISH,ВЫЙТИ В МЕНЮ
+mission_victory,MISSION VICTORY,MISSIYA G'ALABASI,ПОБЕДА В МИССИИ
+mission_defeat,MISSION DEFEAT,MAG'LUBIYAT,ПОРАЖЕНИЕ
+retry,RETRY,QAYTA URINISH,ПОВТОРИТЬ
+next_map,NEXT MAP,KEYINGI XARITA,СЛЕДУЮЩАЯ КАРТА
+menu,MENU,MENYU,МЕНЮ
+research_points,Research Points,Tadqiqot Ochkolari,Очки Исследований
+available_rp,Available RP,Mavjud RP,Доступные Очки
+free_respec,FREE RESPEC,BEPUL QAYTA TAQSIMLASH,СБРОС НАВЫКОВ
+offense_branch,OFFENSE,HUJUM,АТАКА
+economy_branch,ECONOMY,IQTISOD,ЭКОНОМИКА
+defense_branch,DEFENSE,MUDOFAA,ЗАЩИТА
+wave,Wave,To'lqin,Волна
+gold,Gold,Oltin,Золото
+base_hp,Base HP,Baza Jon,База Здоровье
+start_wave,Start Wave,To'lqinni Boshlash,Начать Волну
+tower_pulse_name,Pulse Tower,Impuls Minorasi,Импульсная Башня
+tower_pulse_desc,Rapid-fire kinetic defense,Tez otar kinetik minora,Скорострельная кинетическая защита
+tower_mortar_name,Mortar Tower,Minyomyot Minorasi,Минометная Башня
+tower_mortar_desc,Long-range explosive splash,Uzoq masofali portlovchi zarba,Дальнобойный взрывной урон
+tower_cryo_name,Cryo Tower,Kriyo Minorasi,Крио Башня
+tower_cryo_desc,Chilling energy slow field,Sovutuvchi sekinlashtiruvchi maydon,Замедляющее энергетическое поле
+tower_railgun_name,Railgun Tower,Relsotron Minorasi,Рельсотрон
+tower_railgun_desc,High-damage piercing sniper beam,Teshuvchi nurlik snayper minorasi,Бронебойный снайперский луч
+tower_beacon_name,Beacon Tower,Mayoq Minorasi,Маяк Поддержки
+tower_beacon_desc,Support buff aura for adjacent towers,Qo'shni minoralar uchun kuchaytiruvchi aura,Аура усиления для соседних башен
+enemy_grunt_name,Grunt,Piyoda,Пехотинец
+enemy_sprinter_name,Sprinter,Yuguruvchi,Спринтер
+enemy_brute_name,Brute,Bahodir,Громила
+enemy_swarmling_name,Swarmling,Chigirtka,Роевик
+enemy_shieldbearer_name,Shieldbearer,Qalqonchi,Щитоносец
+enemy_medic_name,Medic,Shifokor,Медик
+enemy_splitter_name,Splitter,Bo'linuvchi,Делитель
+enemy_phantom_name,Phantom,Arvoh,Фантом
+boss_juggernaut_name,Juggernaut,Jaggernaut,Джаггернаут
+boss_overseer_name,Overseer,Nazoratchi,Надзиратель
+boss_hive_titan_name,Hive Titan,Uya Titani,Титан Улья
