@@ -1,7 +1,7 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 + Web 2D)
-Versiya: v2.1.0 Ultimate (Jonli Serverless API & Multilingual Reliz)
+Versiya: v3.0.0 Grand Tactical (Branching, Hero Mech, Roguelike & Analytics Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -20,35 +20,35 @@ https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 ================================================================================
 BARCHA AMALGA OSHIRILGAN YANGI IMKONIYATLAR:
 
-1. 🌐 Jonli Serverless FastAPI Global Reyting Tizimi:
-   - Vercel Serverless Python funksiyalari orqali to'g'ridan-to'g'ri integratsiya qilindi.
-   - Har bir o'yinchi erishgan ballar real-vaqt rejimida serverga saqlanadi va global leaderboardda ko'rsatiladi.
+1. ⚡ 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations):
+   - Har bir minora Tier 2 da ikkita o'ziga xos taktik yo'nalishga ajraladi (Gatling/Sniper, Cluster/Napalm, Blizzard/Tesla, Hyper Beam/Ion Disrupter, Overcharge/Radar).
 
-2. 🌍 3 Tilli Lokalizatsiya (UZ / EN / RU):
-   - O'zbekcha (uz), Inglizcha (en) va Ruscha (ru) tillari o'yin interfeysiga to'liq o'rnatildi.
-   - Bosh menyu va jang maydonidagi til tugmasi orqali bir zumda almashtirish mumkin.
+2. 🤖 Jang Maydonidagi Qahramon Mech ("Apex-01"):
+   - Erkin harakatlanadi, 2 ta dushmanni bloklaydi, Level 1 dan 10 gacha kuchayadi va Cyber-Slash Wave ultimasiga ega.
 
-3. 📖 "Field Manual / Ensiklopediya" Interaktiv Qo'llanmasi:
-   - 5 ta minora (Pulse, Mortar, Cryo, Railgun, Beacon) parametrlari.
-   - 8 ta dushman va 3 ta boss (Juggernaut, Overseer, Hive Titan) xususiyatlari.
-   - Komandir qobiliyatlari bo'yicha to'liq taktik qo'llanma.
+3. 🃏 Roguelike Perk va Draft Tizimi (Augment Drafts):
+   - Har 5-to'lqinda 3 ta kiber-perkdan birini tanlab, o'z strategiyangizni shakllantirish imkoniyati.
 
-4. 👁 Rang-Ko'rlik (Colorblind Mode) Rejimi:
-   - Top-paneldagi "CB" tugmasi orqali dushmanlarning ustiga geometrik belgilar (●, ▲, ■, ◆, 🛡, ✚, ✦, ★, ☠) chiqariladi.
+4. 📊 Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics):
+   - Har bir minora va qahramon yetkazgan zararlarining rangli bar chartlari hamda eng yaxshi jangchi (MVP) aniqlanadi.
 
-5. ⚡ 4 ta Faol Komandir Qobiliyatlari:
-   - [Z] EMP Storm: 200px maydondagi dushmanlarni 3.5s falaj qilish.
-   - [X] Orbital Beam: Osmon kemasidan 500 zarar yetkazuvchi ultra-lazer zarbasi.
-   - [C] Overclock Reactor: 6 soniya davomida barcha minoralarga +60% otish tezligi.
-   - [V] Supply Drone: Maydonga darhol +75 oltin yetkazuvchi dron.
+5. 📱 Telefon va Kompyuterga Avtomatik Moslashuv (Mobile & PC):
+   - 0ms sensorli sensor ekran teginishlari, gorizontal avto-kengayish va to'liq ekran rejimi.
 
-6. 🎮 4 xil O'yin Rejimi:
-   - Campaign: 10 ta xarita bo'ylab 30 ta to'lqin.
-   - Endless Survival: Cheksiz to'lqinlar bilan maksimal rekord o'rnatish.
-   - Boss Rush: 3 ta bossga qarshi maxsus duel.
-   - Map Editor: O'z xaritalaringizni chizish, sinash va JSON orqali ulashish.
+6. 🌐 Jonli Serverless FastAPI Global Reyting Tizimi:
+   - Vercel Serverless Python orqali `/api` manzilida natijalarni doimiy saqlash.
 
-7. 📱 PWA & Oflayn Yuklab Olish:
-   - Saytni mustaqil ilova sifatida o'rnatish imkoniyati (manifest.json + sw.js).
-   - "Download Offline ZIP" orqali internetsiz kompyuter va telefonda o'ynash uchun to'liq paket.
+7. 🌍 3 Tilli Lokalizatsiya (UZ / EN / RU):
+   - O'zbekcha, Inglizcha va Ruscha to'liq til qo'llab-quvvatlovi.
+
+8. 📖 Interaktiv Ensiklopediya ("Field Manual"):
+   - Barcha minoralar, dushmanlar, bosslar va komandir ko'nikmalari haqida batafsil ma'lumot.
+
+9. 👁 Rang-Ko'rlik (Colorblind) va CRT Retrowave Filtrlari.
+
+10. ⚡ 4 ta Faol Komandir Qobiliyatlari: EMP Storm, Orbital Beam, Overclock Reactor, Supply Drone.
+
+11. 🎮 4 xil O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Xarita Muharriri (Map Editor).
+
+12. 🎵 Web Audio API orqali Procedural Synthwave BGM va Kiber SFX Dvigateli.
 ================================================================================

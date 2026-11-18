@@ -2,8 +2,8 @@
 LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
-Platformalar: Web (HTML5/PWA), Desktop (Windows), Mobile (Android)
-Holati: 100% TO'LIQ TAYYOR (v2.1.0 Ultimate Reliz)
+Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
+Holati: 100% TO'LIQ TAYYOR (v3.0.0 Grand Tactical Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,48 +22,62 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v2.1 ULTIMATE YUTUQLARI (100% AMALGA OSHIRILDI):
+2. v3.0.0 GRAND TACTICAL YANGILIKLARI (100% AMALGA OSHIRILDI):
 
-[1] JONLI SERVERLESS FASTAPI LEADERBOARD:
-    - Vercel Serverless Python orqali `/api` manzili global leaderboard xizmatini taqdim etadi.
-    - POST orqali yuborilgan har bir o'yinchi natijasi saqlanadi va real vaqtda jadval yangilanadi.
+[1] 10 TA IKKILAMCHI MINORA TARMOQLARI (TOWER BRANCHING SPECIALIZATIONS):
+    - Har bir minora Tier 2 ga yetganda 2 ta noyob yo'nalishga shoxlanadi:
+      * Pulse Laser:
+        -> [A] Gatling Shredder: 7.5x otish tezligi, nishonning zirhini erituvchi o'qlar.
+        -> [B] Sniper Rail-Pulse: 260px masofa, 160 kritik kinetik zarar.
+      * Mortar Launcher:
+        -> [A] Cluster Bomb: Portlashdan so'ng 4 ta kichik klaster bombaga bo'linadi.
+        -> [B] Napalm Cyber-Fire: Maydonda 4 soniya davom etuvchi olov hovuzini hosil qiladi.
+      * Cryo Emitter:
+        -> [A] Blizzard Zero: 70% harakatni so'ndiruvchi ultra-muzlatgich.
+        -> [B] Tesla Chain-Frost: 3 ta yonma-yon dushmanga zanjirli elektr yoyi uzatadi.
+      * Railgun Cannon:
+        -> [A] Hyper Beam Laser: Barcha dushmanlarni teshib o'tuvchi 280 damage nur.
+        -> [B] Ion Disrupter: Dushmanlarning energiya qalqonlarini bir zumda yo'q qiladi.
+      * Energy Beacon:
+        -> [A] Overcharge Reactor: Qo'shni minoralarga +55% zarar bonusi beradi.
+        -> [B] Tactical Radar: 200px radiusdagi minoralarning masofasini +40% oshiradi.
 
-[2] 3 TILLI LOKALIZATSIYA (UZ, EN, RU):
-    - O'zbekcha, Inglizcha va Ruscha to'liq tarjimalar to'plami.
-    - Bosh menyu va HUD orqali bitta tugma bilan real vaqtda tilni almashtirish.
+[2] JANG MAYDONIDA HARAKATLANUVCHI QAHRAMON MECH ("APEX-01"):
+    - Sichqonchaning o'ng tugmasi yoki [H] tugmasi bilan boshqariladi.
+    - Bir vaqtning o'zida 2 ta dushmanni to'xtatib turadi (bloklaydi) va yaqin masofadan zarba beradi.
+    - Dushmanlarni yo'q qilish orqali Level 1 dan Level 10 gacha tajriba (XP) to'playdi, HP va zarari oshadi.
+    - [SPACE] yoki HUD tugmasi orqali "Cyber-Slash Wave (ULT)" kuchli energetik to'lqin zarbasini amalga oshiradi.
 
-[3] INTERAKTIV ENSIKLOPEDIYA (FIELD MANUAL):
-    - 5 ta minora (Pulse, Mortar, Cryo, Railgun, Beacon), ularning tierlari va auralari.
-    - 8 ta dushman va 3 ta boss (Juggernaut, Overseer, Hive Titan) xususiyatlari.
-    - Komandir qobiliyatlari tavsifi.
+[3] ROGUELIKE PERK VA DRAFT TIZIMI (AUGMENT DRAFTS):
+    - Har 5-to'lqinda (Wave 5, 10, 15, 20, 25) tasodifiy 3 ta kiber-perk kartasi taklif etiladi:
+      * Bounty Hunter: Dushmanlardan +35% qo'shimcha oltin.
+      * Shatter Frost: Sekinlashgan dushmanlarga +80% kuchaytirilgan zarar.
+      * Titan Slayer: Boss va og'ir dushmanlarga +45% qo'shimcha zarar.
+      * Overclock Matrix: Minoralarning hujum tezligiga doimiy +25% bonus.
+      * Superconductors: Railgun o'qlaridan qo'shimcha energiya uchqunlari.
+      * Reactive Core: Baza yadro sig'imi +10 ga kengayadi.
+      * Nanite Repair: Har to'lqin oxirida bazani +2 HP ga avtomatik ta'mirlaydi.
+      * Cluster Munitions: Mortar portlash radiusi +35% ga oshadi.
+      * Hero Overdrive: Qahramon Mechga +60% yaqin jang zarari va +25% harakat tezligi.
 
-[4] RANG-KO'RLIK (COLORBLIND MODE) REJIMI:
-    - Dushmanlar ustiga o'ziga xos geometrik piktogrammalar (●, ▲, ■, ◆, 🛡, ✚, ✦, ★, ☠) chiziladi.
+[4] JANG YAKUNI TAHLILI VA DPS GRAFIKLARI (POST-MATCH COMBAT ANALYTICS):
+    - Har bir jangdan so'ng (G'alaba yoki Mag'lubiyat) "📊 ANALYTICS" bo'limi ochiladi.
+    - Har bir minora turi, qahramon va komandir qobiliyatlari tomonidan yetkazilgan jami zarar (DMG) rangli grafiklarda namoyish etiladi.
+    - Eng ko'p zarar yetkazgan jangovar birlik "MVP UNIT" sifatida e'tirof etiladi.
 
-[5] 4 TA FAOL KOMANDIR QOBILIYATI (COMMANDER SKILLS):
-    - [Z] EMP Storm: 200px radiusdagi barcha dushmanlarni 3.5s falaj qiladi (50g, 25s cd).
-    - [X] Orbital Beam: Osmon orqali nishonga 500 damage yetkazuvchi vertikal lazer (75g, 30s cd).
-    - [C] Overclock: Barcha minoralarning otish tezligini 6s davomida +60% ga oshiradi (60g, 35s cd).
-    - [V] Supply Drone: Maydonga zudlik bilan +75 oltin resurs yetkazadi (0g, 40s cd).
+[5] TELEFON VA KOMPYUTERGA AVTOMATIK MOSLASHUVCHANLIK (MOBILE & PC RESPONSIVE):
+    - Landshaft rejimida smartfon va planshetlarda to'liq ekranga (100% viewport) kengayadi.
+    - 0ms sensorli sensor ekran teginishlari (double-tap bug va synthetic click to'liq bartaraf etilgan).
+    - Portret rejimida avtomatik "Telefonni burang" ogohlantirishi va maxsus [⛶ FULLSCREEN] tugmasi.
 
-[6] 4 TA O'YIN REJIMI:
-    - Campaign Mode: 10 ta strategik xarita bo'ylab 30 ta to'lqin.
-    - Endless Survival Mode: Cheksiz to'lqinlar, eksponensial kuchayuvchi dushmanlar va har 5-to'lqinda bosslar.
-    - Boss Rush Mode: 1200 boshlang'ich oltin bilan 3 ta asosiy bossga qarshi maxsus duel.
-    - Map Editor Mode: O'z xaritangizni yaratish, sinash va JSON orqali ulashish.
-
-[7] REAL-TIME CYBERPUNK MUSIQA VA SFX SINTEZATORI (WEB AUDIO API):
-    - 124 BPM dinamik sintezator arpejiosi va bas chiziqlari.
-    - Screen Shake (kamera silkinishi) va CRT scanline filtri.
-
-[8] PWA VA TO'LIQ OFLAYN YUKLAB OLISH:
-    - manifest.json va sw.js kesh tizimi orqali mustaqil ilova sifatida o'rnatish.
-    - last-grid-offline-v2.zip orqali internetsiz to'liq oflayn o'ynash.
-
-================================================================================
-3. BAZAVIY MAJBURIY KONTENT:
-- 10 ta Xarita (Training Grid, Crossroads, Spiral Core, Misty Pass, Fast Track, Scrap Yard, Iron Wall, Blackout City, Twin Gate, The Last Grid).
-- 5 ta Minora (Pulse, Mortar, Cryo, Railgun, Beacon — 3 tier, 70% refund).
-- 8 ta Dushman & 3 ta Boss (Grunt, Sprinter, Brute, Swarmling, Shieldbearer, Medic, Splitter, Phantom, Juggernaut, Overseer, Hive Titan).
-- 30 ta To'lqin Konfiguratsiyasi.
+===============================================================================
+3. BAZAVIY VA QO'SHIMCHA XUSUSIYATLAR:
+- Jonli Serverless FastAPI Leaderboard (/api) — Vercel Python orqali real vaqtda saqlanadi.
+- 10 ta Strategik Xarita va O'z xaritalarini chizuvchi Xarita Muharriri (Map Editor).
+- 4 ta O'yin Rejimi: Kampaniya, Cheksiz (Endless), Boss Rush, Maxsus Xaritalar.
+- 4 ta Faol Komandir Qobiliyatlari: [Z] EMP Storm, [X] Orbital Beam, [C] Overclock, [V] Supply Drone.
+- 3 Tilli Lokalizatsiya (UZ, EN, RU).
+- Web Audio API orqali procedural 124 BPM Synthwave musiqa va SFX sintezatori.
+- Rang-ko'rlik (Colorblind) va CRT kiber-ekran filtri.
+- PWA (Progressive Web App) va last-grid-offline-v2.zip orqali 100% internetsiz o'ynash imkoniyati.
 ================================================================================

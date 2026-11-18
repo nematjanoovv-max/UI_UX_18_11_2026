@@ -1,7 +1,7 @@
 // =============================================================================
-// Tower Defense: Last Grid — Ultimate Tactical Cyber-Engine v2.1
-// 10 Maps | 5 Towers (3 Tiers, 70% Refund) | 8 Enemies + 3 Bosses | 30 Waves
-// NEW: Multilingual (UZ/EN/RU) | Live Vercel API Leaderboard | Field Manual | Colorblind Mode | Offline ZIP
+// Tower Defense: Last Grid — Ultimate Tactical Cyber-Engine v3.0
+// 10 Maps | 5 Towers (3 Tiers + 2 Branching Specializations) | 8 Enemies + 3 Bosses
+// NEW: Controllable Field Hero Mech | Roguelike Augment Draft | Post-Match DPS Analytics
 // =============================================================================
 
 (function() {
@@ -38,7 +38,11 @@
       emp: "EMP STORM",
       orbital: "ORBITAL BEAM",
       overclock: "OVERCLOCK",
-      drone: "SUPPLY DRONE"
+      drone: "SUPPLY DRONE",
+      heroUlt: "CYBER-SLASH (ULT)",
+      analyticsTitle: "TACTICAL COMBAT ANALYTICS",
+      draftTitle: "TACTICAL AUGMENT DRAFT",
+      draftSub: "SELECT 1 PROTOCOL PERK TO ACTIVATE"
     },
     uz: {
       title: "TOWER DEFENSE: LAST GRID",
@@ -69,7 +73,11 @@
       emp: "EMP ZARBA",
       orbital: "ORBITAL LAZER",
       overclock: "OVERCLOCK",
-      drone: "OLTIN DRONI"
+      drone: "OLTIN DRONI",
+      heroUlt: "QAHRAMON ZARBASI (ULT)",
+      analyticsTitle: "JANG TAHLILI VA DPS GRAFIKLARI",
+      draftTitle: "TAKTIK KARTA TANLOVI",
+      draftSub: "FAOL QILISH UCHUN 1 TA PROTOKOLNI TANLANG"
     },
     ru: {
       title: "TOWER DEFENSE: LAST GRID",
@@ -100,11 +108,15 @@
       emp: "ЭМИ БУРЯ",
       orbital: "ОРБИТАЛЬНЫЙ ЛУЧ",
       overclock: "РАЗГОН",
-      drone: "ДРОН СНАБЖЕНИЯ"
+      drone: "ДРОН СНАБЖЕНИЯ",
+      heroUlt: "СУПЕР УДАР ГЕРОЯ",
+      analyticsTitle: "БОЕВАЯ АНАЛИТИКА И ГРАФИКИ DPS",
+      draftTitle: "ВЫБОР ТАКТИЧЕСКИХ КАРТ",
+      draftSub: "ВЫБЕРИТЕ 1 ПРОТОКОЛ ДЛЯ АКТИВАЦИИ"
     }
   };
 
-  // --- PROCEDURAL AUDIO & SFX SYNTHESIZER (Web Audio API) ---
+  // --- AUDIO SYNTHESIZER ---
   class SoundSynth {
     constructor() {
       this.ctx = null;
@@ -116,32 +128,21 @@
       this.scale = [146.83, 164.81, 174.61, 196.00, 220.00, 261.63, 293.66, 329.63];
       this.bassNotes = [73.42, 73.42, 87.31, 98.00, 73.42, 73.42, 110.00, 98.00];
     }
-
     init() {
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (AudioCtx) this.ctx = new AudioCtx();
       }
-      if (this.ctx && this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
-      if (!this.bgmPlaying && !this.bgmMuted) {
-        this.startBGM();
-      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.bgmPlaying && !this.bgmMuted) this.startBGM();
     }
-
-    toggleSFX() {
-      this.sfxMuted = !this.sfxMuted;
-      return !this.sfxMuted;
-    }
-
+    toggleSFX() { this.sfxMuted = !this.sfxMuted; return !this.sfxMuted; }
     toggleBGM() {
       this.bgmMuted = !this.bgmMuted;
       if (this.bgmMuted) this.stopBGM();
       else this.startBGM();
       return !this.bgmMuted;
     }
-
     startBGM() {
       if (this.bgmTimer || !this.ctx || this.bgmMuted) return;
       this.bgmPlaying = true;
@@ -149,15 +150,10 @@
       const interval = (60 / bpm) / 4;
       this.bgmTimer = setInterval(() => this.bgmTick(), interval * 1000);
     }
-
     stopBGM() {
-      if (this.bgmTimer) {
-        clearInterval(this.bgmTimer);
-        this.bgmTimer = null;
-      }
+      if (this.bgmTimer) { clearInterval(this.bgmTimer); this.bgmTimer = null; }
       this.bgmPlaying = false;
     }
-
     bgmTick() {
       if (this.bgmMuted || !this.ctx) return;
       const beat16 = this.step % 16;
@@ -169,10 +165,8 @@
       const baseFreq = this.bassNotes[bassIndex];
       const oct = (beat16 % 4 === 2) ? 2 : 1;
       this.playSynthBass(baseFreq * oct, 0.09, 0.06);
-
       this.step++;
     }
-
     playDrum(freq, attack, duration, gainVal, slideTo) {
       try {
         const osc = this.ctx.createOscillator();
@@ -188,7 +182,6 @@
         osc.stop(this.ctx.currentTime + duration);
       } catch (e) {}
     }
-
     playSnare(duration, gainVal) {
       try {
         const bufferSize = this.ctx.sampleRate * duration;
@@ -209,7 +202,6 @@
         noise.start();
       } catch (e) {}
     }
-
     playHiHat(duration, gainVal) {
       try {
         const bufferSize = this.ctx.sampleRate * duration;
@@ -230,7 +222,6 @@
         noise.start();
       } catch (e) {}
     }
-
     playSynthBass(freq, duration, gainVal) {
       try {
         const osc = this.ctx.createOscillator();
@@ -250,7 +241,6 @@
         osc.stop(this.ctx.currentTime + duration);
       } catch (e) {}
     }
-
     playTone(freq, type, duration, gainVal = 0.1, slideTo = null) {
       if (this.sfxMuted || !this.ctx) return;
       try {
@@ -267,7 +257,6 @@
         osc.stop(this.ctx.currentTime + duration);
       } catch (e) {}
     }
-
     shootPulse() { this.playTone(850, 'sawtooth', 0.08, 0.06, 200); }
     shootMortar() { this.playTone(180, 'triangle', 0.35, 0.15, 35); }
     shootCryo() { this.playTone(650, 'sine', 0.22, 0.08, 1100); }
@@ -285,6 +274,10 @@
     }
     hit() { this.playTone(140, 'square', 0.05, 0.04, 60); }
     leak() { this.playTone(220, 'sawtooth', 0.3, 0.2, 90); }
+    heroSlash() {
+      this.playTone(400, 'sawtooth', 0.2, 0.15, 80);
+      this.playTone(900, 'triangle', 0.25, 0.12, 200);
+    }
     emp() {
       this.playTone(1200, 'sawtooth', 0.4, 0.2, 80);
       this.playTone(300, 'square', 0.5, 0.15, 60);
@@ -294,212 +287,148 @@
       this.playTone(1500, 'sawtooth', 0.5, 0.2, 200);
     }
     victory() {
-      [440, 554, 659, 880].forEach((f, i) => {
-        setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.15), i * 120);
-      });
+      [440, 554, 659, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.15), i * 120));
     }
     defeat() {
-      [330, 293, 261, 196].forEach((f, i) => {
-        setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150);
-      });
+      [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
     }
   }
 
   const audio = new SoundSynth();
 
-  // --- MAP DEFINITIONS (10 MAPS) ---
+  // --- MAP DEFINITIONS ---
   const MAPS = [
     {
-      id: "training_grid",
-      name: "Training Grid",
-      desc: "Basic S-curve test field. Clean terrain with single lane.",
-      wave_count: 10,
-      gold: 250,
-      hp: 20,
-      modifier: "none",
-      lanes: [
-        [ {x:64, y:192}, {x:384, y:192}, {x:384, y:448}, {x:896, y:448}, {x:896, y:256}, {x:1152, y:256} ]
-      ]
+      id: "training_grid", name: "Training Grid", desc: "Basic S-curve test field. Clean terrain with single lane.",
+      wave_count: 10, gold: 250, hp: 20, modifier: "none",
+      lanes: [ [ {x:64, y:192}, {x:384, y:192}, {x:384, y:448}, {x:896, y:448}, {x:896, y:256}, {x:1152, y:256} ] ]
     },
     {
-      id: "crossroads",
-      name: "Crossroads",
-      desc: "Interconnected straight corridors with multiple defense pockets.",
-      wave_count: 12,
-      gold: 250,
-      hp: 20,
-      modifier: "none",
-      lanes: [
-        [ {x:64, y:128}, {x:448, y:128}, {x:448, y:384}, {x:896, y:384}, {x:1152, y:384} ]
-      ]
+      id: "crossroads", name: "Crossroads", desc: "Interconnected straight corridors with multiple defense pockets.",
+      wave_count: 12, gold: 250, hp: 20, modifier: "none",
+      lanes: [ [ {x:64, y:128}, {x:448, y:128}, {x:448, y:384}, {x:896, y:384}, {x:1152, y:384} ] ]
     },
     {
-      id: "spiral_core",
-      name: "Spiral Core",
-      desc: "Concentric inward spiral. Optimal for Mortar and Cryo AoE setups.",
-      wave_count: 15,
-      gold: 250,
-      hp: 20,
-      modifier: "none",
-      lanes: [
-        [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ]
-      ]
+      id: "spiral_core", name: "Spiral Core", desc: "Concentric inward spiral. Optimal for Mortar and Cryo AoE setups.",
+      wave_count: 15, gold: 250, hp: 20, modifier: "none",
+      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ] ]
     },
     {
-      id: "misty_pass",
-      name: "Misty Pass",
-      desc: "Dense electromagnetic fog reduces all tower ranges by -15%.",
-      wave_count: 15,
-      gold: 250,
-      hp: 20,
-      modifier: "fog",
-      lanes: [
-        [ {x:64, y:320}, {x:256, y:128}, {x:512, y:512}, {x:768, y:128}, {x:1024, y:512}, {x:1152, y:320} ]
-      ]
+      id: "misty_pass", name: "Misty Pass", desc: "Dense electromagnetic fog reduces all tower ranges by -15%.",
+      wave_count: 15, gold: 250, hp: 20, modifier: "fog",
+      lanes: [ [ {x:64, y:320}, {x:256, y:128}, {x:512, y:512}, {x:768, y:128}, {x:1024, y:512}, {x:1152, y:320} ] ]
     },
     {
-      id: "fast_track",
-      name: "Fast Track",
-      desc: "High-speed magnetic highway. All enemies move +15% faster!",
-      wave_count: 20,
-      gold: 260,
-      hp: 20,
-      modifier: "fast_lane",
-      lanes: [
-        [ {x:64, y:256}, {x:1152, y:256} ]
-      ]
+      id: "fast_track", name: "Fast Track", desc: "High-speed magnetic highway. All enemies move +15% faster!",
+      wave_count: 20, gold: 260, hp: 20, modifier: "fast_lane",
+      lanes: [ [ {x:64, y:256}, {x:1152, y:256} ] ]
     },
     {
-      id: "scrap_yard",
-      name: "Scrap Yard",
-      desc: "Resource-starved industrial ruins. Enemy bounties reduced by -20%.",
-      wave_count: 20,
-      gold: 240,
-      hp: 20,
-      modifier: "scarce",
-      lanes: [
-        [ {x:64, y:128}, {x:768, y:128}, {x:768, y:384}, {x:256, y:384}, {x:256, y:576}, {x:1152, y:576} ]
-      ]
+      id: "scrap_yard", name: "Scrap Yard", desc: "Resource-starved industrial ruins. Enemy bounties reduced by -20%.",
+      wave_count: 20, gold: 240, hp: 20, modifier: "scarce",
+      lanes: [ [ {x:64, y:128}, {x:768, y:128}, {x:768, y:384}, {x:256, y:384}, {x:256, y:576}, {x:1152, y:576} ] ]
     },
     {
-      id: "iron_wall",
-      name: "Iron Wall",
-      desc: "Fortified barrier zone. All enemy units gain +20% bonus armor.",
-      wave_count: 25,
-      gold: 280,
-      hp: 20,
-      modifier: "armored",
-      lanes: [
-        [ {x:64, y:128}, {x:192, y:512}, {x:960, y:512}, {x:1152, y:128} ]
-      ]
+      id: "iron_wall", name: "Iron Wall", desc: "Fortified barrier zone. All enemy units gain +20% bonus armor.",
+      wave_count: 25, gold: 280, hp: 20, modifier: "armored",
+      lanes: [ [ {x:64, y:128}, {x:192, y:512}, {x:960, y:512}, {x:1152, y:128} ] ]
     },
     {
-      id: "blackout_city",
-      name: "Blackout City",
-      desc: "Cybernetic metropolis with periodic EMP surges every 5 waves.",
-      wave_count: 25,
-      gold: 280,
-      hp: 20,
-      modifier: "blackout",
-      lanes: [
-        [ {x:64, y:128}, {x:320, y:128}, {x:320, y:448}, {x:640, y:448}, {x:640, y:192}, {x:960, y:192}, {x:960, y:512}, {x:1152, y:512} ]
-      ]
+      id: "blackout_city", name: "Blackout City", desc: "Cybernetic metropolis with periodic EMP surges every 5 waves.",
+      wave_count: 25, gold: 280, hp: 20, modifier: "blackout",
+      lanes: [ [ {x:64, y:128}, {x:320, y:128}, {x:320, y:448}, {x:640, y:448}, {x:640, y:192}, {x:960, y:192}, {x:960, y:512}, {x:1152, y:512} ] ]
     },
     {
-      id: "twin_gate",
-      name: "Twin Gate",
-      desc: "Dual converging vectors converging directly into the central core.",
-      wave_count: 30,
-      gold: 300,
-      hp: 20,
-      modifier: "double_lane",
+      id: "twin_gate", name: "Twin Gate", desc: "Dual converging vectors converging directly into the central core.",
+      wave_count: 30, gold: 300, hp: 20, modifier: "double_lane",
       lanes: [
         [ {x:64, y:192}, {x:512, y:192}, {x:640, y:320}, {x:1152, y:320} ],
         [ {x:64, y:448}, {x:512, y:448}, {x:640, y:320}, {x:1152, y:320} ]
       ]
     },
     {
-      id: "last_grid",
-      name: "The Last Grid",
-      desc: "Final endurance sector: full 30 waves with 3 Boss encounters!",
-      wave_count: 30,
-      gold: 350,
-      hp: 25,
-      modifier: "last_grid",
-      lanes: [
-        [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ]
-      ]
+      id: "last_grid", name: "The Last Grid", desc: "Final endurance sector: full 30 waves with 3 Boss encounters!",
+      wave_count: 30, gold: 350, hp: 25, modifier: "last_grid",
+      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
     }
   ];
 
-  // --- TOWER BLUEPRINTS ---
+  // --- TOWER BLUEPRINTS & BRANCHING SPECIALIZATIONS (TIER 3) ---
   const TOWER_DEFS = {
     pulse: {
-      id: "pulse",
-      name: "Pulse Tower",
-      type: "KINETIC",
-      color: "#00e5ff",
-      cost: 100,
-      desc: "Rapid-fire kinetic tracer gun.",
+      id: "pulse", name: "Pulse Tower", type: "KINETIC", color: "#00e5ff", cost: 100, desc: "Rapid-fire kinetic tracer gun.",
       tiers: [
         { dmg: 12, rate: 4.0, range: 140, upCost: 120 },
         { dmg: 18, rate: 5.0, range: 155, upCost: 200 },
         { dmg: 26, rate: 6.0, range: 170, upCost: 0 }
-      ]
+      ],
+      branches: {
+        A: { name: "Gatling Shredder", dmg: 18, rate: 12.0, range: 165, color: "#00e5ff", perk: "shred", cost: 260, desc: "Fires 12 rps. Shreds 1 armor per hit." },
+        B: { name: "Sniper Rail-Pulse", dmg: 320, rate: 0.6, range: 300, color: "#00b0ff", perk: "sniper", cost: 290, desc: "Extreme range sniper. 300% crit on bosses." }
+      }
     },
     mortar: {
-      id: "mortar",
-      name: "Mortar Tower",
-      type: "EXPLOSIVE",
-      color: "#ff9100",
-      cost: 150,
-      desc: "Long-range explosive shell with area splash.",
+      id: "mortar", name: "Mortar Tower", type: "EXPLOSIVE", color: "#ff9100", cost: 150, desc: "Long-range explosive shell with area splash.",
       tiers: [
         { dmg: 45, rate: 0.8, range: 200, splash: 60, upCost: 150 },
         { dmg: 70, rate: 0.9, range: 215, splash: 75, upCost: 250 },
         { dmg: 105, rate: 1.0, range: 230, splash: 85, upCost: 0 }
-      ]
+      ],
+      branches: {
+        A: { name: "Cluster Bomb", dmg: 90, rate: 0.9, range: 225, splash: 80, color: "#ff9100", perk: "cluster", cost: 280, desc: "Detonates into 4 secondary cluster bomblets." },
+        B: { name: "Napalm Cyber-Fire", dmg: 60, rate: 0.8, range: 215, splash: 90, color: "#ff3d00", perk: "napalm", cost: 290, desc: "Leaves cyber-fire pool on path (40 DoT)." }
+      }
     },
     cryo: {
-      id: "cryo",
-      name: "Cryo Tower",
-      type: "ENERGY",
-      color: "#00f0ff",
-      cost: 120,
-      desc: "Cryogenic emitter that slows hostiles.",
+      id: "cryo", name: "Cryo Tower", type: "ENERGY", color: "#00f0ff", cost: 120, desc: "Cryogenic emitter that slows hostiles.",
       tiers: [
         { dmg: 4, rate: 1.5, range: 130, slow: 0.35, slowDur: 2.5, upCost: 140 },
         { dmg: 6, rate: 1.8, range: 145, slow: 0.45, slowDur: 3.0, upCost: 220 },
         { dmg: 9, rate: 2.0, range: 160, slow: 0.55, slowDur: 3.5, upCost: 0 }
-      ]
+      ],
+      branches: {
+        A: { name: "Blizzard Zero", dmg: 15, rate: 1.8, range: 165, slow: 1.0, slowDur: 2.0, color: "#00f0ff", perk: "freeze_solid", cost: 270, desc: "100% frozen solid stun + 50% shatter dmg." },
+        B: { name: "Tesla Chain-Frost", dmg: 40, rate: 1.5, range: 175, slow: 0.5, slowDur: 3.0, color: "#76ff03", perk: "tesla_chain", cost: 300, desc: "Chains electric arc to 3 nearby targets." }
+      }
     },
     railgun: {
-      id: "railgun",
-      name: "Railgun Tower",
-      type: "PIERCE",
-      color: "#ff007f",
-      cost: 250,
-      desc: "High-voltage magnetic beam piercing targets.",
+      id: "railgun", name: "Railgun Tower", type: "PIERCE", color: "#ff007f", cost: 250, desc: "High-voltage magnetic beam piercing targets.",
       tiers: [
         { dmg: 140, rate: 0.5, range: 240, pierce: 1, upCost: 260 },
         { dmg: 220, rate: 0.6, range: 260, pierce: 2, upCost: 380 },
         { dmg: 340, rate: 0.7, range: 280, pierce: 3, upCost: 0 }
-      ]
+      ],
+      branches: {
+        A: { name: "Hyper Beam Laser", dmg: 600, rate: 0.9, range: 290, pierce: 4, color: "#ff007f", perk: "hyper_beam", cost: 420, desc: "Continuous sustained plasma beam laser." },
+        B: { name: "Ion Disrupter", dmg: 420, rate: 0.7, range: 280, pierce: 99, color: "#d500f9", perk: "ion_strip", cost: 390, desc: "Instantly strips all enemy shields and pierces all." }
+      }
     },
     beacon: {
-      id: "beacon",
-      name: "Beacon Tower",
-      type: "SUPPORT",
-      color: "#b388ff",
-      cost: 180,
-      desc: "Buff aura: +35% damage & +20% range to nearby towers.",
+      id: "beacon", name: "Beacon Tower", type: "SUPPORT", color: "#b388ff", cost: 180, desc: "Buff aura: +35% damage & +20% range to nearby towers.",
       tiers: [
         { dmgBuff: 0.35, rangeBuff: 0.20, range: 130, upCost: 200 },
         { dmgBuff: 0.45, rangeBuff: 0.25, range: 150, upCost: 320 },
         { dmgBuff: 0.55, rangeBuff: 0.30, range: 170, upCost: 0 }
-      ]
+      ],
+      branches: {
+        A: { name: "Overcharge Reactor", dmgBuff: 0.80, rangeBuff: 0.35, rateBuff: 0.20, range: 180, color: "#b388ff", perk: "overcharge", cost: 360, desc: "+80% dmg & +20% fire rate to nearby towers." },
+        B: { name: "Tactical Radar", dmgBuff: 0.40, rangeBuff: 0.60, range: 220, color: "#e040fb", perk: "radar", cost: 340, desc: "+60% range and permanently reveals Phantoms." }
+      }
     }
   };
+
+  // --- ROGUELIKE AUGMENT POOL (DRAFT 1 OF 3 EVERY 5 WAVES) ---
+  const AUGMENT_POOL = [
+    { id: "bounty_hunter", title: "BOUNTY HUNTER", desc: "+30% Gold bounty from all kills, but enemies move +10% faster.", icon: "🪙", color: "#ffd600" },
+    { id: "shatter_frost", title: "SHATTER FROST", desc: "All towers deal +80% bonus damage to slowed/frozen hostiles.", icon: "❄️", color: "#00f0ff" },
+    { id: "titan_slayer", title: "TITAN SLAYER", desc: "All towers deal +45% extra damage to Bosses and heavy Brutes.", icon: "⚔️", color: "#ff1744" },
+    { id: "overclock_matrix", title: "OVERCLOCK MATRIX", desc: "Permanently increases all friendly towers' fire rate by +20%.", icon: "⚡", color: "#00e5ff" },
+    { id: "superconductors", title: "SUPERCONDUCTORS", desc: "Railgun and Pulse attacks chain electric sparks to 2 nearby targets.", icon: "⚡", color: "#76ff03" },
+    { id: "reactive_core", title: "REACTIVE CORE", desc: "Base Core reflects 50% leak damage back as an area EMP stun.", icon: "🛡️", color: "#ff007f" },
+    { id: "nanite_repair", title: "NANITE REPAIR", desc: "Base Core automatically repairs +2 HP at the end of each wave.", icon: "💚", color: "#00e676" },
+    { id: "cluster_munitions", title: "CLUSTER MUNITIONS", desc: "Mortar splash explosion radius and damage increased by +35%.", icon: "💥", color: "#ff9100" },
+    { id: "hero_overdrive", title: "HERO OVERDRIVE", desc: "Field Hero Champion gains +60% melee damage and moves +25% faster.", icon: "🤖", color: "#b388ff" }
+  ];
 
   // --- ENEMY BLUEPRINTS ---
   const ENEMY_DEFS = {
@@ -552,7 +481,7 @@
 
       this.lang = localStorage.getItem('last_grid_lang') || 'uz';
       this.gameMode = 'CAMPAIGN';
-      this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL'
+      this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL', 'DRAFT', 'ANALYTICS'
       this.speed = 1;
       this.crtEnabled = false;
       this.colorblind = false;
@@ -570,6 +499,19 @@
       this.spawnQueue = [];
       this.spawnTimer = 0;
 
+      // Active Augments
+      this.activeAugments = [];
+      this.draftCards = [];
+
+      // Combat Analytics Tracker
+      this.analytics = {
+        damageByTower: { pulse: 0, mortar: 0, cryo: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
+        totalKills: 0,
+        totalGold: 0,
+        mvpName: "Pulse Tower"
+      };
+
+      // Commander Skills
       this.skills = {
         emp:       { cost: 50,  cd: 25, currentCd: 0, key: "Z" },
         orbital:   { cost: 75,  cd: 30, currentCd: 0, key: "X" },
@@ -577,11 +519,25 @@
         drone:     { cost: 0,   cd: 40, currentCd: 0, key: "V" }
       };
 
+      // Controllable Field Hero Mech (Apex-01)
+      this.hero = {
+        name: "Apex-01 Mech",
+        x: 300, y: 350,
+        targetX: 300, targetY: 350,
+        hp: 400, maxHp: 400,
+        level: 1, xp: 0, maxXp: 80,
+        speed: 130,
+        atkDmg: 80, atkRate: 1.3, atkCooldown: 0,
+        ultCd: 22, currentUltCd: 0, ultActiveTime: 0,
+        selected: false
+      };
+
       this.towers = [];
       this.enemies = [];
       this.projectiles = [];
       this.particles = [];
       this.floatingTexts = [];
+      this.groundHazards = []; // Napalm fire pools
 
       this.selectedBuildType = null;
       this.selectedTower = null;
@@ -638,9 +594,7 @@
       fetch('/api')
         .then(r => r.json())
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            this.saveData.leaderboard = data;
-          }
+          if (Array.isArray(data) && data.length > 0) this.saveData.leaderboard = data;
         })
         .catch(() => {});
     }
@@ -683,12 +637,8 @@
 
     setupCanvasScaling() {
       window.addEventListener('resize', () => this.resizeCanvas());
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => this.resizeCanvas(), 150);
-      });
-      document.addEventListener('fullscreenchange', () => {
-        setTimeout(() => this.resizeCanvas(), 150);
-      });
+      window.addEventListener('orientationchange', () => setTimeout(() => this.resizeCanvas(), 150));
+      document.addEventListener('fullscreenchange', () => setTimeout(() => this.resizeCanvas(), 150));
       this.resizeCanvas();
     }
 
@@ -731,17 +681,20 @@
         this.updateHoverCell();
       };
       this.canvas.addEventListener('mousemove', handleMove);
-      this.canvas.addEventListener('touchmove', (e) => {
-        handleMove(e);
-      }, { passive: true });
+      this.canvas.addEventListener('touchmove', (e) => handleMove(e), { passive: true });
 
       const handleClick = (e) => {
-        if (Date.now() - lastTouchTime < 500) return;
+        if (Date.now() - lastTouchTime < 450) return;
         audio.init();
         const pos = this.getCanvasPos(e);
-        this.handleCanvasClick(pos.x, pos.y);
+        this.handleCanvasClick(pos.x, pos.y, e.button === 2);
       };
       this.canvas.addEventListener('click', handleClick);
+      this.canvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const pos = this.getCanvasPos(e);
+        this.handleCanvasClick(pos.x, pos.y, true);
+      });
       this.canvas.addEventListener('touchend', (e) => {
         lastTouchTime = Date.now();
         if (e.changedTouches && e.changedTouches.length > 0) {
@@ -751,7 +704,7 @@
           const scaleY = 720 / rect.height;
           const x = (e.changedTouches[0].clientX - rect.left) * scaleX;
           const y = (e.changedTouches[0].clientY - rect.top) * scaleY;
-          this.handleCanvasClick(x, y);
+          this.handleCanvasClick(x, y, false);
         }
       });
 
@@ -763,11 +716,13 @@
           this.selectBuildType(keys[parseInt(e.key) - 1]);
         } else if (e.code === 'Space') {
           e.preventDefault();
-          this.callNextWave();
+          if (this.state === 'PLAYING') this.triggerHeroUlt();
+          else this.callNextWave();
         } else if (e.key === 'Escape') {
           if (this.aimingSkill) this.aimingSkill = null;
           else if (this.selectedTower) this.selectedTower = null;
           else if (this.selectedBuildType) this.selectedBuildType = null;
+          else if (this.hero.selected) this.hero.selected = false;
           else this.togglePause();
         } else if (k === 'u') this.upgradeSelectedTower();
         else if (k === 's') this.sellSelectedTower();
@@ -776,6 +731,7 @@
         else if (k === 'x') this.triggerSkill('orbital');
         else if (k === 'c') this.triggerSkill('overclock');
         else if (k === 'v') this.triggerSkill('drone');
+        else if (k === 'h') this.hero.selected = !this.hero.selected;
         else if (e.key === 'Tab') {
           e.preventDefault();
           this.cycleSpeed();
@@ -787,12 +743,8 @@
       this.gameMode = mode;
       this.currentMapIndex = mapIdx;
       const map = (mode === 'CUSTOM') ? {
-        id: "custom",
-        name: "Custom Sector",
-        gold: 300,
-        hp: 20,
-        wave_count: 20,
-        modifier: "none",
+        id: "custom", name: "Custom Sector",
+        gold: 300, hp: 20, wave_count: 20, modifier: "none",
         lanes: [ this.editorWaypoints ]
       } : MAPS[mapIdx];
 
@@ -806,6 +758,26 @@
       this.waveCountdown = 8;
       this.speed = 1;
 
+      this.activeAugments = [];
+      this.draftCards = [];
+      this.analytics = {
+        damageByTower: { pulse: 0, mortar: 0, cryo: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
+        totalKills: 0,
+        totalGold: this.gold,
+        mvpName: "Pulse Tower"
+      };
+
+      // Reset Hero Mech
+      this.hero.x = map.lanes[0][0].x + 120;
+      this.hero.y = map.lanes[0][0].y;
+      this.hero.targetX = this.hero.x;
+      this.hero.targetY = this.hero.y;
+      this.hero.hp = 400;
+      this.hero.level = 1;
+      this.hero.xp = 0;
+      this.hero.currentUltCd = 0;
+      this.hero.selected = false;
+
       for (const k in this.skills) this.skills[k].currentCd = 0;
       this.skills.overclock.activeTime = 0;
 
@@ -814,6 +786,7 @@
       this.projectiles = [];
       this.particles = [];
       this.floatingTexts = [];
+      this.groundHazards = [];
       this.spawnQueue = [];
 
       this.selectedBuildType = null;
@@ -898,7 +871,7 @@
       }
     }
 
-    handleCanvasClick(x, y) {
+    handleCanvasClick(x, y, isRightClick = false) {
       if (this.state === 'MENU') {
         if (y > 330 && y < 380 && x > 440 && x < 840) this.startMission(0, 'CAMPAIGN');
         else if (y > 390 && y < 440 && x > 440 && x < 840) this.state = 'MAP_SELECT';
@@ -908,8 +881,24 @@
         else if (y > 565 && y < 610 && x > 440 && x < 630) this.state = 'LEADERBOARD';
         else if (y > 565 && y < 610 && x > 650 && x < 840) this.state = 'MANUAL';
         else if (y > 620 && y < 665 && x > 440 && x < 840) this.downloadOfflineZip();
-        // Top right language toggle
         if (x > 1140 && x < 1240 && y > 20 && y < 60) this.toggleLang();
+        return;
+      }
+
+      if (this.state === 'DRAFT') {
+        // Choose 1 of 3 cards
+        for (let i = 0; i < this.draftCards.length; i++) {
+          const cx = 180 + i * 320;
+          if (x >= cx && x <= cx + 280 && y >= 200 && y <= 520) {
+            this.selectAugment(this.draftCards[i]);
+            return;
+          }
+        }
+        return;
+      }
+
+      if (this.state === 'ANALYTICS') {
+        if (x > 540 && x < 740 && y > 630 && y < 680) this.state = 'MENU';
         return;
       }
 
@@ -951,12 +940,34 @@
       }
 
       if (this.state === 'VICTORY' || this.state === 'DEFEAT') {
-        if (x > 460 && x < 620 && y > 460 && y < 520) this.startMission(this.currentMapIndex, this.gameMode);
-        else if (x > 660 && x < 820 && y > 460 && y < 520) this.state = 'MENU';
+        if (x > 380 && x < 540 && y > 460 && y < 520) this.startMission(this.currentMapIndex, this.gameMode);
+        else if (x > 560 && x < 720 && y > 460 && y < 520) this.state = 'ANALYTICS';
+        else if (x > 740 && x < 900 && y > 460 && y < 520) this.state = 'MENU';
         return;
       }
 
-      // In-game Top HUD actions
+      // In-Game Field Actions: Right Click or Move Hero Command
+      if (isRightClick || this.hero.selected) {
+        if (y >= 60 && y <= 620) {
+          this.hero.targetX = x;
+          this.hero.targetY = y;
+          this.hero.selected = false;
+          this.spawnShockwave(x, y, 30, "#ffd600");
+          audio.upgrade();
+          return;
+        }
+      }
+
+      // Check if Hero was clicked directly
+      if (Math.hypot(this.hero.x - x, this.hero.y - y) <= 28) {
+        this.hero.selected = !this.hero.selected;
+        this.selectedTower = null;
+        this.selectedBuildType = null;
+        audio.hit();
+        return;
+      }
+
+      // Top HUD Bar clicks
       if (y >= 0 && y <= 60) {
         if (x >= 470 && x <= 620) this.callNextWave();
         else if (x >= 800 && x <= 850) this.cycleSpeed();
@@ -977,21 +988,40 @@
 
       // Bottom Bar actions
       if (y >= 620) {
-        if (x >= 10 && x <= 50) this.triggerSkill('emp');
-        else if (x >= 55 && x <= 95) this.triggerSkill('orbital');
-        else if (x >= 100 && x <= 140) this.triggerSkill('overclock');
-        else if (x >= 145 && x <= 185) this.triggerSkill('drone');
+        // Hero Ult button at x: 10 to 60
+        if (x >= 10 && x <= 60) { this.triggerHeroUlt(); return; }
+
+        // Skills at x: 65 to 225
+        if (x >= 65 && x <= 100) this.triggerSkill('emp');
+        else if (x >= 105 && x <= 140) this.triggerSkill('orbital');
+        else if (x >= 145 && x <= 180) this.triggerSkill('overclock');
+        else if (x >= 185 && x <= 220) this.triggerSkill('drone');
 
         if (this.selectedTower) {
-          if (x >= 480 && x <= 620 && y >= 640 && y <= 700) { this.upgradeSelectedTower(); return; }
-          if (x >= 640 && x <= 760 && y >= 640 && y <= 700) { this.sellSelectedTower(); return; }
-          if (x >= 780 && x <= 920 && y >= 640 && y <= 700) { this.cycleTargetPriority(); return; }
-          if (x >= 940 && x <= 990 && y >= 640 && y <= 700) { this.selectedTower = null; return; }
+          const t = this.selectedTower;
+          const def = TOWER_DEFS[t.type];
+
+          // Tier 3 Branch A and Branch B buttons
+          if (t.tier === 2) {
+            if (x >= 450 && x <= 590 && y >= 635 && y <= 695) { this.upgradeBranch('A'); return; }
+            if (x >= 605 && x <= 745 && y >= 635 && y <= 695) { this.upgradeBranch('B'); return; }
+          } else {
+            // Normal Upgrade (Tier 1 -> Tier 2)
+            if (x >= 480 && x <= 620 && y >= 640 && y <= 700) { this.upgradeSelectedTower(); return; }
+          }
+
+          // Sell button
+          if (x >= 760 && x <= 870 && y >= 640 && y <= 700) { this.sellSelectedTower(); return; }
+          // Priority button
+          if (x >= 885 && x <= 1000 && y >= 640 && y <= 700) { this.cycleTargetPriority(); return; }
+          // Close button
+          if (x >= 1015 && x <= 1060 && y >= 640 && y <= 700) { this.selectedTower = null; return; }
         } else {
+          // 5 Tower Hotbar
           const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
           for (let i = 0; i < 5; i++) {
-            const bx = 200 + i * 180;
-            if (x >= bx && x <= bx + 165 && y >= 630 && y <= 710) {
+            const bx = 240 + i * 175;
+            if (x >= bx && x <= bx + 160 && y >= 630 && y <= 710) {
               this.selectBuildType(towerKeys[i]);
               return;
             }
@@ -1000,6 +1030,7 @@
         return;
       }
 
+      // Grid placement
       const gx = Math.floor(x / 64);
       const gy = Math.floor(y / 64);
       const clickedTower = this.towers.find(t => t.cellX === gx && t.cellY === gy);
@@ -1007,6 +1038,7 @@
       if (clickedTower) {
         this.selectedTower = clickedTower;
         this.selectedBuildType = null;
+        this.hero.selected = false;
       } else if (this.selectedBuildType && this.hoverCell && this.hoverCell.valid) {
         this.buildTower(this.selectedBuildType, this.hoverCell.gx, this.hoverCell.gy);
       } else {
@@ -1047,6 +1079,49 @@
       }
     }
 
+    // --- ROGUELIKE AUGMENT DRAFT ---
+    triggerAugmentDraft() {
+      this.state = 'DRAFT';
+      const available = AUGMENT_POOL.filter(a => !this.activeAugments.includes(a.id));
+      const shuffled = available.sort(() => 0.5 - Math.random());
+      this.draftCards = shuffled.slice(0, 3);
+      audio.upgrade();
+    }
+
+    selectAugment(card) {
+      this.activeAugments.push(card.id);
+      this.addFloatingText(`AUGMENT ACTIVATED: ${card.title}!`, 640, 200, card.color, 24);
+      audio.victory();
+      this.state = 'PLAYING';
+      this.recalculateBeaconBuffs();
+    }
+
+    hasAugment(id) {
+      return this.activeAugments.includes(id);
+    }
+
+    // --- FIELD HERO MECH ---
+    triggerHeroUlt() {
+      if (this.hero.currentUltCd > 0) {
+        this.addFloatingText(`HERO ULT CHARGING (${Math.ceil(this.hero.currentUltCd)}s)`, this.hero.x, this.hero.y - 20, "#ff1744");
+        return;
+      }
+      this.hero.currentUltCd = this.hero.ultCd;
+      this.hero.ultActiveTime = 0.6;
+      audio.heroSlash();
+      this.screenShake = 9;
+      this.spawnShockwave(this.hero.x, this.hero.y, 160, "#00e5ff");
+
+      // 400 damage in 160px radius
+      for (const e of this.enemies) {
+        if (Math.hypot(e.x - this.hero.x, e.y - this.hero.y) <= 160) {
+          this.applyDamage(e, 400, 'HERO');
+        }
+      }
+      this.addFloatingText("CYBER-SLASH WAVE!", this.hero.x, this.hero.y - 28, "#00e5ff", 22);
+    }
+
+    // --- COMMANDER SKILLS ---
     triggerSkill(skillKey) {
       const s = this.skills[skillKey];
       if (s.currentCd > 0) return;
@@ -1060,9 +1135,11 @@
         s.activeTime = 6.0;
         audio.upgrade();
         this.screenShake = 4;
+        this.analytics.damageByTower.skills += 50;
         this.addFloatingText("OVERCLOCK ACTIVE! (+60% ROF)", 640, 200, "#ffd600", 24);
       } else if (skillKey === 'drone') {
         this.gold += 75;
+        this.analytics.totalGold += 75;
         s.currentCd = s.cd;
         audio.sell();
         this.addFloatingText("+75 GOLD DELIVERED!", 640, 200, "#00e676", 24);
@@ -1085,6 +1162,7 @@
           if (Math.hypot(e.x - x, e.y - y) <= 200) {
             e.slowRatio = 1.0;
             e.slowTimer = 3.5;
+            this.applyDamage(e, 80, 'SKILL');
             this.addFloatingText("STUNNED!", e.x, e.y - 14, "#00e5ff", 14);
           }
         }
@@ -1095,7 +1173,7 @@
         this.spawnShockwave(x, y, 140, "#ff007f");
         for (const e of this.enemies) {
           if (Math.hypot(e.x - x, e.y - y) <= 140) {
-            this.applyDamage(e, 500, 'ENERGY');
+            this.applyDamage(e, 500, 'SKILL');
           }
         }
       }
@@ -1120,15 +1198,15 @@
       const tower = {
         uid: this.nextUid++,
         type: type,
-        cellX: gx,
-        cellY: gy,
-        x: gx * 64 + 32,
-        y: gy * 64 + 32,
+        cellX: gx, cellY: gy,
+        x: gx * 64 + 32, y: gy * 64 + 32,
         tier: 1,
+        branch: null,
         totalInvested: def.cost,
         cooldown: 0,
         angle: 0,
         kills: 0,
+        damageDealt: 0,
         priority: 'FIRST',
         laserTimer: 0,
         targetPoint: null
@@ -1159,11 +1237,31 @@
       this.recalculateBeaconBuffs();
     }
 
+    upgradeBranch(branchKey) {
+      if (!this.selectedTower) return;
+      const t = this.selectedTower;
+      const def = TOWER_DEFS[t.type];
+      const branch = def.branches[branchKey];
+      if (this.gold < branch.cost) {
+        this.addFloatingText(this.t("notEnoughGold"), t.x, t.y, "#ff1744");
+        return;
+      }
+      this.gold -= branch.cost;
+      t.totalInvested += branch.cost;
+      t.tier = 3;
+      t.branch = branchKey;
+      audio.victory();
+      this.spawnShockwave(t.x, t.y, 80, branch.color);
+      this.addFloatingText(`${branch.name.toUpperCase()}!`, t.x, t.y, branch.color, 16);
+      this.recalculateBeaconBuffs();
+    }
+
     sellSelectedTower() {
       if (!this.selectedTower) return;
       const t = this.selectedTower;
       const refund = Math.floor(t.totalInvested * 0.70);
       this.gold += refund;
+      this.analytics.totalGold += refund;
       this.towers = this.towers.filter(item => item !== t);
       audio.sell();
       this.addFloatingText(`+${refund}g (70%)`, t.x, t.y, "#00e676");
@@ -1188,21 +1286,22 @@
     }
 
     recalculateBeaconBuffs() {
+      const globalRof = this.hasAugment("overclock_matrix") ? 1.20 : 1.0;
       for (const t of this.towers) {
         t.buffDmg = 1.0;
         t.buffRange = 1.0;
-        t.buffRate = 1.0;
+        t.buffRate = globalRof;
       }
       for (const b of this.towers) {
         if (b.type !== 'beacon') continue;
-        const bDef = TOWER_DEFS.beacon.tiers[b.tier - 1];
+        const bDef = (b.branch) ? TOWER_DEFS.beacon.branches[b.branch] : TOWER_DEFS.beacon.tiers[b.tier - 1];
         for (const t of this.towers) {
           if (t === b) continue;
           const dist = Math.hypot(t.x - b.x, t.y - b.y);
           if (dist <= bDef.range) {
             t.buffDmg = Math.max(t.buffDmg, 1.0 + bDef.dmgBuff);
             t.buffRange = Math.max(t.buffRange, 1.0 + bDef.rangeBuff);
-            if (bDef.rateBuff) t.buffRate = Math.max(t.buffRate, 1.0 + bDef.rateBuff);
+            if (bDef.rateBuff) t.buffRate = Math.max(t.buffRate, (globalRof + bDef.rateBuff));
           }
         }
       }
@@ -1213,6 +1312,7 @@
         if (this.waveCountdown > 0) {
           const bonus = Math.floor(this.waveCountdown);
           this.gold += bonus;
+          this.analytics.totalGold += bonus;
           this.score += bonus * 10;
           this.addFloatingText(`EARLY +${bonus}g!`, 640, 100, "#ffd600");
           this.waveCountdown = 0;
@@ -1250,9 +1350,14 @@
       let armorMult = 1.0;
       let hpMult = 1.0;
 
+      if (this.hasAugment("bounty_hunter")) spdMult *= 1.10;
       if (this.gameMode === 'ENDLESS' && this.wave > 30) hpMult = Math.pow(1.08, this.wave - 30);
       if (map.modifier === 'fast_lane') spdMult = 1.15;
       if (map.modifier === 'armored') armorMult = 1.20;
+
+      let bounty = def.bounty;
+      if (map.modifier === 'scarce') bounty = Math.floor(bounty * 0.8);
+      if (this.hasAugment("bounty_hunter")) bounty = Math.floor(bounty * 1.30);
 
       const enemy = {
         uid: this.nextUid++,
@@ -1265,7 +1370,7 @@
         maxShield: def.shield * hpMult,
         armor: def.armor * armorMult,
         speed: def.spd * spdMult,
-        bounty: map.modifier === 'scarce' ? Math.floor(def.bounty * 0.8) : def.bounty,
+        bounty: bounty,
         size: def.size,
         color: def.color,
         marker: def.marker,
@@ -1276,9 +1381,7 @@
         phased: false,
         healTimer: 0,
         shieldRegenTimer: 0,
-        x: 0,
-        y: 0,
-        angle: 0
+        x: 0, y: 0, angle: 0
       };
       const pos = this.getPointAlongLane(laneIdx, 0);
       enemy.x = pos.x;
@@ -1311,6 +1414,26 @@
         this.skills.overclock.activeTime = Math.max(0, this.skills.overclock.activeTime - dt);
       }
 
+      // Hero Mech Update
+      this.updateHero(dt);
+
+      // Ground Hazards (Napalm Cyber-Fire)
+      for (let i = this.groundHazards.length - 1; i >= 0; i--) {
+        const h = this.groundHazards[i];
+        h.life -= dt;
+        h.tickTimer += dt;
+        if (h.tickTimer >= 0.5) {
+          h.tickTimer = 0;
+          for (const e of this.enemies) {
+            if (Math.hypot(e.x - h.x, e.y - h.y) <= h.radius) {
+              this.applyDamage(e, 20, 'EXPLOSIVE', null, 'mortar');
+            }
+          }
+        }
+        if (h.life <= 0) this.groundHazards.splice(i, 1);
+      }
+
+      // 1. Spawning
       if (this.waveActive) {
         this.spawnTimer += dt;
         while (this.spawnQueue.length > 0 && this.spawnTimer >= this.spawnQueue[0].time) {
@@ -1325,6 +1448,7 @@
         if (this.waveCountdown <= 0) this.startWave(this.wave);
       }
 
+      // 2. Enemies Update
       const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       for (let i = this.enemies.length - 1; i >= 0; i--) {
         const e = this.enemies[i];
@@ -1333,10 +1457,16 @@
           if (e.slowTimer <= 0) e.slowRatio = 0;
         }
         if (e.type === 'phantom') {
-          e.phaseTimer += dt;
-          if (e.phaseTimer >= 4.0) {
-            e.phased = true;
-            if (e.phaseTimer >= 5.5) { e.phased = false; e.phaseTimer = 0; }
+          // Radar beacon permanently reveals phantoms
+          const hasRadar = this.towers.some(t => t.branch === 'B' && t.type === 'beacon');
+          if (!hasRadar) {
+            e.phaseTimer += dt;
+            if (e.phaseTimer >= 4.0) {
+              e.phased = true;
+              if (e.phaseTimer >= 5.5) { e.phased = false; e.phaseTimer = 0; }
+            }
+          } else {
+            e.phased = false;
           }
         }
         if (e.type === 'medic') {
@@ -1369,6 +1499,16 @@
           audio.leak();
           this.screenShake = 10;
           this.addFloatingText(e.isBoss ? "-10 HP!" : "-1 HP!", e.x, e.y, "#ff1744", 20);
+
+          // Reactive Core augment perk
+          if (this.hasAugment("reactive_core")) {
+            this.spawnShockwave(e.x, e.y, 250, "#ff007f");
+            for (const other of this.enemies) {
+              other.slowRatio = 1.0;
+              other.slowTimer = 3.0;
+            }
+          }
+
           this.enemies.splice(i, 1);
           if (this.baseHp <= 0) {
             this.onDefeat();
@@ -1377,15 +1517,16 @@
         }
       }
 
+      // 3. Towers Combat
       const overclockMult = (this.skills.overclock.activeTime > 0) ? 1.6 : 1.0;
       for (const t of this.towers) {
         if (t.type === 'beacon') continue;
         const def = TOWER_DEFS[t.type];
-        const tier = def.tiers[t.tier - 1];
+        const currentSpec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
         const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
-        const effRange = tier.range * (t.buffRange || 1.0) * mapFog;
-        const effRate = tier.rate * (t.buffRate || 1.0) * overclockMult;
-        const effDmg = tier.dmg * (t.buffDmg || 1.0);
+        const effRange = currentSpec.range * (t.buffRange || 1.0) * mapFog;
+        const effRate = currentSpec.rate * (t.buffRate || 1.0) * overclockMult;
+        const effDmg = currentSpec.dmg * (t.buffDmg || 1.0);
 
         t.cooldown -= dt;
         if (t.laserTimer > 0) t.laserTimer -= dt;
@@ -1396,11 +1537,12 @@
           t.angle = Math.atan2(primary.y - t.y, primary.x - t.x);
           if (t.cooldown <= 0) {
             t.cooldown = 1.0 / effRate;
-            this.fireTower(t, targets, effDmg, tier, effRange);
+            this.fireTower(t, targets, effDmg, currentSpec, effRange);
           }
         }
       }
 
+      // 4. Projectiles
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
         const p = this.projectiles[i];
         if (p.type === 'pulse') {
@@ -1409,7 +1551,7 @@
             p.x += Math.cos(angle) * p.speed * dt;
             p.y += Math.sin(angle) * p.speed * dt;
             if (Math.hypot(p.target.x - p.x, p.target.y - p.y) < 14) {
-              this.applyDamage(p.target, p.damage, 'KINETIC', p.tower);
+              this.applyDamage(p.target, p.damage, 'KINETIC', p.tower, 'pulse');
               this.projectiles.splice(i, 1);
             }
           } else {
@@ -1420,7 +1562,7 @@
           p.x = p.startX + (p.targetX - p.startX) * p.t;
           p.y = p.startY + (p.targetY - p.startY) * p.t - Math.sin(p.t * Math.PI) * 90;
           if (p.t >= 1.0) {
-            this.detonateMortar(p.targetX, p.targetY, p.damage, p.splash, p.tower);
+            this.detonateMortar(p.targetX, p.targetY, p.damage, p.splash, p.tower, p.branch);
             this.projectiles.splice(i, 1);
           }
         }
@@ -1437,6 +1579,44 @@
         ft.y -= 25 * dt;
         ft.life -= dt;
         if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+      }
+    }
+
+    updateHero(dt) {
+      const h = this.hero;
+      if (h.currentUltCd > 0) h.currentUltCd = Math.max(0, h.currentUltCd - dt);
+      if (h.ultActiveTime > 0) h.ultActiveTime = Math.max(0, h.ultActiveTime - dt);
+
+      // Hero Movement toward target
+      const distToTarget = Math.hypot(h.targetX - h.x, h.targetY - h.y);
+      if (distToTarget > 4) {
+        const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0);
+        const ang = Math.atan2(h.targetY - h.y, h.targetX - h.x);
+        h.x += Math.cos(ang) * moveSpd * dt;
+        h.y += Math.sin(ang) * moveSpd * dt;
+      }
+
+      // Hero In-Combat / Melee Attack
+      h.atkCooldown -= dt;
+      let inCombat = false;
+      for (const e of this.enemies) {
+        if (Math.hypot(e.x - h.x, e.y - h.y) <= 45) {
+          inCombat = true;
+          if (h.atkCooldown <= 0) {
+            h.atkCooldown = 1.0 / h.atkRate;
+            audio.heroSlash();
+            const dmg = h.atkDmg * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
+            this.applyDamage(e, dmg, 'HERO', null, 'hero');
+            this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 4, life: 0.3, maxLife: 0.3 });
+          }
+          break;
+        }
+      }
+
+      // Hero HP Regen out of combat
+      if (!inCombat && h.hp < h.maxHp) {
+        const regenRate = this.hasAugment("hero_overdrive") ? 30 : 15;
+        h.hp = Math.min(h.maxHp, h.hp + regenRate * dt);
       }
     }
 
@@ -1459,48 +1639,105 @@
       return candidates.map(c => c.enemy);
     }
 
-    fireTower(tower, targets, dmg, tier, range) {
+    fireTower(tower, targets, dmg, spec, range) {
       const primary = targets[0];
+      let finalDmg = dmg;
+
+      // Specialization perks
+      if (tower.branch === 'B' && tower.type === 'pulse') {
+        // Sniper Rail-Pulse 300% crit on boss/brute
+        if (primary.isBoss || primary.type === 'brute') finalDmg *= 3.0;
+      }
+
       if (tower.type === 'pulse') {
         audio.shootPulse();
-        this.projectiles.push({ type: 'pulse', x: tower.x, y: tower.y, speed: 600, target: primary, damage: dmg, tower: tower });
+        this.projectiles.push({ type: 'pulse', x: tower.x, y: tower.y, speed: 650, target: primary, damage: finalDmg, tower: tower });
+        if (tower.branch === 'A') primary.armor = Math.max(0, primary.armor - 1); // Gatling armor shred
       } else if (tower.type === 'mortar') {
         audio.shootMortar();
-        this.projectiles.push({ type: 'mortar', startX: tower.x, startY: tower.y, targetX: primary.x, targetY: primary.y, x: tower.x, y: tower.y, t: 0, flightTime: 0.7, damage: dmg, splash: tier.splash, tower: tower });
+        this.projectiles.push({ type: 'mortar', startX: tower.x, startY: tower.y, targetX: primary.x, targetY: primary.y, x: tower.x, y: tower.y, t: 0, flightTime: 0.7, damage: finalDmg, splash: spec.splash, tower: tower, branch: tower.branch });
       } else if (tower.type === 'cryo') {
         audio.shootCryo();
-        this.spawnShockwave(tower.x, tower.y, range, '#00f0ff');
+        this.spawnShockwave(tower.x, tower.y, range, spec.color);
         for (const target of targets) {
-          target.slowRatio = tier.slow;
-          target.slowTimer = tier.slowDur;
-          this.applyDamage(target, dmg, 'ENERGY', tower);
+          target.slowRatio = spec.slow || 0.45;
+          target.slowTimer = spec.slowDur || 3.0;
+          this.applyDamage(target, finalDmg, 'ENERGY', tower, 'cryo');
+          // Tesla Chain Arc
+          if (tower.branch === 'B') {
+            const nearby = targets.filter(t => t !== target).slice(0, 3);
+            for (const n of nearby) this.applyDamage(n, finalDmg * 0.7, 'ENERGY', tower, 'cryo');
+          }
         }
       } else if (tower.type === 'railgun') {
         audio.shootRailgun();
         this.screenShake = 3;
         tower.laserTimer = 0.25;
         tower.targetPoint = { x: primary.x, y: primary.y };
-        const hitEnemies = targets.slice(0, tier.pierce || 1);
-        for (const target of hitEnemies) this.applyDamage(target, dmg, 'PIERCE', tower);
-      }
-    }
-
-    detonateMortar(x, y, dmg, splashRadius, tower) {
-      audio.hit();
-      this.screenShake = 6;
-      this.spawnShockwave(x, y, splashRadius, '#ff9100');
-      for (const e of this.enemies) {
-        const d = Math.hypot(e.x - x, e.y - y);
-        if (d <= splashRadius) {
-          const falloff = 1.0 - (d / splashRadius) * 0.6;
-          this.applyDamage(e, dmg * falloff, 'EXPLOSIVE', tower);
+        const pierceCount = spec.pierce || 2;
+        const hitEnemies = targets.slice(0, pierceCount);
+        for (const target of hitEnemies) {
+          if (tower.branch === 'B') target.shield = 0; // Ion disrupter strips shields
+          this.applyDamage(target, finalDmg, 'PIERCE', tower, 'railgun');
+          // Superconductors augment spark
+          if (this.hasAugment("superconductors")) {
+            const extra = targets.find(e => !hitEnemies.includes(e));
+            if (extra) this.applyDamage(extra, finalDmg * 0.5, 'ENERGY', tower, 'railgun');
+          }
         }
       }
     }
 
-    applyDamage(enemy, rawDmg, dmgType, tower) {
+    detonateMortar(x, y, dmg, splashRadius, tower, branch) {
+      audio.hit();
+      this.screenShake = 6;
+      let finalRadius = splashRadius;
+      if (this.hasAugment("cluster_munitions")) finalRadius *= 1.35;
+
+      this.spawnShockwave(x, y, finalRadius, '#ff9100');
+      for (const e of this.enemies) {
+        const d = Math.hypot(e.x - x, e.y - y);
+        if (d <= finalRadius) {
+          const falloff = 1.0 - (d / finalRadius) * 0.6;
+          this.applyDamage(e, dmg * falloff, 'EXPLOSIVE', tower, 'mortar');
+        }
+      }
+
+      // Branch A: Cluster Bomb bomblets
+      if (branch === 'A') {
+        for (let i = 0; i < 4; i++) {
+          const ang = (Math.PI / 2) * i;
+          const bx = x + Math.cos(ang) * 50;
+          const by = y + Math.sin(ang) * 50;
+          setTimeout(() => {
+            this.spawnShockwave(bx, by, 35, '#ffd600');
+            for (const e of this.enemies) {
+              if (Math.hypot(e.x - bx, e.y - by) <= 35) this.applyDamage(e, 40, 'EXPLOSIVE', tower, 'mortar');
+            }
+          }, 150);
+        }
+      }
+
+      // Branch B: Napalm Fire pool
+      if (branch === 'B') {
+        this.groundHazards.push({ x: x, y: y, radius: 45, life: 4.0, tickTimer: 0 });
+      }
+    }
+
+    applyDamage(enemy, rawDmg, dmgType, tower, category = 'pulse') {
       let finalDmg = rawDmg;
+
+      // Augment perks
+      if (this.hasAugment("titan_slayer") && (enemy.isBoss || enemy.type === 'brute')) finalDmg *= 1.45;
+      if (this.hasAugment("shatter_frost") && enemy.slowTimer > 0) finalDmg *= 1.80;
+
       if (dmgType === 'KINETIC' || dmgType === 'PIERCE') finalDmg = Math.max(1.0, rawDmg - enemy.armor);
+
+      // Track combat analytics
+      if (this.analytics.damageByTower[category] !== undefined) {
+        this.analytics.damageByTower[category] += Math.round(finalDmg);
+      }
+      if (tower) tower.damageDealt += Math.round(finalDmg);
 
       if (enemy.shield > 0) {
         enemy.shieldRegenTimer = 0;
@@ -1528,8 +1765,24 @@
 
     killEnemy(enemy, tower) {
       if (tower) tower.kills++;
+      this.analytics.totalKills++;
       this.gold += enemy.bounty;
+      this.analytics.totalGold += enemy.bounty;
       this.score += enemy.bounty * 50;
+
+      // Hero XP
+      this.hero.xp += (enemy.isBoss ? 40 : 10);
+      if (this.hero.xp >= this.hero.maxXp && this.hero.level < 10) {
+        this.hero.level++;
+        this.hero.xp = 0;
+        this.hero.maxXp += 40;
+        this.hero.maxHp += 50;
+        this.hero.hp = this.hero.maxHp;
+        this.hero.atkDmg += 15;
+        audio.upgrade();
+        this.addFloatingText(`HERO LEVEL UP! (LV ${this.hero.level})`, this.hero.x, this.hero.y - 30, "#ffd600", 20);
+      }
+
       this.addFloatingText(`+${enemy.bounty}g`, enemy.x, enemy.y - 20, '#ffd600', 14);
 
       if (enemy.type === 'splitter') {
@@ -1539,22 +1792,9 @@
             type: 'swarmling',
             laneIdx: enemy.laneIdx,
             progress: Math.max(0, enemy.progress + i * 20),
-            hp: 25,
-            maxHp: 25,
-            shield: 0,
-            maxShield: 0,
-            armor: 0,
-            speed: 85,
-            bounty: 2,
-            size: 7,
-            color: '#ffab00',
-            marker: '◆',
-            isBoss: false,
-            slowRatio: 0,
-            slowTimer: 0,
-            x: enemy.x,
-            y: enemy.y,
-            angle: enemy.angle
+            hp: 25, maxHp: 25, shield: 0, maxShield: 0, armor: 0,
+            speed: 85, bounty: 2, size: 7, color: '#ffab00', marker: '◆', isBoss: false,
+            slowRatio: 0, slowTimer: 0, x: enemy.x, y: enemy.y, angle: enemy.angle
           });
         }
       }
@@ -1572,9 +1812,24 @@
       this.waveActive = false;
       const bonus = 20 + this.wave * 5;
       this.gold += bonus;
+      this.analytics.totalGold += bonus;
       this.score += bonus * 25;
+
+      if (this.hasAugment("nanite_repair")) {
+        this.baseHp = Math.min(this.maxBaseHp, this.baseHp + 2);
+        this.addFloatingText("+2 BASE HP REPAIRED!", 640, 110, "#00e676", 18);
+      }
+
       this.addFloatingText(`${this.t("waveCleared")} +${bonus}g`, 640, 150, '#00e676', 26);
       audio.upgrade();
+
+      // Roguelike Draft at Wave 5, 10, 15, 20, 25
+      if (this.wave % 5 === 0 && this.wave < this.maxWaves) {
+        this.triggerAugmentDraft();
+        this.wave++;
+        this.waveCountdown = 8;
+        return;
+      }
 
       if (this.gameMode === 'CAMPAIGN' && this.wave >= this.maxWaves) this.onVictory();
       else if (this.gameMode === 'BOSS_RUSH' && this.wave >= 3) this.onVictory();
@@ -1587,6 +1842,7 @@
     onVictory() {
       this.state = 'VICTORY';
       audio.victory();
+      this.calculateMVP();
       const stars = (this.baseHp === this.maxBaseHp) ? 3 : (this.baseHp >= this.maxBaseHp * 0.5 ? 2 : 1);
       const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
       this.saveProgress(mapId, stars, this.score, this.wave);
@@ -1595,8 +1851,21 @@
     onDefeat() {
       this.state = 'DEFEAT';
       audio.defeat();
+      this.calculateMVP();
       const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
       this.saveProgress(mapId, 0, this.score, this.wave);
+    }
+
+    calculateMVP() {
+      let maxDmg = 0;
+      let mvp = "Hero Apex-01";
+      for (const t of this.towers) {
+        if (t.damageDealt > maxDmg) {
+          maxDmg = t.damageDealt;
+          mvp = `${t.branch ? TOWER_DEFS[t.type].branches[t.branch].name : TOWER_DEFS[t.type].name} (#${t.uid})`;
+        }
+      }
+      this.analytics.mvpName = mvp;
     }
 
     spawnShockwave(x, y, radius, color) {
@@ -1607,9 +1876,7 @@
           vx: Math.cos(ang) * radius * 2.2,
           vy: Math.sin(ang) * radius * 2.2,
           color: color,
-          size: 3,
-          life: 0.35,
-          maxLife: 0.35
+          size: 3, life: 0.35, maxLife: 0.35
         });
       }
     }
@@ -1624,8 +1891,7 @@
           vy: Math.sin(ang) * spd,
           color: color,
           size: 3 + Math.random() * 3,
-          life: 0.5,
-          maxLife: 0.5
+          life: 0.5, maxLife: 0.5
         });
       }
     }
@@ -1650,11 +1916,15 @@
       else if (this.state === 'LEADERBOARD') this.renderLeaderboardModal();
       else if (this.state === 'MANUAL') this.renderFieldManual();
       else if (this.state === 'EDITOR') this.renderEditor();
+      else if (this.state === 'DRAFT') this.renderDraftModal();
+      else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
       else {
         this.renderBackgroundGrid();
         this.renderLanes();
+        this.renderGroundHazards();
         this.renderBaseCore();
         this.renderTowers();
+        this.renderHero();
         this.renderEnemies();
         this.renderProjectiles();
         this.renderParticles();
@@ -1703,7 +1973,6 @@
         this.ctx.strokeStyle = "#101b33";
         this.ctx.lineWidth = 44;
         this.ctx.lineCap = "round";
-        this.ctx.lineJoin = "round";
         this.ctx.stroke();
 
         this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
@@ -1722,6 +1991,18 @@
         this.ctx.font = "bold 10px monospace";
         this.ctx.textAlign = "center";
         this.ctx.fillText("SPAWN", sp.x, sp.y + 4);
+      }
+    }
+
+    renderGroundHazards() {
+      for (const h of this.groundHazards) {
+        this.ctx.fillStyle = "rgba(255, 61, 0, 0.35)";
+        this.ctx.beginPath();
+        this.ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = "#ff3d00";
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
       }
     }
 
@@ -1758,14 +2039,64 @@
       this.ctx.fillText("CORE", base.x, base.y + 4);
     }
 
+    renderHero() {
+      const h = this.hero;
+      this.ctx.save();
+      this.ctx.translate(h.x, h.y);
+
+      // Selection ring
+      if (h.selected) {
+        this.ctx.strokeStyle = "#ffd600";
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 28, 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+
+      // Ult Spin animation
+      if (h.ultActiveTime > 0) {
+        this.ctx.strokeStyle = "rgba(0, 229, 255, 0.8)";
+        this.ctx.lineWidth = 8;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+
+      // Hero Mech Body
+      this.ctx.fillStyle = "#00e5ff";
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.fillRect(-6, -6, 12, 12);
+
+      this.ctx.restore();
+
+      // Hero Level & HP Bar
+      const barW = 38;
+      const bx = h.x - barW / 2;
+      const by = h.y - 24;
+      this.ctx.fillStyle = "#0a0f1d";
+      this.ctx.fillRect(bx, by, barW, 4);
+      this.ctx.fillStyle = "#00e676";
+      this.ctx.fillRect(bx, by, barW * (h.hp / h.maxHp), 4);
+
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.font = "bold 10px monospace";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText(`HERO LV${h.level}`, h.x, by - 4);
+    }
+
     renderTowers() {
       const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       for (const t of this.towers) {
         const def = TOWER_DEFS[t.type];
+        const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
+
         if (this.selectedTower === t) {
-          const tier = def.tiers[t.tier - 1];
           const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
-          const range = (tier.range || 130) * (t.buffRange || 1.0) * mapFog;
+          const range = (spec.range || 130) * (t.buffRange || 1.0) * mapFog;
           this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
           this.ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
           this.ctx.lineWidth = 1.5;
@@ -1783,9 +2114,11 @@
           this.ctx.stroke();
         }
 
+        // Tower pedestal
+        const color = t.branch ? spec.color : def.color;
         this.ctx.fillStyle = "#162238";
-        this.ctx.strokeStyle = def.color;
-        this.ctx.lineWidth = 2;
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = t.branch ? 3 : 2;
         this.ctx.fillRect(t.x - 22, t.y - 22, 44, 44);
         this.ctx.strokeRect(t.x - 22, t.y - 22, 44, 44);
 
@@ -1793,14 +2126,15 @@
         this.ctx.translate(t.x, t.y);
         this.ctx.rotate(t.angle);
 
-        this.ctx.fillStyle = def.color;
-        if (t.type === 'pulse') this.ctx.fillRect(0, -5, 20, 10);
+        this.ctx.fillStyle = color;
+        if (t.type === 'pulse') this.ctx.fillRect(0, -5, t.branch === 'A' ? 24 : 20, 10);
         else if (t.type === 'mortar') this.ctx.fillRect(-6, -8, 22, 16);
         else if (t.type === 'cryo') { this.ctx.beginPath(); this.ctx.arc(0, 0, 12, 0, Math.PI * 2); this.ctx.fill(); }
-        else if (t.type === 'railgun') this.ctx.fillRect(0, -3, 26, 6);
+        else if (t.type === 'railgun') this.ctx.fillRect(0, -3, 28, 6);
         else if (t.type === 'beacon') { this.ctx.beginPath(); this.ctx.arc(0, 0, 14, 0, Math.PI * 2); this.ctx.fill(); }
         this.ctx.restore();
 
+        // Stars / Tier markers
         this.ctx.fillStyle = "#ffd600";
         for (let i = 0; i < t.tier; i++) {
           this.ctx.beginPath();
@@ -1809,8 +2143,8 @@
         }
 
         if (t.laserTimer > 0 && t.targetPoint) {
-          this.ctx.strokeStyle = `rgba(255, 0, 127, ${t.laserTimer / 0.25})`;
-          this.ctx.lineWidth = 6;
+          this.ctx.strokeStyle = (t.branch === 'A') ? "rgba(255, 0, 127, 0.9)" : `rgba(213, 0, 249, ${t.laserTimer / 0.25})`;
+          this.ctx.lineWidth = (t.branch === 'A') ? 8 : 5;
           this.ctx.beginPath();
           this.ctx.moveTo(t.x, t.y);
           this.ctx.lineTo(t.targetPoint.x, t.targetPoint.y);
@@ -1849,7 +2183,6 @@
           this.ctx.fill();
         }
 
-        // Colorblind accessibility marker overlay
         if (this.colorblind) {
           this.ctx.fillStyle = "#ffffff";
           this.ctx.font = "bold 12px monospace";
@@ -2052,95 +2385,163 @@
       this.ctx.lineTo(this.width, 620);
       this.ctx.stroke();
 
+      // Hero Mech Button at far left
+      const isHeroUltReady = this.hero.currentUltCd <= 0;
+      this.ctx.fillStyle = isHeroUltReady ? "#1c355e" : "#131a29";
+      this.ctx.fillRect(10, 630, 50, 75);
+      this.ctx.strokeStyle = isHeroUltReady ? "#ffd600" : "#455a64";
+      this.ctx.strokeRect(10, 630, 50, 75);
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.font = "bold 11px monospace";
+      this.ctx.textAlign = "center";
+      this.ctx.fillText("HERO", 35, 650);
+      this.ctx.font = "9px monospace";
+      this.ctx.fillText("ULT", 35, 668);
+      if (this.hero.currentUltCd > 0) {
+        this.ctx.fillStyle = "#ff1744";
+        this.ctx.fillText(`${Math.ceil(this.hero.currentUltCd)}s`, 35, 690);
+      } else {
+        this.ctx.fillStyle = "#00e676";
+        this.ctx.fillText("READY", 35, 690);
+      }
+
+      // 4 Skills Panel (x: 65 to 220)
       const skillList = ['emp', 'orbital', 'overclock', 'drone'];
       for (let i = 0; i < 4; i++) {
         const k = skillList[i];
         const s = this.skills[k];
-        const sx = 10 + i * 45;
+        const sx = 65 + i * 40;
         const isReady = s.currentCd <= 0 && this.gold >= s.cost;
 
         this.ctx.fillStyle = isReady ? "#1c2b45" : "#101624";
-        this.ctx.fillRect(sx, 630, 40, 75);
+        this.ctx.fillRect(sx, 630, 36, 75);
         this.ctx.strokeStyle = isReady ? "#00e5ff" : "#37474f";
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(sx, 630, 40, 75);
+        this.ctx.strokeRect(sx, 630, 36, 75);
 
         this.ctx.fillStyle = isReady ? "#00e5ff" : "#546e7a";
-        this.ctx.font = "bold 12px monospace";
+        this.ctx.font = "bold 11px monospace";
         this.ctx.textAlign = "center";
-        this.ctx.fillText(`[${s.key}]`, sx + 20, 650);
-
+        this.ctx.fillText(`[${s.key}]`, sx + 18, 650);
         this.ctx.font = "8px monospace";
-        this.ctx.fillText(this.t(k).split(' ')[0], sx + 20, 665);
-
+        this.ctx.fillText(this.t(k).split(' ')[0], sx + 18, 665);
         this.ctx.fillStyle = "#ffd600";
-        this.ctx.fillText(`${s.cost}g`, sx + 20, 680);
+        this.ctx.fillText(`${s.cost}g`, sx + 18, 680);
 
         if (s.currentCd > 0) {
           this.ctx.fillStyle = "rgba(255, 23, 68, 0.6)";
-          this.ctx.fillRect(sx, 630, 40, 75 * (s.currentCd / s.cd));
+          this.ctx.fillRect(sx, 630, 36, 75 * (s.currentCd / s.cd));
           this.ctx.fillStyle = "#fff";
-          this.ctx.font = "bold 11px monospace";
-          this.ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 20, 696);
+          this.ctx.font = "bold 10px monospace";
+          this.ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 18, 696);
         }
       }
 
       if (this.selectedTower) {
         const t = this.selectedTower;
         const def = TOWER_DEFS[t.type];
-        const tier = def.tiers[t.tier - 1];
+        const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
 
-        this.ctx.fillStyle = def.color;
-        this.ctx.font = "bold 15px monospace";
+        this.ctx.fillStyle = spec.color || def.color;
+        this.ctx.font = "bold 14px monospace";
         this.ctx.textAlign = "left";
-        this.ctx.fillText(`${def.name.toUpperCase()} (T${t.tier})`, 210, 655);
+        const titleStr = t.branch ? spec.name.toUpperCase() : `${def.name.toUpperCase()} (T${t.tier})`;
+        this.ctx.fillText(titleStr, 235, 652);
 
         this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "12px monospace";
+        this.ctx.font = "11px monospace";
         const stats = t.type === 'beacon' ?
-          `Aura: +${tier.dmgBuff * 100}% Dmg | Range: ${tier.range}px` :
-          `Dmg: ${tier.dmg} | Rate: ${tier.rate}/s | Range: ${tier.range}px | Kills: ${t.kills}`;
-        this.ctx.fillText(stats, 210, 680);
+          `Aura: +${(spec.dmgBuff || 0.35) * 100}% Dmg | Range: ${spec.range}px` :
+          `Dmg: ${spec.dmg} | Rate: ${spec.rate}/s | Kills: ${t.kills} | Dmg: ${t.damageDealt}`;
+        this.ctx.fillText(stats, 235, 674);
 
-        const upCost = tier.upCost;
-        const canUpgrade = t.tier < 3 && this.gold >= upCost;
-        this.ctx.fillStyle = t.tier < 3 ? (canUpgrade ? "#00e676" : "#37474f") : "#263238";
-        this.ctx.fillRect(480, 640, 140, 50);
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "bold 12px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText(t.tier < 3 ? `[U] ${this.t("upgrade")} (${upCost}g)` : this.t("maxTier"), 550, 670);
+        // Branching upgrade at Tier 2
+        if (t.tier === 2) {
+          const bA = def.branches.A;
+          const bB = def.branches.B;
+          // Branch A Button
+          this.ctx.fillStyle = this.gold >= bA.cost ? "#1a3b5c" : "#212b38";
+          this.ctx.fillRect(450, 635, 140, 65);
+          this.ctx.strokeStyle = bA.color;
+          this.ctx.strokeRect(450, 635, 140, 65);
+          this.ctx.fillStyle = bA.color;
+          this.ctx.font = "bold 10px monospace";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText(`[A] ${bA.name}`, 520, 654);
+          this.ctx.fillStyle = "#ffd600";
+          this.ctx.fillText(`${bA.cost}g`, 520, 672);
+          this.ctx.fillStyle = "#90a4ae";
+          this.ctx.font = "8px monospace";
+          this.ctx.fillText(bA.perk.toUpperCase(), 520, 688);
 
+          // Branch B Button
+          this.ctx.fillStyle = this.gold >= bB.cost ? "#2b1a4a" : "#212b38";
+          this.ctx.fillRect(605, 635, 140, 65);
+          this.ctx.strokeStyle = bB.color;
+          this.ctx.strokeRect(605, 635, 140, 65);
+          this.ctx.fillStyle = bB.color;
+          this.ctx.font = "bold 10px monospace";
+          this.ctx.fillText(`[B] ${bB.name}`, 675, 654);
+          this.ctx.fillStyle = "#ffd600";
+          this.ctx.fillText(`${bB.cost}g`, 675, 672);
+          this.ctx.fillStyle = "#90a4ae";
+          this.ctx.font = "8px monospace";
+          this.ctx.fillText(bB.perk.toUpperCase(), 675, 688);
+        } else if (t.tier === 1) {
+          // Standard Tier 1 -> Tier 2 upgrade
+          const upCost = spec.upCost;
+          const canUpgrade = this.gold >= upCost;
+          this.ctx.fillStyle = canUpgrade ? "#00e676" : "#37474f";
+          this.ctx.fillRect(480, 640, 140, 50);
+          this.ctx.fillStyle = "#000";
+          this.ctx.font = "bold 12px monospace";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText(`[U] ${this.t("upgrade")} (${upCost}g)`, 550, 670);
+        } else {
+          // Tier 3 Max
+          this.ctx.fillStyle = "#263238";
+          this.ctx.fillRect(480, 640, 140, 50);
+          this.ctx.fillStyle = "#ffd600";
+          this.ctx.font = "bold 12px monospace";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText("★ MAX SPECIALIZED ★", 550, 670);
+        }
+
+        // Sell button
         const refund = Math.floor(t.totalInvested * 0.70);
         this.ctx.fillStyle = "#ff1744";
-        this.ctx.fillRect(640, 640, 120, 50);
+        this.ctx.fillRect(760, 640, 110, 50);
         this.ctx.fillStyle = "#fff";
-        this.ctx.fillText(`[S] ${this.t("sell")} (+${refund}g)`, 700, 670);
+        this.ctx.font = "bold 12px monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(`[S] (+${refund}g)`, 815, 670);
 
+        // Priority button
         this.ctx.fillStyle = "#1e3a5f";
-        this.ctx.fillRect(780, 640, 140, 50);
+        this.ctx.fillRect(885, 640, 115, 50);
         this.ctx.strokeStyle = "#00e5ff";
-        this.ctx.strokeRect(780, 640, 140, 50);
+        this.ctx.strokeRect(885, 640, 115, 50);
         this.ctx.fillStyle = "#00e5ff";
-        this.ctx.fillText(`[T] ${t.priority}`, 850, 670);
+        this.ctx.fillText(`[T] ${t.priority}`, 942, 670);
 
+        // Close
         this.ctx.fillStyle = "#37474f";
-        this.ctx.fillRect(940, 640, 50, 50);
+        this.ctx.fillRect(1015, 640, 45, 50);
         this.ctx.fillStyle = "#fff";
-        this.ctx.fillText("✕", 965, 670);
+        this.ctx.fillText("✕", 1037, 670);
       } else {
+        // Tower Hotbar
         const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
         for (let i = 0; i < 5; i++) {
           const key = towerKeys[i];
           const def = TOWER_DEFS[key];
-          const bx = 200 + i * 180;
+          const bx = 240 + i * 175;
           const isSelected = this.selectedBuildType === key;
 
           this.ctx.fillStyle = isSelected ? "rgba(0, 229, 255, 0.2)" : "#131e33";
-          this.ctx.fillRect(bx, 630, 165, 75);
+          this.ctx.fillRect(bx, 630, 160, 75);
           this.ctx.strokeStyle = isSelected ? "#00e5ff" : (this.gold >= def.cost ? def.color : "#37474f");
           this.ctx.lineWidth = isSelected ? 2 : 1;
-          this.ctx.strokeRect(bx, 630, 165, 75);
+          this.ctx.strokeRect(bx, 630, 160, 75);
 
           this.ctx.fillStyle = def.color;
           this.ctx.font = "bold 13px monospace";
@@ -2158,6 +2559,105 @@
       }
     }
 
+    renderDraftModal() {
+      this.ctx.fillStyle = "rgba(5, 7, 13, 0.95)";
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
+      this.ctx.textAlign = "center";
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.font = "bold 32px 'Segoe UI', monospace";
+      this.ctx.fillText(this.t("draftTitle"), 640, 110);
+
+      this.ctx.fillStyle = "#00e5ff";
+      this.ctx.font = "bold 14px monospace";
+      this.ctx.fillText(this.t("draftSub"), 640, 150);
+
+      for (let i = 0; i < this.draftCards.length; i++) {
+        const c = this.draftCards[i];
+        const x = 180 + i * 320;
+        const y = 200;
+
+        this.ctx.fillStyle = "#0c1527";
+        this.ctx.fillRect(x, y, 280, 320);
+        this.ctx.strokeStyle = c.color;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x, y, 280, 320);
+
+        this.ctx.font = "40px monospace";
+        this.ctx.fillText(c.icon, x + 140, y + 60);
+
+        this.ctx.fillStyle = c.color;
+        this.ctx.font = "bold 16px monospace";
+        this.ctx.fillText(c.title, x + 140, y + 110);
+
+        this.ctx.fillStyle = "#cfd8dc";
+        this.ctx.font = "12px monospace";
+        this.wrapText(c.desc, x + 20, y + 155, 240, 18);
+
+        this.ctx.fillStyle = c.color;
+        this.ctx.fillRect(x + 20, y + 250, 240, 45);
+        this.ctx.fillStyle = "#000";
+        this.ctx.font = "bold 14px monospace";
+        this.ctx.fillText("SELECT PERK", x + 140, y + 278);
+      }
+    }
+
+    renderAnalyticsScreen() {
+      this.ctx.fillStyle = "#05070d";
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
+      this.ctx.textAlign = "center";
+      this.ctx.fillStyle = "#00e5ff";
+      this.ctx.font = "bold 30px 'Segoe UI', monospace";
+      this.ctx.fillText(this.t("analyticsTitle"), 640, 80);
+
+      this.ctx.fillStyle = "#ffd600";
+      this.ctx.font = "bold 16px monospace";
+      this.ctx.fillText(`MVP UNIT: ${this.analytics.mvpName}`, 640, 120);
+
+      // Bar Charts for Damage
+      const dmg = this.analytics.damageByTower;
+      const categories = [
+        { label: "PULSE", val: dmg.pulse, color: "#00e5ff" },
+        { label: "MORTAR", val: dmg.mortar, color: "#ff9100" },
+        { label: "CRYO", val: dmg.cryo, color: "#00f0ff" },
+        { label: "RAILGUN", val: dmg.railgun, color: "#ff007f" },
+        { label: "HERO MECH", val: dmg.hero, color: "#ffd600" },
+        { label: "COMMANDER", val: dmg.skills, color: "#76ff03" }
+      ];
+
+      const maxVal = Math.max(1, ...categories.map(c => c.val));
+      for (let i = 0; i < categories.length; i++) {
+        const c = categories[i];
+        const y = 170 + i * 55;
+
+        this.ctx.textAlign = "left";
+        this.ctx.fillStyle = c.color;
+        this.ctx.font = "bold 13px monospace";
+        this.ctx.fillText(c.label, 120, y + 18);
+
+        // Bar background
+        this.ctx.fillStyle = "#101624";
+        this.ctx.fillRect(260, y, 700, 26);
+
+        // Bar fill
+        const barW = (c.val / maxVal) * 696;
+        this.ctx.fillStyle = c.color;
+        this.ctx.fillRect(262, y + 2, barW, 22);
+
+        this.ctx.fillStyle = "#fff";
+        this.ctx.fillText(`${c.val.toLocaleString()} DMG`, 980, y + 18);
+      }
+
+      // Summary Stats
+      this.ctx.textAlign = "center";
+      this.ctx.fillStyle = "#cfd8dc";
+      this.ctx.font = "14px monospace";
+      this.ctx.fillText(`Total Hostiles Defeated: ${this.analytics.totalKills} | Total Gold Processed: ${this.analytics.totalGold}g`, 640, 560);
+
+      this.renderMenuButton(540, 630, 200, 50, "BACK TO MENU", "#00e5ff", "#000");
+    }
+
     renderMainMenu() {
       this.ctx.fillStyle = "#05070d";
       this.ctx.fillRect(0, 0, this.width, this.height);
@@ -2173,7 +2673,7 @@
 
       this.ctx.fillStyle = "#78909c";
       this.ctx.font = "13px 'Segoe UI', monospace";
-      this.ctx.fillText(`Commander: ${this.playerName} | PWA & Offline Ready | Live Leaderboard`, 640, 220);
+      this.ctx.fillText(`Commander: ${this.playerName} | Field Hero Mech Active | Roguelike Augments Ready`, 640, 220);
 
       this.renderMiniButton(1140, 20, 100, 36, `LANG: ${this.lang.toUpperCase()}`);
 
@@ -2212,73 +2712,80 @@
 
       this.renderMiniButton(60, 20, 90, 32, "← MENU");
 
-      // Towers Guide
       this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 16px monospace";
-      this.ctx.fillText("TACTICAL TOWERS (5 BLUEPRINTS):", 60, 100);
+      this.ctx.font = "bold 15px monospace";
+      this.ctx.fillText("5 TOWERS + TIER 3 BRANCHING SPECIALIZATIONS (10 ULTIMATE BLUEPRINTS):", 60, 95);
 
       const towers = Object.values(TOWER_DEFS);
       for (let i = 0; i < towers.length; i++) {
         const t = towers[i];
         const x = 60 + i * 235;
         this.ctx.fillStyle = "#0c1527";
-        this.ctx.fillRect(x, 115, 220, 175);
+        this.ctx.fillRect(x, 110, 220, 185);
         this.ctx.strokeStyle = t.color;
-        this.ctx.strokeRect(x, 115, 220, 175);
+        this.ctx.strokeRect(x, 110, 220, 185);
 
         this.ctx.fillStyle = t.color;
-        this.ctx.font = "bold 14px monospace";
-        this.ctx.fillText(t.name, x + 10, 140);
+        this.ctx.font = "bold 13px monospace";
+        this.ctx.fillText(t.name, x + 8, 132);
 
         this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "11px monospace";
-        this.ctx.fillText(`Cost: ${t.cost}g | Type: ${t.type}`, x + 10, 160);
-        this.wrapText(t.desc, x + 10, 185, 200, 16);
+        this.ctx.font = "10px monospace";
+        this.ctx.fillText(`Cost: ${t.cost}g | ${t.type}`, x + 8, 150);
+
+        this.ctx.fillStyle = t.branches.A.color;
+        this.ctx.fillText(`[A] ${t.branches.A.name}`, x + 8, 180);
+        this.ctx.fillStyle = "#90a4ae";
+        this.ctx.font = "9px monospace";
+        this.wrapText(t.branches.A.desc, x + 8, 195, 205, 13);
+
+        this.ctx.fillStyle = t.branches.B.color;
+        this.ctx.font = "10px monospace";
+        this.ctx.fillText(`[B] ${t.branches.B.name}`, x + 8, 240);
+        this.ctx.fillStyle = "#90a4ae";
+        this.ctx.font = "9px monospace";
+        this.wrapText(t.branches.B.desc, x + 8, 255, 205, 13);
       }
 
-      // Enemies & Bosses Guide
       this.ctx.fillStyle = "#ff1744";
-      this.ctx.font = "bold 16px monospace";
-      this.ctx.fillText("HOSTILES & BOSS THREATS:", 60, 330);
+      this.ctx.font = "bold 15px monospace";
+      this.ctx.fillText("HERO MECH & HOSTILES:", 60, 330);
 
       const enemyList = [
-        { name: "Grunt", desc: "Basic runner. Standard health." },
-        { name: "Sprinter", desc: "Ultra fast runner. Vulnerable to Pulse/Cryo." },
-        { name: "Brute", desc: "Armored tank. High defense against kinetic." },
-        { name: "Shieldbearer", desc: "Regenerating blue energy shield barrier." },
-        { name: "Medic", desc: "Heals all nearby enemies (+15 HP/s aura)." },
-        { name: "Splitter", desc: "Splits into 2 Swarmlings upon death." },
-        { name: "Phantom", desc: "Periodically phases out and ignores targeting." },
-        { name: "BOSS: Juggernaut", desc: "Wave 10 Boss: 6000 HP, 20 armor, slow cap." },
-        { name: "BOSS: Overseer", desc: "Wave 20 Boss: 9000 HP, summons Sprinters." },
-        { name: "BOSS: Hive Titan", desc: "Wave 30 Boss: 20000 HP, 3 combat phases." }
+        { name: "Apex-01 Hero Mech", desc: "Controllable unit. Melee attack + Cyber-Slash Ult [SPACE]." },
+        { name: "Grunt / Sprinter", desc: "Standard and fast hostiles. Vulnerable to Pulse & Cryo." },
+        { name: "Brute / Shieldbearer", desc: "Heavily armored and shield regenerating threats." },
+        { name: "Medic / Splitter", desc: "Heals allies (+15 HP/s) / Splits into 2 Swarmlings on death." },
+        { name: "Phantom", desc: "Phases out every 4s. Revealed by Radar Beacon." },
+        { name: "Juggernaut (W10 Boss)", desc: "6000 HP, 20 armor, slow cap. Heavy defense." },
+        { name: "Overseer (W20 Boss)", desc: "9000 HP, summons sprinter drones, energy burst." },
+        { name: "Hive Titan (W30 Boss)", desc: "20000 HP, 3 phases, enrage speed buff (+40%)." }
       ];
 
       for (let i = 0; i < enemyList.length; i++) {
         const e = enemyList[i];
-        const col = i % 5;
-        const row = Math.floor(i / 5);
-        const x = 60 + col * 235;
-        const y = 350 + row * 85;
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const x = 60 + col * 295;
+        const y = 350 + row * 90;
 
         this.ctx.fillStyle = "#10192e";
-        this.ctx.fillRect(x, y, 220, 75);
-        this.ctx.strokeStyle = "#ff007f";
-        this.ctx.strokeRect(x, y, 220, 75);
+        this.ctx.fillRect(x, y, 280, 80);
+        this.ctx.strokeStyle = i === 0 ? "#ffd600" : "#ff007f";
+        this.ctx.strokeRect(x, y, 280, 80);
 
-        this.ctx.fillStyle = "#ff1744";
+        this.ctx.fillStyle = i === 0 ? "#ffd600" : "#ff1744";
         this.ctx.font = "bold 12px monospace";
-        this.ctx.fillText(e.name, x + 8, y + 20);
+        this.ctx.fillText(e.name, x + 10, y + 24);
 
         this.ctx.fillStyle = "#b0bec5";
         this.ctx.font = "10px monospace";
-        this.wrapText(e.desc, x + 8, y + 40, 200, 14);
+        this.wrapText(e.desc, x + 10, y + 44, 260, 15);
       }
 
-      // Commander Skills Footer
       this.ctx.fillStyle = "#00e5ff";
       this.ctx.font = "bold 13px monospace";
-      this.ctx.fillText("COMMANDER SKILLS: [Z] EMP Storm (Stun) | [X] Orbital Beam (Laser) | [C] Overclock (+60% ROF) | [V] Drone (+75g)", 60, 680);
+      this.ctx.fillText("ROGUELIKE DRAFTS OCCUR EVERY 5 WAVES (WAVE 5, 10, 15, 20, 25). CHOOSE 1 OF 3 CARDS TO STACK!", 60, 680);
     }
 
     renderMapSelect() {
@@ -2458,18 +2965,19 @@
       this.ctx.fillStyle = "#00e676";
       this.ctx.font = "bold 44px 'Segoe UI', monospace";
       this.ctx.textAlign = "center";
-      this.ctx.fillText(this.t("sectorDefended"), 640, 240);
+      this.ctx.fillText(this.t("sectorDefended"), 640, 230);
 
       this.ctx.fillStyle = "#ffd600";
       this.ctx.font = "bold 28px monospace";
-      this.ctx.fillText(this.t("missionSuccess"), 640, 300);
+      this.ctx.fillText(this.t("missionSuccess"), 640, 290);
 
       this.ctx.fillStyle = "#cfd8dc";
       this.ctx.font = "16px monospace";
-      this.ctx.fillText(`Tactical Score: ${this.score} PTS | Core Preserved: ${this.baseHp}/${this.maxBaseHp}`, 640, 350);
+      this.ctx.fillText(`Tactical Score: ${this.score} PTS | MVP: ${this.analytics.mvpName}`, 640, 340);
 
-      this.renderMenuButton(460, 460, 160, 50, this.t("playAgain"), "#00e5ff", "#000");
-      this.renderMenuButton(660, 460, 160, 50, this.t("mainMenu"), "#162238", "#00e5ff", "#00e5ff");
+      this.renderMenuButton(380, 460, 160, 50, this.t("playAgain"), "#00e5ff", "#000");
+      this.renderMenuButton(560, 460, 160, 50, "📊 ANALYTICS", "#162238", "#ffd600", "#ffd600");
+      this.renderMenuButton(740, 460, 160, 50, this.t("mainMenu"), "#162238", "#00e5ff", "#00e5ff");
     }
 
     renderDefeatModal() {
@@ -2479,14 +2987,15 @@
       this.ctx.fillStyle = "#ff1744";
       this.ctx.font = "bold 44px 'Segoe UI', monospace";
       this.ctx.textAlign = "center";
-      this.ctx.fillText(this.t("gridOverrun"), 640, 240);
+      this.ctx.fillText(this.t("gridOverrun"), 640, 230);
 
       this.ctx.fillStyle = "#cfd8dc";
       this.ctx.font = "18px monospace";
-      this.ctx.fillText(`Breached at Wave ${this.wave}. Score: ${this.score} PTS`, 640, 310);
+      this.ctx.fillText(`Breached at Wave ${this.wave}. Score: ${this.score} PTS`, 640, 300);
 
-      this.renderMenuButton(460, 460, 160, 50, this.t("retry"), "#ff1744", "#fff");
-      this.renderMenuButton(660, 460, 160, 50, this.t("mainMenu"), "#162238", "#ff1744", "#ff1744");
+      this.renderMenuButton(380, 460, 160, 50, this.t("retry"), "#ff1744", "#fff");
+      this.renderMenuButton(560, 460, 160, 50, "📊 ANALYTICS", "#162238", "#ffd600", "#ffd600");
+      this.renderMenuButton(740, 460, 160, 50, this.t("mainMenu"), "#162238", "#ff1744", "#ff1744");
     }
   }
 

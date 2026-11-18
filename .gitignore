@@ -8,6 +8,7 @@ export/
 *.aab
 *.exe
 *.zip
+!last-grid-offline-v2.zip
 *.pck
 
 # Keystores & Secrets
