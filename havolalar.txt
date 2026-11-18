@@ -1,0 +1,54 @@
+================================================================================
+LOYIHA NOMI:
+07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini (Godot 4 2D)
+================================================================================
+
+1. GITHUB REPOZITORIY HAVOLASI:
+https://github.com/nematjanoovv-max/UI_UX_18_11_2026
+
+2. VERCEL LIVE (ISHLAYOTGAN SAYT) HAVOLASI:
+https://last-grid-td.vercel.app
+
+================================================================================
+AMALGA OSHIRILGAN TO'LIQ IMKONIYATLAR VA MEZONLAR:
+
+1. Majburiy Kontent Miqdori (100% to'liq):
+   - 10 ta Xarita (Training Grid, Crossroads, Spiral Core, Misty Pass, Fast Track, 
+     Scrap Yard, Iron Wall, Blackout City, Twin Gate, The Last Grid).
+   - 5 ta Minora Turi:
+     * Pulse: KINETIC, tez otar arzon minora (100g, 12->18->26 dmg, 4->5->6 rps).
+     * Mortar: EXPLOSIVE, uzoq masofali hududiy zarba (150g, 45->70->105 dmg, 60->85px splash).
+     * Cryo: ENERGY, sekinlashtiruvchi maydon (120g, 35%->45%->55% slow + muzlatish).
+     * Railgun: PIERCE, chiziqli teshuvchi nur (250g, 140->220->340 dmg, 1->3 dushman).
+     * Beacon: SUPPORT, qo'shni minoralar uchun kuchaytiruvchi aura (+35% dmg, +20% range).
+   - 8 ta Dushman Turi (Grunt, Sprinter, Brute, Swarmling, Shieldbearer, Medic, Splitter, Phantom).
+   - 3 ta Boss:
+     * Juggernaut (10-to'lqin bossi: 6000 HP, 20 bronya, sekinlashuv 50% cheklovi).
+     * Overseer (20-to'lqin bossi: 9000 HP, 10 bronya, sprinterlarni chaqirish va qalqon auranasi).
+     * Hive Titan (30-to'lqin final bossi: 20000 HP, 15 bronya, 3 ta faza va bo'linuvchilar).
+   - 30 ta To'lqin Konfiguratsiyasi (Wave 1 dan Wave 30 gacha to'liq .tres fayllar).
+
+2. Qabul Qilish Mezonlari (Acceptance Criteria):
+   - Qabul #1: Dushmanlar yo'ldan aslo chiqmaydi (matematik sample_lane bo'yicha og'ish 0.000 px).
+   - Qabul #2: 4 xil nishon tanlash qoidasi (FIRST, LAST, STRONGEST, NEAREST) va UID tie-break.
+   - Qabul #3: To'lqinni tozalash va baza yo'qotilishi (G'alaba va Mag'lubiyat holatlari) to'liq ishlaydi.
+
+3. To'liq O'yin Sikli (Core Loop):
+   - Boot -> Asosiy Menyu -> Missiyani Tanlash (+Qiyinlik) -> Jang Maydoni -> Natijalar -> Qayta urinish.
+
+4. Meta-progressiya (Skill Tree) & Yutuqlar:
+   - Tadqiqot ochkolari (RP) orqali 3 ta yo'nalish bo'yicha 15 ta doimiy ko'nikma (Offense, Economy, Defense).
+   - Bepul respec (qayta taqsimlash) imkoniyati.
+   - 15 ta in-game Yutuq (Achievements) va toast xabarnomasi.
+
+5. Foydalanuvchi Interfeysi (UI/UX):
+   - Kiber-neon uslubi (1280x720 moslashuvchan rezolyutsiya, landshaft).
+   - Sensorli ekran (Touch), sichqoncha va klaviatura (1-5, Space, Esc, U, S, T, Tab).
+   - Rang-ko'rlik yordamchi belgilari va suzuvchi jang raqamlari.
+   - 3 ta til lokalizatsiyasi: O'zbekcha (uz), Ruscha (ru), Inglizcha (en).
+
+6. Sinovlar va Sifat:
+   - GUT v9.3.0 birlik va integratsion testlari to'liq o'tgan.
+   - Headless Monte Carlo Balans Simulyatori (3 ta bot strategiyasi, yutuq ko'rsatkichi 55-85%).
+   - Atomik xavfsiz saqlash tizimi (user://progress.json va .bak).
+================================================================================
