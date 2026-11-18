@@ -1,0 +1,80 @@
+[gd_scene load_steps=8 format=3 uid="uid://b3player3d001"]
+
+[ext_resource type="Script" path="res://scripts/controllers/player_3d.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_controller_3d.gd" id="2_weapon"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.45
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.12, 0.16, 0.23, 1)
+metallic = 0.8
+roughness = 0.25
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+material = SubResource("StandardMaterial3D_body")
+radius = 0.45
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_visor"]
+albedo_color = Color(0.0, 0.9, 1.0, 1)
+emission_enabled = true
+emission = Color(0.0, 0.9, 1.0, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_visor"]
+material = SubResource("StandardMaterial3D_visor")
+size = Vector3(0.5, 0.15, 0.25)
+
+[node name="Player3D" type="CharacterBody3D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="VisorMesh" type="MeshInstance3D" parent="BodyMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, -0.35)
+mesh = SubResource("BoxMesh_visor")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.65, 0.4, 0)
+collision_mask = 1
+spring_length = 2.8
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/SpringArm3D"]
+current = true
+fov = 75.0
+
+[node name="WeaponHolder" type="Node3D" parent="CameraPivot/SpringArm3D/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, -0.22, -0.55)
+script = ExtResource("2_weapon")
+
+[node name="WeaponMesh" type="MeshInstance3D" parent="CameraPivot/SpringArm3D/Camera3D/WeaponHolder"]
+
+[node name="MuzzlePoint" type="Node3D" parent="CameraPivot/SpringArm3D/Camera3D/WeaponHolder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.6)
+
+[node name="LaserSight" type="MeshInstance3D" parent="CameraPivot/SpringArm3D/Camera3D/WeaponHolder"]
+visible = false
+
+[node name="SilencerMesh" type="MeshInstance3D" parent="CameraPivot/SpringArm3D/Camera3D/WeaponHolder"]
+visible = false
+
+[node name="RedDotOptic" type="MeshInstance3D" parent="CameraPivot/SpringArm3D/Camera3D/WeaponHolder"]
+visible = true
+
+[node name="BuildRaycast" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+target_position = Vector3(0, -6, -8)
+collision_mask = 1
