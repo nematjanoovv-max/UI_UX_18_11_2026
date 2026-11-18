@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ModifierData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/modifier_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = "armored"
+name_key = "modifier_armored_name"
+desc_key = "modifier_armored_desc"
+speed_mult = 1.0
+bounty_mult = 1.0
+range_mult = 1.0
+armor_mult = 1.2
+hp_mult = 1.0
+blackout_interval_waves = 0

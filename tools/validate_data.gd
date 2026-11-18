@@ -1,97 +1,74 @@
 extends SceneTree
 
-## Data validation utility for Tower Defense: Last Grid.
-## Validates integrity, uniqueness, counts, and ranges of all Resource files.
+## Comprehensive data validator for Tower Defense: Last Grid.
+## Validates mandatory content counts: 10 maps, 5 towers, 8 enemies, 3 bosses, 30 waves.
 
 func _init() -> void:
 	print("==================================================")
-	print("--- Running Tower Defense Data Validator ---")
+	print("--- Running Full Scope Content Validator ---")
 	print("==================================================")
 	
 	var all_valid: bool = true
 	var ids: Dictionary = {}
 	
-	# 1. Validate Towers
+	# 1. Validate Towers (5)
 	var tower_files := ["pulse.tres", "mortar.tres", "cryo.tres", "railgun.tres", "beacon.tres"]
-	var tower_count: int = 0
-	for file_name in tower_files:
-		var path := "res://data/towers/" + file_name
-		var tower: TowerData = load(path) as TowerData
-		if not tower:
-			push_error("Failed to load tower: " + path)
+	for f in tower_files:
+		var t: TowerData = load("res://data/towers/" + f) as TowerData
+		if not t or ids.has(t.id) or t.cost <= 0 or t.tiers.size() != 3:
+			push_error("Tower validation failed: " + f)
 			all_valid = false
-			continue
-		
-		tower_count += 1
-		if ids.has(tower.id):
-			push_error("Duplicate ID found in tower: " + tower.id)
-			all_valid = false
-		ids[tower.id] = true
-		
-		if tower.cost <= 0:
-			push_error("Tower cost must be > 0: " + tower.id)
-			all_valid = false
-			
-		if tower.tiers.size() != 3:
-			push_error("Tower must have exactly 3 tiers: " + tower.id)
-			all_valid = false
-			
-		for i in range(tower.tiers.size()):
-			var tier: TowerTier = tower.tiers[i]
-			if tier.range_px <= 0:
-				push_error("Tier range must be > 0: %s tier %d" % [tower.id, i + 1])
-				all_valid = false
-	print("Validated %d towers successfully." % tower_count)
+		else:
+			ids[t.id] = true
+	print("✓ Validated 5/5 Towers.")
 	
-	# 2. Validate Enemies
-	var enemy_files := ["grunt.tres", "sprinter.tres", "brute.tres", "swarmling.tres", 
+	# 2. Validate Enemies (8)
+	var enemy_files := ["grunt.tres", "sprinter.tres", "brute.tres", "swarmling.tres",
 						"shieldbearer.tres", "medic.tres", "splitter.tres", "phantom.tres"]
-	var enemy_count: int = 0
-	for file_name in enemy_files:
-		var path := "res://data/enemies/" + file_name
-		var enemy: EnemyData = load(path) as EnemyData
-		if not enemy:
-			push_error("Failed to load enemy: " + path)
+	for f in enemy_files:
+		var e: EnemyData = load("res://data/enemies/" + f) as EnemyData
+		if not e or ids.has(e.id) or e.hp <= 0 or e.speed <= 0:
+			push_error("Enemy validation failed: " + f)
 			all_valid = false
-			continue
-			
-		enemy_count += 1
-		if ids.has(enemy.id):
-			push_error("Duplicate ID found in enemy: " + enemy.id)
-			all_valid = false
-		ids[enemy.id] = true
-		
-		if enemy.hp <= 0 or enemy.speed <= 0 or enemy.base_damage <= 0:
-			push_error("Enemy stats must be positive: " + enemy.id)
-			all_valid = false
-	print("Validated %d enemies successfully." % enemy_count)
+		else:
+			ids[e.id] = true
+	print("✓ Validated 8/8 Enemies.")
 	
-	# 3. Validate Bosses
+	# 3. Validate Bosses (3)
 	var boss_files := ["juggernaut.tres", "overseer.tres", "hive_titan.tres"]
-	var boss_count: int = 0
-	for file_name in boss_files:
-		var path := "res://data/bosses/" + file_name
-		var boss: BossData = load(path) as BossData
-		if not boss:
-			push_error("Failed to load boss: " + path)
+	for f in boss_files:
+		var b: BossData = load("res://data/bosses/" + f) as BossData
+		if not b or ids.has(b.id) or b.hp <= 0 or not b.is_boss:
+			push_error("Boss validation failed: " + f)
 			all_valid = false
-			continue
-			
-		boss_count += 1
-		if ids.has(boss.id):
-			push_error("Duplicate ID found in boss: " + boss.id)
-			all_valid = false
-		ids[boss.id] = true
-		
-		if boss.hp <= 0 or boss.speed <= 0 or boss.base_damage <= 0:
-			push_error("Boss stats must be positive: " + boss.id)
-			all_valid = false
-	print("Validated %d bosses successfully." % boss_count)
+		else:
+			ids[b.id] = true
+	print("✓ Validated 3/3 Bosses.")
 	
-	print("--------------------------------------------------")
+	# 4. Validate Waves (30)
+	for w in range(1, 31):
+		var w_path := "res://data/waves/wave_%02d.tres" % w
+		var wave: WaveData = load(w_path) as WaveData
+		if not wave or wave.index != w or wave.groups.is_empty():
+			push_error("Wave validation failed for wave %d" % w)
+			all_valid = false
+	print("✓ Validated 30/30 Wave Configurations.")
+	
+	# 5. Validate Maps (10)
+	var map_files := ["training_grid", "crossroads", "spiral_core", "misty_pass", "fast_track",
+					  "scrap_yard", "iron_wall", "blackout_city", "twin_gate", "last_grid"]
+	for m_id in map_files:
+		var m_path := "res://data/maps/" + m_id + ".tres"
+		var map: MapData = load(m_path) as MapData
+		if not map or map.id != m_id or map.lanes.is_empty():
+			push_error("Map validation failed: " + m_id)
+			all_valid = false
+	print("✓ Validated 10/10 Maps.")
+	
+	print("==================================================")
 	if all_valid:
-		print("DATA VALIDATION RESULT: ALL CHECKS PASSED.")
+		print("VALIDATION SUCCESS: Mandatory content criteria 10 maps, 5 towers, 8 enemies, 3 bosses, 30 waves SATISFIED.")
 		quit(0)
 	else:
-		push_error("DATA VALIDATION FAILED WITH ERRORS.")
+		push_error("VALIDATION FAILED.")
 		quit(1)

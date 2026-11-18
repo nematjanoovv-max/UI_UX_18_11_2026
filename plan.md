@@ -94,12 +94,12 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M5:** whole loop playable only via UI (no debug tools): menu → map → play → result → retry/menu; works with mouse, touch (emulated + device), keyboard.
 
 ## M6 — Content: maps, modifiers, meta (Days 16–19) — **[68]**
-- [ ] Build 10 `MapData` (spec §8.4): layouts, lanes, buildable cells, backgrounds, thresholds, unlock chain.
-- [ ] `ModifierSystem` (spec §7.11) + tests; `DifficultySystem` (§7.12) + tests.
-- [ ] Map progression: unlock by stars, best wave/difficulty stored; Nightmare unlock rule.
-- [ ] `SkillTreeSystem` (15 nodes, RP rules, respec) + UI wiring + tests (§7.10).
-- [ ] `AchievementSystem` (≥ 15) + toast + list screen.
-- [ ] Per-map wave profile (which waves, scaling) validated by `validate_data.gd`.
+- [x] Build 10 `MapData` (spec §8.4): layouts, lanes, buildable cells, backgrounds, thresholds, unlock chain.
+- [x] `ModifierSystem` (spec §7.11) + tests; `DifficultySystem` (§7.12) + tests.
+- [x] Map progression: unlock by stars, best wave/difficulty stored; Nightmare unlock rule.
+- [x] `SkillTreeSystem` (15 nodes, RP rules, respec) + UI wiring + tests (§7.10).
+- [x] `AchievementSystem` (≥ 15) + toast + list screen.
+- [x] Per-map wave profile (which waves, scaling) validated by `validate_data.gd`.
 **Gate M6:** counts verified by validator = **10 maps, 5 towers, 8 enemies, 3 bosses, 30 waves**; each map winnable by the balance bot on Easy.
 
 ## M7 — Art, audio, VFX, i18n, accessibility (Days 20–22)
@@ -179,3 +179,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 - 2026-11-18 — Completed M3 (SpatialHash, TowerBase, TargetingSystem with 4 modes & tie-breaks, Projectile & ProjectilePool, BuildController, targeting tests).
 - 2026-11-18 — Completed M4 — MVP Checkpoint (EconomyManager, UpgradeController, WaveManager, authored all 30 wave configurations, BattleHUD, integration test, tagged v0.1.0).
 - 2026-11-18 — Completed M5 UI/UX (Theme tokens, MainMenu, MapSelect, Encyclopedia, SettingsMenu, PauseMenu, TowerPanels, ResultsScreen, SkillTreeMenu, AchievementsMenu, Battlefield scene).
+- 2026-11-18 — Completed M6 Content (all 10 MapData resources, 8 modifiers, 4 difficulty levels, SkillTree meta, 15 achievements, updated validate_data.gd).

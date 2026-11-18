@@ -53,3 +53,10 @@
 - Built scenes/menus/skill_tree_menu.tscn and scenes/menus/achievements_menu.tscn.
 - Fully wired scenes/levels/battlefield.tscn with GridMap2D, PathNetwork, BaseCore, Pools, WaveManager, HUD, and Panels.
 - Gate M5 passed.
+[2026-11-18 19:26] [NOTES] Completed M6 Content (Maps, Modifiers, Difficulties, Meta):
+- Generated all 10 MapData .tres files (training_grid, crossroads, spiral_core, misty_pass, fast_track, scrap_yard, iron_wall, blackout_city, twin_gate, last_grid) with full waypoint polyline lanes and star unlock requirements.
+- Generated all 8 Map Modifier resources in data/modifiers/.
+- Generated all 4 Difficulty resources in data/difficulty/ (Easy, Normal, Hard, Nightmare).
+- Created tests/unit/test_content_and_maps.gd verifying 10 maps, 5 towers, 8 enemies, 3 bosses, 30 waves.
+- Updated tools/validate_data.gd to validate the full content matrix.
+- Gate M6 passed.

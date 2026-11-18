@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MapData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/lane_data.gd" id="1_lane"]
+[ext_resource type="Script" path="res://scripts/data_defs/map_data.gd" id="2_data"]
+
+[sub_resource type="Resource" id="Resource_lane1"]
+script = ExtResource("1_lane")
+lane_id = 0
+waypoints = PackedVector2Array(Vector2(64, 64), Vector2(1152, 64), Vector2(1152, 256), Vector2(128, 256), Vector2(128, 448), Vector2(1152, 448), Vector2(1152, 576), Vector2(640, 576))
+
+[resource]
+script = ExtResource("2_data")
+id = "last_grid"
+name_key = "map_last_grid_name"
+theme = "deep_core"
+grid_width = 20
+grid_height = 11
+cell_size = 64
+lanes = Array[ExtResource("1_lane")]([SubResource("Resource_lane1")])
+wave_count = 30
+modifier_ids = Array[String](["last_grid"])
+starting_gold = 250
+base_hp = 20
+unlock_requires_map_id = "twin_gate"
+unlock_requires_stars = 2
+star_threshold_3 = 0.90
+star_threshold_2 = 0.50

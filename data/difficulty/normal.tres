@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DifficultyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/difficulty_data.gd" id="1_diff"]
+
+[resource]
+script = ExtResource("1_diff")
+id = "normal"
+name_key = "difficulty_normal_name"
+hp_multiplier = 1.0
+gold_multiplier = 1.0
+base_hp = 20
+sell_refund_ratio = 0.7
+star_threshold_lenient = false
