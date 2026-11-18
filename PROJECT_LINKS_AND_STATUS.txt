@@ -3,14 +3,14 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter O'yini
 Dvigatel: Android Native WebView + Godot 4.3 + Web 3D/2D Engine
 Platformalar: Android APK (Native), Web (HTML5/PWA), Desktop (Windows/Linux/Mac)
-Holati: 100% TO'LIQ TAYYOR (v3.6.0 Pro Balans & Studio SFX Standalone APK Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.7.0 Ultimate Mobile Ergonomics & Adaptive Standalone APK)
 Sana: 2026-11-18
 ================================================================================
 
 1. ASOSIY HAVOLALAR:
 
-- ANDROID APK YUKLAB OLISH (RASMIY v3.6.0):
-  https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.6.0.apk
+- ANDROID APK YUKLAB OLISH (RASMIY v3.7.0):
+  https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.7.0.apk
   Yoki qisqa havola:
   https://last-grid-td.vercel.app/last-grid.apk
 
@@ -27,25 +27,32 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. ANDROID APK (v3.6.0) NATIVE XUSUSIYATLARI:
+2. ANDROID APK (v3.7.0) NATIVE XUSUSIYATLARI:
 
-[1] DATASETLAR ASOSIDA BALANSLANGAN TO'LQINLAR (BLOONS TD 6 MODEL):
-    - 30 ta mukammal tuzilgan to'lqin: erta bosqich tezkor razvedka, o'rta bosqich og'ir zirh, elita kiber-armiya va 3 ta ulkan Boss.
-    - Cheksiz (Endless) rejimda RBE = 21.24 * w^0.66 formulasi bo'yicha matematik qiyinlashish.
+[1] HAR QANDAY TELEFON EKRANIGA AVTOMATIK MOSLASHUV:
+    - 16:9, 18:9, 19.5:9, 20:9 va 21:9 ultra-keng AMOLED ekranlarni to'liq qo'llab-quvvatlaydi.
+    - Sozlamalarda FIT (16:9 nisbat) yoki FILL (qora chiziqlarsiz chekkagacha to'liq cho'zish) rejimi.
+    - Android 9+ Display Cutout rejimi orqali kamera qirqimlari (notch/punch-hole) orqasiga ham to'liq yoyiladi.
 
-[2] CYBERPUNK 2077 & VALORANT QUROLLAR STATISTIKASI:
-    - Minoralarda Armor Shred, Tech Sniper 2.5x Crit, AoE Napalm DoT va Tesla EMP zanjirlari.
-    - 3D TPS rejimida masofaga bog'liq ballistika (Range Falloff) va boshga tekkanda 2.2x kiber-kritik zarar.
+[2] UNIVERSAL APPARAT QAYTISH TUGMASI (HARDWARE BACK BUTTON):
+    - Har qanday holatda Android 'Orqaga' tugmasi bosilganda xavfsiz ishlaydi:
+      * Modal va sozlamalarni yopadi.
+      * Jang vaqtida o'yin to'xtab qolmasdan TAKTIK PAUZA ochiladi (natijalar yo'qolmaydi).
+      * Sub-menulardan asosiy menyuga qaytaradi.
+      * Asosiy menyuda 2 marta bosilganda ilovadan chiqishni tasdiqlaydi.
 
-[3] PROFESSIONAL CC0 STUDIYA OVOZLARI:
-    - Kiber-tugmalarda metall karabin chertilishi (click.mp3).
-    - Lazer, plazma, zambarak va snaryad portlashlarining toza sadosi.
-    - To'lqin yakunida kiber-mukofot tovushi (wave_clear.mp3).
+[3] INTERAKTIV TIZIM SOZLAMALARI (SETTINGS MENU):
+    - SFX Ovozlar balandligi (100%, 70%, 30%, O'chiq).
+    - Musiqa balandligi (100%, 70%, 30%, O'chiq).
+    - Haptik tebranish (Vibration ON/OFF).
+    - Ekran rejimi (FIT / FILL).
+    - FPS rejimi (60 FPS Ultra / 30 FPS Eco).
+    - Tilni tanlash (O'zbek / English / Русский).
 
-[4] TO'LIQ OFLAYN ISHGA TUSHISH:
-    - Barcha audio fayllar, 10 ta xarita, 3D TPS rejimi to'liq APK ichiga joylangan.
-    - Internetsiz ham 100% ishlaydi.
-    - Internet bo'lganda natijalar avtomatik global liderlar jadvaliga sinxronlashadi.
+[4] ERGONOMIC MOBIL TUGMALAR VA DASTAKLAR:
+    - Barcha tugmalar barmoq bilan bosishga moslab kattalashtirildi (min 100px-160px).
+    - To'siq qurish tugmasi ([6] Barricade) to'liq ishchi holatga keltirildi.
+    - Qahramon, minoralar va 3D virtual djoystiklar qulay joylashtirildi.
 
 [2] QAT'IY GORIZONTAL VA IMMERSIVE FULLSCREEN:
     - android:screenOrientation="landscape"

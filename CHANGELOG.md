@@ -4,6 +4,15 @@ All notable changes to **Tower Defense: Last Grid** will be documented in this f
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [3.7.0] - 2026-11-18
+### Added & Enhanced (Ultimate Mobile Ergonomics & Adaptive Viewport)
+- **Universal Adaptive Viewport (All Android Phones)**: Added automatic aspect ratio support for 16:9, 18:9, 19.5:9, 20:9, and 21:9 screens. Added `FIT` (proportional centered) and `FILL` (edge-to-edge full stretch) display modes.
+- **Hardware Back Button Navigation (`handleBackAction`)**: Integrated seamless Android hardware back key support. Prevents accidental quits during combat by triggering tactical pause instead of abandoning gameplay; handles modal dismissals, sub-menu back navigation, and double-tap to exit on main menu.
+- **Dedicated Cyber-Tactical Settings Menu**: Built a comprehensive settings modal featuring SFX volume (100/70/30/0%), BGM volume, Haptic vibration toggle, Screen Fit (FIT/FILL), Performance FPS limit (60 Ultra / 30 Eco), Language selection, and Retro CRT filter.
+- **Touch Ergonomics Overhaul**: Widened all touch hitboxes to minimum 100px-160px for effortless thumb gameplay. Consolidated cluttered Top HUD icons into clean buttons.
+- **Barricade & Sub-Menu Bug Fixes**: Fixed bottom bar barricade selection hitbox and repaired mismatched back button hit areas in Field Manual, Map Select, and Map Editor.
+- **Android Display Cutout Support**: Added `LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES` to AndroidManifest and MainActivity for full immersion behind punch-hole camera and notch cutouts.
+
 ## [3.6.0] - 2026-11-18
 ### Added & Balanced (Dataset-Driven Game Architecture)
 - **Bloons TD 6 Pacing Model**: Integrated 30 curated campaign waves based on Kaggle BTD6 dataset (`brandonconrady/bloons-tower-defense-6-rounds-1140`). Implemented power-law RBE curve $RBE = 21.24 \cdot w^{0.66}$ for infinite endless survival.

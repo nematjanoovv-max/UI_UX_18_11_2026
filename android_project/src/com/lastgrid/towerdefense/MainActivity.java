@@ -34,6 +34,11 @@ public class MainActivity extends Activity {
                              WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getWindow().getAttributes().layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
+
         setImmersiveMode();
 
         try {
@@ -127,8 +132,8 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (webView != null) {
             webView.evaluateJavascript(
-                "if (window.lastGridEngine && window.lastGridEngine.state !== 'MENU') { " +
-                "  window.lastGridEngine.state = 'MENU'; " +
+                "if (window.lastGridEngine && typeof window.lastGridEngine.handleBackAction === 'function') { " +
+                "  window.lastGridEngine.handleBackAction(); " +
                 "} else { " +
                 "  window.AndroidBridge.exitApp(); " +
                 "}", null);
@@ -176,12 +181,17 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void exitApp() {
-            finishAndRemoveTask();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    finishAndRemoveTask();
+                }
+            });
         }
 
         @JavascriptInterface
         public String getVersion() {
-            return "3.6.0-android-apk";
+            return "3.7.0-android-apk";
         }
 
         @JavascriptInterface

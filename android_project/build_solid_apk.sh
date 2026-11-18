@@ -58,7 +58,7 @@ if [ ! -f "$KEYSTORE" ]; then
 fi
 
 echo "=== 10. Signing APK with Official Google apksigner (v1 + v2 + v3) ==="
-FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v3.6.0.apk"
+FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v3.7.0.apk"
 apksigner sign \
     --ks "$KEYSTORE" \
     --ks-key-alias lastgrid \
