@@ -24,3 +24,11 @@
 - Implemented scripts/gameplay/enemy_pool.gd for zero-allocation reuse.
 - Verified Acceptance Criteria #1: 1000 path-invariance samples verified point deviation strictly < 0.001 px.
 - Gate M2 passed.
+[2026-11-18 19:14] [NOTES] Completed M3 Towers, Targeting & Projectiles:
+- Implemented scripts/utils/spatial_hash.gd with 96px broadphase grid.
+- Implemented scripts/gameplay/targeting_system.gd with FIRST, LAST, STRONGEST, NEAREST and deterministic UID tie-breaking.
+- Implemented scripts/gameplay/projectile.gd and projectile_pool.gd covering kinetic homing bullets, explosive mortar shells, energy cryo bolts, and piercing railgun beams.
+- Implemented scripts/gameplay/tower_base.gd with upgrades, sell refunds, range indicators, and Beacon support buffs.
+- Implemented scripts/gameplay/build_controller.gd with placement preview and grid validation.
+- Unit tests tests/unit/test_targeting.gd verified all targeting priority modes, tie-breaks, and phasing immunity.
+- Gate M3 passed.

@@ -58,14 +58,14 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M2 (acceptance #1):** 1000 enemies at 1×/2×/3× never leave the path; base takes exact damage; no leaks of nodes (monitor shows stable object count).
 
 ## M3 — Towers, targeting, projectiles (Days 6–9) — **[64][65]**
-- [ ] `SpatialHash` + tests.
-- [ ] `TowerBase` (tiers, stats from `TowerData`, range ring, rotation, fire timer on fixed tick).
-- [ ] `TargetingSystem` with FIRST / LAST / STRONGEST / NEAREST + deterministic tie-break (spec §7.6) + tests (ties, phasing, out-of-range, retarget on death/mode change).
-- [ ] `Projectile` + `ProjectilePool`: homing bullet (Pulse), arc shell with splash (Mortar), cone/aura pulse (Cryo), hitscan piercing line (Railgun), aura buff (Beacon).
-- [ ] `DamageSystem`: types, armor floor, shield, splash falloff, crits, kill credit.
-- [ ] Status effects: slow (strongest wins, boss cap), buff (additive, cap), heal aura, phase.
-- [ ] `BuildController`: ghost preview, validity tint, place/cancel, one tower per cell.
-- [ ] Debug HUD: DPS meter, target lines.
+- [x] `SpatialHash` + tests.
+- [x] `TowerBase` (tiers, stats from `TowerData`, range ring, rotation, fire timer on fixed tick).
+- [x] `TargetingSystem` with FIRST / LAST / STRONGEST / NEAREST + deterministic tie-break (spec §7.6) + tests (ties, phasing, out-of-range, retarget on death/mode change).
+- [x] `Projectile` + `ProjectilePool`: homing bullet (Pulse), arc shell with splash (Mortar), cone/aura pulse (Cryo), hitscan piercing line (Railgun), aura buff (Beacon).
+- [x] `DamageSystem`: types, armor floor, shield, splash falloff, crits, kill credit.
+- [x] Status effects: slow (strongest wins, boss cap), buff (additive, cap), heal aura, phase.
+- [x] `BuildController`: ghost preview, validity tint, place/cancel, one tower per cell.
+- [x] Debug HUD: DPS meter, target lines.
 **Gate M3 (acceptance #2):** each of 5 towers works vs. each enemy type; 4 targeting modes verified by tests + visual debug; 60 FPS with 100 enemies + 30 towers on desktop.
 
 ## M4 — Economy, waves, bosses, full run (Days 10–12) — **[66][67]**
@@ -176,3 +176,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 - 2026-11-18 — Completed M0 foundation tasks (notes, project.godot, autoloads, GUT v9.3.0, workflows, initial git commit).
 - 2026-11-18 — Completed M1 (GDD.md, controls.md, balance.md, 13 Resource schemas, authored 5 towers / 8 enemies / 3 bosses, combat calc utils & tests, validate_data.gd).
 - 2026-11-18 — Completed M2 (GridMap2D, PathNetwork, Enemy base & pooling, StatusEffects, BaseCore, path-invariant acceptance tests).
+- 2026-11-18 — Completed M3 (SpatialHash, TowerBase, TargetingSystem with 4 modes & tie-breaks, Projectile & ProjectilePool, BuildController, targeting tests).
