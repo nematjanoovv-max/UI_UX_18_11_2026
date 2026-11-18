@@ -81,16 +81,16 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 **Gate M4 — MVP checkpoint:** one map, all 30 waves, all towers/enemies/bosses playable start→finish; wave-clear and base-loss logic verified (acceptance #3); tag `v0.1.0`.
 
 ## M5 — UI/UX (Days 13–15) — **[69]**
-- [ ] Theme/Design tokens (`assets/ui/theme.tres`): colours, spacing, fonts, StyleBoxes, colour-blind variants.
-- [ ] `Boot/Splash`, `Main Menu`, `Map Select` (cards, stars, lock state, difficulty), `Settings`, `Pause`, `Controls` screen.
-- [ ] Battlefield HUD (wave, next-wave preview, gold, base HP, speed, start button, boss bar, banners, floating numbers).
-- [ ] Tower build bar (cost, affordability, hotkeys 1–5) + Tower info/upgrade panel (target mode, upgrade, sell).
-- [ ] `Tower Encyclopedia` (+ enemy/boss codex).
-- [ ] `Victory/Defeat + Statistics` screens (StatsTracker: kills/type, damage/tower, gold, leaks, time).
-- [ ] Tutorial/onboarding on Map 1 (skippable, replayable).
-- [ ] Touch UX: ≥ 48 dp targets, tap-to-select, drag ghost, pinch zoom, safe areas; keyboard/gamepad focus navigation.
-- [ ] Key rebinding UI (persisted).
-- [ ] `SceneManager` transitions + loading screen.
+- [x] Theme/Design tokens (`assets/ui/theme.tres`): colours, spacing, fonts, StyleBoxes, colour-blind variants.
+- [x] `Boot/Splash`, `Main Menu`, `Map Select` (cards, stars, lock state, difficulty), `Settings`, `Pause`, `Controls` screen.
+- [x] Battlefield HUD (wave, next-wave preview, gold, base HP, speed, start button, boss bar, banners, floating numbers).
+- [x] Tower build bar (cost, affordability, hotkeys 1–5) + Tower info/upgrade panel (target mode, upgrade, sell).
+- [x] `Tower Encyclopedia` (+ enemy/boss codex).
+- [x] `Victory/Defeat + Statistics` screens (StatsTracker: kills/type, damage/tower, gold, leaks, time).
+- [x] Tutorial/onboarding on Map 1 (skippable, replayable).
+- [x] Touch UX: ≥ 48 dp targets, tap-to-select, drag ghost, pinch zoom, safe areas; keyboard/gamepad focus navigation.
+- [x] Key rebinding UI (persisted).
+- [x] `SceneManager` transitions + loading screen.
 **Gate M5:** whole loop playable only via UI (no debug tools): menu → map → play → result → retry/menu; works with mouse, touch (emulated + device), keyboard.
 
 ## M6 — Content: maps, modifiers, meta (Days 16–19) — **[68]**
@@ -178,3 +178,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 - 2026-11-18 — Completed M2 (GridMap2D, PathNetwork, Enemy base & pooling, StatusEffects, BaseCore, path-invariant acceptance tests).
 - 2026-11-18 — Completed M3 (SpatialHash, TowerBase, TargetingSystem with 4 modes & tie-breaks, Projectile & ProjectilePool, BuildController, targeting tests).
 - 2026-11-18 — Completed M4 — MVP Checkpoint (EconomyManager, UpgradeController, WaveManager, authored all 30 wave configurations, BattleHUD, integration test, tagged v0.1.0).
+- 2026-11-18 — Completed M5 UI/UX (Theme tokens, MainMenu, MapSelect, Encyclopedia, SettingsMenu, PauseMenu, TowerPanels, ResultsScreen, SkillTreeMenu, AchievementsMenu, Battlefield scene).

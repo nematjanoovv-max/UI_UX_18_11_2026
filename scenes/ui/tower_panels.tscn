@@ -1,0 +1,99 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/tower_panels.gd" id="1_panels"]
+[ext_resource type="Theme" path="res://assets/ui/theme.tres" id="2_theme"]
+
+[node name="TowerPanels" type="CanvasLayer"]
+theme = ExtResource("2_theme")
+script = ExtResource("1_panels")
+
+[node name="BuildBar" type="MarginContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -68.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="HBox" type="HBoxContainer" parent="BuildBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PulseBtn" type="Button" parent="BuildBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "[1] Pulse\n100g"
+
+[node name="MortarBtn" type="Button" parent="BuildBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "[2] Mortar\n150g"
+
+[node name="CryoBtn" type="Button" parent="BuildBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "[3] Cryo\n120g"
+
+[node name="RailgunBtn" type="Button" parent="BuildBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "[4] Railgun\n250g"
+
+[node name="BeaconBtn" type="Button" parent="BuildBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 48)
+layout_mode = 2
+text = "[5] Beacon\n180g"
+
+[node name="InspectPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 64.0
+offset_right = -16.0
+offset_bottom = 260.0
+grow_horizontal = 0
+
+[node name="VBox" type="VBoxContainer" parent="InspectPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InspectTowerName" type="Label" parent="InspectPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.9, 1, 1)
+text = "PULSE TOWER"
+horizontal_alignment = 1
+
+[node name="InspectTier" type="Label" parent="InspectPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Tier: 1 / 3"
+horizontal_alignment = 1
+
+[node name="InspectTargetModeBtn" type="Button" parent="InspectPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Target: FIRST [T]"
+
+[node name="InspectUpgradeBtn" type="Button" parent="InspectPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Upgrade (80g) [U]"
+
+[node name="InspectSellBtn" type="Button" parent="InspectPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Sell (+70g) [S]"

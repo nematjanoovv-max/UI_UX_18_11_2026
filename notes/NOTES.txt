@@ -41,3 +41,15 @@
 - Implemented scenes/ui/battle_hud.tscn and scripts/ui/battle_hud.gd.
 - Integration tests in tests/integration/test_full_run.gd verified acceptance criteria #3 (wave completion, economy atomic transactions, base loss defeat).
 - Gate M4 reached.
+[2026-11-18 19:24] [NOTES] Completed M5 UI/UX:
+- Created assets/ui/theme.tres with Cyber Neon dark tokens and styleboxes.
+- Built scenes/menus/main_menu.tscn and scripts/ui/main_menu.gd.
+- Built scenes/menus/map_select.tscn and scripts/ui/map_select.gd with 10 mission cards, stars, and difficulties.
+- Built scenes/menus/encyclopedia.tscn and scripts/ui/encyclopedia.gd for all towers, enemies, and bosses.
+- Built scenes/menus/settings_menu.tscn and scripts/ui/settings_menu.gd (Audio, Language, Accessibility).
+- Built scenes/menus/pause_menu.tscn and scripts/ui/pause_menu.gd.
+- Built scenes/ui/tower_panels.tscn and scripts/ui/tower_panels.gd (bottom build bar 1-5 + inspect/upgrade/sell panel).
+- Built scenes/menus/results_screen.tscn and scripts/ui/results_screen.gd.
+- Built scenes/menus/skill_tree_menu.tscn and scenes/menus/achievements_menu.tscn.
+- Fully wired scenes/levels/battlefield.tscn with GridMap2D, PathNetwork, BaseCore, Pools, WaveManager, HUD, and Panels.
+- Gate M5 passed.

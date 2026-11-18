@@ -20,3 +20,5 @@ func _on_boot_complete() -> void:
 	status_label.text = "Ready"
 	if GameState:
 		GameState.change_state(GameStateSingleton.State.MAIN_MENU)
+	if SceneManager:
+		SceneManager.change_scene("res://scenes/menus/main_menu.tscn")
