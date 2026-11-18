@@ -3,7 +3,7 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.2.0 Mobile Touch Pro & Radial Quick-Build Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.3.0 Realistic CGI Engine & Dynamic Lighting Reliz)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,38 +22,32 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.2.0 MOBILE TOUCH PRO YANGILIKLARI (TELEFONDA 100% QULAY O'YNASH):
+2. v3.3.0 REALISTIC CGI ENGINE & 2D REALIZMNING 5 TA ASOSIY USTUNI:
 
-[1] TELEFONDA TEGINISH TUZATISHLARI (CRITICAL TOUCH ENGINE FIXES):
-    - NaN Koordinata xatosi to'liq bartaraf etildi:
-      * Mobil brauzerlarda barmoq ekrandan ko'tarilganda (`touchend` hodisasida) `e.touches` bo'sh ro'yxat bo'ladi. Ilgari bu xato `clientX = undefined` va natijada `{ x: NaN, y: NaN }` berib, ekranga bosilgan hech bir tugma ishlamayotgan edi. Endi `e.changedTouches[0]` orqali har bir teginish 100% aniqlikda hisoblanadi.
-    - CSS `!important` va `object-fit: contain` xatosi olib tashlandi:
-      * Ilgari CSS-dagi `width: 100vw !important` inline o'lchamlarni buzib, ekrandagi o'yin tasviri atrofida qora hoshiyalar hosil qilgan va barcha tugmalar koordinatasi 200-300 pikselga siljib ketgan edi. Endi canvas o'lchamlari ekranga 1:1 nisbatda moslashadi va bosilgan har bir nuqta mukammal mos keladi.
-    - Sintetik dublikat bosilishlar (Ghost Clicks) bloklandi:
-      * `touchend` da `e.preventDefault()` chaqirilib, brauzerning 300ms kechikish bilan ikkinchi marta synthetic `click` yuborishi to'liq to'xtatildi (ilgari bu tugmani tanlab darhol bekor qilib yuborayotgan edi).
+[1] ZAMIN KONTAKT SOYALARI VA AMBIENT OCCLUSION (LAYERED GROUND CONTACT SHADOWS):
+    - Har bir personaj, minora, reaktor yadrosi va dushman ostiga ko'p qatlamli silliq ellips zamin soyalari qo'shildi (`renderUnitShadows()`).
+    - Birliklar endi tekis qog'ozdek uchib turmaydi, balki yuqori yorug'lik manbasi hisobiga polga tabiiy tushuvchi yumshoq radial soyalarga ega.
+    - Minoralarning stvoli burilishiga qarab yo'naltirilgan soyalar tushadi.
 
-[2] MOBIL QURILMALAR UCHUN RADIAL QUICK-BUILD TIZIMI (KINGDOM RUSH STYLE):
-    - Maydondagi har qanday bo'sh katakka barmoq bilan teginilsa, o'sha katak atrofida 5 ta yirik kiber-tugma (`[⚡ Pulse 100g]`, `[💣 Mortar 150g]`, `[❄️ Cryo 120g]`, `[🎯 Railgun 250g]`, `[📡 Beacon 180g]`) ochiladi.
-    - O'yinchi xohlagan minorasini barmog'i bilan bitta teginishda to'g'ridan-to'g'ri o'sha katakda quradi. Pastki paneldan maydonga qo'l cho'zish shart emas!
+[2] METALLIK KO'P BOSQICHLI GRADIENTLAR VA 3D CHESHTLAR (SPECULAR BEVELS & SHADING):
+    - Qahramon Mech (Apex-01): Titan zirh plitalari, gidravlik tizza porshenlari, aylanuvchi mis magnitli Ark-Reaktor yadrosi, ikki qavatli shisha kiber-visor va elektr chaqmoqlari bilan yonuvchi Yuqori-Chastotali Plazma Katana (harakatda kavisli nurli iz qoldiradi).
+    - Minoralar: 45 darajali metall qirqimlari (bevels), zanglamas po'lat gaykalar, sovutish radiatorlari, ogohlantiruvchi qora/sariq chevrons.
+    - 8 ta Kiber Dushman va 3 Boss: Multfilm uslubidagi oddiy shakllar o'rniga zamonaviy harbiy kiber-mashinalar (kamuflyajli taktik zirh, tungi ko'rish visorlari, uglerod tolali Stalker, qora tutun chiqaruvchi Goliath Brute, optik kamuflyajli Phantom, zanjirli Leviathan, gimbelli Eye of Chronos, Colossus MK-IV lazerli tanki).
 
-[3] AVTOMATIK LANDSHAFT FULLSCREEN ROTATSIYASI (AUTO-ROTATE):
-    - Mobil dialogda "🚀 TO'LIQ EKRANDA O'YNASH (AUTO-ROTATE)" tugmasi qo'shildi (`screen.orientation.lock('landscape')`).
-    - Bitta tugma bilan telefon avtomatik ravishda yonbosh holatga o'tadi va butun ekranni egallaydi.
+[3] DINAMIK ADDITIV YORIG'LIK TIZIMI (DYNAMIC LIGHTING & LIGHTMAPS):
+    - Canvas-da `globalCompositeOperation = "lighter"` orqali to'liq yorug'lik qatlami (`renderDynamicLightingLayer()`).
+    - Minoralardan o'q otilganda tumshuqda yorqin sariq/olovrang nur chaqnashi (muzzle flash bloom).
+    - Reaktor yadrosidan atrofga pulsatsiyalanuvchi kiber-ko'k radial yog'du taralishi.
+    - O'qlar va artilleriya snaryadlari uchib borayotganda o'z ortidan yerga tushuvchi yorug'lik doirasi.
 
-[4] SENSORLI VA HAPTIK BOSHQARUV:
-    - Bosh menyu tugmalariga keng teginish tolerantligi berildi (barmoq bilan oson bosiladi).
-    - Qahramon Mechga teginib, xaritadagi xohlagan nuqtaga yuborish.
-    - O'ng bosh barmoq sohasida yirik suzuvchi `[⚡ ULT]` va `[▶ START / ⏩ SPEED]` neon boshqaruv disklari.
-    - `navigator.vibrate` orqali har bir harakatda sezilarli taktil tebranish.
+[4] JANG MIKRO-FIZIKASI VA QUROL SILKINISHI (RECOIL & WEAPON PHYSICS):
+    - Qurollarning orqaga tepishi (Physical Recoil Kickback): Stvol o'q otilgan onda -6px orqaga silkinadi va amortizator orqali joyiga qaytadi.
+    - Otilgan patron gilzalari (Spent Brass Shell Casings): Kinetik minoralardan otilgan haqiqiy latun rangidagi patron gilzalari havoga uchib, yerga sakrab tushadi va pol ustida bir necha soniya aylanib turadi.
+    - Artilleriya portlash kraterlari (Scorch Marks): Mina va raketalar tushgan joyda zamin ustida kuygan qora kraterlar va darz ketgan izlar qoladi.
+    - Tutun va oyoq izlari: Qahramon mech va tanklar yurganda chang ko'tariladi va yengil izlar qoladi.
 
-================================================================================
-3. HOZIRGI ZAMON KIBER DIZAYNI VA TAKTIK IMKONIYATLAR:
-- Maydon Qahramoni Mech (Apex-01) — 2 oyoqli yuruvchi shassi, ion turbinasi, Yuqori-Chastotali Plazma Katana, 360 darajali bo'ron ulti.
-- 8 ta Zamonaviy Kiber-Dushman (Cyborg Grunt, Cyber-Hound Sprinter, Goliath Brute Mech, Nano-Scarab Drone, Aegis Paladin Android with shield, Nanite Bio-Synth Medic with heal beam, Fracture Crystal Splitter, Phantom Stealth Assassin).
-- 3 ta Gigant Zamonaviy Boss (Colossus MK-IV, Eye of Chronos, Leviathan Core).
-- 10 ta Ikkilamchi Minora Tarmoqlari (Branching Specializations at Tier 3).
-- Roguelike Perk va Draft Tizimi (Augment Drafts).
-- Jang Yakuni Tahlili va DPS Grafiklari (Combat Analytics & MVP).
-- Jonli Serverless FastAPI Leaderboard (/api).
-- PWA va last-grid-offline-v2.zip orqali to'liq oflayn o'ynash.
+[5] TELEFONDA 100% QULAY MOBIL BOSHQARUV (v3.2 BILAN BIRGALIKDA):
+    - Kingdom Rush uslubidagi Radial Quick-Build doirasi.
+    - NaN xatolari bartaraf etilgan aniq sensor teginishi (`e.changedTouches[0]`).
+    - Avtomatik landshaft rejimi (Auto-Rotate Fullscreen).
 ================================================================================
