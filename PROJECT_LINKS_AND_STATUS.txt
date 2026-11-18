@@ -1,13 +1,18 @@
 ================================================================================
 LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter O'yini
-Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 3D/2D Engine
-Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.5.0 Dynamic Battlefield Edition)
+Dvigatel: Android Native WebView + Godot 4.3 + Web 3D/2D Engine
+Platformalar: Android APK (Native), Web (HTML5/PWA), Desktop (Windows/Linux/Mac)
+Holati: 100% TO'LIQ TAYYOR (v3.5.0 Standalone Android APK Reliz)
 Sana: 2026-11-18
 ================================================================================
 
 1. ASOSIY HAVOLALAR:
+
+- ANDROID APK YUKLAB OLISH (RASMIY v3.5.0):
+  https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.5.0.apk
+  Yoki qisqa havola:
+  https://last-grid-td.vercel.app/last-grid.apk
 
 - GITHUB REPOZITORIY:
   https://github.com/nematjanoovv-max/UI_UX_18_11_2026
@@ -22,32 +27,33 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.5.0 DYNAMIC BATTLEFIELD EDITION (PUBG & GTA USLUBIDAGI 10 TA JANGOVAR XARITA):
+2. ANDROID APK (v3.5.0) NATIVE XUSUSIYATLARI:
 
-[1] PUBG USLUBIDAGI KIBER-AIRDROP TIZIMI (SUPPLY CRATE DROPS):
-    - Har bir jangovar to'lqinda og'ir transport samolyoti samoda ovoz berib uchib o'tadi.
-    - Qizil-oq harbiy parashyutda Airdrop yuk qutisi maydonga tushadi.
-    - Yerga qo'nganda atrofga kuchli QIZIL SIGNAL TUTUNI (Red Smoke Flare) taratadi va strob nuri bilan miltillaydi.
-    - Hero Mech yoki barmog'ingiz bilan tegib ochganingizda: +250 Oltin + 12 soniyalik Overclock Matrix (barcha minoralar o'q otish tezligi 2 barobar oshadi) beriladi!
+[1] TO'LIQ OFLAYN ISHGA TUSHISH:
+    - Barcha 10 ta xarita, 3D TPS rejimi, ovozlar, grafika to'liq APK ichiga joylangan.
+    - Internetsiz ham 100% ishlaydi.
+    - Internet bo'lganda natijalar avtomatik global liderlar jadvaliga sinxronlashadi.
 
-[2] PUBG RED ZONE ARTILLERIYA ZARBASI (ARTILLERY BARRAGE):
-    - 2-to'lqindan boshlab sektor bo'ylab Havo Trevogasi (Siren) yangraydi va 135px radiusli Qizil Xavf Doirasi (Red Zone) paydo bo'ladi.
-    - Ekranda 4.5 soniyalik ogohlantirish taymeri va nishon krossheyri aylanadi.
-    - Ortidan osmondan 9 ta portlovchi artilleriya snaryadlari yog'iladi (har bir snaryad 420 portlash zarari yetkazadi).
-    - Dushmanlar maydoni tozalanadi, lekin agar Hero Mech o'z vaqtida zonadan chiqmasa, u ham 35 HP zarar oladi.
+[2] QAT'IY GORIZONTAL VA IMMERSIVE FULLSCREEN:
+    - android:screenOrientation="landscape"
+    - Android tizim tugmalari va status bar butunlay yashiriladi.
+    - PUBG/GTA kabi ekranni to'liq egallaydi, qora hoshiyalar bo'lmaydi.
 
-[3] BUZILUVCHAN VA TA'MIRLANUVCHAN BARRICADALAR (DESTRUCTIBLE COVER):
-    - Barcha 10 ta kampaniya xaritalarida strategik bo'g'izlarda og'ir beton va temir to'siqlar joylashtirilgan.
-    - Dushmanlar to'siqqa yetganda to'xtab, uni urib maydalashga harakat qiladi (sparks, dust, audio).
-    - To'siq buzilganda tosh va beton parchalari sochilib, dushmanlar yo'li ochiladi.
-    - O'yinchi to'siqqa teginib, uni ta'mirlashi (+120 HP / 20g) yoki to'liq qayta qurishi (350 HP / 45g) mumkin.
-    - Pastki panelda yangi [6] 🚧 TO'SIQ tugmasi orqali istalgan katakka qo'shimcha yangi to'siq o'rnatish mumkin (40g).
+[3] NATIVE ANDROID BRIDGE & TAKTIL HAPTICS:
+    - O'q otish, Airdrop ochish, Red Zone zarbalari va to'siq sinishida telefon apparat darajasida tebranadi.
+    - Sozlamalarda tebranishni o'chirish/yoqish imkoniyati mavjud.
 
-[4] GTA/PUBG USLUBIDAGI HARBIY RADIO COMMS & HQ BRIIFINGLARI:
-    - Har bir missiya boshlanishida HQ Bosh Qo'mondoni Vance tomonidan xaritaning taktik operatsiya brifingi beriladi.
-    - Airdrop, Red Zone, To'siq buzilishi va Boss kelishida jonli radio xabarlar audio beepi va ovozli vizualizatori bilan ekranda aks etadi.
+[4] RASMIY ILОVA IDENTIFIKATORI:
+    - Package: com.lastgrid.towerdefense
+    - Ilova nomi: Tower Defense: Last Grid
+    - Versiya: 3.5.0 (Build 350)
+    - Target SDK: Android 14/15 (API 34), Min SDK: Android 5.0 (API 21)
 
-[5] AVVALGI REJAMLARNING TO'LIQ INTEGRATSIYASI:
-    - 3D TPS Arena Rejimi (Over-the-shoulder kamerasi, qurol modifikatsiyalari, durbin va mobil joystik) 100% ishlamoqda.
-    - 2D Cyber-Tactical strategiya va Roguelike kartalar ham mukammal ishlaydi.
+================================================================================
+3. v3.5.0 JANGOVAR TIZIMLARI:
+- PUBG Kiber-Airdrop Tizimi (Parashyut, Qizil tutun, +250 Oltin, 12s Overclock)
+- PUBG Red Zone Artilleriya Zarbasi (Sirena, 135px xavf doirasi, 9 ta snaryad)
+- Buziluvchan va Qayta Tiklanuvchi Barrikadalar ([6] 🚧 TO'SIQ qurish va ta'mirlash)
+- Harbiylar Radio Aloqasi (GTA/PUBG uslubidagi ovozli aloqa oynasi)
+- 3D TPS Cyber-Arena rejimi (Over-the-shoulder kamerasi, qurol va durbin)
 ================================================================================

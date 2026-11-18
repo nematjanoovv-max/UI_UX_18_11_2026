@@ -1,0 +1,18 @@
+{
+  "name": "Tower Defense: Last Grid",
+  "short_name": "LastGrid",
+  "description": "Cyber-Neon Tactical Tower Defense Game with 10 Maps, 5 Towers, 8 Enemies, 3 Bosses, and 30 Waves.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#05070d",
+  "theme_color": "#00e5ff",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

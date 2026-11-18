@@ -1,41 +1,38 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter
-Versiya: v3.5.0 (Dynamic Battlefield Edition)
+Versiya: v3.5.0 (Standalone Android APK Reliz)
 Sana: 2026-11-18
 ================================================================================
 
-1. GITHUB REPOZITORIY HAVOLASI:
+1. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
+https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.5.0.apk
+Qisqa havola:
+https://last-grid-td.vercel.app/last-grid.apk
+
+2. GITHUB REPOZITORIY HAVOLASI:
 https://github.com/nematjanoovv-max/UI_UX_18_11_2026
 
-2. VERCEL LIVE (ISHLAYOTGAN JONLI SAYT VA PWA):
+3. VERCEL LIVE (ISHLAYOTGAN JONLI SAYT VA PWA):
 https://last-grid-td.vercel.app
 
-3. LIVE GLOBAL LEADERBOARD API (FASTAPI SERVERLESS):
+4. LIVE GLOBAL LEADERBOARD API:
 https://last-grid-td.vercel.app/api
 
-4. TO'LIQ OFLAYN O'YIN PAKETI (ZIP KO'CHIRIB OLISH):
+5. TO'LIQ OFLAYN O'YIN PAKETI (ZIP):
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-v3.5.0 YANGI DINAMIK JANGOVAR TIZIMLAR (PUBG & GTA USLUBIDA):
+ANDROID APK IMKONIYATLARI VA O'RNATISH QO'LLANMASI:
 
-1. 📦 PUBG Kiber-Airdrop Tizimi:
-   - Samolyot uchib o'tib, maydonga parashyutda airdrop qutisini tashlaydi.
-   - Qutidan qizil signal tutuni (Red Smoke Flare) chiqadi.
-   - Barmog'ingiz bilan teginib yoki Hero Mech bilan olsangiz: +250 Oltin va 12s Overclock (barcha minoralar o't ochish tezligi 2x) beriladi!
+1. 📲 O'rnatish:
+   - Yuqoridagi APK havolasini bosing yoki Vercel saytidagi "📲 ANDROID APK" tugmasini bosing.
+   - Yuklangan `TowerDefense_LastGrid_v3.5.0.apk` faylini ochib, "O'rnatish" (Install) tugmasini bosing.
+   - Ilova telefoningiz ishchi stolida "Tower Defense: Last Grid" nomi va kiber-minora ikonasi bilan paydo bo'ladi.
 
-2. 🚨 PUBG Red Zone Artilleriya Zarbasi:
-   - 2-to'lqindan boshlab Sirena chalib, qizil xavf doirasi paydo bo'ladi.
-   - 4.5 soniyadan so'ng 9 ta kuchli artilleriya snaryadlari tushadi (dushmanlarni yo'q qiladi, maydonga kraterlar qoldiradi).
-
-3. 🚧 Buziluvchan va Ta'mirlanuvchan To'siqlar (Destructible Barricades):
-   - 10 ta xaritadagi tor yo'llarda dushmanlarni to'suvchi beton/temir to'siqlar mavjud.
-   - Dushmanlar uni urib sindiradi. To'siqqa teginib, uni ta'mirlashingiz yoki yangisini [6] tugmasi bilan qurishingiz mumkin!
-
-4. 📻 Harbiylar Radio Aloqasi (GTA/PUBG Radio Comms):
-   - HQ Qo'mondoni har bir xarita boshida taktik topshiriq beradi va jang davomida vaziyat haqida radio orqali ogohlantirib turadi.
-
-5. 🎮 3D TPS Cyber-Arena Rejimi:
-   - Bosh menyudagi pushti tugma orqali bevosita 3-shaxs kamerasida qurol otib, 3D minoralar qurish rejimiga o'tishingiz mumkin!
+2. 🚀 Xususiyatlari:
+   - 100% Oflayn ishlaydi — internet kerak emas!
+   - Ekranni to'liq egallaydi (Landscape Fullscreen, PUBG/GTA kabi).
+   - Taktil sensorli tebranish (Haptic feedback) qo'llab-quvvatlanadi.
+   - Barcha 10 ta xarita, Kiber-Airdroplar, Red Zone artilleriyasi, Buziluvchan to'siqlar va 3D TPS Arena rejimi mavjud!
 ================================================================================

@@ -1286,7 +1286,8 @@
         else if (y >= 506 && y <= 560 && x >= 645 && x <= 900) { this.state = 'EDITOR'; return; }
         else if (y >= 561 && y <= 615 && x >= 380 && x <= 635) { this.state = 'LEADERBOARD'; return; }
         else if (y >= 561 && y <= 615 && x >= 645 && x <= 900) { this.state = 'MANUAL'; return; }
-        else if (y >= 616 && y <= 675 && x >= 380 && x <= 900) { this.downloadOfflineZip(); return; }
+        else if (y >= 600 && y <= 665 && x >= 380 && x <= 635) { this.downloadApk(); return; }
+        else if (y >= 600 && y <= 665 && x >= 645 && x <= 900) { this.downloadOfflineZip(); return; }
         if (x > 1080 && x < 1260 && y > 10 && y < 65) this.toggleLang();
         return;
       }
@@ -2080,6 +2081,15 @@
         }
         ctx.restore();
       }
+    }
+
+    downloadApk() {
+      const a = document.createElement('a');
+      a.href = 'TowerDefense_LastGrid_v3.5.0.apk';
+      a.download = 'TowerDefense_LastGrid_v3.5.0.apk';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
     downloadOfflineZip() {
@@ -5318,7 +5328,8 @@
       this.renderMenuButton(650, 490, 190, 42, this.t("mapEditor"), "#132d2a", "#00e676", "#00e676");
       this.renderMenuButton(440, 545, 190, 42, this.t("leaderboard"), "#142038", "#ffd600", "#ffd600");
       this.renderMenuButton(650, 545, 190, 42, this.t("fieldManual"), "#182848", "#00e5ff", "#00e5ff");
-      this.renderMenuButton(440, 600, 400, 42, `📥 ${this.t("downloadOffline")}`, "#122033", "#ffd600", "#ffd600");
+      this.renderMenuButton(440, 600, 190, 42, "📲 ANDROID APK", "#1b3320", "#00e676", "#00e676");
+      this.renderMenuButton(650, 600, 190, 42, `📦 ${this.t("downloadOffline")}`, "#122033", "#ffd600", "#ffd600");
     }
 
     renderMenuButton(x, y, w, h, text, bg, fg, border) {
