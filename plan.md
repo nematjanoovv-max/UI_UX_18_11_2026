@@ -25,16 +25,16 @@ Total ≈ 27 days. MVP-playable checkpoint (one full map) at end of M4.
 ---
 
 ## M0 — Foundation (Day 1)
-- [ ] Create `notes/` with all `.txt` files from agents.md §3 (header line + date in each).
-- [ ] Verify/pin Godot stable version → `notes/DECISIONS.txt`; create `project.godot` at repo root (Compatibility renderer, 1280×720, stretch `canvas_items`/`expand`, landscape).
-- [ ] Create folder layout (spec §4.1) with `.gdignore`/`.gitkeep` where needed.
-- [ ] `.gitignore`, `.gitattributes`, `README.md` (stub), `LICENSE`, `CHANGELOG.md`.
-- [ ] `git init`, first commit `chore: bootstrap project`. Branches `main`, `dev`.
-- [ ] Install GUT (pinned) into `addons/gut/`; one passing smoke test.
-- [ ] Install `gdtoolkit` config (`.gdlintrc`), pre-commit hook (optional).
-- [ ] Create autoload stubs: `EventBus, GameState, Settings, SaveSystem, AudioManager, SceneManager, Localization`.
+- [x] Create `notes/` with all `.txt` files from agents.md §3 (header line + date in each).
+- [x] Verify/pin Godot stable version → `notes/DECISIONS.txt`; create `project.godot` at repo root (Compatibility renderer, 1280×720, stretch `canvas_items`/`expand`, landscape).
+- [x] Create folder layout (spec §4.1) with `.gdignore`/`.gitkeep` where needed.
+- [x] `.gitignore`, `.gitattributes`, `README.md` (stub), `LICENSE`, `CHANGELOG.md`.
+- [x] `git init`, first commit `chore: bootstrap project`. Branches `main`, `dev`.
+- [x] Install GUT (pinned) into `addons/gut/`; one passing smoke test.
+- [x] Install `gdtoolkit` config (`.gdlintrc`), pre-commit hook (optional).
+- [x] Create autoload stubs: `EventBus, GameState, Settings, SaveSystem, AudioManager, SceneManager, Localization`.
 - [ ] GitHub Actions `ci.yml` skeleton (lint + tests). **Ask user** to create the GitHub repo and push (agents.md §9).
-- [ ] Input map: `build_select_1..5`, `start_wave` (Space), `pause` (Esc), `upgrade`, `sell`, `cycle_target`, `speed_toggle`, `ui_*`.
+- [x] Input map: `build_select_1..5`, `start_wave` (Space), `pause` (Esc), `upgrade`, `sell`, `cycle_target`, `speed_toggle`, `ui_*`.
 **Gate M0:** project opens & runs a blank scene on desktop + Web export of blank scene loads; CI green; notes files exist.
 
 ## M1 — Design docs & data (Days 2–3) — **[61]**
@@ -173,3 +173,4 @@ Start: re-read `plan.md` current milestone + last 20 lines of `notes/NOTES.txt`.
 
 ## Change log (append-only)
 - 2026-11-18 — Initial plan created from the source technical assignment (Project 07).
+- 2026-11-18 — Completed M0 foundation tasks (notes, project.godot, autoloads, GUT v9.3.0, workflows, initial git commit).

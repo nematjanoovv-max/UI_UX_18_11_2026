@@ -1,3 +1,10 @@
 # NOTES.txt — Tower Defense: Last Grid
 [2026-11-18 19:01] [IMPORTANT] Project initialized. Following agents.md, spec.md, and plan.md.
 [2026-11-18 19:01] [NOTES] Starting Milestone M0: Foundation & Setup.
+[2026-11-18 19:07] [NOTES] Completed M0 foundation: created all 9 notes/*.txt files.
+[2026-11-18 19:07] [NOTES] Created directory layout, .gitignore, .gitattributes, README.md, LICENSE, CHANGELOG.md, vercel.json.
+[2026-11-18 19:07] [NOTES] Configured project.godot (1280x720, Compatibility, InputMap, Autoloads).
+[2026-11-18 19:07] [NOTES] Created 7 Autoload managers: EventBus, GameState, Settings, SaveSystem, AudioManager, SceneManager, Localization.
+[2026-11-18 19:07] [NOTES] Cloned and installed GUT v9.3.0 into addons/gut, authored smoke test tests/unit/test_smoke.gd.
+[2026-11-18 19:07] [NOTES] Created CI/CD workflows (.github/workflows/ci.yml, deploy-web.yml, release.yml).
+[2026-11-18 19:07] [NOTES] Initialized git repo on branch main and dev, committed chore: bootstrap project.
