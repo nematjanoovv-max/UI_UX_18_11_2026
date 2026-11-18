@@ -791,6 +791,16 @@
       this.canvas.style.width = `${Math.floor(targetW)}px`;
       this.canvas.style.height = `${Math.floor(targetH)}px`;
       this.canvas.style.display = 'block';
+
+      // HiDPI / Retina Crispness for Android AMOLED & High-Res displays
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const targetBufferW = Math.round(1280 * dpr);
+      const targetBufferH = Math.round(720 * dpr);
+      if (this.canvas.width !== targetBufferW || this.canvas.height !== targetBufferH) {
+        this.canvas.width = targetBufferW;
+        this.canvas.height = targetBufferH;
+      }
+      this.dpr = dpr;
     }
 
     getCanvasPos(e) {
@@ -1324,13 +1334,13 @@
       }
 
       if (this.state === 'MAP_SELECT') {
-        if (y > 25 && y < 65 && x > 50 && x < 150) { this.state = 'MENU'; return; }
+        if (y > 15 && y < 65 && x > 30 && x < 160) { this.state = 'MENU'; return; }
         for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
-          const mx = 60 + col * 235;
-          const my = 85 + row * 240;
-          if (x >= mx && x <= mx + 220 && y >= my && y <= my + 210) {
+          const mx = 40 + col * 242;
+          const my = 75 + row * 245;
+          if (x >= mx && x <= mx + 230 && y >= my && y <= my + 230) {
             this.startMission(i, 'CAMPAIGN');
             return;
           }
@@ -1356,9 +1366,9 @@
       }
 
       if (this.state === 'VICTORY' || this.state === 'DEFEAT') {
-        if (x > 360 && x < 540 && y > 450 && y < 530) this.startMission(this.currentMapIndex, this.gameMode);
-        else if (x > 550 && x < 730 && y > 450 && y < 530) this.state = 'ANALYTICS';
-        else if (x > 740 && x < 920 && y > 450 && y < 530) this.state = 'MENU';
+        if (x >= 330 && x <= 530 && y >= 420 && y <= 500) this.startMission(this.currentMapIndex, this.gameMode);
+        else if (x >= 540 && x <= 740 && y >= 420 && y <= 500) this.state = 'ANALYTICS';
+        else if (x >= 750 && x <= 950 && y >= 420 && y <= 500) this.state = 'MENU';
         return;
       }
 
@@ -1433,14 +1443,15 @@
 
       // 4. Top HUD Bar clicks
       if (y >= 0 && y <= 60) {
-        if (x >= 450 && x <= 630) this.callNextWave();
-        else if (x >= 790 && x <= 855) this.cycleSpeed();
-        else if (x >= 856 && x <= 920) audio.toggleSFX();
-        else if (x >= 921 && x <= 985) audio.toggleBGM();
-        else if (x >= 986 && x <= 1050) this.crtEnabled = !this.crtEnabled;
-        else if (x >= 1051 && x <= 1115) this.colorblind = !this.colorblind;
-        else if (x >= 1116 && x <= 1175) this.toggleLang();
-        else if (x >= 1176 && x <= 1250) this.togglePause();
+        if (x >= 450 && x <= 620) this.callNextWave();
+        else if (x >= 750 && x <= 800) this.cycleSpeed();
+        else if (x >= 801 && x <= 855) audio.toggleSFX();
+        else if (x >= 856 && x <= 910) audio.toggleBGM();
+        else if (x >= 911 && x <= 965) this.crtEnabled = !this.crtEnabled;
+        else if (x >= 966 && x <= 1020) this.colorblind = !this.colorblind;
+        else if (x >= 1021 && x <= 1070) this.toggleLang();
+        else if (x >= 1071 && x <= 1135) this.togglePause();
+        else if (x >= 1136 && x <= 1230) { this.state = 'MENU'; this.vibrate(20); }
         return;
       }
 
@@ -3187,14 +3198,18 @@
 
     // --- RENDERING PIPELINE ---
     render() {
+      // Clear entire backing buffer at full physical resolution
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
       this.ctx.save();
+      if (this.dpr && this.dpr !== 1) {
+        this.ctx.scale(this.dpr, this.dpr);
+      }
       if (this.screenShake > 0) {
         const sx = (Math.random() * 2 - 1) * this.screenShake;
         const sy = (Math.random() * 2 - 1) * this.screenShake;
         this.ctx.translate(sx, sy);
       }
-
-      this.ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.state === 'MENU') this.renderMainMenu();
       else if (this.state === 'MAP_SELECT') this.renderMapSelect();
@@ -3246,47 +3261,123 @@
     }
 
     renderBackgroundGrid() {
-      this.ctx.fillStyle = "#070b14";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      // High-Contrast Deep Industrial Cyber-Backdrop
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+      bgGrad.addColorStop(0, "#050812");
+      bgGrad.addColorStop(0.5, "#080e1e");
+      bgGrad.addColorStop(1, "#04060d");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
-      this.ctx.lineWidth = 1;
+      // Modular Tactical Floor Tiles with crisp grid lines
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.lineWidth = 1;
       for (let x = 0; x <= this.width; x += 64) {
-        this.ctx.beginPath(); this.ctx.moveTo(x, 60); this.ctx.lineTo(x, 620); this.ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, 60);
+        ctx.lineTo(x, 620);
+        ctx.stroke();
       }
       for (let y = 60; y <= 620; y += 64) {
-        this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.width, y); this.ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(this.width, y);
+        ctx.stroke();
       }
+
+      // Tech Junction Crosshairs
+      ctx.fillStyle = "rgba(0, 229, 255, 0.25)";
+      for (let x = 64; x < this.width; x += 128) {
+        for (let y = 124; y < 620; y += 128) {
+          ctx.fillRect(x - 3, y - 0.5, 6, 1);
+          ctx.fillRect(x - 0.5, y - 3, 1, 6);
+        }
+      }
+
+      // Outer Perimeter Defense Hazard Border
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(2, 62, this.width - 4, 556);
     }
 
     renderLanes() {
       const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
+      const ctx = this.ctx;
+      const time = performance.now() * 0.003;
+
       for (const lane of map.lanes) {
         if (!lane || lane.length < 2) continue;
-        this.ctx.beginPath();
-        this.ctx.moveTo(lane[0].x, lane[0].y);
-        for (let i = 1; i < lane.length; i++) this.ctx.lineTo(lane[i].x, lane[i].y);
-        this.ctx.strokeStyle = "#101b33";
-        this.ctx.lineWidth = 44;
-        this.ctx.lineCap = "round";
-        this.ctx.stroke();
 
-        this.ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-        this.ctx.lineWidth = 2;
-        this.ctx.stroke();
+        // 1. Reinforced Trench Roadway (Dark Heavy Composite Base)
+        ctx.beginPath();
+        ctx.moveTo(lane[0].x, lane[0].y);
+        for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
+        ctx.strokeStyle = "#0d1629";
+        ctx.lineWidth = 48;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+
+        // 2. Concrete Curb Edge Lines
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.28)";
+        ctx.lineWidth = 44;
+        ctx.stroke();
+
+        // 3. Inner Dark Pavement
+        ctx.strokeStyle = "#0a1120";
+        ctx.lineWidth = 38;
+        ctx.stroke();
+
+        // 4. Animated Tactical Guidance Dashed Centerline
+        ctx.save();
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+        ctx.lineWidth = 2.5;
+        ctx.lineDashOffset = -time * 28;
+        ctx.setLineDash([14, 12]);
+        ctx.beginPath();
+        ctx.moveTo(lane[0].x, lane[0].y);
+        for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
+        ctx.stroke();
+        ctx.restore();
       }
 
+      // Holographic Quantum Warp Gate at Spawn
       for (const lane of map.lanes) {
         if (!lane || lane.length < 2) continue;
         const sp = lane[0];
-        this.ctx.fillStyle = "rgba(255, 23, 68, 0.8)";
-        this.ctx.beginPath();
-        this.ctx.arc(sp.x, sp.y, 22, 0, Math.PI * 2);
-        this.ctx.fill();
-        this.ctx.fillStyle = "#fff";
-        this.ctx.font = "bold 10px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText("SPAWN", sp.x, sp.y + 4);
+        ctx.save();
+        ctx.translate(sp.x, sp.y);
+
+        // Rotating hazard ring
+        ctx.rotate(time * 1.6);
+        ctx.strokeStyle = "#ff1744";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Pulsing hazard arcs
+        ctx.strokeStyle = "rgba(255, 23, 68, 0.7)";
+        ctx.lineWidth = 1.8;
+        for (let i = 0; i < 3; i++) {
+          const a = (Math.PI * 2 / 3) * i;
+          ctx.beginPath();
+          ctx.arc(0, 0, 30, a, a + Math.PI / 4);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Spawn Gate Core
+        ctx.fillStyle = "rgba(255, 23, 68, 0.9)";
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 9px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("WARP", sp.x, sp.y + 3);
       }
     }
 
@@ -4942,320 +5033,388 @@
     }
 
     renderTopHUD() {
-      this.ctx.fillStyle = "#0c1424";
-      this.ctx.fillRect(0, 0, this.width, 60);
-      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-      this.ctx.lineWidth = 1;
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, 60);
-      this.ctx.lineTo(this.width, 60);
-      this.ctx.stroke();
+      const ctx = this.ctx;
+      // Frosted Glassmorphism Top Bar
+      const topGrad = ctx.createLinearGradient(0, 0, 0, 60);
+      topGrad.addColorStop(0, "rgba(12, 20, 36, 0.98)");
+      topGrad.addColorStop(1, "rgba(6, 11, 20, 0.95)");
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, this.width, 60);
 
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 13px 'Segoe UI', monospace";
-      this.ctx.textAlign = "left";
-      this.ctx.fillText(`${this.t("core")}: ${this.baseHp}/${this.maxBaseHp}`, 16, 24);
+      // Glowing Neon Bottom Border
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 60);
+      ctx.lineTo(this.width, 60);
+      ctx.stroke();
+
+      // Core Health Meter with Segmented Armor Pips
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`⬢ ${this.t("core").toUpperCase()}: ${this.baseHp}/${this.maxBaseHp}`, 16, 22);
+
       const hpPct = Math.max(0, this.baseHp / this.maxBaseHp);
-      this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(16, 32, 120, 14);
-      this.ctx.fillStyle = hpPct > 0.3 ? "#00e5ff" : "#ff1744";
-      this.ctx.fillRect(16, 32, 120 * hpPct, 14);
+      const barW = 125;
+      const pips = 10;
+      ctx.fillStyle = "rgba(10, 18, 30, 0.9)";
+      ctx.fillRect(16, 30, barW, 14);
+      ctx.strokeStyle = "#37474f";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(16, 30, barW, 14);
 
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 17px monospace";
-      this.ctx.fillText(`⚡ ${this.gold}G`, 150, 36);
+      const fillPips = Math.round(hpPct * pips);
+      const pipW = (barW - 4 - (pips - 1) * 2) / pips;
+      for (let p = 0; p < pips; p++) {
+        const px = 18 + p * (pipW + 2);
+        if (p < fillPips) {
+          ctx.fillStyle = hpPct > 0.4 ? "#00e5ff" : (hpPct > 0.2 ? "#ffd600" : "#ff1744");
+        } else {
+          ctx.fillStyle = "rgba(40, 55, 75, 0.4)";
+        }
+        ctx.fillRect(px, 32, pipW, 10);
+      }
 
-      this.ctx.fillStyle = "#b0bec5";
-      this.ctx.font = "12px monospace";
-      this.ctx.fillText(`PTS: ${this.score}`, 240, 36);
+      // Currency / Tactical Gold
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 16px monospace";
+      ctx.fillText(`⚡ ${this.gold}G`, 155, 36);
 
-      this.ctx.textAlign = "center";
-      this.ctx.fillStyle = "#ffffff";
-      this.ctx.font = "bold 15px monospace";
+      // Score
+      ctx.fillStyle = "#90a4ae";
+      ctx.font = "11px monospace";
+      ctx.fillText(`PTS: ${this.score}`, 240, 36);
+
+      // Wave Meter
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px monospace";
       const maxWStr = (this.maxWaves > 50) ? "∞" : this.maxWaves;
-      this.ctx.fillText(`${this.t("wave")} ${this.wave}/${maxWStr}`, 390, 36);
+      ctx.fillText(`WAVE ${this.wave}/${maxWStr}`, 380, 36);
 
-      this.ctx.fillStyle = this.waveActive ? "#162b47" : "#00e5ff";
-      this.ctx.fillRect(470, 10, 150, 40);
-      this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.strokeRect(470, 10, 150, 40);
-      this.ctx.fillStyle = this.waveActive ? "#00e5ff" : "#05070d";
-      this.ctx.font = "bold 12px monospace";
-      const waveLabel = this.waveActive ? `${this.t("inBattle")} (${this.enemies.length})` : `${this.t("start")} [${Math.ceil(this.waveCountdown)}s]`;
-      this.ctx.fillText(waveLabel, 545, 35);
+      // Start / Wave Action Cyber Button
+      const isWaveActive = this.waveActive;
+      const waveLabel = isWaveActive ? `⚔ JANGDA (${this.enemies.length})` : `▶ JANG [${Math.ceil(this.waveCountdown)}s]`;
+      this.drawCyberButton(450, 10, 160, 40, waveLabel, isWaveActive ? "#ff1744" : "#00e676", isWaveActive ? "HOSTILES IN BOUND" : "ENGAGE WAVE", "", !isWaveActive);
 
-      this.ctx.fillStyle = "#78909c";
-      this.ctx.font = "11px monospace";
+      // Mode & Map Name
+      ctx.fillStyle = "#78909c";
+      ctx.font = "10px monospace";
+      ctx.textAlign = "center";
       const mapName = (this.gameMode === 'CUSTOM') ? "CUSTOM MAP" : MAPS[this.currentMapIndex].name.toUpperCase();
-      this.ctx.fillText(`[${this.gameMode}] ${mapName}`, 705, 35);
+      ctx.fillText(`[${this.gameMode}] ${mapName}`, 675, 36);
 
-      this.renderMiniButton(800, 12, 50, 36, `${this.speed}x`);
-      this.renderMiniButton(860, 12, 55, 36, audio.sfxMuted ? "SFX ✕" : "SFX ✓");
-      this.renderMiniButton(925, 12, 55, 36, audio.bgmMuted ? "BGM ✕" : "BGM ✓");
-      this.renderMiniButton(990, 12, 55, 36, this.crtEnabled ? "CRT ✓" : "CRT ✕");
-      this.renderMiniButton(1055, 12, 55, 36, this.colorblind ? "CB ✓" : "CB ✕");
-      this.renderMiniButton(1120, 12, 50, 36, this.lang.toUpperCase());
-      this.renderMiniButton(1180, 12, 60, 36, this.state === 'PAUSED' ? "RESUME" : "PAUSE");
+      // Compact Control Cyber Buttons
+      this.renderMiniButton(755, 12, 45, 36, `${this.speed}x`, this.speed > 1 ? "#ffd600" : "#00e5ff");
+      this.renderMiniButton(805, 12, 50, 36, audio.sfxMuted ? "SFX ✕" : "SFX ✓", audio.sfxMuted ? "#78909c" : "#00e676");
+      this.renderMiniButton(860, 12, 50, 36, audio.bgmMuted ? "BGM ✕" : "BGM ✓", audio.bgmMuted ? "#78909c" : "#00e676");
+      this.renderMiniButton(915, 12, 50, 36, this.crtEnabled ? "CRT ✓" : "CRT ✕", this.crtEnabled ? "#00e5ff" : "#78909c");
+      this.renderMiniButton(970, 12, 50, 36, this.colorblind ? "CB ✓" : "CB ✕", this.colorblind ? "#ffd600" : "#78909c");
+      this.renderMiniButton(1025, 12, 45, 36, this.lang.toUpperCase(), "#00e5ff");
+      this.renderMiniButton(1075, 12, 60, 36, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff");
+      this.renderMiniButton(1140, 12, 80, 36, "← MENYU", "#ff1744");
     }
 
-    renderMiniButton(x, y, w, h, text) {
-      this.ctx.fillStyle = "#162238";
-      this.ctx.fillRect(x, y, w, h);
-      this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.lineWidth = 1;
-      this.ctx.strokeRect(x, y, w, h);
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 11px monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(text, x + w / 2, y + h / 2 + 4);
+    renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
+      const ctx = this.ctx;
+      ctx.save();
+      const cut = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cut);
+      ctx.lineTo(x + w - cut, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cut);
+      ctx.closePath();
+
+      const grad = ctx.createLinearGradient(x, y, x, y + h);
+      grad.addColorStop(0, "rgba(22, 35, 58, 0.95)");
+      grad.addColorStop(1, "rgba(9, 15, 26, 0.98)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y + 1);
+      ctx.lineTo(x + w - 1, y + 1);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "rgba(0,0,0,0.85)";
+      ctx.shadowBlur = 3;
+      ctx.fillText(text, x + w / 2, y + h / 2 + 4);
+      ctx.restore();
+    }
+
+    drawCyberButton(x, y, w, h, text, color = "#00e5ff", subtext = "", icon = "", isHighlighted = false) {
+      const ctx = this.ctx;
+      const cut = Math.min(8, Math.floor(h * 0.22));
+      ctx.save();
+
+      // Chamfered 45-degree tactical polygon
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cut);
+      ctx.lineTo(x + w - cut, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cut);
+      ctx.closePath();
+
+      // Deep metallic titanium gradient
+      const grad = ctx.createLinearGradient(x, y, x, y + h);
+      if (isHighlighted) {
+        grad.addColorStop(0, "rgba(25, 48, 80, 0.98)");
+        grad.addColorStop(0.5, "rgba(14, 28, 48, 0.98)");
+        grad.addColorStop(1, "rgba(8, 16, 28, 0.99)");
+      } else {
+        grad.addColorStop(0, "rgba(18, 28, 44, 0.95)");
+        grad.addColorStop(0.5, "rgba(11, 18, 29, 0.97)");
+        grad.addColorStop(1, "rgba(6, 10, 18, 0.99)");
+      }
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Neon glowing border
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isHighlighted ? 2.0 : 1.3;
+      ctx.stroke();
+
+      // Top specular highlight line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + cut + 2, y + 1);
+      ctx.lineTo(x + w - 2, y + 1);
+      ctx.stroke();
+
+      // Left-side vertical status indicator strip
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y + cut, 3.5, Math.max(2, h - cut * 2));
+
+      // Corner L-brackets
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(x + w - 10, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + 8);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x, y + h - 8);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x + 10, y + h);
+      ctx.stroke();
+
+      // High-contrast typography with drop shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 1;
+
+      const hasSub = !!subtext;
+      const titleY = hasSub ? y + h * 0.42 : y + h * 0.5 + 4;
+
+      ctx.fillStyle = isHighlighted ? "#ffffff" : color;
+      ctx.font = "bold 13px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      const fullTitle = icon ? `${icon} ${text}` : text;
+      ctx.fillText(fullTitle, x + w / 2, titleY);
+
+      if (hasSub) {
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "bold 9px 'Segoe UI', monospace";
+        ctx.fillText(subtext, x + w / 2, y + h * 0.78);
+      }
+
+      ctx.restore();
     }
 
     renderBottomBar() {
-      this.ctx.fillStyle = "#0c1424";
-      this.ctx.fillRect(0, 620, this.width, 100);
-      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-      this.ctx.lineWidth = 1;
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, 620);
-      this.ctx.lineTo(this.width, 620);
-      this.ctx.stroke();
+      const ctx = this.ctx;
+      // Frosted Glassmorphism Panel
+      const botGrad = ctx.createLinearGradient(0, 620, 0, 720);
+      botGrad.addColorStop(0, "rgba(9, 15, 27, 0.98)");
+      botGrad.addColorStop(1, "rgba(5, 8, 16, 0.99)");
+      ctx.fillStyle = botGrad;
+      ctx.fillRect(0, 620, this.width, 100);
 
-      // Hero Mech Button at far left
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 620);
+      ctx.lineTo(this.width, 620);
+      ctx.stroke();
+
+      // 1. Hero Mech Button (Far Left)
       const isHeroUltReady = this.hero.currentUltCd <= 0;
-      this.ctx.fillStyle = isHeroUltReady ? "#1c355e" : "#131a29";
-      this.ctx.fillRect(10, 630, 50, 75);
-      this.ctx.strokeStyle = isHeroUltReady ? "#ffd600" : "#455a64";
-      this.ctx.strokeRect(10, 630, 50, 75);
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 11px monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText("HERO", 35, 650);
-      this.ctx.font = "9px monospace";
-      this.ctx.fillText("ULT", 35, 668);
-      if (this.hero.currentUltCd > 0) {
-        this.ctx.fillStyle = "#ff1744";
-        this.ctx.fillText(`${Math.ceil(this.hero.currentUltCd)}s`, 35, 690);
-      } else {
-        this.ctx.fillStyle = "#00e676";
-        this.ctx.fillText("READY", 35, 690);
-      }
+      this.drawCyberButton(10, 628, 52, 78, "ULT", isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady ? "READY" : `${Math.ceil(this.hero.currentUltCd)}s`, "⚡", isHeroUltReady);
 
-      // 4 Skills Panel (x: 65 to 220)
+      // 2. 4 Commander Skills Panel (x: 68 to 228)
       const skillList = ['emp', 'orbital', 'overclock', 'drone'];
       for (let i = 0; i < 4; i++) {
         const k = skillList[i];
         const s = this.skills[k];
-        const sx = 65 + i * 40;
+        const sx = 68 + i * 40;
         const isReady = s.currentCd <= 0 && this.gold >= s.cost;
+        const color = isReady ? "#00e5ff" : "#37474f";
 
-        this.ctx.fillStyle = isReady ? "#1c2b45" : "#101624";
-        this.ctx.fillRect(sx, 630, 36, 75);
-        this.ctx.strokeStyle = isReady ? "#00e5ff" : "#37474f";
-        this.ctx.strokeRect(sx, 630, 36, 75);
-
-        this.ctx.fillStyle = isReady ? "#00e5ff" : "#546e7a";
-        this.ctx.font = "bold 11px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText(`[${s.key}]`, sx + 18, 650);
-        this.ctx.font = "8px monospace";
-        this.ctx.fillText(this.t(k).split(' ')[0], sx + 18, 665);
-        this.ctx.fillStyle = "#ffd600";
-        this.ctx.fillText(`${s.cost}g`, sx + 18, 680);
+        this.drawCyberButton(sx, 628, 36, 78, `[${s.key}]`, color, `${s.cost}g`, "", isReady);
 
         if (s.currentCd > 0) {
-          this.ctx.fillStyle = "rgba(255, 23, 68, 0.6)";
-          this.ctx.fillRect(sx, 630, 36, 75 * (s.currentCd / s.cd));
-          this.ctx.fillStyle = "#fff";
-          this.ctx.font = "bold 10px monospace";
-          this.ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 18, 696);
+          ctx.fillStyle = "rgba(255, 23, 68, 0.65)";
+          const pct = s.currentCd / s.cd;
+          ctx.fillRect(sx, 628 + 78 * (1 - pct), 36, 78 * pct);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 18, 696);
         }
       }
 
+      // 3. Selection vs Hotbar
       if (this.selectedTower) {
         const t = this.selectedTower;
         const def = TOWER_DEFS[t.type];
         const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
 
-        this.ctx.fillStyle = spec.color || def.color;
-        this.ctx.font = "bold 14px monospace";
-        this.ctx.textAlign = "left";
+        // Tower info box
+        ctx.fillStyle = spec.color || def.color;
+        ctx.font = "bold 14px monospace";
+        ctx.textAlign = "left";
         const titleStr = t.branch ? spec.name.toUpperCase() : `${def.name.toUpperCase()} (T${t.tier})`;
-        this.ctx.fillText(titleStr, 235, 652);
+        ctx.fillText(titleStr, 235, 652);
 
-        this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "11px monospace";
+        ctx.fillStyle = "#cfd8dc";
+        ctx.font = "11px monospace";
         const stats = t.type === 'beacon' ?
-          `Aura: +${(spec.dmgBuff || 0.35) * 100}% Dmg | Range: ${spec.range}px` :
-          `Dmg: ${spec.dmg} | Rate: ${spec.rate}/s | Kills: ${t.kills} | Dmg: ${t.damageDealt}`;
-        this.ctx.fillText(stats, 235, 674);
+          `Aura: +${(spec.dmgBuff || 0.35) * 100}% Dmg | Radius: ${spec.range}px` :
+          `Dmg: ${spec.dmg} | Rate: ${spec.rate}/s | Kills: ${t.kills} | Deal: ${t.damageDealt}`;
+        ctx.fillText(stats, 235, 674);
 
         // Branching upgrade at Tier 2
         if (t.tier === 2) {
           const bA = def.branches.A;
           const bB = def.branches.B;
-          // Branch A Button
-          this.ctx.fillStyle = this.gold >= bA.cost ? "#1a3b5c" : "#212b38";
-          this.ctx.fillRect(450, 635, 140, 65);
-          this.ctx.strokeStyle = bA.color;
-          this.ctx.strokeRect(450, 635, 140, 65);
-          this.ctx.fillStyle = bA.color;
-          this.ctx.font = "bold 10px monospace";
-          this.ctx.textAlign = "center";
-          this.ctx.fillText(`[A] ${bA.name}`, 520, 654);
-          this.ctx.fillStyle = "#ffd600";
-          this.ctx.fillText(`${bA.cost}g`, 520, 672);
-          this.ctx.fillStyle = "#90a4ae";
-          this.ctx.font = "8px monospace";
-          this.ctx.fillText(bA.perk.toUpperCase(), 520, 688);
-
-          // Branch B Button
-          this.ctx.fillStyle = this.gold >= bB.cost ? "#2b1a4a" : "#212b38";
-          this.ctx.fillRect(605, 635, 140, 65);
-          this.ctx.strokeStyle = bB.color;
-          this.ctx.strokeRect(605, 635, 140, 65);
-          this.ctx.fillStyle = bB.color;
-          this.ctx.font = "bold 10px monospace";
-          this.ctx.fillText(`[B] ${bB.name}`, 675, 654);
-          this.ctx.fillStyle = "#ffd600";
-          this.ctx.fillText(`${bB.cost}g`, 675, 672);
-          this.ctx.fillStyle = "#90a4ae";
-          this.ctx.font = "8px monospace";
-          this.ctx.fillText(bB.perk.toUpperCase(), 675, 688);
+          const canA = this.gold >= bA.cost;
+          const canB = this.gold >= bB.cost;
+          this.drawCyberButton(450, 632, 140, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "", canA);
+          this.drawCyberButton(605, 632, 140, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "", canB);
         } else if (t.tier === 1) {
-          // Standard Tier 1 -> Tier 2 upgrade
           const upCost = spec.upCost;
           const canUpgrade = this.gold >= upCost;
-          this.ctx.fillStyle = canUpgrade ? "#00e676" : "#37474f";
-          this.ctx.fillRect(480, 640, 140, 50);
-          this.ctx.fillStyle = "#000";
-          this.ctx.font = "bold 12px monospace";
-          this.ctx.textAlign = "center";
-          this.ctx.fillText(`[U] ${this.t("upgrade")} (${upCost}g)`, 550, 670);
+          this.drawCyberButton(480, 636, 140, 62, `[U] ${this.t("upgrade")}`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g`, "⚡", canUpgrade);
         } else {
-          // Tier 3 Max
-          this.ctx.fillStyle = "#263238";
-          this.ctx.fillRect(480, 640, 140, 50);
-          this.ctx.fillStyle = "#ffd600";
-          this.ctx.font = "bold 12px monospace";
-          this.ctx.textAlign = "center";
-          this.ctx.fillText("★ MAX SPECIALIZED ★", 550, 670);
+          this.drawCyberButton(480, 636, 140, 62, "MAX TIER 3", "#ffd600", "MAX SPECIALIZED", "★", false);
         }
 
         // Sell button
         const refund = Math.floor(t.totalInvested * 0.70);
-        this.ctx.fillStyle = "#ff1744";
-        this.ctx.fillRect(760, 640, 110, 50);
-        this.ctx.fillStyle = "#fff";
-        this.ctx.font = "bold 12px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText(`[S] (+${refund}g)`, 815, 670);
+        this.drawCyberButton(760, 636, 110, 62, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑", true);
 
         // Priority button
-        this.ctx.fillStyle = "#1e3a5f";
-        this.ctx.fillRect(885, 640, 115, 50);
-        this.ctx.strokeStyle = "#00e5ff";
-        this.ctx.strokeRect(885, 640, 115, 50);
-        this.ctx.fillStyle = "#00e5ff";
-        this.ctx.fillText(`[T] ${t.priority}`, 942, 670);
+        this.drawCyberButton(885, 636, 115, 62, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
 
-        // Close
-        this.ctx.fillStyle = "#37474f";
-        this.ctx.fillRect(1015, 640, 45, 50);
-        this.ctx.fillStyle = "#fff";
-        this.ctx.fillText("✕", 1037, 670);
+        // Close button
+        this.drawCyberButton(1015, 636, 45, 62, "✕", "#90a4ae", "YOPISH", "", false);
       } else {
         // Tower Hotbar
         const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
         for (let i = 0; i < 5; i++) {
           const key = towerKeys[i];
           const def = TOWER_DEFS[key];
-          const bx = 240 + i * 175;
+          const bx = 236 + i * 175;
           const isSelected = this.selectedBuildType === key;
+          const canAfford = this.gold >= def.cost;
+          const cardColor = isSelected ? "#00e5ff" : (canAfford ? def.color : "#455a64");
 
-          this.ctx.fillStyle = isSelected ? "rgba(0, 229, 255, 0.2)" : "#131e33";
-          this.ctx.fillRect(bx, 630, 160, 75);
-          this.ctx.strokeStyle = isSelected ? "#00e5ff" : (this.gold >= def.cost ? def.color : "#37474f");
-          this.ctx.lineWidth = isSelected ? 2 : 1;
-          this.ctx.strokeRect(bx, 630, 160, 75);
-
-          this.ctx.fillStyle = def.color;
-          this.ctx.font = "bold 13px monospace";
-          this.ctx.textAlign = "left";
-          this.ctx.fillText(`[${i + 1}] ${def.name.split(' ')[0]}`, bx + 10, 652);
-
-          this.ctx.fillStyle = "#ffd600";
-          this.ctx.font = "bold 12px monospace";
-          this.ctx.fillText(`🪙 ${def.cost}g`, bx + 10, 674);
-
-          this.ctx.fillStyle = "#78909c";
-          this.ctx.font = "10px monospace";
-          this.ctx.fillText(def.type, bx + 10, 693);
+          this.drawCyberButton(bx, 628, 165, 78, `[${i + 1}] ${def.name.split(' ')[0]}`, cardColor, `${def.cost}g • ${def.type.toUpperCase()}`, isSelected ? "▶" : "⬢", isSelected);
         }
 
         // [6] Tactical Barricade Deploy Button
         const barX = 1115;
         const isBarSelected = this.selectedBuildType === 'barricade';
-        this.ctx.fillStyle = isBarSelected ? "rgba(255, 145, 0, 0.25)" : "#131e33";
-        this.ctx.fillRect(barX, 630, 150, 75);
-        this.ctx.strokeStyle = isBarSelected ? "#ff9100" : (this.gold >= 40 ? "#ffd600" : "#37474f");
-        this.ctx.lineWidth = isBarSelected ? 2 : 1;
-        this.ctx.strokeRect(barX, 630, 150, 75);
-
-        this.ctx.fillStyle = "#ff9100";
-        this.ctx.font = "bold 13px monospace";
-        this.ctx.textAlign = "left";
-        this.ctx.fillText("[6] 🚧 TO'SIQ", barX + 10, 652);
-
-        this.ctx.fillStyle = "#ffd600";
-        this.ctx.font = "bold 12px monospace";
-        this.ctx.fillText("🪙 40g", barX + 10, 674);
-
-        this.ctx.fillStyle = "#90a4ae";
-        this.ctx.font = "10px monospace";
-        this.ctx.fillText("MUSTAHKAM DEVOR", barX + 10, 693);
+        const canBar = this.gold >= 40;
+        this.drawCyberButton(barX, 628, 155, 78, "[6] 🚧 TO'SIQ", isBarSelected ? "#ff9100" : (canBar ? "#ffd600" : "#455a64"), "40g • MUSTAHKAM DEVOR", "", isBarSelected);
       }
     }
 
     renderDraftModal() {
-      this.ctx.fillStyle = "rgba(5, 7, 13, 0.95)";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+      bgGrad.addColorStop(0, "rgba(4, 7, 14, 0.97)");
+      bgGrad.addColorStop(1, "rgba(8, 14, 25, 0.98)");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.textAlign = "center";
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 32px 'Segoe UI', monospace";
-      this.ctx.fillText(this.t("draftTitle"), 640, 110);
+      ctx.save();
+      ctx.shadowColor = "rgba(255, 214, 0, 0.7)";
+      ctx.shadowBlur = 15;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "900 34px 'Segoe UI', monospace";
+      ctx.fillText(this.t("draftTitle"), 640, 110);
+      ctx.restore();
 
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 14px monospace";
-      this.ctx.fillText(this.t("draftSub"), 640, 150);
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(this.t("draftSub"), 640, 148);
 
       for (let i = 0; i < this.draftCards.length; i++) {
         const c = this.draftCards[i];
         const x = 180 + i * 320;
-        const y = 200;
+        const y = 195;
+        const w = 280;
+        const h = 330;
+        const cut = 10;
 
-        this.ctx.fillStyle = "#0c1527";
-        this.ctx.fillRect(x, y, 280, 320);
-        this.ctx.strokeStyle = c.color;
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(x, y, 280, 320);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + cut, y);
+        ctx.lineTo(x + w, y);
+        ctx.lineTo(x + w, y + h - cut);
+        ctx.lineTo(x + w - cut, y + h);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x, y + cut);
+        ctx.closePath();
 
-        this.ctx.font = "40px monospace";
-        this.ctx.fillText(c.icon, x + 140, y + 60);
+        const cardGrad = ctx.createLinearGradient(x, y, x, y + h);
+        cardGrad.addColorStop(0, "rgba(16, 26, 46, 0.98)");
+        cardGrad.addColorStop(1, "rgba(8, 14, 25, 0.99)");
+        ctx.fillStyle = cardGrad;
+        ctx.fill();
 
-        this.ctx.fillStyle = c.color;
-        this.ctx.font = "bold 16px monospace";
-        this.ctx.fillText(c.title, x + 140, y + 110);
+        ctx.strokeStyle = c.color;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
 
-        this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "12px monospace";
+        ctx.fillStyle = c.color;
+        ctx.fillRect(x, y + cut, 4, 35);
+
+        ctx.font = "42px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(c.icon, x + w / 2, y + 62);
+
+        ctx.fillStyle = c.color;
+        ctx.font = "bold 16px 'Segoe UI', monospace";
+        ctx.fillText(c.title, x + w / 2, y + 112);
+
+        ctx.fillStyle = "#b0bec5";
+        ctx.font = "12px 'Segoe UI', monospace";
         this.wrapText(c.desc, x + 20, y + 155, 240, 18);
 
-        this.ctx.fillStyle = c.color;
-        this.ctx.fillRect(x + 20, y + 250, 240, 45);
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "bold 14px monospace";
-        this.ctx.fillText("SELECT PERK", x + 140, y + 278);
+        this.drawCyberButton(x + 20, y + 255, 240, 48, "PERKNI TANLASH", c.color, c.title.toUpperCase(), "⚡", true);
+        ctx.restore();
       }
     }
 
@@ -5316,48 +5475,80 @@
     }
 
     renderMainMenu() {
-      this.ctx.fillStyle = "#05070d";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      const time = performance.now() * 0.002;
 
-      this.ctx.textAlign = "center";
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "800 46px 'Segoe UI', monospace";
-      this.ctx.fillText(this.t("title"), 640, 150);
+      // Deep Space / Battlefield animated backdrop
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+      bgGrad.addColorStop(0, "#050811");
+      bgGrad.addColorStop(0.5, "#080e1d");
+      bgGrad.addColorStop(1, "#04060c");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.fillStyle = "#ff007f";
-      this.ctx.font = "bold 15px 'Segoe UI', monospace";
-      this.ctx.fillText(this.t("sub"), 640, 190);
+      // Subtle cyber grid lines in menu backdrop
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.04)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= this.width; x += 64) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.height); ctx.stroke();
+      }
+      for (let y = 0; y <= this.height; y += 64) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
+      }
 
-      this.ctx.fillStyle = "#78909c";
-      this.ctx.font = "13px 'Segoe UI', monospace";
-      this.ctx.fillText(`Commander: ${this.playerName} | Field Hero Mech Active | Roguelike Augments Ready`, 640, 220);
+      // 1. Neon Glowing Main Title with Pulse
+      ctx.save();
+      const glowAmt = 12 + Math.sin(time * 2) * 5;
+      ctx.shadowColor = "rgba(0, 229, 255, 0.85)";
+      ctx.shadowBlur = glowAmt;
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "900 46px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(this.t("title"), 640, 135);
+      ctx.restore();
 
-      this.renderMiniButton(1140, 20, 100, 36, `LANG: ${this.lang.toUpperCase()}`);
+      // 2. Subtitle with Cyber Accents
+      ctx.fillStyle = "#ff007f";
+      ctx.font = "bold 14px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡ CYBER-NEON TACTICAL BATTLEFIELD (v3.5.0) ⚡", 640, 172);
 
-      this.renderMenuButton(440, 270, 400, 46, "🎮 3D TPS ARENA REJIMI (BETA)", "#ff007f", "#ffffff", "#ffd600");
-      this.renderMenuButton(440, 325, 400, 46, this.t("campaign"), "#00e5ff", "#05070d");
-      this.renderMenuButton(440, 380, 400, 46, this.t("sectorSelect"), "#162238", "#00e5ff", "#00e5ff");
-      this.renderMenuButton(440, 435, 400, 46, this.t("endless"), "#26133a", "#e040fb", "#e040fb");
-      this.renderMenuButton(440, 490, 190, 42, this.t("bossRush"), "#33121d", "#ff1744", "#ff1744");
-      this.renderMenuButton(650, 490, 190, 42, this.t("mapEditor"), "#132d2a", "#00e676", "#00e676");
-      this.renderMenuButton(440, 545, 190, 42, this.t("leaderboard"), "#142038", "#ffd600", "#ffd600");
-      this.renderMenuButton(650, 545, 190, 42, this.t("fieldManual"), "#182848", "#00e5ff", "#00e5ff");
-      this.renderMenuButton(440, 600, 190, 42, "📲 ANDROID APK", "#1b3320", "#00e676", "#00e676");
-      this.renderMenuButton(650, 600, 190, 42, `📦 ${this.t("downloadOffline")}`, "#122033", "#ffd600", "#ffd600");
+      // 3. Commander Tactical Pill / Badge
+      ctx.save();
+      ctx.fillStyle = "rgba(14, 25, 42, 0.9)";
+      ctx.fillRect(400, 195, 480, 26);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(400, 195, 480, 26);
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`COMMANDER: ${this.playerName}  |  MECH HERO: ONLINE  |  STANDALONE APK`, 640, 212);
+      ctx.restore();
+
+      // Language Switcher (Top Right)
+      this.renderMiniButton(1140, 20, 100, 36, `LANG: ${this.lang.toUpperCase()}`, "#ffd600");
+
+      // Menu Cyber Buttons
+      this.drawCyberButton(440, 265, 400, 48, "3D TPS ARENA REJIMI", "#ff007f", "DIRECT 3D OVER-THE-SHOULDER COMBAT", "🎮", true);
+      this.drawCyberButton(440, 322, 400, 48, this.t("campaign"), "#00e5ff", "10 PROGRESSIVE TACTICAL GRID SECTORS", "🚀", true);
+      this.drawCyberButton(440, 379, 400, 46, this.t("sectorSelect"), "#00e5ff", "MISSION ARCHIVE & REPLAY ZONES", "🗺", false);
+      this.drawCyberButton(440, 434, 400, 46, this.t("endless"), "#e040fb", "INFINITE HIGH-SPEED WAVE SURVIVAL", "⚡", false);
+
+      this.drawCyberButton(440, 489, 190, 44, this.t("bossRush"), "#ff1744", "ELITE TITANS", "💀", false);
+      this.drawCyberButton(650, 489, 190, 44, this.t("mapEditor"), "#00e676", "GRID CREATOR", "🛠", false);
+
+      this.drawCyberButton(440, 542, 190, 44, this.t("leaderboard"), "#ffd600", "GLOBAL AGENTS", "🏆", false);
+      this.drawCyberButton(650, 542, 190, 44, this.t("fieldManual"), "#00e5ff", "TOWER SPECS", "📖", false);
+
+      this.drawCyberButton(440, 595, 190, 44, "ANDROID APK", "#00e676", "OFFLINE STANDALONE", "📲", true);
+      this.drawCyberButton(650, 595, 190, 44, this.t("downloadOffline"), "#ffd600", "ASSET ZIP BUNDLE", "📦", false);
     }
 
     renderMenuButton(x, y, w, h, text, bg, fg, border) {
-      this.ctx.fillStyle = bg;
-      this.ctx.fillRect(x, y, w, h);
-      if (border) {
-        this.ctx.strokeStyle = border;
-        this.ctx.lineWidth = 1.5;
-        this.ctx.strokeRect(x, y, w, h);
-      }
-      this.ctx.fillStyle = fg;
-      this.ctx.font = "bold 13px 'Segoe UI', monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(text, x + w / 2, y + h / 2 + 5);
+      const color = border || fg || "#00e5ff";
+      const isHigh = (border === "#ffd600" || bg === "#00e5ff" || bg === "#ff007f" || border === "#00e676");
+      this.drawCyberButton(x, y, w, h, text, color, "", "", isHigh);
     }
 
     renderFieldManual() {
@@ -5448,50 +5639,74 @@
     }
 
     renderMapSelect() {
-      this.ctx.fillStyle = "#05070d";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
+      bgGrad.addColorStop(0, "#050811");
+      bgGrad.addColorStop(1, "#03050a");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.textAlign = "left";
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 24px 'Segoe UI', monospace";
-      this.ctx.fillText(this.t("sectorSelect"), 60, 55);
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "900 26px 'Segoe UI', monospace";
+      ctx.fillText(this.t("sectorSelect"), 170, 48);
 
-      this.renderMiniButton(60, 20, 90, 30, "← MENU");
+      this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
 
       for (let i = 0; i < MAPS.length; i++) {
         const m = MAPS[i];
         const col = i % 5;
         const row = Math.floor(i / 5);
-        const x = 60 + col * 235;
-        const y = 85 + row * 240;
-
-        this.ctx.fillStyle = "#0c1527";
-        this.ctx.fillRect(x, y, 220, 215);
-        this.ctx.strokeStyle = "#00e5ff";
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(x, y, 220, 215);
-
-        this.ctx.fillStyle = "#00e5ff";
-        this.ctx.font = "bold 14px monospace";
-        this.ctx.textAlign = "left";
-        this.ctx.fillText(`0${i + 1}. ${m.name}`, x + 12, y + 28);
-
-        this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "11px monospace";
-        this.wrapText(m.desc, x + 12, y + 54, 195, 15);
-
-        this.ctx.fillStyle = "#ffd600";
-        this.ctx.font = "11px monospace";
+        const x = 40 + col * 242;
+        const y = 75 + row * 245;
         const starsEarned = this.saveData.stars[m.id] || 0;
-        const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
-        this.ctx.fillText(`WAVES: ${m.wave_count} | ${starStr}`, x + 12, y + 155);
+        const isCompleted = starsEarned > 0;
 
-        this.ctx.fillStyle = "#00e5ff";
-        this.ctx.fillRect(x + 12, y + 170, 196, 32);
-        this.ctx.fillStyle = "#05070d";
-        this.ctx.font = "bold 13px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText("DEPLOY SECTOR", x + 110, y + 191);
+        ctx.save();
+        const cut = 8;
+        ctx.beginPath();
+        ctx.moveTo(x + cut, y);
+        ctx.lineTo(x + 230, y);
+        ctx.lineTo(x + 230, y + 230 - cut);
+        ctx.lineTo(x + 230 - cut, y + 230);
+        ctx.lineTo(x, y + 230);
+        ctx.lineTo(x, y + cut);
+        ctx.closePath();
+
+        const cardGrad = ctx.createLinearGradient(x, y, x, y + 230);
+        cardGrad.addColorStop(0, "rgba(16, 26, 44, 0.96)");
+        cardGrad.addColorStop(1, "rgba(8, 14, 24, 0.98)");
+        ctx.fillStyle = cardGrad;
+        ctx.fill();
+
+        ctx.strokeStyle = isCompleted ? "#00e676" : "#00e5ff";
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+
+        ctx.fillStyle = isCompleted ? "#00e676" : "#00e5ff";
+        ctx.fillRect(x, y + cut, 4, 30);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px 'Segoe UI', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(`0${i + 1}. ${m.name.toUpperCase()}`, x + 14, y + 24);
+
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "11px 'Segoe UI', monospace";
+        this.wrapText(m.desc, x + 14, y + 48, 202, 16);
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 12px monospace";
+        const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
+        ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 14, y + 140);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "11px monospace";
+        ctx.fillText(`WAVES: ${m.wave_count}`, x + 14, y + 160);
+
+        this.drawCyberButton(x + 12, y + 176, 206, 42, "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
+
+        ctx.restore();
       }
     }
 
@@ -5606,55 +5821,82 @@
     }
 
     renderPauseModal() {
-      this.ctx.fillStyle = "rgba(5, 7, 13, 0.85)";
-      this.ctx.fillRect(0, 0, this.width, this.height);
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 36px 'Segoe UI', monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText("TACTICAL PAUSE", 640, 320);
-      this.ctx.fillStyle = "#cfd8dc";
-      this.ctx.font = "16px 'Segoe UI', monospace";
-      this.ctx.fillText("Press [ESC] or click RESUME to return to combat.", 640, 365);
+      const ctx = this.ctx;
+      ctx.fillStyle = "rgba(4, 7, 14, 0.92)";
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 229, 255, 0.7)";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "900 42px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TAKTIK PAUZA", 640, 270);
+      ctx.restore();
+
+      ctx.fillStyle = "#b0bec5";
+      ctx.font = "14px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("Jang to'xtatildi. Qaytish yoki menyuga chiqish uchun tugmani bosing:", 640, 320);
+
+      this.drawCyberButton(440, 380, 400, 52, "DAVOM ETISH", "#00e676", "RESUME COMBAT", "▶", true);
+      this.drawCyberButton(440, 448, 400, 52, "ASOSIY MENYUGA QAYTISH", "#ff1744", "ABORT MISSION", "←", false);
     }
 
     renderVictoryModal() {
-      this.ctx.fillStyle = "rgba(5, 7, 13, 0.9)";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      ctx.fillStyle = "rgba(4, 7, 14, 0.94)";
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.fillStyle = "#00e676";
-      this.ctx.font = "bold 44px 'Segoe UI', monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(this.t("sectorDefended"), 640, 230);
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 230, 118, 0.8)";
+      ctx.shadowBlur = 24;
+      ctx.fillStyle = "#00e676";
+      ctx.font = "900 46px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆 G'ALABA! SEKTOR HIMOYALANDI", 640, 210);
+      ctx.restore();
 
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 28px monospace";
-      this.ctx.fillText(this.t("missionSuccess"), 640, 290);
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 22px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(this.t("missionSuccess"), 640, 265);
 
-      this.ctx.fillStyle = "#cfd8dc";
-      this.ctx.font = "16px monospace";
-      this.ctx.fillText(`Tactical Score: ${this.score} PTS | MVP: ${this.analytics.mvpName}`, 640, 340);
+      ctx.fillStyle = "rgba(18, 30, 50, 0.9)";
+      ctx.fillRect(360, 295, 560, 42);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.strokeRect(360, 295, 560, 42);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px monospace";
+      ctx.fillText(`TAKTIK BALL: ${this.score} PTS  |  MVP MINORA: ${this.analytics.mvpName.toUpperCase()}`, 640, 322);
 
-      this.renderMenuButton(380, 460, 160, 50, this.t("playAgain"), "#00e5ff", "#000");
-      this.renderMenuButton(560, 460, 160, 50, "📊 ANALYTICS", "#162238", "#ffd600", "#ffd600");
-      this.renderMenuButton(740, 460, 160, 50, this.t("mainMenu"), "#162238", "#00e5ff", "#00e5ff");
+      this.drawCyberButton(340, 430, 180, 56, this.t("playAgain"), "#00e676", "RETRY SECTOR", "▶", true);
+      this.drawCyberButton(550, 430, 180, 56, "STATISTIKA", "#ffd600", "BATTLE REPORT", "📊", false);
+      this.drawCyberButton(760, 430, 180, 56, this.t("mainMenu"), "#00e5ff", "COMMAND HQ", "←", false);
     }
 
     renderDefeatModal() {
-      this.ctx.fillStyle = "rgba(5, 7, 13, 0.9)";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      ctx.fillStyle = "rgba(4, 7, 14, 0.94)";
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.fillStyle = "#ff1744";
-      this.ctx.font = "bold 44px 'Segoe UI', monospace";
-      this.ctx.textAlign = "center";
-      this.ctx.fillText(this.t("gridOverrun"), 640, 230);
+      ctx.save();
+      ctx.shadowColor = "rgba(255, 23, 68, 0.85)";
+      ctx.shadowBlur = 24;
+      ctx.fillStyle = "#ff1744";
+      ctx.font = "900 46px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("💀 SEKTOR VAYRON BO'LDI", 640, 210);
+      ctx.restore();
 
-      this.ctx.fillStyle = "#cfd8dc";
-      this.ctx.font = "18px monospace";
-      this.ctx.fillText(`Breached at Wave ${this.wave}. Score: ${this.score} PTS`, 640, 300);
+      ctx.fillStyle = "#b0bec5";
+      ctx.font = "bold 18px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`Dushmanlar ${this.wave}-to'lqinda bazani yorib o'tdi. To'plangan ball: ${this.score} PTS`, 640, 270);
 
-      this.renderMenuButton(380, 460, 160, 50, this.t("retry"), "#ff1744", "#fff");
-      this.renderMenuButton(560, 460, 160, 50, "📊 ANALYTICS", "#162238", "#ffd600", "#ffd600");
-      this.renderMenuButton(740, 460, 160, 50, this.t("mainMenu"), "#162238", "#ff1744", "#ff1744");
+      this.drawCyberButton(340, 430, 180, 56, this.t("retry"), "#ff1744", "RESTART SECTOR", "🔄", true);
+      this.drawCyberButton(550, 430, 180, 56, "STATISTIKA", "#ffd600", "BATTLE REPORT", "📊", false);
+      this.drawCyberButton(760, 430, 180, 56, this.t("mainMenu"), "#00e5ff", "COMMAND HQ", "←", false);
     }
 
     // =========================================================================
