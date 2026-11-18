@@ -3,7 +3,7 @@ LOYIHA NOMI VA MA'LUMOTLARI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter O'yini
 Dvigatel: Godot 4.3 (Compatibility renderer, GDScript static typing) + Web 3D/2D Engine
 Platformalar: Web (HTML5/PWA), Desktop (Windows/Linux/Mac), Mobile (Android/iOS)
-Holati: 100% TO'LIQ TAYYOR (v3.4.0 3D TPS Cyber-Arena Reliz)
+Holati: 100% TO'LIQ TAYYOR (v3.5.0 Dynamic Battlefield Edition)
 Sana: 2026-11-18
 ================================================================================
 
@@ -22,35 +22,32 @@ Sana: 2026-11-18
   https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-2. v3.4.0 3D TPS CYBER-ARENA YANGILIKLARI (PUBG/GTA USLUBIDAGI 3D SHOOTER):
+2. v3.5.0 DYNAMIC BATTLEFIELD EDITION (PUBG & GTA USLUBIDAGI 10 TA JANGOVAR XARITA):
 
-[1] TO'G'RIDAN-TO'G'RI JONLI 3D TPS ARENA REJIMI:
-    - Bosh menyuda "🎮 3D TPS ARENA REJIMI (BETA)" yorqin pushti tugmasi ochildi.
-    - O'yinchi to'liq 3D fazoga o'tadi:
-      * 3-shaxs kamerasi (Over-the-shoulder, PUBG/GTA kabi qahramonning o'ng yelkasi ortidan).
-      * 500x500 metrli kiber-poligon zamin to'ri (Perspektiv 3D grid).
-      * Boshqaruv: PC-da [W, A, S, D] yugurish, [Shift] tez yugurish, [Space / Click] o'q otish, [R] qayta o'qlash, [B] 3D minoralar o'rnatish.
-      * Mobilda: Ekran chap tomonida suzuvchi virtual 3D harakat joystigi, o'ng tomonda [💥 OTISH], [🎯 DURBIN (ADS)], [🏗️ QURISH] va [🔄 O'QLASH] tugmalari.
+[1] PUBG USLUBIDAGI KIBER-AIRDROP TIZIMI (SUPPLY CRATE DROPS):
+    - Har bir jangovar to'lqinda og'ir transport samolyoti samoda ovoz berib uchib o'tadi.
+    - Qizil-oq harbiy parashyutda Airdrop yuk qutisi maydonga tushadi.
+    - Yerga qo'nganda atrofga kuchli QIZIL SIGNAL TUTUNI (Red Smoke Flare) taratadi va strob nuri bilan miltillaydi.
+    - Hero Mech yoki barmog'ingiz bilan tegib ochganingizda: +250 Oltin + 12 soniyalik Overclock Matrix (barcha minoralar o'q otish tezligi 2 barobar oshadi) beriladi!
 
-[2] QUROL VA MODIFIKATSIYALAR (ATTACHMENTS):
-    - Pulse Carbine avtomati: 30 patronli magazin, orqaga tepish (recoil), stvoldan chiqadigan nurli lazer nishon (Laser Sight) va Red-Dot durbin nishoni.
-    - [🎯 DURBIN] bosilganda kamera ADS zoom rejimiga o'tib, markazda qizil kollimator nuqtasi yonadi.
+[2] PUBG RED ZONE ARTILLERIYA ZARBASI (ARTILLERY BARRAGE):
+    - 2-to'lqindan boshlab sektor bo'ylab Havo Trevogasi (Siren) yangraydi va 135px radiusli Qizil Xavf Doirasi (Red Zone) paydo bo'ladi.
+    - Ekranda 4.5 soniyalik ogohlantirish taymeri va nishon krossheyri aylanadi.
+    - Ortidan osmondan 9 ta portlovchi artilleriya snaryadlari yog'iladi (har bir snaryad 420 portlash zarari yetkazadi).
+    - Dushmanlar maydoni tozalanadi, lekin agar Hero Mech o'z vaqtida zonadan chiqmasa, u ham 35 HP zarar oladi.
 
-[3] 3D BAZA VA HIMOYACHI MINORALAR QURILISHI:
-    - Maydon markazida ulkan 3D Kvant Reaktori (`Base Core [500/500]`).
-    - Dushmanlar uzoq gorizontdan to'lqin bo'lib yugurib keladi.
-    - [🏗️ QURISH] tugmasi bosilganda yer sathida yashil 3D kub proyeksiya qilinadi va bitta teginishda to'g'ridan-to'g'ri maydonga avtomatik nishonga oluvchi 3D Gatling minorasi o'rnatiladi.
+[3] BUZILUVCHAN VA TA'MIRLANUVCHAN BARRICADALAR (DESTRUCTIBLE COVER):
+    - Barcha 10 ta kampaniya xaritalarida strategik bo'g'izlarda og'ir beton va temir to'siqlar joylashtirilgan.
+    - Dushmanlar to'siqqa yetganda to'xtab, uni urib maydalashga harakat qiladi (sparks, dust, audio).
+    - To'siq buzilganda tosh va beton parchalari sochilib, dushmanlar yo'li ochiladi.
+    - O'yinchi to'siqqa teginib, uni ta'mirlashi (+120 HP / 20g) yoki to'liq qayta qurishi (350 HP / 45g) mumkin.
+    - Pastki panelda yangi [6] 🚧 TO'SIQ tugmasi orqali istalgan katakka qo'shimcha yangi to'siq o'rnatish mumkin (40g).
 
-[4] GODOT 4.3 3D SCENALARI VA ARXITEKTURASI (REPOZITORIYDA):
-    - `scenes/arena_3d/arena_3d.tscn` — Master 3D jangovar poligon.
-    - `scenes/arena_3d/player_3d.tscn` — CharacterBody3D, SpringArm3D va qurol tizimi.
-    - `scenes/arena_3d/enemy_3d.tscn` — 3D dushman NavigationAgent3D bilan.
-    - `scenes/arena_3d/tower_3d.tscn` — 360° aylanuvchi 3D minora.
-    - `scripts/controllers/player_3d.gd` — To'liq TPS kontrolleri.
-    - `scripts/weapons/weapon_controller_3d.gd` — Qurol va modifikatsiyalar.
-    - `scripts/ui/mobile_tps_touch.gd` — Mobil dual-joystik tizimi.
+[4] GTA/PUBG USLUBIDAGI HARBIY RADIO COMMS & HQ BRIIFINGLARI:
+    - Har bir missiya boshlanishida HQ Bosh Qo'mondoni Vance tomonidan xaritaning taktik operatsiya brifingi beriladi.
+    - Airdrop, Red Zone, To'siq buzilishi va Boss kelishida jonli radio xabarlar audio beepi va ovozli vizualizatori bilan ekranda aks etadi.
 
-[5] 2D REALIZM & 3D HAMKORLIK:
-    - Klassik 2D Taktik rejim ham 100% saqlangan (v3.3 realizm va CGI effektlari bilan).
-    - Foydalanuvchi xohlagan paytda 3D TPS rejimiga o'tib, maydonda qurolda otib o'ynashi mumkin.
+[5] AVVALGI REJAMLARNING TO'LIQ INTEGRATSIYASI:
+    - 3D TPS Arena Rejimi (Over-the-shoulder kamerasi, qurol modifikatsiyalari, durbin va mobil joystik) 100% ishlamoqda.
+    - 2D Cyber-Tactical strategiya va Roguelike kartalar ham mukammal ishlaydi.
 ================================================================================

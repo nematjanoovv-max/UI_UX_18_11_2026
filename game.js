@@ -289,6 +289,32 @@
     victory() {
       [440, 554, 659, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.15), i * 120));
     }
+    airdropFlyby() {
+      this.playTone(90, 'triangle', 0.8, 0.12, 160);
+      setTimeout(() => this.playTone(160, 'triangle', 0.8, 0.1, 80), 300);
+    }
+    airdropLoot() {
+      [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.18, 0.12), i * 70));
+    }
+    redZoneSiren() {
+      this.playTone(600, 'sawtooth', 0.35, 0.18, 300);
+      setTimeout(() => this.playTone(750, 'sawtooth', 0.35, 0.18, 400), 200);
+    }
+    artilleryBlast() {
+      this.playTone(70, 'sawtooth', 0.45, 0.25, 30);
+      this.playTone(140, 'triangle', 0.3, 0.2, 40);
+    }
+    barricadeHit() {
+      this.playTone(110, 'square', 0.08, 0.12, 50);
+    }
+    barricadeBreak() {
+      this.playTone(180, 'sawtooth', 0.4, 0.25, 45);
+      this.playTone(90, 'square', 0.5, 0.2, 30);
+    }
+    radioBeep() {
+      this.playTone(880, 'sine', 0.05, 0.08);
+      setTimeout(() => this.playTone(1174, 'sine', 0.07, 0.08), 60);
+    }
     defeat() {
       [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
     }
@@ -297,6 +323,69 @@
   const audio = new SoundSynth();
 
   // --- MAP DEFINITIONS ---
+  // --- 10 CAMPAIGN MAPS: TACTICAL DESTRUCTIBLE BARRICADES ---
+  const MAP_BARRICADES = [
+    // Map 0: Training Grid
+    [ { x: 384, y: 320, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 896, y: 352, hp: 350, maxHp: 350, type: 'reinforced' } ],
+    // Map 1: Crossroads
+    [ { x: 448, y: 256, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 700, y: 384, hp: 350, maxHp: 350, type: 'reinforced' } ],
+    // Map 2: Spiral Core
+    [ { x: 550, y: 64, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 192, y: 380, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 640, y: 448, hp: 350, maxHp: 350, type: 'reinforced' } ],
+    // Map 3: Misty Pass
+    [ { x: 384, y: 320, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 640, y: 320, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 896, y: 320, hp: 350, maxHp: 350, type: 'reinforced' } ],
+    // Map 4: Fast Track
+    [ { x: 400, y: 256, hp: 400, maxHp: 400, type: 'reinforced' }, { x: 750, y: 256, hp: 400, maxHp: 400, type: 'reinforced' } ],
+    // Map 5: Scrap Yard
+    [ { x: 450, y: 128, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 480, y: 384, hp: 350, maxHp: 350, type: 'reinforced' }, { x: 700, y: 576, hp: 350, maxHp: 350, type: 'reinforced' } ],
+    // Map 6: Iron Wall (Heavy Fortified)
+    [ { x: 130, y: 320, hp: 550, maxHp: 550, type: 'fortified' }, { x: 576, y: 512, hp: 550, maxHp: 550, type: 'fortified' }, { x: 1056, y: 320, hp: 550, maxHp: 550, type: 'fortified' } ],
+    // Map 7: Blackout City
+    [ { x: 320, y: 288, hp: 380, maxHp: 380, type: 'reinforced' }, { x: 640, y: 320, hp: 380, maxHp: 380, type: 'reinforced' }, { x: 960, y: 352, hp: 380, maxHp: 380, type: 'reinforced' } ],
+    // Map 8: Twin Gate (Dual Choke Points)
+    [ { x: 350, y: 192, hp: 400, maxHp: 400, type: 'reinforced' }, { x: 350, y: 448, hp: 400, maxHp: 400, type: 'reinforced' }, { x: 850, y: 320, hp: 400, maxHp: 400, type: 'reinforced' } ],
+    // Map 9: The Last Grid (Ultimate 4 Fortified Barricades)
+    [ { x: 600, y: 64, hp: 500, maxHp: 500, type: 'fortified' }, { x: 600, y: 256, hp: 500, maxHp: 500, type: 'fortified' }, { x: 600, y: 448, hp: 500, maxHp: 500, type: 'fortified' }, { x: 850, y: 576, hp: 500, maxHp: 500, type: 'fortified' } ]
+  ];
+
+  const RADIO_BRIEFINGS = {
+    uz: [
+      "Operatsiya: Training Grid! Minora va to'siqlarni sinovdan o'tkazamiz.",
+      "Operatsiya: Crossroads! Dushmanlar to'g'ri chiziqda, to'siqlarni mustahkamlang!",
+      "Operatsiya: Spiral Core! Girdob markaziga Mortar va Cryo joylashtiring!",
+      "Operatsiya: Misty Pass! Tumanli dovonda dushman ko'rinishi past, ehtiyot bo'ling!",
+      "Operatsiya: Fast Track! Tezyurar yo'l! Dushmanlar +15% tezroq yuguradi!",
+      "Operatsiya: Scrap Yard! Resurslar taqchil! Har bir o'qni hisoblab tejang!",
+      "Operatsiya: Iron Wall! Og'ir himoyalangan devor! Railgun lazerlarini tayyorlang!",
+      "Operatsiya: Blackout City! Kiber-shahar! Davriy EMP to'lqinlari kutilmoqda!",
+      "Operatsiya: Twin Gate! Ikki tomondan parallel hujum! Kuchlarni teng taqsimlang!",
+      "Operatsiya: The Last Grid! So'nggi istehkom! 3 ta Titan Boss kutmoqda. Baza himoyasi sizga omonat!"
+    ],
+    en: [
+      "Operation: Training Grid! Calibrate all defense turrets and barricades.",
+      "Operation: Crossroads! Enemies advancing along straight vectors. Hold the barriers!",
+      "Operation: Spiral Core! Dense inward spiral. Optimal for Mortar and Cryo AoE.",
+      "Operation: Misty Pass! Dense fog detected. Sensor range reduced by 15%.",
+      "Operation: Fast Track! Magnetic highway. Enemy speed increased by 15%!",
+      "Operation: Scrap Yard! Scarce resources. Conserve gold and fortify barricades.",
+      "Operation: Iron Wall! Heavily fortified enemy zone. Deploy armor-piercing Railguns!",
+      "Operation: Blackout City! Cyber-metropolis. Beware periodic EMP power surges!",
+      "Operation: Twin Gate! Converging dual vector assault. Split defensive coverage!",
+      "Operation: The Last Grid! Final endurance sector. 3 Titan Bosses incoming. Defend the Core!"
+    ],
+    ru: [
+      "Операция: Training Grid! Калибровка башен и тактических баррикад.",
+      "Операция: Crossroads! Враги наступают по прямым коридорам. Удерживайте заслоны!",
+      "Операция: Spiral Core! Спиральный сектор. Оптимально для мортир и заморозки.",
+      "Операция: Misty Pass! Электромагнитный туман снижает радиус огня на 15%.",
+      "Операция: Fast Track! Магнитное шоссе. Враги двигаются на 15% быстрее!",
+      "Операция: Scrap Yard! Дефицит ресурсов. Экономьте золото и чините баррикады.",
+      "Операция: Iron Wall! Бронированная зона. Применяйте рельсотроны с пробитием!",
+      "Операция: Blackout City! Кибер-мегаполис. Остерегайтесь периодических ЭМИ-вспышек!",
+      "Операция: Twin Gate! Сходящиеся векторы атаки. Распределяйте турели равномерно!",
+      "Операция: The Last Grid! Финальный сектор. 3 Титана. Защитите Ядро любой ценой!"
+    ]
+  };
+
   const MAPS = [
     {
       id: "training_grid", name: "Training Grid", desc: "Basic S-curve test field. Clean terrain with single lane.",
@@ -558,6 +647,14 @@
       this.scorchMarks = []; // Ground blast craters
       this.muzzleFlashes = []; // Dynamic weapon muzzle flashes
       this.footprints = []; // Mech / titan tread marks
+
+      // Battlefield Dynamics v3.5.0
+      this.airdrops = [];
+      this.redZones = [];
+      this.barricades = [];
+      this.airdropCooldown = 22.0;
+      this.redZoneCooldown = 38.0;
+      this.radioComm = null;
 
       this.selectedBuildType = null;
       this.selectedTower = null;
@@ -1047,6 +1144,22 @@
       this.state = 'PLAYING';
       this.bakeMapLanes(map);
       this.addFloatingText(`${map.name.toUpperCase()}`, 640, 200, "#00e5ff", 22);
+
+      // Initialize Battlefield Dynamics (Barricades, Airdrops, Red Zones, Radio Comms)
+      const baseBars = (mode === 'CUSTOM') ? [] : (MAP_BARRICADES[mapIdx] || []);
+      this.barricades = baseBars.map(b => ({
+        id: this.nextUid++,
+        x: b.x, y: b.y,
+        hp: b.hp, maxHp: b.maxHp,
+        type: b.type,
+        broken: false
+      }));
+      this.airdrops = [];
+      this.redZones = [];
+      this.airdropCooldown = 20.0;
+      this.redZoneCooldown = 35.0;
+      const briefingList = RADIO_BRIEFINGS[this.lang] || RADIO_BRIEFINGS.uz;
+      this.triggerRadioComm("HQ COMMANDER", briefingList[mapIdx] || briefingList[0], 5.5);
     }
 
     bakeMapLanes(map) {
@@ -1326,8 +1439,58 @@
         return;
       }
 
+      // Airdrop Crate Tap / Click Looting
+      if (this.airdrops && this.airdrops.length > 0) {
+        for (const ad of this.airdrops) {
+          if (ad.landed && !ad.looted && Math.hypot(x - ad.crateX, y - ad.crateY) <= 45) {
+            this.lootAirdrop(ad);
+            return;
+          }
+        }
+      }
+
+      // Barricade Tap: Repair or Rebuild
+      if (this.barricades && this.barricades.length > 0) {
+        for (const b of this.barricades) {
+          if (Math.hypot(x - b.x, y - b.y) <= 35) {
+            if (b.broken) {
+              if (this.gold >= 45) {
+                this.gold -= 45;
+                b.broken = false;
+                b.hp = b.maxHp;
+                audio.upgrade();
+                this.spawnShockwave(b.x, b.y, 60, "#00e676");
+                this.addFloatingText("🏗️ QAYTA QURILDI (-45g)", b.x, b.y - 20, "#00e676", 16);
+                this.triggerRadioComm("HQ OVERWATCH", "HQ: Himoya to'sig'i qayta tiklandi!", 3.5);
+                this.vibrate([30, 40, 50]);
+              } else {
+                this.addFloatingText(this.t("notEnoughGold") + " (45g)", b.x, b.y - 20, "#ff1744", 15);
+              }
+              return;
+            } else if (b.hp < b.maxHp) {
+              if (this.gold >= 20) {
+                this.gold -= 20;
+                b.hp = Math.min(b.maxHp, b.hp + 120);
+                audio.upgrade();
+                this.addFloatingText("🔧 +120 HP (-20g)", b.x, b.y - 20, "#00e5ff", 16);
+                this.vibrate(20);
+              } else {
+                this.addFloatingText(this.t("notEnoughGold") + " (20g)", b.x, b.y - 20, "#ff1744", 15);
+              }
+              return;
+            }
+          }
+        }
+      }
+
       // 5. Bottom Bar actions
       if (y >= 620) {
+        // [6] Barricade Hotbar selection
+        if (!this.selectedTower && x >= 1115 && x <= 1265 && y >= 630 && y <= 710) {
+          this.selectedBuildType = (this.selectedBuildType === 'barricade') ? null : 'barricade';
+          this.vibrate(15);
+          return;
+        }
         this.radialBuildCell = null;
 
         // Hero Ult button at x: 5 to 65
@@ -1398,6 +1561,524 @@
       } else {
         this.selectedTower = null;
         this.radialBuildCell = null;
+      }
+    }
+
+    // --- BATTLEFIELD DYNAMICS METHODS (v3.5.0) ---
+    triggerRadioComm(speaker, text, duration = 4.5) {
+      this.radioComm = {
+        speaker: speaker || "HQ COMMANDER",
+        text: text || "",
+        maxTimer: duration,
+        timer: duration,
+        anim: 0
+      };
+      audio.radioBeep();
+    }
+
+    updateRadioComms(dt) {
+      if (this.radioComm) {
+        this.radioComm.timer -= dt;
+        this.radioComm.anim += dt * 32;
+        if (this.radioComm.timer <= 0) this.radioComm = null;
+      }
+    }
+
+    renderRadioComms() {
+      if (!this.radioComm) return;
+      const ctx = this.ctx;
+      const rc = this.radioComm;
+      const bx = 16, by = 68, bw = 460, bh = 70;
+
+      ctx.save();
+      // Cyber Glassmorphism Box
+      ctx.fillStyle = "rgba(7, 12, 24, 0.92)";
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.65)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(bx, by, bw, bh);
+
+      // Top Header
+      ctx.fillStyle = "rgba(0, 229, 255, 0.15)";
+      ctx.fillRect(bx, by, bw, 20);
+      ctx.fillStyle = "#ff1744";
+      ctx.beginPath();
+      ctx.arc(bx + 12, by + 10, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("LIVE COMMS // CH-01 SEC-NET", bx + 22, by + 14);
+
+      // Audio waveform animation
+      const now = performance.now() * 0.01;
+      for (let i = 0; i < 6; i++) {
+        const barH = 3 + Math.abs(Math.sin(now + i * 0.8)) * 10;
+        ctx.fillStyle = "#ffd600";
+        ctx.fillRect(bx + bw - 60 + i * 8, by + 16 - barH, 4, barH);
+      }
+
+      // Speaker & Message
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(rc.speaker, bx + 12, by + 36);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "11px monospace";
+      const charCount = Math.floor(rc.anim);
+      const visibleText = rc.text.substring(0, charCount);
+      ctx.fillText(visibleText, bx + 12, by + 54);
+
+      ctx.restore();
+    }
+
+    spawnAirdrop() {
+      const tx = 260 + Math.random() * 740;
+      const ty = 140 + Math.random() * 420;
+      this.airdrops.push({
+        id: this.nextUid++,
+        planeX: -120,
+        planeY: 52,
+        planeSpeed: 380,
+        targetX: tx,
+        targetY: ty,
+        cargoDropped: false,
+        crateX: tx,
+        crateY: 52,
+        crateVy: 65,
+        landed: false,
+        looted: false,
+        smokeFlareTimer: 25.0,
+        swingAnim: 0
+      });
+      audio.airdropFlyby();
+      this.triggerRadioComm("HQ OVERWATCH", "📦 Taktik Kiber-Airdrop havoda! Koordinataga yuk tashlanmoqda!", 4.0);
+    }
+
+    updateAirdrops(dt) {
+      for (let i = this.airdrops.length - 1; i >= 0; i--) {
+        const ad = this.airdrops[i];
+        if (!ad.cargoDropped) {
+          ad.planeX += ad.planeSpeed * dt;
+          if (Math.random() < 0.45) {
+            this.particles.push({
+              x: ad.planeX - 35, y: ad.planeY,
+              vx: -40, vy: (Math.random() * 6 - 3),
+              color: "rgba(200, 230, 255, 0.4)", size: 3, growth: 8, life: 0.4, maxLife: 0.4
+            });
+          }
+          if (ad.planeX >= ad.targetX) {
+            ad.cargoDropped = true;
+            ad.crateX = ad.targetX;
+            ad.crateY = ad.planeY;
+          }
+        }
+        if (ad.cargoDropped && !ad.landed) {
+          ad.crateY += ad.crateVy * dt;
+          ad.swingAnim += dt * 4.0;
+          if (ad.crateY >= ad.targetY) {
+            ad.crateY = ad.targetY;
+            ad.landed = true;
+            this.screenShake = 5;
+            audio.hit();
+            for (let k = 0; k < 10; k++) {
+              this.particles.push({
+                x: ad.crateX, y: ad.crateY,
+                vx: (Math.random() * 80 - 40),
+                vy: (Math.random() * 40 - 20),
+                color: "#e2e8f0", size: 3, life: 0.4, maxLife: 0.4
+              });
+            }
+            this.addFloatingText("📦 AIRDROP YERGA TUSHDI!", ad.crateX, ad.crateY - 20, "#ffd600", 15);
+          }
+        }
+        if (ad.landed && !ad.looted) {
+          ad.smokeFlareTimer -= dt;
+          if (Math.random() < 0.5) {
+            this.particles.push({
+              x: ad.crateX + (Math.random() * 8 - 4),
+              y: ad.crateY - 14,
+              vx: (Math.random() * 14 - 7),
+              vy: -55 - Math.random() * 30,
+              color: "rgba(255, 23, 68, 0.75)", size: 4, growth: 14, life: 0.8, maxLife: 0.8
+            });
+          }
+          // Auto-pickup by Hero Mech
+          if (Math.hypot(this.hero.x - ad.crateX, this.hero.y - ad.crateY) <= 46) {
+            this.lootAirdrop(ad);
+          }
+        }
+        if (ad.looted && ad.smokeFlareTimer <= 0) {
+          this.airdrops.splice(i, 1);
+        }
+      }
+    }
+
+    lootAirdrop(ad) {
+      if (ad.looted) return;
+      ad.looted = true;
+      ad.smokeFlareTimer = 2.0;
+      const rewardGold = 250;
+      this.gold += rewardGold;
+      this.score += 500;
+      this.skills.overclock.activeTime = 12.0; // 12s Double Fire Rate Overclock Matrix!
+      audio.airdropLoot();
+      this.vibrate([50, 40, 100, 50, 150]);
+      this.spawnShockwave(ad.crateX, ad.crateY, 140, "#ffd600");
+      this.addFloatingText(`+${rewardGold} OLTIN! OVERCLOCK MATRIX FAOL!`, ad.crateX, ad.crateY - 25, "#ffd600", 20);
+      this.triggerRadioComm("HQ COMMANDER", "📦 Airdrop ochildi! +250 Oltin olindi va barcha minoralarga Overclock kuchaytirish berildi!", 4.5);
+    }
+
+    renderAirdrops() {
+      const ctx = this.ctx;
+      for (const ad of this.airdrops) {
+        // 1. Cargo Transport Aircraft
+        if (ad.planeX < this.width + 120) {
+          ctx.save();
+          ctx.translate(ad.planeX, ad.planeY);
+          ctx.fillStyle = "#1e293b";
+          ctx.beginPath();
+          ctx.moveTo(35, 0);
+          ctx.lineTo(-30, -18);
+          ctx.lineTo(-20, 0);
+          ctx.lineTo(-30, 18);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Navigation lights
+          ctx.fillStyle = "#00e676";
+          ctx.beginPath(); ctx.arc(-25, -16, 2.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#ff1744";
+          ctx.beginPath(); ctx.arc(-25, 16, 2.5, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+
+        // 2. Parachute & Crate descending
+        if (ad.cargoDropped && !ad.landed) {
+          ctx.save();
+          ctx.translate(ad.crateX, ad.crateY);
+          const sway = Math.sin(ad.swingAnim) * 0.15;
+          ctx.rotate(sway);
+
+          // Parachute Canopy
+          ctx.beginPath();
+          ctx.arc(0, -32, 28, Math.PI, 0, false);
+          ctx.closePath();
+          ctx.fillStyle = "#ff1744";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // White center gore
+          ctx.beginPath();
+          ctx.arc(0, -32, 14, Math.PI, 0, false);
+          ctx.closePath();
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+
+          // Suspension cords
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(-26, -32); ctx.lineTo(-8, -6);
+          ctx.moveTo(26, -32); ctx.lineTo(8, -6);
+          ctx.moveTo(0, -32); ctx.lineTo(0, -6);
+          ctx.stroke();
+
+          // Supply Crate
+          ctx.fillStyle = "#d32f2f";
+          ctx.fillRect(-12, -8, 24, 20);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-12, -8, 24, 20);
+          ctx.restore();
+        }
+
+        // 3. Landed Crate with Red Smoke Signal Flare
+        if (ad.landed && !ad.looted) {
+          ctx.save();
+          ctx.translate(ad.crateX, ad.crateY);
+
+          // Pulsing Beacon Ring
+          const pulse = (Math.sin(performance.now() * 0.006) + 1) * 0.5;
+          ctx.strokeStyle = `rgba(255, 23, 68, ${0.4 + pulse * 0.5})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 26 + pulse * 10, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Dropped parachute fabric on ground
+          ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+          ctx.beginPath();
+          ctx.ellipse(-16, 6, 12, 6, -0.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Crate body
+          ctx.fillStyle = "#b71c1c";
+          ctx.fillRect(-14, -14, 28, 24);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-14, -14, 28, 24);
+
+          // Stencil mark
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 8px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("AIRDROP", 0, 1);
+
+          // Beacon Strobe
+          ctx.fillStyle = pulse > 0.5 ? "#ffd600" : "#ff1744";
+          ctx.beginPath();
+          ctx.arc(0, -15, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "bold 10px monospace";
+          ctx.fillText("📦 TEGING!", 0, -26);
+          ctx.restore();
+        }
+      }
+    }
+
+    triggerRedZone() {
+      let rx = 640, ry = 360;
+      if (this.enemies.length > 0) {
+        const e = this.enemies[Math.floor(Math.random() * this.enemies.length)];
+        rx = e.x; ry = e.y;
+      } else {
+        rx = 320 + Math.random() * 640;
+        ry = 180 + Math.random() * 320;
+      }
+      audio.redZoneSiren();
+      this.triggerRadioComm("HQ OVERWATCH", "🚨 XAVF: Red Zone artilleriya zarbasi! 4 soniyada zonani tark eting!", 4.5);
+      this.redZones.push({
+        id: this.nextUid++,
+        x: rx, y: ry,
+        radius: 135,
+        warningTimer: 4.5,
+        activeTimer: 5.0,
+        shellsToFire: 9,
+        shellInterval: 0.45,
+        shellCooldown: 0,
+        shells: []
+      });
+    }
+
+    updateRedZones(dt) {
+      for (let i = this.redZones.length - 1; i >= 0; i--) {
+        const rz = this.redZones[i];
+        if (rz.warningTimer > 0) {
+          rz.warningTimer -= dt;
+        } else if (rz.activeTimer > 0) {
+          rz.activeTimer -= dt;
+          rz.shellCooldown -= dt;
+          if (rz.shellsToFire > 0 && rz.shellCooldown <= 0) {
+            rz.shellCooldown = rz.shellInterval;
+            rz.shellsToFire--;
+            const targetX = rz.x + (Math.random() * (rz.radius * 1.5) - rz.radius * 0.75);
+            const targetY = rz.y + (Math.random() * (rz.radius * 1.5) - rz.radius * 0.75);
+            const startX = targetX - 160;
+            const startY = -40;
+            rz.shells.push({
+              startX, startY, targetX, targetY,
+              x: startX, y: startY,
+              flightTime: 0.32, t: 0
+            });
+          }
+        }
+        // Update shells
+        for (let j = rz.shells.length - 1; j >= 0; j--) {
+          const sh = rz.shells[j];
+          sh.t += dt / sh.flightTime;
+          sh.x = sh.startX + (sh.targetX - sh.startX) * sh.t;
+          sh.y = sh.startY + (sh.targetY - sh.startY) * sh.t;
+          if (Math.random() < 0.6) {
+            this.particles.push({
+              x: sh.x, y: sh.y,
+              vx: (Math.random() * 20 - 10), vy: (Math.random() * 20 - 10),
+              color: "#ff9100", size: 2.5, life: 0.2, maxLife: 0.2
+            });
+          }
+          if (sh.t >= 1.0) {
+            // Detonation!
+            audio.artilleryBlast();
+            this.screenShake = 14;
+            this.spawnShockwave(sh.targetX, sh.targetY, 95, "#ff1744");
+            this.scorchMarks.push({ x: sh.targetX, y: sh.targetY, radius: 24, life: 12.0, maxLife: 12.0 });
+            for (let k = 0; k < 16; k++) {
+              this.particles.push({
+                x: sh.targetX, y: sh.targetY,
+                vx: (Math.random() * 180 - 90),
+                vy: (Math.random() * 180 - 90),
+                color: Math.random() < 0.5 ? "#ff3d00" : "#ff9100",
+                size: 3 + Math.random() * 4, growth: 8, life: 0.5, maxLife: 0.5
+              });
+            }
+            // Damage enemies in 85px radius
+            for (const e of this.enemies) {
+              if (Math.hypot(e.x - sh.targetX, e.y - sh.targetY) <= 85) {
+                this.applyDamage(e, 420, 'EXPLOSIVE', null, 'mortar');
+              }
+            }
+            // Damage Hero Mech if inside
+            if (Math.hypot(this.hero.x - sh.targetX, this.hero.y - sh.targetY) <= 85) {
+              this.hero.hp = Math.max(0, this.hero.hp - 35);
+              this.addFloatingText("⚠️ MECH -35 HP!", this.hero.x, this.hero.y - 20, "#ff1744", 16);
+              this.vibrate([60, 40, 60]);
+            }
+            rz.shells.splice(j, 1);
+          }
+        }
+        if (rz.warningTimer <= 0 && rz.activeTimer <= 0 && rz.shells.length === 0 && rz.shellsToFire === 0) {
+          this.redZones.splice(i, 1);
+          this.triggerRadioComm("HQ OVERWATCH", "💥 Red Zone zarbasi tugadi. Sektor xavfsiz!", 3.5);
+        }
+      }
+    }
+
+    renderRedZones() {
+      const ctx = this.ctx;
+      for (const rz of this.redZones) {
+        ctx.save();
+        const pulse = (Math.sin(performance.now() * 0.008) + 1) * 0.5;
+
+        // Danger Circle
+        ctx.fillStyle = `rgba(255, 23, 68, ${0.12 + pulse * 0.1})`;
+        ctx.beginPath();
+        ctx.arc(rz.x, rz.y, rz.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ff1744";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Crosshairs
+        ctx.strokeStyle = "rgba(255, 23, 68, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(rz.x - rz.radius, rz.y); ctx.lineTo(rz.x + rz.radius, rz.y);
+        ctx.moveTo(rz.x, rz.y - rz.radius); ctx.lineTo(rz.x, rz.y + rz.radius);
+        ctx.stroke();
+
+        // Warning Label
+        ctx.fillStyle = "#ff1744";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "center";
+        if (rz.warningTimer > 0) {
+          ctx.fillText(`⚠️ RED ZONE: ${rz.warningTimer.toFixed(1)}s`, rz.x, rz.y - rz.radius - 8);
+        } else {
+          ctx.fillText("💥 ARTILLERIYA ZARBASI! 💥", rz.x, rz.y - rz.radius - 8);
+        }
+
+        // Falling artillery shells
+        for (const sh of rz.shells) {
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.arc(sh.x, sh.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = "#ff3d00";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(sh.x - 18, sh.y - 18);
+          ctx.lineTo(sh.x, sh.y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    renderBarricades() {
+      const ctx = this.ctx;
+      for (const b of this.barricades) {
+        ctx.save();
+        ctx.translate(b.x, b.y);
+
+        if (b.broken) {
+          // Shattered Debris Rubble
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(-18, -10, 36, 20);
+          ctx.fillStyle = "#1e293b";
+          ctx.beginPath();
+          ctx.moveTo(-18, -10); ctx.lineTo(-6, -18); ctx.lineTo(8, -8); ctx.lineTo(18, -10);
+          ctx.fill();
+
+          ctx.strokeStyle = "#ff1744";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(-18, -10, 36, 20);
+
+          ctx.fillStyle = "#ff1744";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("BUZILGAN", 0, -2);
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "bold 8px monospace";
+          ctx.fillText("[QURISH 45g]", 0, 7);
+        } else {
+          // Reinforced Concrete Bunker Barricade
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-20, -14, 40, 28);
+
+          // Yellow/Black Hazard Stripes
+          ctx.fillStyle = "#eab308";
+          ctx.fillRect(-18, -12, 36, 6);
+          ctx.fillStyle = "#0f172a";
+          for (let s = -18; s < 18; s += 8) {
+            ctx.beginPath();
+            ctx.moveTo(s, -12); ctx.lineTo(s + 4, -12); ctx.lineTo(s + 2, -6); ctx.lineTo(s - 2, -6);
+            ctx.fill();
+          }
+
+          // Concrete Face
+          ctx.fillStyle = "#475569";
+          ctx.fillRect(-18, -5, 36, 17);
+
+          // Structural Border
+          ctx.strokeStyle = b.type === 'fortified' ? "#00e5ff" : "#94a3b8";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-20, -14, 40, 28);
+
+          // Cracks when damaged
+          const hpPct = b.hp / b.maxHp;
+          if (hpPct < 0.75) {
+            ctx.strokeStyle = "#0f172a";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-10, 4); ctx.lineTo(-2, -2); ctx.lineTo(4, 3);
+            ctx.stroke();
+          }
+          if (hpPct < 0.40) {
+            ctx.strokeStyle = "#ff1744";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(6, -4); ctx.lineTo(12, 6);
+            ctx.moveTo(-14, -2); ctx.lineTo(-8, 8);
+            ctx.stroke();
+          }
+
+          // HP Bar
+          ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+          ctx.fillRect(-18, -22, 36, 5);
+          ctx.fillStyle = hpPct > 0.5 ? "#00e676" : (hpPct > 0.25 ? "#ffd600" : "#ff1744");
+          ctx.fillRect(-18, -22, 36 * hpPct, 5);
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(-18, -22, 36, 5);
+
+          // Label
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 8px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(`${Math.ceil(b.hp)}HP`, 0, 7);
+        }
+        ctx.restore();
       }
     }
 
@@ -1717,6 +2398,11 @@
       if (map.modifier === 'scarce') bounty = Math.floor(bounty * 0.8);
       if (this.hasAugment("bounty_hunter")) bounty = Math.floor(bounty * 1.30);
 
+      if (def.isBoss) {
+        this.triggerRadioComm("HQ OVERWATCH", `☠️ DIQQAT: ${def.name.toUpperCase()} JANG MAYDONIGA KIRDI! Barcha olovni jamlang!`, 5.0);
+        this.screenShake = 15;
+      }
+
       const enemy = {
         uid: this.nextUid++,
         type: type,
@@ -1766,6 +2452,27 @@
 
     update(dt) {
       if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - 20 * dt);
+
+      // Radio Comms & Battlefield Events
+      this.updateRadioComms(dt);
+      this.updateAirdrops(dt);
+      this.updateRedZones(dt);
+
+      if (this.waveActive) {
+        this.airdropCooldown -= dt;
+        if (this.airdropCooldown <= 0) {
+          this.airdropCooldown = 45.0 + Math.random() * 25.0;
+          this.spawnAirdrop();
+        }
+
+        if (this.wave >= 2) {
+          this.redZoneCooldown -= dt;
+          if (this.redZoneCooldown <= 0) {
+            this.redZoneCooldown = 50.0 + Math.random() * 25.0;
+            this.triggerRedZone();
+          }
+        }
+      }
 
       for (const k in this.skills) {
         if (this.skills[k].currentCd > 0) this.skills[k].currentCd = Math.max(0, this.skills[k].currentCd - dt);
@@ -1847,7 +2554,51 @@
         }
 
         const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 1.0, e.slowRatio));
-        e.progress += effSpeed * dt;
+
+        // Battlefield Destructible Barricade blocking & attack
+        let isBlocked = false;
+        if (this.barricades && this.barricades.length > 0) {
+          for (const b of this.barricades) {
+            if (!b.broken && Math.hypot(e.x - b.x, e.y - b.y) <= 32) {
+              isBlocked = true;
+              e.attackTimer = (e.attackTimer || 0) + dt;
+              if (e.attackTimer >= 0.7) {
+                e.attackTimer = 0;
+                const bDmg = e.isBoss ? 55 : (e.type === 'brute' ? 32 : (e.type === 'shieldbearer' ? 22 : 12));
+                b.hp = Math.max(0, b.hp - bDmg);
+                this.addFloatingText(`-${bDmg}`, b.x + (Math.random() * 16 - 8), b.y - 12, "#ff5252", 12);
+                audio.barricadeHit();
+                this.particles.push({
+                  x: b.x + (Math.random() * 20 - 10),
+                  y: b.y + (Math.random() * 20 - 10),
+                  vx: (Math.random() * 40 - 20),
+                  vy: (Math.random() * 40 - 20),
+                  color: "#94a3b8", size: 3, life: 0.35, maxLife: 0.35
+                });
+                if (b.hp <= 0) {
+                  b.broken = true;
+                  this.screenShake = 12;
+                  audio.barricadeBreak();
+                  for (let k = 0; k < 12; k++) {
+                    this.particles.push({
+                      x: b.x, y: b.y,
+                      vx: (Math.random() * 120 - 60),
+                      vy: (Math.random() * 120 - 60),
+                      color: "#64748b", size: 4 + Math.random() * 4, life: 0.7, maxLife: 0.7
+                    });
+                  }
+                  this.addFloatingText("💥 TO'SIQ BUZILDI!", b.x, b.y - 25, "#ff1744", 18);
+                  this.triggerRadioComm("HQ OVERWATCH", "⚠️ DIQQAT: Himoya to'sig'i dushmanlar tomonidan buzib tashlandi!", 4.5);
+                }
+              }
+              break;
+            }
+          }
+        }
+
+        if (!isBlocked) {
+          e.progress += effSpeed * dt;
+        }
         e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
         const pt = this.getPointAlongLane(e.laneIdx, e.progress);
@@ -2434,9 +3185,12 @@
         this.renderLanes();
         this.renderGroundDecals();
         this.renderGroundHazards();
+        this.renderRedZones();
+        this.renderBarricades();
         this.renderUnitShadows();
         this.renderBaseCore();
         this.renderTowers();
+        this.renderAirdrops();
         this.renderHero();
         this.renderEnemies();
         this.renderProjectiles();
@@ -2446,6 +3200,7 @@
         this.renderPlacementGhost();
         this.renderTacticalDragVector();
         this.renderRadialBuildWheel();
+        this.renderRadioComms();
         this.renderTopHUD();
         this.renderBottomBar();
         this.renderMobileFloatingButtons();
@@ -4412,6 +5167,28 @@
           this.ctx.font = "10px monospace";
           this.ctx.fillText(def.type, bx + 10, 693);
         }
+
+        // [6] Tactical Barricade Deploy Button
+        const barX = 1115;
+        const isBarSelected = this.selectedBuildType === 'barricade';
+        this.ctx.fillStyle = isBarSelected ? "rgba(255, 145, 0, 0.25)" : "#131e33";
+        this.ctx.fillRect(barX, 630, 150, 75);
+        this.ctx.strokeStyle = isBarSelected ? "#ff9100" : (this.gold >= 40 ? "#ffd600" : "#37474f");
+        this.ctx.lineWidth = isBarSelected ? 2 : 1;
+        this.ctx.strokeRect(barX, 630, 150, 75);
+
+        this.ctx.fillStyle = "#ff9100";
+        this.ctx.font = "bold 13px monospace";
+        this.ctx.textAlign = "left";
+        this.ctx.fillText("[6] 🚧 TO'SIQ", barX + 10, 652);
+
+        this.ctx.fillStyle = "#ffd600";
+        this.ctx.font = "bold 12px monospace";
+        this.ctx.fillText("🪙 40g", barX + 10, 674);
+
+        this.ctx.fillStyle = "#90a4ae";
+        this.ctx.font = "10px monospace";
+        this.ctx.fillText("MUSTAHKAM DEVOR", barX + 10, 693);
       }
     }
 

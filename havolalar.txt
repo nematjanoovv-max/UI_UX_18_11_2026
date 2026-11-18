@@ -1,7 +1,7 @@
 ================================================================================
 LOYIHA NOMI:
 07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter
-Versiya: v3.4.0 (3D TPS Cyber-Arena Reliz)
+Versiya: v3.5.0 (Dynamic Battlefield Edition)
 Sana: 2026-11-18
 ================================================================================
 
@@ -18,20 +18,24 @@ https://last-grid-td.vercel.app/api
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-v3.4.0 YANGI 3D TPS ARENA REJIMI IMKONIYATLARI (PUBG/GTA USLUBIDA):
+v3.5.0 YANGI DINAMIK JANGOVAR TIZIMLAR (PUBG & GTA USLUBIDA):
 
-1. 🎮 Jonli 3D Third-Person Shooter (TPS) Rejimi:
-   - Saytga (https://last-grid-td.vercel.app) kiring va bosh menyuda eng yuqoridagi "🎮 3D TPS ARENA REJIMI (BETA)" tugmasini bosing!
-   - Siz darhol 3-shaxs kamerasida kiber-poligonga tushasiz.
+1. 📦 PUBG Kiber-Airdrop Tizimi:
+   - Samolyot uchib o'tib, maydonga parashyutda airdrop qutisini tashlaydi.
+   - Qutidan qizil signal tutuni (Red Smoke Flare) chiqadi.
+   - Barmog'ingiz bilan teginib yoki Hero Mech bilan olsangiz: +250 Oltin va 12s Overclock (barcha minoralar o't ochish tezligi 2x) beriladi!
 
-2. 🕹️ Boshqaruv:
-   - Kompyuterda: [W, A, S, D] yugurish, [Shift] tez yugurish, [Sichqoncha] kamerani 360° burish, [Space / Chap tugma] otish, [R] qayta o'qlash, [B] 3D minora qurish.
-   - Telefonda: Ekranning chap tomonida virtual harakat joystigi, o'ng tomonda barmog'ingiz bilan kamerani burish va [💥 OTISH], [🎯 DURBIN], [🏗️ QURISH], [🔄 O'Q] tugmalari.
+2. 🚨 PUBG Red Zone Artilleriya Zarbasi:
+   - 2-to'lqindan boshlab Sirena chalib, qizil xavf doirasi paydo bo'ladi.
+   - 4.5 soniyadan so'ng 9 ta kuchli artilleriya snaryadlari tushadi (dushmanlarni yo'q qiladi, maydonga kraterlar qoldiradi).
 
-3. 🛡️ Baza Himoyasi va Minoralar:
-   - [🏗️ QURISH] tugmasini bosib, 3D maydonga avtomatik nishonga oluvchi Gatling minoralarini o'rnating.
-   - Minoralar va o'zingiz birgalikda Kvant Bazasini dushmanlar to'lqinidan himoya qiling!
+3. 🚧 Buziluvchan va Ta'mirlanuvchan To'siqlar (Destructible Barricades):
+   - 10 ta xaritadagi tor yo'llarda dushmanlarni to'suvchi beton/temir to'siqlar mavjud.
+   - Dushmanlar uni urib sindiradi. To'siqqa teginib, uni ta'mirlashingiz yoki yangisini [6] tugmasi bilan qurishingiz mumkin!
 
-4. 🤖 Godot 4.3 3D Dasturiy Modullari:
-   - Barcha GDScript 3D kontrollerlari, Qurol modifikatsiyalari va 3D scenalari GitHub repozitoriyasiga joylashtirildi.
+4. 📻 Harbiylar Radio Aloqasi (GTA/PUBG Radio Comms):
+   - HQ Qo'mondoni har bir xarita boshida taktik topshiriq beradi va jang davomida vaziyat haqida radio orqali ogohlantirib turadi.
+
+5. 🎮 3D TPS Cyber-Arena Rejimi:
+   - Bosh menyudagi pushti tugma orqali bevosita 3-shaxs kamerasida qurol otib, 3D minoralar qurish rejimiga o'tishingiz mumkin!
 ================================================================================
