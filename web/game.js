@@ -678,10 +678,20 @@
 
     vibrate(pattern) {
       try {
+        if (typeof window !== 'undefined' && window.AndroidBridge && window.AndroidBridge.vibrate) {
+          const val = Array.isArray(pattern) ? JSON.stringify(pattern) : String(pattern);
+          window.AndroidBridge.vibrate(val);
+          return;
+        }
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
           navigator.vibrate(pattern);
         }
       } catch (e) {}
+    }
+
+    getApiUrl() {
+      const isWebHttp = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http'));
+      return isWebHttp ? '/api' : 'https://last-grid-td.vercel.app/api';
     }
 
     t(key) {
@@ -716,7 +726,7 @@
     }
 
     fetchLiveScores() {
-      fetch('/api')
+      fetch(this.getApiUrl())
         .then(r => r.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) this.saveData.leaderboard = data;
@@ -746,7 +756,7 @@
         localStorage.setItem('last_grid_player_name', this.playerName);
       } catch (e) {}
 
-      fetch('/api', {
+      fetch(this.getApiUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1280,14 +1290,14 @@
         // Generous touch hitboxes for mobile screens
         if (y >= 260 && y <= 318 && x >= 380 && x <= 900) { this.start3DTPSMode(); return; }
         else if (y >= 319 && y <= 375 && x >= 380 && x <= 900) { this.startMission(0, 'CAMPAIGN'); return; }
-        else if (y >= 386 && y <= 445 && x >= 380 && x <= 900) { this.state = 'MAP_SELECT'; return; }
-        else if (y >= 446 && y <= 505 && x >= 380 && x <= 900) { this.startMission(9, 'ENDLESS'); return; }
-        else if (y >= 506 && y <= 560 && x >= 380 && x <= 635) { this.startMission(0, 'BOSS_RUSH'); return; }
-        else if (y >= 506 && y <= 560 && x >= 645 && x <= 900) { this.state = 'EDITOR'; return; }
-        else if (y >= 561 && y <= 615 && x >= 380 && x <= 635) { this.state = 'LEADERBOARD'; return; }
-        else if (y >= 561 && y <= 615 && x >= 645 && x <= 900) { this.state = 'MANUAL'; return; }
-        else if (y >= 600 && y <= 665 && x >= 380 && x <= 635) { this.downloadApk(); return; }
-        else if (y >= 600 && y <= 665 && x >= 645 && x <= 900) { this.downloadOfflineZip(); return; }
+        else if (y >= 376 && y <= 430 && x >= 380 && x <= 900) { this.state = 'MAP_SELECT'; return; }
+        else if (y >= 431 && y <= 485 && x >= 380 && x <= 900) { this.startMission(9, 'ENDLESS'); return; }
+        else if (y >= 486 && y <= 538 && x >= 380 && x <= 635) { this.startMission(0, 'BOSS_RUSH'); return; }
+        else if (y >= 486 && y <= 538 && x >= 645 && x <= 900) { this.state = 'EDITOR'; return; }
+        else if (y >= 539 && y <= 590 && x >= 380 && x <= 635) { this.state = 'LEADERBOARD'; return; }
+        else if (y >= 539 && y <= 590 && x >= 645 && x <= 900) { this.state = 'MANUAL'; return; }
+        else if (y >= 591 && y <= 660 && x >= 380 && x <= 635) { this.downloadApk(); return; }
+        else if (y >= 591 && y <= 660 && x >= 645 && x <= 900) { this.downloadOfflineZip(); return; }
         if (x > 1080 && x < 1260 && y > 10 && y < 65) this.toggleLang();
         return;
       }
@@ -2084,6 +2094,10 @@
     }
 
     downloadApk() {
+      if (typeof window !== 'undefined' && window.AndroidBridge) {
+        if (this.addFloatingText) this.addFloatingText(640, 360, "Siz Android APK dasiz (v3.5.0)!", "#00e676");
+        return;
+      }
       const a = document.createElement('a');
       a.href = 'TowerDefense_LastGrid_v3.5.0.apk';
       a.download = 'TowerDefense_LastGrid_v3.5.0.apk';

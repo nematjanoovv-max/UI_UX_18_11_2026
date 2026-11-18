@@ -251,6 +251,14 @@
   </div>
 
   <script>
+    function checkAndroidBridgeEnvironment() {
+      if (window.AndroidBridge || (typeof navigator !== 'undefined' && navigator.userAgent && navigator.userAgent.includes('AndroidBridge'))) {
+        dismissRotatePrompt();
+        const f = document.getElementById('fullscreen-btn');
+        if (f) f.style.display = 'none';
+      }
+    }
+
     function startFullscreenLandscape() {
       dismissRotatePrompt();
       const el = document.documentElement;
@@ -278,6 +286,11 @@
         if (window.lastGridEngine) window.lastGridEngine.resizeCanvas();
       }, 100);
     }
+
+    // Run environment check immediately and on DOM load
+    checkAndroidBridgeEnvironment();
+    window.addEventListener('DOMContentLoaded', checkAndroidBridgeEnvironment);
+    window.addEventListener('load', checkAndroidBridgeEnvironment);
   </script>
   <script src="game.js"></script>
 </body>

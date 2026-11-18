@@ -47,7 +47,9 @@ Sana: 2026-11-18
     - Package: com.lastgrid.towerdefense
     - Ilova nomi: Tower Defense: Last Grid
     - Versiya: 3.5.0 (Build 350)
-    - Target SDK: Android 14/15 (API 34), Min SDK: Android 5.0 (API 21)
+    - Imzo: Rasmiy Google APK Signature Scheme (v1 JAR + v2 APK + v3 Full Compatibility)
+    - Target SDK: Android 13/14 (API 33), Min SDK: Android 5.0 (API 21)
+    - Zipalign: 4-byte aligned (Verified)
 
 ================================================================================
 3. v3.5.0 JANGOVAR TIZIMLARI:
