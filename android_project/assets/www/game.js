@@ -591,6 +591,30 @@
     defeat() {
       [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
     }
+    mechTransform() {
+      this.playTone(350, 'sawtooth', 0.18, 0.18, 120);
+      setTimeout(() => this.playTone(180, 'square', 0.22, 0.20, 60), 80);
+      setTimeout(() => this.playTone(550, 'triangle', 0.15, 0.15, 800), 180);
+    }
+    shootTesla() {
+      this.playTone(1400, 'sawtooth', 0.12, 0.14, 250);
+      this.playNoise(0.10, 0.08);
+    }
+    shootFlame() {
+      this.playNoise(0.22, 0.12);
+      this.playTone(120, 'sawtooth', 0.18, 0.08, 60);
+    }
+    missileLaunch() {
+      this.playTone(280, 'sawtooth', 0.25, 0.15, 950);
+      this.playNoise(0.18, 0.06);
+    }
+    shieldDome() {
+      this.playTone(440, 'sine', 0.45, 0.18, 880);
+      setTimeout(() => this.playTone(880, 'sine', 0.35, 0.12, 1320), 120);
+    }
+    kamikazeBeep() {
+      this.playTone(1800, 'square', 0.05, 0.15);
+    }
   }
 
   const audio = new SoundSynth();
@@ -790,8 +814,34 @@
         A: { name: "Overcharge Reactor", dmgBuff: 0.80, rangeBuff: 0.35, rateBuff: 0.20, range: 180, color: "#b388ff", perk: "overcharge", cost: 360, desc: "+80% dmg & +20% fire rate to nearby towers." },
         B: { name: "Tactical Radar", dmgBuff: 0.40, rangeBuff: 0.60, range: 220, color: "#e040fb", perk: "radar", cost: 340, desc: "+60% range and permanently reveals Phantoms." }
       }
+    },
+    tesla: {
+      id: "tesla", name: "Tesla Coil", type: "ENERGY", color: "#ffd600", cost: 180, desc: "High-voltage coil arcing chain lightning across hostiles.",
+      tiers: [
+        { dmg: 45, rate: 1.2, range: 160, chainCount: 3, upCost: 180 },
+        { dmg: 75, rate: 1.4, range: 180, chainCount: 4, upCost: 280 },
+        { dmg: 115, rate: 1.6, range: 200, chainCount: 5, upCost: 0 }
+      ],
+      branches: {
+        A: { name: "Overcharge Arc", dmg: 190, rate: 1.8, range: 220, chainCount: 6, color: "#ffd600", perk: "emp_shock", cost: 380, desc: "Fires lightning arcs that EMP-stun mechanical hostiles." },
+        B: { name: "Tesla Storm Aura", dmg: 95, rate: 3.5, range: 210, chainCount: 8, color: "#76ff03", perk: "storm_aura", cost: 360, desc: "Discharges a continuous 360-degree storm field frying all hostiles." }
+      }
+    },
+    flame: {
+      id: "flame", name: "Flamethrower", type: "FIRE", color: "#ff3d00", cost: 160, desc: "Continuous conical plasma flame spray applying heavy burning DOT.",
+      targetsAir: false,
+      tiers: [
+        { dmg: 18, rate: 8.0, range: 135, coneAngle: 0.65, dotDmg: 20, dotDur: 3.0, upCost: 160 },
+        { dmg: 28, rate: 9.0, range: 150, coneAngle: 0.70, dotDmg: 35, dotDur: 3.5, upCost: 240 },
+        { dmg: 42, rate: 10.0, range: 165, coneAngle: 0.75, dotDmg: 55, dotDur: 4.0, upCost: 0 }
+      ],
+      branches: {
+        A: { name: "Napalm Inferno", dmg: 55, rate: 11.0, range: 180, coneAngle: 0.85, dotDmg: 90, dotDur: 5.0, color: "#ff3d00", perk: "ground_fire", cost: 350, desc: "Ignites ground, leaving persistent plasma fire puddles." },
+        B: { name: "Plasma Blaze", dmg: 75, rate: 10.0, range: 175, coneAngle: 0.75, dotDmg: 70, dotDur: 4.0, color: "#00e5ff", perk: "armor_melt", cost: 370, desc: "Extreme heat melts 70% of hostile armor permanently." }
+      }
     }
   };
+  TOWER_DEFS.barricade = TOWER_DEFS.wall;
 
   // --- ROGUELIKE AUGMENT POOL (DRAFT 1 OF 3 EVERY 5 WAVES) ---
   const AUGMENT_POOL = [
@@ -824,6 +874,9 @@
     medic:        { name: "Medic",        hp: 150, shield: 0,   armor: 0,  spd: 50, bounty: 14, color: "#00e676", size: 13, marker: "✚", isFlyer: false },
     splitter:     { name: "Splitter",     hp: 250, shield: 0,   armor: 3,  spd: 55, bounty: 10, color: "#e040fb", size: 15, marker: "✦", isFlyer: false },
     phantom:      { name: "Phantom",      hp: 180, shield: 0,   armor: 0,  spd: 75, bounty: 12, color: "#7c4dff", size: 14, marker: "★", isFlyer: false },
+    gunship:      { name: "Gunship",      hp: 240, shield: 100, armor: 6,  spd: 72, bounty: 18, color: "#00e5ff", size: 16, marker: "🚁", isFlyer: true },
+    kamikaze:     { name: "Kamikaze",     hp: 65,  shield: 0,   armor: 0,  spd: 120, bounty: 8,  color: "#ff3d00", size: 11, marker: "💣", isFlyer: false, isKamikaze: true },
+    siege_breaker:{ name: "Siege Breaker",hp: 1250,shield: 300, armor: 22, armorReduction: 0.40, spd: 32, bounty: 45, color: "#7c4dff", size: 24, marker: "🗿", isFlyer: false, isSiegeBreaker: true },
     juggernaut:   { name: "BOSS: Juggernaut", hp: 3000,  shield: 0, armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
     overseer:     { name: "BOSS: Overseer",   hp: 4500,  shield: 500, armor: 12, spd: 32, bounty: 200, color: "#651fff", size: 30, isBoss: true, marker: "👁", isFlyer: false },
     hive_titan:   { name: "BOSS: Hive Titan", hp: 6500,  shield: 0, armor: 18, spd: 28, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣", isFlyer: false }
@@ -841,35 +894,35 @@
 
     // W6 - W10: Swarm Vanguard & Heavy Armor Wall & Boss 1
     [ { type: "swarmling", count: 35, interval: 0.28 } ],
-    [ { type: "grunt", count: 15, interval: 0.6 }, { type: "swarmling", count: 28, interval: 0.3 } ],
+    [ { type: "grunt", count: 15, interval: 0.6 }, { type: "swarmling", count: 20, interval: 0.3 }, { type: "kamikaze", count: 6, interval: 0.8 } ],
     [ { type: "brute", count: 6, interval: 1.2 }, { type: "grunt", count: 14, interval: 0.7 } ],
-    [ { type: "brute", count: 10, interval: 1.0 }, { type: "sprinter", count: 16, interval: 0.5 } ],
+    [ { type: "brute", count: 8, interval: 1.0 }, { type: "sprinter", count: 14, interval: 0.5 }, { type: "gunship", count: 5, interval: 1.2 } ],
     [ { type: "juggernaut", count: 1, interval: 2.5 }, { type: "grunt", count: 18, interval: 0.65 } ],
 
     // W11 - W15: Energy Shields, Medics & Stealth Phantoms
     [ { type: "shieldbearer", count: 8, interval: 0.8 }, { type: "sprinter", count: 15, interval: 0.5 } ],
     [ { type: "shieldbearer", count: 12, interval: 0.7 }, { type: "swarmling", count: 30, interval: 0.3 } ],
-    [ { type: "medic", count: 8, interval: 0.8 }, { type: "grunt", count: 22, interval: 0.6 } ],
-    [ { type: "medic", count: 10, interval: 0.7 }, { type: "shieldbearer", count: 14, interval: 0.7 } ],
+    [ { type: "medic", count: 8, interval: 0.8 }, { type: "grunt", count: 18, interval: 0.6 }, { type: "kamikaze", count: 8, interval: 0.7 } ],
+    [ { type: "medic", count: 10, interval: 0.7 }, { type: "shieldbearer", count: 12, interval: 0.7 }, { type: "gunship", count: 6, interval: 1.0 } ],
     [ { type: "phantom", count: 14, interval: 0.65 }, { type: "sprinter", count: 16, interval: 0.5 } ],
 
     // W16 - W20: Splitters & Combined Arms & Boss 2
     [ { type: "phantom", count: 18, interval: 0.6 }, { type: "brute", count: 8, interval: 1.1 } ],
-    [ { type: "splitter", count: 12, interval: 0.9 }, { type: "shieldbearer", count: 10, interval: 0.7 } ],
+    [ { type: "splitter", count: 12, interval: 0.9 }, { type: "shieldbearer", count: 10, interval: 0.7 }, { type: "siege_breaker", count: 2, interval: 2.2 } ],
     [ { type: "splitter", count: 16, interval: 0.8 }, { type: "medic", count: 10, interval: 0.7 } ],
-    [ { type: "phantom", count: 15, interval: 0.6 }, { type: "brute", count: 10, interval: 0.9 }, { type: "shieldbearer", count: 12, interval: 0.7 } ],
+    [ { type: "phantom", count: 15, interval: 0.6 }, { type: "brute", count: 10, interval: 0.9 }, { type: "gunship", count: 8, interval: 0.9 } ],
     [ { type: "overseer", count: 1, interval: 2.5 }, { type: "phantom", count: 16, interval: 0.6 }, { type: "shieldbearer", count: 12, interval: 0.65 } ],
 
     // W21 - W25: High-Voltage Swarms & Mini-Boss Surge
-    [ { type: "splitter", count: 20, interval: 0.75 }, { type: "swarmling", count: 35, interval: 0.25 } ],
+    [ { type: "splitter", count: 18, interval: 0.75 }, { type: "kamikaze", count: 12, interval: 0.5 }, { type: "gunship", count: 8, interval: 0.8 } ],
     [ { type: "brute", count: 14, interval: 0.9 }, { type: "medic", count: 12, interval: 0.7 }, { type: "sprinter", count: 22, interval: 0.45 } ],
     [ { type: "phantom", count: 20, interval: 0.55 }, { type: "shieldbearer", count: 18, interval: 0.65 } ],
-    [ { type: "brute", count: 14, interval: 0.85 }, { type: "splitter", count: 15, interval: 0.7 }, { type: "phantom", count: 15, interval: 0.6 } ],
+    [ { type: "brute", count: 12, interval: 0.85 }, { type: "siege_breaker", count: 4, interval: 1.8 }, { type: "phantom", count: 15, interval: 0.6 } ],
     [ { type: "juggernaut", count: 1, interval: 2.0 }, { type: "splitter", count: 24, interval: 0.65 }, { type: "sprinter", count: 20, interval: 0.4 } ],
 
     // W26 - W30: Grand Apocalypse & Hive Titan Finale
     [ { type: "shieldbearer", count: 22, interval: 0.6 }, { type: "phantom", count: 20, interval: 0.55 }, { type: "medic", count: 15, interval: 0.6 } ],
-    [ { type: "grunt", count: 35, interval: 0.4 }, { type: "sprinter", count: 25, interval: 0.35 }, { type: "brute", count: 16, interval: 0.8 } ],
+    [ { type: "grunt", count: 30, interval: 0.4 }, { type: "sprinter", count: 20, interval: 0.35 }, { type: "siege_breaker", count: 5, interval: 1.6 }, { type: "gunship", count: 10, interval: 0.8 } ],
     [ { type: "overseer", count: 1, interval: 2.5 }, { type: "phantom", count: 20, interval: 0.5 }, { type: "brute", count: 18, interval: 0.75 } ],
     [ { type: "splitter", count: 28, interval: 0.6 }, { type: "shieldbearer", count: 22, interval: 0.6 }, { type: "sprinter", count: 25, interval: 0.35 } ],
     [ { type: "hive_titan", count: 1, interval: 3.0 }, { type: "brute", count: 20, interval: 0.7 }, { type: "phantom", count: 25, interval: 0.5 } ]
@@ -886,7 +939,7 @@
       return CAMPAIGN_WAVES_BTD6[waveNum - 1];
     }
     // Endless mode: fitted BTD6 power curve: RBE = 21.24 * wave^0.66
-    const pool = ["grunt", "sprinter", "brute", "swarmling", "shieldbearer", "medic", "splitter", "phantom"];
+    const pool = ["grunt", "sprinter", "brute", "swarmling", "shieldbearer", "medic", "splitter", "phantom", "gunship", "kamikaze", "siege_breaker"];
     const baseCount = Math.floor(15 + Math.pow(waveNum, 0.75) * 3);
     const primary = pool[waveNum % pool.length];
     const secondary = pool[(waveNum + 3) % pool.length];
@@ -954,7 +1007,7 @@
 
       // Combat Analytics Tracker
       this.analytics = {
-        damageByTower: { pulse: 0, mortar: 0, cryo: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
+        damageByTower: { pulse: 0, mortar: 0, cryo: 0, tesla: 0, flame: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
         totalKills: 0,
         totalGold: 0,
         mvpName: "Pulse Tower"
@@ -962,13 +1015,14 @@
 
       // Commander Skills
       this.skills = {
-        emp:       { cost: 50,  cd: 25, currentCd: 0, key: "Z" },
-        orbital:   { cost: 75,  cd: 30, currentCd: 0, key: "X" },
-        overclock: { cost: 60,  cd: 35, currentCd: 0, key: "C", activeTime: 0 },
-        drone:     { cost: 0,   cd: 40, currentCd: 0, key: "V" }
+        emp:       { cost: 50, cd: 25, currentCd: 0, key: "Z", name: "EMP Storm" },
+        missiles:  { cost: 65, cd: 22, currentCd: 0, key: "X", name: "Micro-Missiles" },
+        shield:    { cost: 60, cd: 30, currentCd: 0, key: "C", name: "Shield Dome" },
+        overclock: { cost: 50, cd: 35, currentCd: 0, key: "V", name: "Overclock", activeTime: 0 },
+        orbital:   { cost: 75, cd: 30, currentCd: 0, key: "B", name: "Orbital Beam" },
+        drone:     { cost: 0,  cd: 40, currentCd: 0, key: "N", name: "Supply Drone" }
       };
 
-      // Controllable Field Hero Mech (Apex-01)
       // Controllable Field Hero Mech (Apex-01)
       this.hero = {
         name: "Apex-01 Mech",
@@ -977,6 +1031,10 @@
         hp: 400, maxHp: 400,
         level: 1, xp: 0, maxXp: 80,
         speed: 130,
+        mode: 'BIPED', // 'BIPED' (Assault Robot) | 'SIEGE' (Siege Tank)
+        siegeRecoil: 0,
+        siegeCooldown: 0,
+        shieldDome: null,
         atkDmg: 80, atkRate: 1.3, atkCooldown: 0,
         ultCd: 22, currentUltCd: 0, ultActiveTime: 0,
         selected: false,
@@ -1697,10 +1755,10 @@
 
           // Check Bottom Bar Tower Hotbar Drag
           if (pos.y >= 620 && !this.selectedTower) {
-            const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
-            for (let i = 0; i < 5; i++) {
-              const bx = 240 + i * 175;
-              if (pos.x >= bx && pos.x <= bx + 160 && pos.y >= 630 && pos.y <= 710) {
+            const towerKeys = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
+            for (let i = 0; i < 8; i++) {
+              const bx = 276 + i * 125;
+              if (pos.x >= bx && pos.x <= bx + 120 && pos.y >= 625 && pos.y <= 715) {
                 e.preventDefault();
                 const key = towerKeys[i];
                 this.touchState.dragging = 'TOWER_HOTBAR';
@@ -1834,8 +1892,8 @@
           if (e.code === 'Space') { e.preventDefault(); this.shoot3DTPS(); return; }
           if (e.key === 'Escape') { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
         }
-        if (e.key >= '1' && e.key <= '5') {
-          const keys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
+        if (e.key >= '1' && e.key <= '8') {
+          const keys = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
           this.selectBuildType(keys[parseInt(e.key) - 1]);
         } else if (e.code === 'Space') {
           e.preventDefault();
@@ -1850,11 +1908,16 @@
           else this.togglePause();
         } else if (k === 'u') this.upgradeSelectedTower();
         else if (k === 's') this.sellSelectedTower();
-        else if (k === 't') this.cycleTargetPriority();
+        else if (k === 't') {
+          if (this.selectedTower) this.cycleTargetPriority();
+          else this.toggleHeroTransform();
+        }
         else if (k === 'z') this.triggerSkill('emp');
-        else if (k === 'x') this.triggerSkill('orbital');
-        else if (k === 'c') this.triggerSkill('overclock');
-        else if (k === 'v') this.triggerSkill('drone');
+        else if (k === 'x') this.triggerSkill('missiles');
+        else if (k === 'c') this.triggerSkill('shield');
+        else if (k === 'v') this.triggerSkill('overclock');
+        else if (k === 'b') this.triggerSkill('orbital');
+        else if (k === 'n') this.triggerSkill('drone');
         else if (k === 'h') this.hero.selected = !this.hero.selected;
         else if (e.key === 'Tab') {
           e.preventDefault();
@@ -1893,7 +1956,7 @@
       this.activeAugments = [];
       this.draftCards = [];
       this.analytics = {
-        damageByTower: { pulse: 0, mortar: 0, cryo: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
+        damageByTower: { pulse: 0, mortar: 0, cryo: 0, tesla: 0, flame: 0, railgun: 0, beacon: 0, hero: 0, skills: 0 },
         totalKills: 0,
         totalGold: this.gold,
         mvpName: "Pulse Tower"
@@ -1909,6 +1972,11 @@
       this.hero.xp = 0;
       this.hero.currentUltCd = 0;
       this.hero.selected = false;
+      this.hero.mode = 'BIPED';
+      this.hero.speed = 130;
+      this.hero.siegeRecoil = 0;
+      this.hero.siegeCooldown = 0;
+      this.hero.shieldDome = null;
 
       for (const k in this.skills) this.skills[k].currentCd = 0;
       this.skills.overclock.activeTime = 0;
@@ -2288,19 +2356,14 @@
       // 2. Mobile Quick Radial Build Wheel Clicks
       if (this.radialBuildCell) {
         const rc = this.radialBuildCell;
-        const options = [
-          { key: 'pulse', ang: -Math.PI * 0.8 },
-          { key: 'mortar', ang: -Math.PI * 0.5 },
-          { key: 'cryo', ang: -Math.PI * 0.2 },
-          { key: 'railgun', ang: Math.PI * 0.15 },
-          { key: 'beacon', ang: Math.PI * 0.85 }
-        ];
+        const towerList = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon'];
         let chosen = null;
-        for (const opt of options) {
-          const bx = rc.px + Math.cos(opt.ang) * 65;
-          const by = rc.py + Math.sin(opt.ang) * 65;
+        for (let i = 0; i < towerList.length; i++) {
+          const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
+          const bx = rc.px + Math.cos(ang) * 68;
+          const by = rc.py + Math.sin(ang) * 68;
           if (Math.hypot(x - bx, y - by) <= 28) {
-            chosen = opt.key;
+            chosen = towerList[i];
             break;
           }
         }
@@ -2439,22 +2502,19 @@
 
       // 5. Bottom Bar actions
       if (y >= 620) {
-        // [6] Barricade Hotbar selection
-        if (!this.selectedTower && x >= 1100 && x <= 1275 && y >= 625 && y <= 715) {
-          this.selectedBuildType = (this.selectedBuildType === 'barricade') ? null : 'barricade';
-          this.vibrate(15);
-          return;
-        }
         this.radialBuildCell = null;
 
-        // Hero Mech Ult button at x: 5 to 53
-        if (x >= 5 && x <= 53) { this.triggerHeroUlt(); this.vibrate([40, 25, 70]); return; }
+        // Hero Mech Ult button at x: 5 to 49
+        if (x >= 5 && x <= 49) { this.triggerHeroUlt(); this.vibrate([40, 25, 70]); return; }
 
-        // Commander Super Skills Mobile Buttons (x: 56, 100, 144, 188; each w: 42)
-        if (x >= 54 && x <= 97) { this.triggerSkill('emp'); this.vibrate(20); return; }
-        else if (x >= 98 && x <= 141) { this.triggerSkill('orbital'); this.vibrate(20); return; }
-        else if (x >= 142 && x <= 185) { this.triggerSkill('overclock'); this.vibrate(20); return; }
-        else if (x >= 186 && x <= 234) { this.triggerSkill('drone'); this.vibrate(20); return; }
+        // Hero Mech Mode Toggle button at x: 50 to 95
+        if (x >= 50 && x <= 95) { this.toggleHeroTransform(); return; }
+
+        // Commander Super Skills Mobile Buttons (x: 98, 142, 186, 230; each w: 40)
+        if (x >= 96 && x <= 139) { this.triggerSkill('emp'); this.vibrate(20); return; }
+        else if (x >= 140 && x <= 183) { this.triggerSkill('missiles'); this.vibrate(20); return; }
+        else if (x >= 184 && x <= 227) { this.triggerSkill('shield'); this.vibrate(20); return; }
+        else if (x >= 228 && x <= 273) { this.triggerSkill('overclock'); this.vibrate(20); return; }
 
         if (this.selectedTower) {
           const t = this.selectedTower;
@@ -2462,26 +2522,30 @@
 
           // Tier 3 Branch A and Branch B buttons
           if (t.tier === 2) {
-            if (x >= 445 && x <= 595 && y >= 630 && y <= 705) { this.upgradeBranch('A'); this.vibrate([25, 30, 25]); return; }
-            if (x >= 600 && x <= 750 && y >= 630 && y <= 705) { this.upgradeBranch('B'); this.vibrate([25, 30, 25]); return; }
+            if (x >= 485 && x <= 635 && y >= 630 && y <= 705) { this.upgradeBranch('A'); this.vibrate([25, 30, 25]); return; }
+            if (x >= 640 && x <= 790 && y >= 630 && y <= 705) { this.upgradeBranch('B'); this.vibrate([25, 30, 25]); return; }
           } else {
             // Normal Upgrade (Tier 1 -> Tier 2)
-            if (x >= 475 && x <= 625 && y >= 630 && y <= 705) { this.upgradeSelectedTower(); this.vibrate([25, 30, 25]); return; }
+            if (x >= 515 && x <= 665 && y >= 630 && y <= 705) { this.upgradeSelectedTower(); this.vibrate([25, 30, 25]); return; }
           }
 
           // Sell button
-          if (x >= 755 && x <= 875 && y >= 630 && y <= 705) { this.sellSelectedTower(); this.vibrate(20); return; }
+          if (x >= 795 && x <= 915 && y >= 630 && y <= 705) { this.sellSelectedTower(); this.vibrate(20); return; }
           // Priority button
-          if (x >= 880 && x <= 1005 && y >= 630 && y <= 705) { this.cycleTargetPriority(); this.vibrate(15); return; }
+          if (x >= 920 && x <= 1045 && y >= 630 && y <= 705) { this.cycleTargetPriority(); this.vibrate(15); return; }
           // Close button
-          if (x >= 1010 && x <= 1070 && y >= 630 && y <= 705) { this.selectedTower = null; return; }
+          if (x >= 1050 && x <= 1110 && y >= 630 && y <= 705) { this.selectedTower = null; return; }
         } else {
-          // 5 Tower Hotbar
-          const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
-          for (let i = 0; i < 5; i++) {
-            const bx = 236 + i * 175;
-            if (x >= bx && x <= bx + 168 && y >= 625 && y <= 715) {
-              this.selectBuildType(towerKeys[i]);
+          // 8 Hotbar Items (7 Towers + Barricade)
+          const hotbarKeys = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
+          for (let i = 0; i < 8; i++) {
+            const bx = 276 + i * 125;
+            if (x >= bx && x <= bx + 120 && y >= 625 && y <= 715) {
+              if (i === 7) {
+                this.selectedBuildType = (this.selectedBuildType === 'barricade') ? null : 'barricade';
+              } else {
+                this.selectBuildType(hotbarKeys[i]);
+              }
               this.vibrate(15);
               return;
             }
@@ -3231,9 +3295,56 @@
       this.addFloatingText("CYBER-SLASH WAVE!", this.hero.x, this.hero.y - 28, "#00e5ff", 22);
     }
 
+    toggleHeroTransform() {
+      const h = this.hero;
+      if (h.mode === 'BIPED') {
+        h.mode = 'SIEGE';
+        h.speed = 45;
+        h.siegeCooldown = 0.5;
+        h.siegeRecoil = 0;
+        audio.mechTransform();
+        this.screenShake = 6;
+        this.spawnShockwave(h.x, h.y, 65, "#ffd600");
+        this.addFloatingText("🚜 SIEGE TANK (+50% ZIRH • 120MM GAUBITSA)", h.x, h.y - 32, "#ffd600", 17);
+        this.triggerRadioComm("APEX-01 AI", "TRANSFORMATSIYA: SIEGE TANK REJIMI FAOL! 120mm gaubitsa va og'ir zirh ishga tushdi!", 4.0);
+        this.vibrate([40, 30, 80]);
+      } else {
+        h.mode = 'BIPED';
+        h.speed = 130;
+        audio.mechTransform();
+        this.screenShake = 4;
+        this.spawnShockwave(h.x, h.y, 50, "#00e5ff");
+        this.addFloatingText("🤖 ROBOT REJIMI (130 TEZLIK • PLAZMA KATANA)", h.x, h.y - 32, "#00e5ff", 17);
+        this.triggerRadioComm("APEX-01 AI", "TRANSFORMATSIYA: ASSAULT ROBOT REJIMI! Yuqori manyovr va katana faol!", 4.0);
+        this.vibrate([30, 20, 60]);
+      }
+    }
+
+    damageHero(rawDmg) {
+      let dmg = rawDmg;
+      if (this.hero.shieldDome && this.hero.shieldDome.hp > 0) {
+        const absorb = Math.min(this.hero.shieldDome.hp, dmg);
+        this.hero.shieldDome.hp -= absorb;
+        dmg -= absorb;
+        this.addFloatingText(`-${absorb} QALQON`, this.hero.x, this.hero.y - 22, "#00e5ff", 14);
+        if (dmg <= 0) return;
+      }
+      if (this.hero.mode === 'SIEGE') {
+        dmg *= 0.50; // +50% armor damage reduction in SIEGE mode!
+      }
+      this.hero.hp = Math.max(0, this.hero.hp - dmg);
+      this.addFloatingText(`-${Math.round(dmg)} HP`, this.hero.x, this.hero.y - 15, "#ff1744", 15);
+      if (this.hero.hp <= 0) {
+        this.hero.hp = 1;
+        this.addFloatingText("⚡ EMERGENCY SHIELD REBOOT!", this.hero.x, this.hero.y - 30, "#ffd600", 18);
+        this.triggerRadioComm("APEX-01 AI", "OGOHLANTIRISH: Mech kritik shikastlandi! Favqulodda qayta yuklash faol!", 3.5);
+      }
+    }
+
     // --- COMMANDER SKILLS ---
     triggerSkill(skillKey) {
       const s = this.skills[skillKey];
+      if (!s) return;
       if (s.currentCd > 0) return;
       if (this.gold < s.cost) {
         this.addFloatingText(this.t("notEnoughGold"), 640, 600, "#ff1744");
@@ -3242,11 +3353,53 @@
       if (skillKey === 'overclock') {
         this.gold -= s.cost;
         s.currentCd = s.cd;
-        s.activeTime = 6.0;
+        s.activeTime = 8.0;
         audio.upgrade();
         this.screenShake = 4;
         this.analytics.damageByTower.skills += 50;
-        this.addFloatingText("OVERCLOCK ACTIVE! (+60% ROF)", 640, 200, "#ffd600", 24);
+        this.addFloatingText("OVERCLOCK ACTIVE! (+80% ROF / 8s)", 640, 200, "#ffd600", 24);
+      } else if (skillKey === 'shield') {
+        this.gold -= s.cost;
+        s.currentCd = s.cd;
+        this.hero.shieldDome = { active: true, radius: 170, maxHp: 1000, hp: 1000, duration: 10.0, timer: 10.0 };
+        audio.shieldDome();
+        this.screenShake = 5;
+        this.spawnShockwave(this.hero.x, this.hero.y, 170, "#00e5ff");
+        this.addFloatingText("🛡️ SHIELD DOME FAOL (1000 HP / 10s)!", this.hero.x, this.hero.y - 30, "#00e5ff", 22);
+        this.triggerRadioComm("HQ COMMANDER", "Qalqon gumbazi o'rnatildi! Barcha zarbalar yutiladi!", 3.5);
+      } else if (skillKey === 'missiles') {
+        this.gold -= s.cost;
+        s.currentCd = s.cd;
+        audio.missileLaunch();
+        this.screenShake = 6;
+        this.addFloatingText("🚀 MICRO-MISSILE SWARM (12 RAKETA)!", this.hero.x, this.hero.y - 30, "#ff9100", 22);
+        this.triggerRadioComm("APEX-01 AI", "Mikro-raketalar yelka bo'lmasidan uchirildi! Nishonlar o'q ostida!", 3.5);
+        for (let i = 0; i < 12; i++) {
+          setTimeout(() => {
+            if (this.state !== 'PLAYING') return;
+            let target = null;
+            if (this.enemies.length > 0) {
+              const pool = this.enemies.filter(e => !e.phased);
+              target = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+            }
+            const offsetAng = (i % 2 === 0 ? -1 : 1) * (0.3 + Math.random() * 0.5);
+            const launchAng = (this.hero.angle || 0) + offsetAng;
+            this.projectiles.push({
+              type: 'missile',
+              x: this.hero.x + Math.cos(launchAng) * 16,
+              y: this.hero.y + Math.sin(launchAng) * 16,
+              angle: launchAng,
+              speed: 460,
+              target: target,
+              targetX: target ? target.x : this.hero.x + Math.cos(launchAng) * 280,
+              targetY: target ? target.y : this.hero.y + Math.sin(launchAng) * 280,
+              damage: 75,
+              splash: 40,
+              life: 3.2
+            });
+            audio.missileLaunch();
+          }, i * 55);
+        }
       } else if (skillKey === 'drone') {
         this.gold += 75;
         this.analytics.totalGold += 75;
@@ -3266,14 +3419,16 @@
 
       if (skillKey === 'emp') {
         audio.emp();
-        this.screenShake = 8;
-        this.spawnShockwave(x, y, 200, "#00e5ff");
+        this.screenShake = 10;
+        this.spawnShockwave(x, y, 260, "#00e5ff");
+        this.spawnShockwave(x, y, 160, "#ffffff");
         for (const e of this.enemies) {
-          if (Math.hypot(e.x - x, e.y - y) <= 200) {
+          if (Math.hypot(e.x - x, e.y - y) <= 260) {
             e.slowRatio = 1.0;
-            e.slowTimer = 3.5;
-            this.applyDamage(e, 80, 'SKILL');
-            this.addFloatingText("STUNNED!", e.x, e.y - 14, "#00e5ff", 14);
+            e.slowTimer = 4.0;
+            e.shield = 0; // Destroy 100% of enemy shields!
+            this.applyDamage(e, 120, 'SKILL');
+            this.addFloatingText("⚡ EMP STUN + SHIELD SHATTER!", e.x, e.y - 14, "#00e5ff", 14);
           }
         }
       } else if (skillKey === 'orbital') {
@@ -3730,6 +3885,64 @@
           }
         }
 
+        // Burning Flame DoT
+        if (e.burnTimer > 0) {
+          e.burnTimer -= dt;
+          e.burnTick = (e.burnTick || 0) + dt;
+          if (e.burnTick >= 0.4) {
+            e.burnTick = 0;
+            this.applyDamage(e, (e.burnDmg || 25) * 0.4, 'FIRE', null, 'flame');
+            this.particles.push({
+              x: e.x + (Math.random() * 12 - 6),
+              y: e.y + (Math.random() * 12 - 6),
+              vx: (Math.random() - 0.5) * 15,
+              vy: -25 - Math.random() * 20,
+              color: "#ff3d00", size: 2.5, growth: 2, life: 0.3, maxLife: 0.3
+            });
+          }
+        }
+
+        // Kamikaze Drone Suicide Detonation
+        if (e.isKamikaze) {
+          e.beepTimer = (e.beepTimer || 0) + dt;
+          if (e.beepTimer >= 0.5) {
+            e.beepTimer = 0;
+            audio.kamikazeBeep();
+          }
+          const distToHero = Math.hypot(e.x - this.hero.x, e.y - this.hero.y);
+          if (distToHero <= 40) {
+            this.screenShake = 9;
+            this.spawnShockwave(e.x, e.y, 70, "#ff1744");
+            this.spawnScorchMark(e.x, e.y, 45);
+            audio.artilleryBlast();
+            this.damageHero(120);
+            this.enemies.splice(i, 1);
+            continue;
+          }
+        }
+
+        // Siege Breaker Ground Stomp
+        if (e.isSiegeBreaker) {
+          e.stompTimer = (e.stompTimer || 0) + dt;
+          if (e.stompTimer >= 5.5) {
+            e.stompTimer = 0;
+            this.screenShake = 12;
+            audio.artilleryBlast();
+            this.spawnShockwave(e.x, e.y, 160, "#7c4dff");
+            this.spawnScorchMark(e.x, e.y, 60);
+            this.addFloatingText("🗿 GROUND STOMP!", e.x, e.y - 35, "#7c4dff", 18);
+            for (const t of this.towers) {
+              if (Math.hypot(t.x - e.x, t.y - e.y) <= 170) {
+                t.cooldown = Math.max(t.cooldown || 0, 1.8);
+                this.addFloatingText("DISRUPTED!", t.x, t.y - 18, "#ffd600", 12);
+              }
+            }
+            if (Math.hypot(this.hero.x - e.x, this.hero.y - e.y) <= 170) {
+              this.damageHero(40);
+            }
+          }
+        }
+
         const effSpeed = e.speed * (1.0 - Math.min(e.isBoss ? 0.5 : 1.0, e.slowRatio));
 
         // Battlefield Destructible Barricade blocking & attack
@@ -3843,6 +4056,10 @@
 
         t.cooldown -= dt;
         if (t.laserTimer > 0) t.laserTimer -= dt;
+        if (t.lightningArcs) {
+          t.lightningArcs.time -= dt;
+          if (t.lightningArcs.time <= 0) t.lightningArcs = null;
+        }
         if (t.recoil > 0) t.recoil = Math.max(0, t.recoil - dt * 6.5);
         if (t.heat > 0) t.heat = Math.max(0, t.heat - dt * 0.7);
         if (t.branch === 'A' && t.type === 'pulse') t.barrelSpin = (t.barrelSpin || 0) + dt * 14;
@@ -3879,6 +4096,62 @@
           p.y = p.startY + (p.targetY - p.startY) * p.t - Math.sin(p.t * Math.PI) * 90;
           if (p.t >= 1.0) {
             this.detonateMortar(p.targetX, p.targetY, p.damage, p.splash, p.tower, p.branch);
+            this.projectiles.splice(i, 1);
+          }
+        } else if (p.type === 'siege_shell') {
+          p.t += dt / p.flightTime;
+          p.x = p.startX + (p.targetX - p.startX) * p.t;
+          p.y = p.startY + (p.targetY - p.startY) * p.t - Math.sin(p.t * Math.PI) * 45;
+          if (p.t >= 1.0) {
+            this.screenShake = 6;
+            audio.artilleryBlast();
+            this.spawnShockwave(p.targetX, p.targetY, p.splash, "#ffd600");
+            this.spawnScorchMark(p.targetX, p.targetY, p.splash * 0.7);
+            for (const e of this.enemies) {
+              const d = Math.hypot(e.x - p.targetX, e.y - p.targetY);
+              if (d <= p.splash) {
+                const falloff = 1.0 - (d / p.splash) * 0.4;
+                this.applyDamage(e, p.damage * falloff, 'EXPLOSIVE', null, 'hero');
+              }
+            }
+            this.projectiles.splice(i, 1);
+          }
+        } else if (p.type === 'missile') {
+          p.life -= dt;
+          if (p.target && this.enemies.includes(p.target)) {
+            p.targetX = p.target.x;
+            p.targetY = p.target.y;
+          }
+          const dx = p.targetX - p.x;
+          const dy = p.targetY - p.y;
+          const dist = Math.hypot(dx, dy);
+          const desAng = Math.atan2(dy, dx);
+          p.angle = p.angle || desAng;
+          let angDiff = desAng - p.angle;
+          while (angDiff < -Math.PI) angDiff += Math.PI * 2;
+          while (angDiff > Math.PI) angDiff -= Math.PI * 2;
+          p.angle += Math.sign(angDiff) * Math.min(Math.abs(angDiff), dt * 10);
+          p.x += Math.cos(p.angle) * p.speed * dt;
+          p.y += Math.sin(p.angle) * p.speed * dt;
+
+          if (Math.random() < 0.45) {
+            this.particles.push({
+              x: p.x - Math.cos(p.angle) * 8,
+              y: p.y - Math.sin(p.angle) * 8,
+              vx: (Math.random() - 0.5) * 15,
+              vy: (Math.random() - 0.5) * 15,
+              color: "rgba(220, 220, 220, 0.55)", size: 3, growth: 5, life: 0.35, maxLife: 0.35
+            });
+          }
+
+          if (dist < 16 || p.life <= 0) {
+            this.spawnShockwave(p.x, p.y, p.splash, "#ff9100");
+            audio.hit();
+            for (const e of this.enemies) {
+              if (Math.hypot(e.x - p.x, e.y - p.y) <= p.splash) {
+                this.applyDamage(e, p.damage, 'EXPLOSIVE', null, 'skills');
+              }
+            }
             this.projectiles.splice(i, 1);
           }
         }
@@ -3934,6 +4207,16 @@
       if (h.ultActiveTime > 0) h.ultActiveTime = Math.max(0, h.ultActiveTime - dt);
       if (h.slashAnim > 0) h.slashAnim = Math.max(0, h.slashAnim - dt);
       if (h.dashTimer > 0) h.dashTimer = Math.max(0, h.dashTimer - dt);
+      if (h.siegeRecoil > 0) h.siegeRecoil = Math.max(0, h.siegeRecoil - dt * 4.5);
+
+      // Energy Shield Dome decay
+      if (h.shieldDome) {
+        h.shieldDome.timer -= dt;
+        if (h.shieldDome.timer <= 0 || h.shieldDome.hp <= 0) {
+          h.shieldDome = null;
+          this.addFloatingText("SHIELD DOME TUGADI", h.x, h.y - 25, "#78909c", 13);
+        }
+      }
 
       // Hero Movement toward target
       const distToTarget = Math.hypot(h.targetX - h.x, h.targetY - h.y);
@@ -3947,7 +4230,7 @@
 
         // Footstep dust & imprints
         if (Math.random() < 0.22) {
-          this.spawnFootprint(h.x, h.y, h.angle, false);
+          this.spawnFootprint(h.x, h.y, h.angle, h.mode === 'SIEGE');
           this.particles.push({
             x: h.x + (Math.random() * 8 - 4),
             y: h.y + (Math.random() * 8 - 4),
@@ -3966,30 +4249,77 @@
             y: backY + (Math.random() * 6 - 3),
             vx: -Math.cos(h.angle) * 30 + (Math.random() * 10 - 5),
             vy: -Math.sin(h.angle) * 30 + (Math.random() * 10 - 5),
-            color: "#00e5ff", size: 2.5, life: 0.25, maxLife: 0.25
+            color: (h.mode === 'SIEGE') ? "#ffd600" : "#00e5ff", size: 2.5, life: 0.25, maxLife: 0.25
           });
         }
       } else {
         h.walkAnim = (h.walkAnim || 0) + dt * 2;
       }
 
-      // Hero In-Combat / Melee Attack
-      h.atkCooldown -= dt;
+      // Hero Combat State: SIEGE vs BIPED
       let inCombat = false;
-      for (const e of this.enemies) {
-        if (Math.hypot(e.x - h.x, e.y - h.y) <= 50) {
-          inCombat = true;
-          h.angle = Math.atan2(e.y - h.y, e.x - h.x);
-          if (h.atkCooldown <= 0) {
-            h.atkCooldown = 1.0 / h.atkRate;
-            h.slashAnim = 0.22;
-            audio.heroSlash();
-            this.vibrate(18);
-            const dmg = h.atkDmg * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
-            this.applyDamage(e, dmg, 'HERO', null, 'hero');
-            this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 5, life: 0.35, maxLife: 0.35 });
+      if (h.mode === 'SIEGE') {
+        // SIEGE MODE: Heavy Dual 120mm Artillery Auto-Targeting (Range: 250px)
+        h.siegeCooldown = Math.max(0, (h.siegeCooldown || 0) - dt);
+        let bestTarget = null;
+        let maxProg = -1;
+        for (const e of this.enemies) {
+          if (e.phased) continue;
+          const d = Math.hypot(e.x - h.x, e.y - h.y);
+          if (d <= 250) {
+            inCombat = true;
+            const score = (e.isBoss ? 1000 : 0) + (e.progress || 0);
+            if (score > maxProg) {
+              maxProg = score;
+              bestTarget = e;
+            }
           }
-          break;
+        }
+        if (bestTarget) {
+          h.angle = Math.atan2(bestTarget.y - h.y, bestTarget.x - h.x);
+          if (h.siegeCooldown <= 0) {
+            h.siegeCooldown = 1.35;
+            h.siegeRecoil = 1.0;
+            audio.shootMortar();
+            this.screenShake = 4;
+            this.vibrate(22);
+            this.spawnMuzzleFlash(h.x, h.y, h.angle, 34, "#ffd600");
+            this.spawnMuzzleSmoke(h.x, h.y, h.angle, "rgba(255, 180, 0, 0.45)");
+            this.spawnSpentCasing(h.x, h.y, h.angle);
+            // Launch 120mm Heavy Siege Shell
+            this.projectiles.push({
+              type: 'siege_shell',
+              x: h.x + Math.cos(h.angle) * 20,
+              y: h.y + Math.sin(h.angle) * 20,
+              startX: h.x,
+              startY: h.y,
+              targetX: bestTarget.x,
+              targetY: bestTarget.y,
+              t: 0,
+              flightTime: 0.45,
+              damage: 180 * (this.hasAugment("hero_overdrive") ? 1.5 : 1.0),
+              splash: 65
+            });
+          }
+        }
+      } else {
+        // BIPED MODE: In-Combat Melee Plasma Katana (Range: 50px)
+        h.atkCooldown -= dt;
+        for (const e of this.enemies) {
+          if (Math.hypot(e.x - h.x, e.y - h.y) <= 50) {
+            inCombat = true;
+            h.angle = Math.atan2(e.y - h.y, e.x - h.x);
+            if (h.atkCooldown <= 0) {
+              h.atkCooldown = 1.0 / h.atkRate;
+              h.slashAnim = 0.22;
+              audio.heroSlash();
+              this.vibrate(18);
+              const dmg = h.atkDmg * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
+              this.applyDamage(e, dmg, 'HERO', null, 'hero');
+              this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 5, life: 0.35, maxLife: 0.35 });
+            }
+            break;
+          }
         }
       }
 
@@ -4149,6 +4479,72 @@
             const extra = targets.find(e => !hitEnemies.includes(e));
             if (extra) this.applyDamage(extra, finalDmg * 0.5, 'ENERGY', tower, 'railgun');
           }
+        }
+      } else if (tower.type === 'tesla') {
+        audio.shootTesla();
+        this.spawnMuzzleFlash(tower.x, tower.y, tower.angle, 28, "#ffd600");
+        const chainCount = spec.chainCount || 4;
+        const chained = [];
+        let curr = primary;
+        let chainDmg = finalDmg;
+        for (let i = 0; i < chainCount && curr; i++) {
+          chained.push(curr);
+          this.applyDamage(curr, chainDmg, 'ENERGY', tower, 'tesla');
+          if (tower.branch === 'A') {
+            curr.slowRatio = 1.0;
+            curr.slowTimer = 1.2; // EMP shock stun
+          }
+          const next = this.enemies.find(e => !chained.includes(e) && !e.phased && Math.hypot(e.x - curr.x, e.y - curr.y) <= 100);
+          curr = next;
+          chainDmg *= 0.85;
+        }
+        tower.lightningArcs = {
+          time: 0.16,
+          points: [{ x: tower.x, y: tower.y }, ...chained.map(c => ({ x: c.x, y: c.y }))]
+        };
+        if (tower.branch === 'B') {
+          this.spawnShockwave(tower.x, tower.y, range, "#ffd600");
+          for (const e of targets) {
+            if (!chained.includes(e)) this.applyDamage(e, finalDmg * 0.65, 'ENERGY', tower, 'tesla');
+          }
+        }
+      } else if (tower.type === 'flame') {
+        audio.shootFlame();
+        const coneHalf = (spec.coneAngle || 0.7) / 2;
+        // Conical flame particles
+        for (let p = 0; p < 7; p++) {
+          const spreadAng = tower.angle + (Math.random() - 0.5) * (coneHalf * 2);
+          const spd = 160 + Math.random() * 120;
+          this.particles.push({
+            x: tower.x + Math.cos(tower.angle) * 16,
+            y: tower.y + Math.sin(tower.angle) * 16,
+            vx: Math.cos(spreadAng) * spd,
+            vy: Math.sin(spreadAng) * spd,
+            color: (tower.branch === 'B') ? (Math.random() > 0.4 ? "#00e5ff" : "#ffffff") : (Math.random() > 0.4 ? "#ff3d00" : "#ffd600"),
+            size: 4 + Math.random() * 5,
+            growth: 14,
+            life: 0.35 + Math.random() * 0.2,
+            maxLife: 0.55
+          });
+        }
+        for (const e of targets) {
+          const toTargetAng = Math.atan2(e.y - tower.y, e.x - tower.x);
+          let diffAng = Math.abs(toTargetAng - tower.angle);
+          while (diffAng > Math.PI) diffAng = Math.abs(diffAng - Math.PI * 2);
+          if (diffAng <= coneHalf) {
+            this.applyDamage(e, finalDmg, 'FIRE', tower, 'flame');
+            e.burnDmg = spec.dotDmg || 25;
+            e.burnTimer = spec.dotDur || 3.0;
+            if (tower.branch === 'B') {
+              e.armor = Math.max(0, e.armor * 0.30); // 70% armor melt
+            }
+          }
+        }
+        if (tower.branch === 'A' && Math.random() < 0.25) {
+          const poolDist = 40 + Math.random() * (range - 50);
+          const px = tower.x + Math.cos(tower.angle) * poolDist;
+          const py = tower.y + Math.sin(tower.angle) * poolDist;
+          this.groundHazards.push({ x: px, y: py, radius: 40, life: 3.5, tickTimer: 0 });
         }
       }
     }
@@ -5162,185 +5558,313 @@
         ctx.setLineDash([]);
       }
 
-      // 3. Facing Orientation & Articulated Bipedal Mech
+      // 3. Facing Orientation & Articulated Mech (SIEGE vs BIPED)
       const ang = h.angle || 0;
       ctx.rotate(ang);
 
       const walkCycle = Math.sin(h.walkAnim || 0);
 
-      // Articulated Hydraulic Legs with Knee Actuators & Footplates
-      const legL_X = -10 + walkCycle * 4;
-      const legR_X = -10 - walkCycle * 4;
+      if (h.mode === 'SIEGE') {
+        // --- SIEGE TANK: ARMORED CATERPILLAR TRACKS & DUAL 120MM CANNONS ---
+        const trackCycle = (h.walkAnim || 0) * 8;
+        const recoil = (h.siegeRecoil || 0) * 7;
 
-      // Left Leg
-      const legGrad = ctx.createLinearGradient(-12, -15, 0, -10);
-      legGrad.addColorStop(0, "#334155");
-      legGrad.addColorStop(1, "#0f172a");
-      ctx.fillStyle = legGrad;
-      ctx.fillRect(legL_X, -15, 9, 6);
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(legL_X, -15, 9, 6);
-      // Piston rod
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillRect(legL_X + 2, -13, 5, 2);
+        // Left Caterpillar Tread Assembly
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(-17 - recoil, -20, 34, 10);
+        ctx.strokeStyle = "#475569";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-17 - recoil, -20, 34, 10);
+        // Track segments
+        ctx.fillStyle = "#334155";
+        for (let t = -15; t <= 13; t += 5) {
+          const off = ((t + trackCycle) % 28) - 14;
+          ctx.fillRect(off - recoil, -20, 2.5, 10);
+        }
+        // Road wheels
+        ctx.fillStyle = "#64748b";
+        for (let w = -11; w <= 11; w += 7) {
+          ctx.beginPath();
+          ctx.arc(w - recoil, -15, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-      // Right Leg
-      ctx.fillStyle = legGrad;
-      ctx.fillRect(legR_X, 9, 9, 6);
-      ctx.strokeRect(legR_X, 9, 9, 6);
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillRect(legR_X + 2, 11, 5, 2);
+        // Right Caterpillar Tread Assembly
+        ctx.fillStyle = "#090d16";
+        ctx.fillRect(-17 - recoil, 10, 34, 10);
+        ctx.strokeStyle = "#475569";
+        ctx.strokeRect(-17 - recoil, 10, 34, 10);
+        // Track segments
+        ctx.fillStyle = "#334155";
+        for (let t = -15; t <= 13; t += 5) {
+          const off = ((t + trackCycle) % 28) - 14;
+          ctx.fillRect(off - recoil, 10, 2.5, 10);
+        }
+        // Road wheels
+        ctx.fillStyle = "#64748b";
+        for (let w = -11; w <= 11; w += 7) {
+          ctx.beginPath();
+          ctx.arc(w - recoil, 15, 2.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-      // Dual Ion Thruster Backpack
-      const thrusterGrad = ctx.createLinearGradient(-16, -9, -10, 9);
-      thrusterGrad.addColorStop(0, "#1e293b");
-      thrusterGrad.addColorStop(1, "#090d16");
-      ctx.fillStyle = thrusterGrad;
-      ctx.fillRect(-15, -9, 7, 18);
-      ctx.strokeStyle = "#475569";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-15, -9, 7, 18);
+        // Armored Fortress Hull Chassis
+        const hullGrad = ctx.createLinearGradient(-15, -12, 18, 12);
+        hullGrad.addColorStop(0, "#475569");
+        hullGrad.addColorStop(0.5, "#1e293b");
+        hullGrad.addColorStop(1, "#0f172a");
+        ctx.fillStyle = hullGrad;
+        ctx.fillRect(-14 - recoil, -12, 28, 24);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-14 - recoil, -12, 28, 24);
 
-      // Exhaust Nozzles & Blue Ion Flare
-      ctx.fillStyle = "#00e5ff";
-      ctx.fillRect(-17, -7, 2, 4);
-      ctx.fillRect(-17, 3, 2, 4);
+        // Bolted Armor Plates & Warning Hazard Decals
+        ctx.fillStyle = "#ffd600";
+        ctx.fillRect(-12 - recoil, -10, 4, 20);
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(-6 - recoil, -10, 4, 20);
 
-      // Armored Titanium Torso Chassis (Multi-Stop Gradient & Bevels)
-      const torsoGrad = ctx.createLinearGradient(-12, -12, 14, 12);
-      torsoGrad.addColorStop(0, "#475569"); // top-left specular highlight
-      torsoGrad.addColorStop(0.4, "#1e293b"); // gunmetal armor plate
-      torsoGrad.addColorStop(1, "#0f172a"); // shadow chamfer
-      ctx.fillStyle = torsoGrad;
-      ctx.beginPath();
-      ctx.moveTo(-11, -11);
-      ctx.lineTo(9, -9);
-      ctx.lineTo(14, 0);
-      ctx.lineTo(9, 9);
-      ctx.lineTo(-11, 11);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        // Dual 120mm Heavy Siege Artillery Barrels
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(10 - recoil, -7, 28, 5);
+        ctx.fillRect(10 - recoil, 2, 28, 5);
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(10 - recoil, -7, 28, 5);
+        ctx.strokeRect(10 - recoil, 2, 28, 5);
 
-      // Shoulder Pauldrons with Unit Marking
-      ctx.fillStyle = "#334155";
-      ctx.fillRect(-6, -15, 7, 5);
-      ctx.fillRect(-6, 10, 7, 5);
+        // Slotted Heavy Muzzle Brakes
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(34 - recoil, -8, 5, 7);
+        ctx.fillRect(34 - recoil, 1, 5, 7);
+        // Barrel Heat Glow
+        if (h.siegeRecoil > 0) {
+          ctx.fillStyle = `rgba(255, 145, 0, ${h.siegeRecoil})`;
+          ctx.fillRect(35 - recoil, -7, 3, 5);
+          ctx.fillRect(35 - recoil, 2, 3, 5);
+        }
 
-      // Glowing Quantum Arc-Reactor Core
-      const reactorGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 5.5);
-      reactorGrad.addColorStop(0, "#ffffff");
-      reactorGrad.addColorStop(0.4, "#ffd600");
-      reactorGrad.addColorStop(1, "#ff6d00");
-      ctx.fillStyle = reactorGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      // Rotating Brass Magnetic Confinement Ring
-      ctx.save();
-      ctx.rotate(performance.now() * 0.005);
-      ctx.strokeStyle = "#ffd54f";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(0, 0, 7.5, 0, Math.PI * 1.5);
-      ctx.stroke();
-      ctx.restore();
-
-      // Angular Cockpit / Helmet with Neon Cyan Glass Visor & Specular Glint
-      ctx.fillStyle = "#090d16";
-      ctx.beginPath();
-      ctx.moveTo(3, -5);
-      ctx.lineTo(14, -3);
-      ctx.lineTo(16, 0);
-      ctx.lineTo(14, 3);
-      ctx.lineTo(3, 5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Visor Glass Specular Glint
-      const visorGrad = ctx.createLinearGradient(6, -3, 14, 0);
-      visorGrad.addColorStop(0, "#ffffff");
-      visorGrad.addColorStop(0.6, "#00e5ff");
-      visorGrad.addColorStop(1, "#0091ea");
-      ctx.strokeStyle = visorGrad;
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(6, -3);
-      ctx.lineTo(14, 0);
-      ctx.lineTo(6, 3);
-      ctx.stroke();
-
-      // Tactical Left Arm Energy Buckler
-      ctx.fillStyle = "#00b0ff";
-      ctx.fillRect(0, -14, 7, 4);
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(0, -14, 7, 4);
-
-      // High-Frequency Plasma Katana (Right Arm)
-      const slashAngle = (h.slashAnim > 0) ? ((0.22 - h.slashAnim) / 0.22) * Math.PI : 0;
-      ctx.save();
-      ctx.translate(4, 10);
-      ctx.rotate(slashAngle);
-
-      // Katana Hilt
-      ctx.fillStyle = "#475569";
-      ctx.fillRect(-3, -2.5, 6, 5);
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillRect(2, -4, 2, 8); // Tsuba guard
-
-      // Curved Energy Wake Ribbon Trail when slashing
-      if (h.slashAnim > 0) {
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-        ctx.lineWidth = 8;
+        // Rotating Heavy Armored Commander Turret Cupola
+        ctx.fillStyle = "#1e293b";
         ctx.beginPath();
-        ctx.arc(-4, 0, 26, -0.6, 0.6);
+        ctx.arc(-2 - recoil, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Glowing Amber Targeting Visor
+        ctx.fillStyle = "#ffd600";
+        ctx.fillRect(3 - recoil, -3, 3, 6);
+      } else {
+        // --- BIPED ASSAULT ROBOT: ARTICULATED LEGS & PLASMA KATANA ---
+        // Articulated Hydraulic Legs with Knee Actuators & Footplates
+        const legL_X = -10 + walkCycle * 4;
+        const legR_X = -10 - walkCycle * 4;
+
+        // Left Leg
+        const legGrad = ctx.createLinearGradient(-12, -15, 0, -10);
+        legGrad.addColorStop(0, "#334155");
+        legGrad.addColorStop(1, "#0f172a");
+        ctx.fillStyle = legGrad;
+        ctx.fillRect(legL_X, -15, 9, 6);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(legL_X, -15, 9, 6);
+        // Piston rod
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(legL_X + 2, -13, 5, 2);
+
+        // Right Leg
+        ctx.fillStyle = legGrad;
+        ctx.fillRect(legR_X, 9, 9, 6);
+        ctx.strokeRect(legR_X, 9, 9, 6);
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(legR_X + 2, 11, 5, 2);
+
+        // Dual Ion Thruster Backpack
+        const thrusterGrad = ctx.createLinearGradient(-16, -9, -10, 9);
+        thrusterGrad.addColorStop(0, "#1e293b");
+        thrusterGrad.addColorStop(1, "#090d16");
+        ctx.fillStyle = thrusterGrad;
+        ctx.fillRect(-15, -9, 7, 18);
+        ctx.strokeStyle = "#475569";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-15, -9, 7, 18);
+
+        // Exhaust Nozzles & Blue Ion Flare
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(-17, -7, 2, 4);
+        ctx.fillRect(-17, 3, 2, 4);
+
+        // Armored Titanium Torso Chassis (Multi-Stop Gradient & Bevels)
+        const torsoGrad = ctx.createLinearGradient(-12, -12, 14, 12);
+        torsoGrad.addColorStop(0, "#475569"); // top-left specular highlight
+        torsoGrad.addColorStop(0.4, "#1e293b"); // gunmetal armor plate
+        torsoGrad.addColorStop(1, "#0f172a"); // shadow chamfer
+        ctx.fillStyle = torsoGrad;
+        ctx.beginPath();
+        ctx.moveTo(-11, -11);
+        ctx.lineTo(9, -9);
+        ctx.lineTo(14, 0);
+        ctx.lineTo(9, 9);
+        ctx.lineTo(-11, 11);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Shoulder Pauldrons with Unit Marking
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(-6, -15, 7, 5);
+        ctx.fillRect(-6, 10, 7, 5);
+
+        // Glowing Quantum Arc-Reactor Core
+        const reactorGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 5.5);
+        reactorGrad.addColorStop(0, "#ffffff");
+        reactorGrad.addColorStop(0.4, "#ffd600");
+        reactorGrad.addColorStop(1, "#ff6d00");
+        ctx.fillStyle = reactorGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Rotating Brass Magnetic Confinement Ring
+        ctx.save();
+        ctx.rotate(performance.now() * 0.005);
+        ctx.strokeStyle = "#ffd54f";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 7.5, 0, Math.PI * 1.5);
+        ctx.stroke();
+        ctx.restore();
+
+        // Angular Cockpit / Helmet with Neon Cyan Glass Visor & Specular Glint
+        ctx.fillStyle = "#090d16";
+        ctx.beginPath();
+        ctx.moveTo(3, -5);
+        ctx.lineTo(14, -3);
+        ctx.lineTo(16, 0);
+        ctx.lineTo(14, 3);
+        ctx.lineTo(3, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Visor Glass Specular Glint
+        const visorGrad = ctx.createLinearGradient(6, -3, 14, 0);
+        visorGrad.addColorStop(0, "#ffffff");
+        visorGrad.addColorStop(0.6, "#00e5ff");
+        visorGrad.addColorStop(1, "#0091ea");
+        ctx.strokeStyle = visorGrad;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(6, -3);
+        ctx.lineTo(14, 0);
+        ctx.lineTo(6, 3);
+        ctx.stroke();
+
+        // Tactical Left Arm Energy Buckler
+        ctx.fillStyle = "#00b0ff";
+        ctx.fillRect(0, -14, 7, 4);
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0, -14, 7, 4);
+
+        // High-Frequency Plasma Katana (Right Arm)
+        const slashAngle = (h.slashAnim > 0) ? ((0.22 - h.slashAnim) / 0.22) * Math.PI : 0;
+        ctx.save();
+        ctx.translate(4, 10);
+        ctx.rotate(slashAngle);
+
+        // Katana Hilt
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(-3, -2.5, 6, 5);
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillRect(2, -4, 2, 8); // Tsuba guard
+
+        // Curved Energy Wake Ribbon Trail when slashing
+        if (h.slashAnim > 0) {
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.arc(-4, 0, 26, -0.6, 0.6);
+          ctx.stroke();
+        }
+
+        // Outer Ionized Plasma Envelope
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.moveTo(4, 0);
+        ctx.lineTo(28, 0);
+        ctx.stroke();
+
+        // Inner White-Hot Tungsten Cutting Edge
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(4, 0);
+        ctx.lineTo(27, 0);
+        ctx.stroke();
+        ctx.restore();
       }
 
-      // Outer Ionized Plasma Envelope
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(4, 0);
-      ctx.lineTo(28, 0);
-      ctx.stroke();
+      // Energy Shield Dome Hexagonal Forcefield Visual
+      if (h.shieldDome && h.shieldDome.timer > 0) {
+        ctx.save();
+        const domeAngle = performance.now() * 0.002;
+        ctx.rotate(domeAngle);
+        const domeAlpha = 0.35 + Math.sin(performance.now() * 0.006) * 0.15;
+        ctx.strokeStyle = `rgba(0, 229, 255, ${domeAlpha + 0.35})`;
+        ctx.fillStyle = `rgba(0, 229, 255, ${domeAlpha * 0.22})`;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        const hr = 72;
+        for (let i = 0; i < 6; i++) {
+          const a = (Math.PI / 3) * i;
+          const px = Math.cos(a) * hr;
+          const py = Math.sin(a) * hr;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
 
-      // Inner White-Hot Tungsten Cutting Edge
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(4, 0);
-      ctx.lineTo(27, 0);
-      ctx.stroke();
       ctx.restore();
 
-      ctx.restore();
-
-      // Floating Tactical Health Bar & Level Badge
-      const barW = 48;
+      // Floating Tactical Health Bar & Mode Badge
+      const barW = 52;
       const bx = h.x - barW / 2;
-      const by = h.y - 30;
+      const by = h.y - 32;
 
-      // Level Badge Hexagon
-      ctx.fillStyle = "#ffd600";
+      // Mode Badge Pill
+      ctx.fillStyle = h.mode === 'SIEGE' ? "#ffd600" : "#00e5ff";
       ctx.beginPath();
-      ctx.arc(bx - 9, by + 3, 8, 0, Math.PI * 2);
+      ctx.arc(bx - 10, by + 3, 9, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "#000";
       ctx.font = "bold 9px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`${h.level}`, bx - 9, by + 6);
+      ctx.fillText(h.mode === 'SIEGE' ? "TNK" : "MECH", bx - 10, by + 6);
+
+      // Shield Dome Bar if active
+      if (h.shieldDome && h.shieldDome.timer > 0) {
+        const shPct = Math.max(0, h.shieldDome.hp / h.shieldDome.maxHp);
+        ctx.fillStyle = "#003366";
+        ctx.fillRect(bx, by - 6, barW, 4);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(bx, by - 6, barW * shPct, 4);
+      }
 
       // Health Bar Chassis
       ctx.fillStyle = "#090e17";
@@ -5658,8 +6182,145 @@
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(-2, -2, 4, 4);
           }
+        } else if (t.type === 'tesla') {
+          if (t.branch === 'A') {
+            // Overcharge Arc: Triple High-Frequency Induction Coils
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-8, -10, 16, 20);
+            ctx.strokeStyle = "#ffd600";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-8, -10, 16, 20);
+            for (let c = -6; c <= 6; c += 6) {
+              ctx.fillStyle = "#ffb300";
+              ctx.fillRect(-6, c - 2, 12, 4);
+            }
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc(10, 0, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#00e5ff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          } else if (t.branch === 'B') {
+            // Tesla Storm Aura: Quad Corona Emitters
+            const spinAura = performance.now() * 0.004;
+            ctx.fillStyle = "#1e293b";
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#76ff03";
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+            for (let k = 0; k < 4; k++) {
+              const a = spinAura + (Math.PI / 2) * k;
+              ctx.strokeStyle = "#ffd600";
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(Math.cos(a) * 18, Math.sin(a) * 18);
+              ctx.stroke();
+              ctx.fillStyle = "#ffffff";
+              ctx.beginPath();
+              ctx.arc(Math.cos(a) * 18, Math.sin(a) * 18, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          } else {
+            // Standard Tesla Coil: Porcelain Insulator & Copper Toroid
+            ctx.fillStyle = "#e2e8f0";
+            ctx.fillRect(-6, -8, 12, 16);
+            ctx.strokeStyle = "#64748b";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(-6, -8, 12, 16);
+            ctx.fillStyle = "#d97706";
+            ctx.fillRect(-5, -6, 10, 3);
+            ctx.fillRect(-5, -1, 10, 3);
+            ctx.fillRect(-5, 4, 10, 3);
+            ctx.fillStyle = "#ffd600";
+            ctx.beginPath();
+            ctx.arc(6, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            if (Math.random() < 0.4) {
+              ctx.strokeStyle = "#ffffff";
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(6, 0);
+              ctx.lineTo(6 + (Math.random() * 14 - 7), (Math.random() * 14 - 7));
+              ctx.stroke();
+            }
+          }
+        } else if (t.type === 'flame') {
+          if (t.branch === 'A') {
+            // Napalm Inferno: Heavy Pressurized Fuel Cells
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(-8, -12, 18, 24);
+            ctx.strokeStyle = "#ff3d00";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-8, -12, 18, 24);
+            ctx.fillStyle = "#ff1744";
+            ctx.fillRect(-14, -10, 6, 6);
+            ctx.fillRect(-14, -3, 6, 6);
+            ctx.fillRect(-14, 4, 6, 6);
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(10, -6, 16, 12);
+            ctx.fillStyle = "#ff9100";
+            ctx.fillRect(24, -4, 4, 8);
+          } else if (t.branch === 'B') {
+            // Plasma Blaze: Superconducting Magnetic Injector
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(-6, -9, 16, 18);
+            ctx.strokeStyle = "#00e5ff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-6, -9, 16, 18);
+            ctx.fillStyle = "#00e5ff";
+            ctx.fillRect(10, -5, 18, 4);
+            ctx.fillRect(10, 1, 18, 4);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(16, -7, 4, 14);
+          } else {
+            // Twin Pressurized Fuel Cylinders & Combustion Nozzles
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(-6, -9, 16, 18);
+            ctx.fillStyle = "#ff3d00";
+            ctx.fillRect(-12, -7, 6, 6);
+            ctx.fillRect(-12, 1, 6, 6);
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(10, -6, 14, 4);
+            ctx.fillRect(10, 2, 14, 4);
+            ctx.fillStyle = "#00e5ff";
+            ctx.fillRect(22, -5.5, 3, 3);
+            ctx.fillRect(22, 2.5, 3, 3);
+          }
         }
         ctx.restore();
+
+        // Render Active Tesla Chain Lightning Arcs
+        if (t.lightningArcs && t.lightningArcs.points.length >= 2) {
+          ctx.save();
+          const pts = t.lightningArcs.points;
+          ctx.strokeStyle = (t.branch === 'B') ? "#76ff03" : "#ffd600";
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = "#ffffff";
+          ctx.shadowBlur = 8;
+          for (let pIdx = 0; pIdx < pts.length - 1; pIdx++) {
+            const p1 = pts[pIdx];
+            const p2 = pts[pIdx + 1];
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            const midX1 = p1.x + (p2.x - p1.x) * 0.33 + (Math.random() * 16 - 8);
+            const midY1 = p1.y + (p2.y - p1.y) * 0.33 + (Math.random() * 16 - 8);
+            const midX2 = p1.x + (p2.x - p1.x) * 0.66 + (Math.random() * 16 - 8);
+            const midY2 = p1.y + (p2.y - p1.y) * 0.66 + (Math.random() * 16 - 8);
+            ctx.lineTo(midX1, midY1);
+            ctx.lineTo(midX2, midY2);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
 
         // 4. Tier Markers (Stars)
         ctx.fillStyle = "#ffd600";
@@ -5689,6 +6350,74 @@
         ctx.translate(e.x, e.y);
 
         if (e.isFlyer) {
+          if (e.type === 'gunship') {
+            // VTOL Heavy Aerial Gunship
+            ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+            ctx.beginPath();
+            ctx.ellipse(4, 22, 18, 9, e.angle, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.rotate(e.angle);
+            const rotorSpin = performance.now() * 0.04;
+
+            // Fuselage
+            const gunGrad = ctx.createLinearGradient(-16, -10, 18, 10);
+            gunGrad.addColorStop(0, "#334155");
+            gunGrad.addColorStop(0.5, "#1e293b");
+            gunGrad.addColorStop(1, "#0f172a");
+            ctx.fillStyle = gunGrad;
+            ctx.beginPath();
+            ctx.moveTo(18, 0);
+            ctx.lineTo(8, -9);
+            ctx.lineTo(-14, -7);
+            ctx.lineTo(-18, 0);
+            ctx.lineTo(-14, 7);
+            ctx.lineTo(8, 9);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "#00e5ff";
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            // Wings & Tilt-Rotor Nacelles
+            ctx.fillStyle = "#475569";
+            ctx.fillRect(-4, -18, 6, 36);
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(-2, -21, 6, 5);
+            ctx.fillRect(-2, 16, 6, 5);
+
+            // Spinning Rotors
+            ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-2 + Math.cos(rotorSpin) * 12, -18 + Math.sin(rotorSpin) * 12);
+            ctx.lineTo(-2 - Math.cos(rotorSpin) * 12, -18 - Math.sin(rotorSpin) * 12);
+            ctx.moveTo(-2 + Math.cos(-rotorSpin) * 12, 18 + Math.sin(-rotorSpin) * 12);
+            ctx.lineTo(-2 - Math.cos(-rotorSpin) * 12, 18 - Math.sin(-rotorSpin) * 12);
+            ctx.stroke();
+
+            // Chin nose cannon & cockpit
+            ctx.fillStyle = "#ffd600";
+            ctx.fillRect(16, -1.5, 7, 3);
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath(); ctx.arc(6, 0, 3, 0, Math.PI * 2); ctx.fill();
+
+            // HP Bar & Shield Bar
+            ctx.rotate(-e.angle);
+            const fHpPct = Math.max(0, e.hp / e.maxHp);
+            ctx.fillStyle = "#263238";
+            ctx.fillRect(-16, -24, 32, 4);
+            ctx.fillStyle = "#00e5ff";
+            ctx.fillRect(-16, -24, 32 * fHpPct, 4);
+            if (e.shield > 0) {
+              const shPct = Math.max(0, e.shield / (e.maxShield || 100));
+              ctx.fillStyle = "#00b0ff";
+              ctx.fillRect(-16, -29, 32 * shPct, 3);
+            }
+            ctx.restore();
+            continue;
+          }
+
           // Aerial Jet Shadow
           ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
           ctx.beginPath();
@@ -5985,6 +6714,83 @@
           ctx.moveTo(9, -6); ctx.lineTo(18, -2.5);
           ctx.moveTo(9, 6); ctx.lineTo(18, 2.5);
           ctx.stroke();
+        } else if (e.type === 'kamikaze') {
+          // Volatile Spider Drone with Ticking LED Core
+          ctx.rotate(e.angle);
+          const kWalk = Math.sin(performance.now() * 0.035) * 4;
+          const kPulse = Math.sin(performance.now() * 0.02) * 2;
+
+          // 4 Skittering Legs
+          ctx.strokeStyle = "#ff3d00";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-4, -6); ctx.lineTo(-10, -12 + kWalk);
+          ctx.moveTo(4, -6); ctx.lineTo(10, -12 - kWalk);
+          ctx.moveTo(-4, 6); ctx.lineTo(-10, 12 - kWalk);
+          ctx.moveTo(4, 6); ctx.lineTo(10, 12 + kWalk);
+          ctx.stroke();
+
+          // High-Explosive Body Canister
+          ctx.fillStyle = "#1e293b";
+          ctx.beginPath();
+          ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Pulsing Crimson Detonator Sphere
+          ctx.fillStyle = "#ff1744";
+          ctx.beginPath();
+          ctx.arc(0, 0, 4 + kPulse, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Hazard Warning Cross
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(-1, -3, 2, 6);
+          ctx.fillRect(-3, -1, 6, 2);
+        } else if (e.type === 'siege_breaker') {
+          // Massive Mechanized Stone/Steel Golem
+          ctx.rotate(e.angle);
+          const gWalk = Math.sin(e.walkAnim || 0) * 3;
+
+          // Heavy Granite Feet
+          ctx.fillStyle = "#1e1b4b";
+          ctx.fillRect(-16 + gWalk, -18, 11, 8);
+          ctx.fillRect(-16 - gWalk, 10, 11, 8);
+
+          // Massive Heavy Torso with Runic Plates
+          const golemGrad = ctx.createLinearGradient(-14, -14, 16, 14);
+          golemGrad.addColorStop(0, "#475569");
+          golemGrad.addColorStop(0.5, "#2e1065");
+          golemGrad.addColorStop(1, "#0f172a");
+          ctx.fillStyle = golemGrad;
+          ctx.fillRect(-14, -15, 28, 30);
+          ctx.strokeStyle = "#7c4dff";
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(-14, -15, 28, 30);
+
+          // Glowing Violet Runic Inscription Lines
+          ctx.strokeStyle = "#e040fb";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-6, -10); ctx.lineTo(6, 0); ctx.lineTo(-6, 10);
+          ctx.moveTo(0, -10); ctx.lineTo(0, 10);
+          ctx.stroke();
+
+          // Giant Spiked Boulder Fists
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(8, -20, 16, 9);
+          ctx.fillRect(8, 11, 16, 9);
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(23, -19, 4, 3);
+          ctx.fillRect(23, -14, 4, 3);
+          ctx.fillRect(23, 12, 4, 3);
+          ctx.fillRect(23, 17, 4, 3);
+
+          // Glowing Eye Visor
+          ctx.fillStyle = "#7c4dff";
+          ctx.fillRect(4, -3, 5, 6);
         } else if (e.type === 'juggernaut') {
           // BOSS 1: Colossus MK-IV Siege Fortress
           const walkB = Math.sin(e.walkAnim || 0) * 4.5;
@@ -6227,16 +7033,19 @@
       ctx.setLineDash([4, 4]);
 
       const options = [
-        { key: 'pulse', ang: -Math.PI * 0.8, icon: "⚡", label: "PULSE" },
-        { key: 'mortar', ang: -Math.PI * 0.5, icon: "💣", label: "MORTAR" },
-        { key: 'cryo', ang: -Math.PI * 0.2, icon: "❄️", label: "CRYO" },
-        { key: 'railgun', ang: Math.PI * 0.15, icon: "🎯", label: "RAILGUN" },
-        { key: 'beacon', ang: Math.PI * 0.85, icon: "📡", label: "BEACON" }
+        { key: 'pulse', icon: "⚡", label: "PULSE" },
+        { key: 'mortar', icon: "💣", label: "MORTAR" },
+        { key: 'cryo', icon: "❄️", label: "CRYO" },
+        { key: 'tesla', icon: "⚡", label: "TESLA" },
+        { key: 'flame', icon: "🔥", label: "FLAME" },
+        { key: 'railgun', icon: "🎯", label: "RAILGUN" },
+        { key: 'beacon', icon: "📡", label: "BEACON" }
       ];
 
-      for (const opt of options) {
-        const bx = rc.px + Math.cos(opt.ang) * 65;
-        const by = rc.py + Math.sin(opt.ang) * 65;
+      for (let i = 0; i < options.length; i++) {
+        const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
+        const bx = rc.px + Math.cos(ang) * 68;
+        const by = rc.py + Math.sin(ang) * 68;
         ctx.beginPath();
         ctx.moveTo(rc.px, rc.py);
         ctx.lineTo(bx, by);
@@ -6244,13 +7053,15 @@
       }
       ctx.setLineDash([]);
 
-      // 3. Five Big Glowing Touch Buttons
-      for (const opt of options) {
+      // 3. Seven Big Glowing Touch Buttons
+      for (let i = 0; i < options.length; i++) {
+        const opt = options[i];
         const def = TOWER_DEFS[opt.key];
         const canAfford = this.gold >= def.cost;
-        const bx = rc.px + Math.cos(opt.ang) * 65;
-        const by = rc.py + Math.sin(opt.ang) * 65;
-        const br = 24;
+        const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
+        const bx = rc.px + Math.cos(ang) * 68;
+        const by = rc.py + Math.sin(ang) * 68;
+        const br = 22;
 
         ctx.fillStyle = canAfford ? "#0f172a" : "#1e293b";
         ctx.beginPath();
@@ -6258,16 +7069,16 @@
         ctx.fill();
 
         ctx.strokeStyle = canAfford ? def.color : "#475569";
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2.2;
         ctx.stroke();
 
-        ctx.font = "14px monospace";
+        ctx.font = "13px monospace";
         ctx.textAlign = "center";
         ctx.fillText(opt.icon, bx, by - 2);
 
         ctx.fillStyle = canAfford ? "#ffd600" : "#ff1744";
         ctx.font = "bold 9px monospace";
-        ctx.fillText(`${def.cost}g`, bx, by + 12);
+        ctx.fillText(`${def.cost}g`, bx, by + 11);
       }
     }
 
@@ -6382,6 +7193,31 @@
           this.ctx.fill();
           this.ctx.fillStyle = "#ffffff";
           this.ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+        } else if (p.type === 'siege_shell') {
+          // Heavy 120mm High-Explosive Siege Shell with Glowing Tracer
+          this.ctx.save();
+          this.ctx.translate(p.x, p.y);
+          const sAngle = Math.atan2(p.targetY - p.startY, p.targetX - p.startX);
+          this.ctx.rotate(sAngle);
+          this.ctx.fillStyle = "rgba(255, 145, 0, 0.6)";
+          this.ctx.fillRect(-14, -3, 14, 6);
+          this.ctx.fillStyle = "#ffd600";
+          this.ctx.fillRect(-6, -3, 12, 6);
+          this.ctx.fillStyle = "#ffffff";
+          this.ctx.fillRect(2, -1.5, 4, 3);
+          this.ctx.restore();
+        } else if (p.type === 'missile') {
+          // Micro-Missile with Rocket Exhaust Flame
+          this.ctx.save();
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate(p.angle || 0);
+          this.ctx.fillStyle = "#ff3d00";
+          this.ctx.fillRect(-8, -1.5, 6, 3);
+          this.ctx.fillStyle = "#eceff1";
+          this.ctx.fillRect(-3, -2, 8, 4);
+          this.ctx.fillStyle = "#ff1744";
+          this.ctx.fillRect(4, -1.5, 3, 3);
+          this.ctx.restore();
         }
       }
     }
@@ -6817,28 +7653,32 @@
       ctx.lineTo(this.width, 620);
       ctx.stroke();
 
-      // 1. Hero Mech Button (Clean Stacked Slot: x: 6, w: 46, h: 78)
+      // 1. Hero Mech Ult Button (x: 6, w: 42, h: 78)
       const isHeroUltReady = this.hero.currentUltCd <= 0;
-      this.renderAbilitySlot(6, 628, 46, 78, "⚡", "MECH", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady, this.hero.currentUltCd / this.hero.ultCd);
+      this.renderAbilitySlot(6, 628, 42, 78, "⚡", "MECH", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady, this.hero.currentUltCd / this.hero.ultCd);
 
-      // 2. 4 Commander Super Skills Panel (Clean Stacked Slots: w: 42, h: 78)
+      // 2. Hero Mech Mode Toggle Button (x: 52, w: 42, h: 78)
+      const isSiege = this.hero.mode === 'SIEGE';
+      this.renderAbilitySlot(52, 628, 42, 78, isSiege ? "🚜" : "🤖", "MODE", isSiege ? "TANK" : "ROBOT", isSiege ? "#ffd600" : "#00e5ff", true, 0);
+
+      // 3. 4 Commander Super Skills Panel (Clean Stacked Slots: w: 40, h: 78)
       const skillMeta = {
         emp:       { icon: "⚡", label: "EMP",  color: "#00e5ff", sub: `${this.skills.emp.cost}g` },
-        orbital:   { icon: "🛰️", label: "LAZ",  color: "#ff1744", sub: `${this.skills.orbital.cost}g` },
-        overclock: { icon: "⚙️", label: "ROF",  color: "#ffd600", sub: `${this.skills.overclock.cost}g` },
-        drone:     { icon: "🛸", label: "DRN",  color: "#00e676", sub: "FREE" }
+        missiles:  { icon: "🚀", label: "MSL",  color: "#ff9100", sub: `${this.skills.missiles.cost}g` },
+        shield:    { icon: "🛡️", label: "SHD",  color: "#00b0ff", sub: `${this.skills.shield.cost}g` },
+        overclock: { icon: "⚙️", label: "ROF",  color: "#ffd600", sub: `${this.skills.overclock.cost}g` }
       };
-      const skillList = ['emp', 'orbital', 'overclock', 'drone'];
+      const skillList = ['emp', 'missiles', 'shield', 'overclock'];
       for (let i = 0; i < 4; i++) {
         const k = skillList[i];
         const s = this.skills[k];
         const meta = skillMeta[k];
-        const sx = 56 + i * 44;
+        const sx = 98 + i * 44;
         const isReady = s.currentCd <= 0 && this.gold >= s.cost;
         const isAiming = (this.aimingSkill === k);
         const color = isAiming ? "#ffeb3b" : (isReady ? meta.color : "#37474f");
 
-        this.renderAbilitySlot(sx, 628, 42, 78, meta.icon, meta.label, meta.sub, color, isReady || isAiming, s.currentCd / s.cd);
+        this.renderAbilitySlot(sx, 628, 40, 78, meta.icon, meta.label, meta.sub, color, isReady || isAiming, s.currentCd / s.cd);
 
         // Active Aiming Highlight Ring
         if (isAiming) {
@@ -6847,7 +7687,7 @@
           ctx.lineWidth = 2.5;
           ctx.shadowColor = "#ffd600";
           ctx.shadowBlur = 8;
-          ctx.strokeRect(sx, 628, 42, 78);
+          ctx.strokeRect(sx, 628, 40, 78);
           ctx.restore();
         }
 
@@ -6855,15 +7695,15 @@
         if (s.currentCd > 0) {
           ctx.fillStyle = "rgba(255, 23, 68, 0.70)";
           const pct = s.currentCd / s.cd;
-          ctx.fillRect(sx, 628 + 78 * (1 - pct), 42, 78 * pct);
+          ctx.fillRect(sx, 628 + 78 * (1 - pct), 40, 78 * pct);
           ctx.fillStyle = "#ffffff";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 21, 696);
+          ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 20, 696);
         }
       }
 
-      // 3. Selection vs Hotbar
+      // 4. Selection vs Hotbar
       if (this.selectedTower) {
         const t = this.selectedTower;
         const def = TOWER_DEFS[t.type];
@@ -6874,14 +7714,14 @@
         ctx.font = "bold 14px monospace";
         ctx.textAlign = "left";
         const titleStr = t.branch ? spec.name.toUpperCase() : `${def.name.toUpperCase()} (T${t.tier})`;
-        ctx.fillText(titleStr, 235, 652);
+        ctx.fillText(titleStr, 280, 652);
 
         ctx.fillStyle = "#cfd8dc";
         ctx.font = "11px monospace";
         const stats = t.type === 'beacon' ?
           `Aura: +${(spec.dmgBuff || 0.35) * 100}% Dmg | Radius: ${spec.range}px` :
           `Dmg: ${spec.dmg} | Rate: ${spec.rate}/s | Kills: ${t.kills} | Deal: ${t.damageDealt}`;
-        ctx.fillText(stats, 235, 674);
+        ctx.fillText(stats, 280, 674);
 
         // Branching upgrade at Tier 2
         if (t.tier === 2) {
@@ -6889,44 +7729,58 @@
           const bB = def.branches.B;
           const canA = this.gold >= bA.cost;
           const canB = this.gold >= bB.cost;
-          this.drawCyberButton(450, 632, 140, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "", canA);
-          this.drawCyberButton(605, 632, 140, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "", canB);
+          this.drawCyberButton(490, 632, 140, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "", canA);
+          this.drawCyberButton(645, 632, 140, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "", canB);
         } else if (t.tier === 1) {
           const upCost = spec.upCost;
           const canUpgrade = this.gold >= upCost;
-          this.drawCyberButton(480, 636, 140, 62, `[U] ${this.t("upgrade")}`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g`, "⚡", canUpgrade);
+          this.drawCyberButton(520, 636, 140, 62, `[U] ${this.t("upgrade")}`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g`, "⚡", canUpgrade);
         } else {
-          this.drawCyberButton(480, 636, 140, 62, "MAX TIER 3", "#ffd600", "MAX SPECIALIZED", "★", false);
+          this.drawCyberButton(520, 636, 140, 62, "MAX TIER 3", "#ffd600", "MAX SPECIALIZED", "★", false);
         }
 
         // Sell button
         const refund = Math.floor(t.totalInvested * 0.70);
-        this.drawCyberButton(760, 636, 110, 62, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑", true);
+        this.drawCyberButton(800, 636, 110, 62, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑", true);
 
         // Priority button
-        this.drawCyberButton(885, 636, 115, 62, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
+        this.drawCyberButton(925, 636, 115, 62, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
 
         // Close button
-        this.drawCyberButton(1015, 636, 45, 62, "✕", "#90a4ae", "YOPISH", "", false);
+        this.drawCyberButton(1055, 636, 45, 62, "✕", "#90a4ae", "YOPISH", "", false);
       } else {
-        // Tower Hotbar
-        const towerKeys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
-        for (let i = 0; i < 5; i++) {
-          const key = towerKeys[i];
-          const def = TOWER_DEFS[key];
-          const bx = 236 + i * 175;
-          const isSelected = this.selectedBuildType === key;
-          const canAfford = this.gold >= def.cost;
-          const cardColor = isSelected ? "#00e5ff" : (canAfford ? def.color : "#455a64");
+        // 8 Tower Hotbar Slots: 7 Towers + Barricade Wall
+        const hotbarItems = [
+          { key: 'pulse', label: '[1] PULSE' },
+          { key: 'mortar', label: '[2] MORTAR' },
+          { key: 'cryo', label: '[3] CRYO' },
+          { key: 'tesla', label: '[4] TESLA' },
+          { key: 'flame', label: '[5] FLAME' },
+          { key: 'railgun', label: '[6] RAILGUN' },
+          { key: 'beacon', label: '[7] BEACON' },
+          { key: 'barricade', label: "[8] TO'SIQ" }
+        ];
 
-          this.drawCyberButton(bx, 628, 165, 78, `[${i + 1}] ${def.name.split(' ')[0]}`, cardColor, `${def.cost}g • ${def.type.toUpperCase()}`, isSelected ? "▶" : "⬢", isSelected);
+        for (let i = 0; i < 8; i++) {
+          const item = hotbarItems[i];
+          const bx = 276 + i * 125;
+          const isSelected = this.selectedBuildType === item.key;
+          let cost = 40;
+          let color = "#ffd600";
+          let subText = "40g • DEVOR";
+
+          if (item.key !== 'barricade') {
+            const def = TOWER_DEFS[item.key];
+            cost = def.cost;
+            color = def.color;
+            subText = `${cost}g • ${def.type}`;
+          }
+
+          const canAfford = this.gold >= cost;
+          const cardColor = isSelected ? "#00e5ff" : (canAfford ? color : "#455a64");
+
+          this.drawCyberButton(bx, 628, 120, 78, item.label, cardColor, subText, isSelected ? "▶" : "⬢", isSelected);
         }
-
-        // [6] Tactical Barricade Deploy Button
-        const barX = 1115;
-        const isBarSelected = this.selectedBuildType === 'barricade';
-        const canBar = this.gold >= 40;
-        this.drawCyberButton(barX, 628, 155, 78, "[6] 🚧 TO'SIQ", isBarSelected ? "#ff9100" : (canBar ? "#ffd600" : "#455a64"), "40g • MUSTAHKAM DEVOR", "", isBarSelected);
       }
     }
 
