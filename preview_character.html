@@ -53,8 +53,27 @@
     backdrop-filter: blur(14px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.7);
     z-index: 10;
-    max-width: 320px;
-    pointer-events: none;
+    max-width: 340px;
+    pointer-events: auto;
+  }
+  .home-btn {
+    background: rgba(46, 230, 255, 0.15);
+    border: 1px solid rgba(46, 230, 255, 0.4);
+    color: var(--cyan);
+    font-size: 9px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 3px 7px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.2s ease;
+  }
+  .home-btn:hover, .home-btn:active {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 8px var(--cyan-glow);
   }
   #header-hud h1 {
     font-size: 12px;
@@ -425,7 +444,10 @@
 
 <!-- Header HUD -->
 <div id="header-hud">
-  <h1>APEX-01 TRANSFORMER</h1>
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+    <h1>APEX-01 TRANSFORMER</h1>
+    <a href="index.html" class="home-btn" title="Asosiy O'yinga Qaytish">🏠 MENYU</a>
+  </div>
   <div class="subtitle">AAA Fotorealistik Mech · CS2 Hangar · PBR Normal Maps</div>
 </div>
 
@@ -1289,6 +1311,12 @@ function getAudio() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
+window.addEventListener('pointerdown', () => {
+  try {
+    if (!audioCtx) getAudio();
+    else if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e) {}
+}, { once: true });
 
 // Footstep: Sub-bass + Steel clang + Pneumatic hiss
 function playStepSound() {
@@ -1662,6 +1690,7 @@ function animate() {
   // Camera Shake Dampening
   if (camShake > 0.001) {
     camShake *= Math.exp(-dt * 12);
+    if (camShake <= 0.001) camShake = 0;
     updateCameraPos();
   }
 

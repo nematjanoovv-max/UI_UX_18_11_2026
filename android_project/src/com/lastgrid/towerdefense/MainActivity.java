@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -84,7 +85,7 @@ public class MainActivity extends Activity {
                         String assetPath = null;
                         if (path.startsWith("/android_asset/")) {
                             assetPath = path.substring("/android_asset/".length());
-                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav")) {
+                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".glb") || path.endsWith(".wasm") || path.endsWith(".webp") || path.endsWith(".pck")) {
                             assetPath = "www" + (path.startsWith("/") ? path : "/" + path);
                             if (assetPath.equals("www/")) assetPath = "www/index.html";
                         }
@@ -100,6 +101,10 @@ public class MainActivity extends Activity {
                                 else if (assetPath.endsWith(".svg")) mime = "image/svg+xml";
                                 else if (assetPath.endsWith(".mp3")) mime = "audio/mpeg";
                                 else if (assetPath.endsWith(".wav")) mime = "audio/wav";
+                                else if (assetPath.endsWith(".glb")) mime = "model/gltf-binary";
+                                else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
+                                else if (assetPath.endsWith(".webp")) mime = "image/webp";
+                                else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
                                 return new WebResourceResponse(mime, "UTF-8", is);
                             } catch (Exception e) {}
                         }
@@ -126,6 +131,34 @@ public class MainActivity extends Activity {
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             );
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (webView != null) {
+            webView.onPause();
+            webView.pauseTimers();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null) {
+            webView.onResume();
+            webView.resumeTimers();
+        }
+        setImmersiveMode();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (webView != null) {
+            webView.destroy();
+            webView = null;
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -199,7 +232,7 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getVersion() {
-            return "3.7.0-android-apk";
+            return "4.1.0-android-apk";
         }
 
         @JavascriptInterface

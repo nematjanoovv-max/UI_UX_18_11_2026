@@ -1406,6 +1406,7 @@
         this.canvas.height = targetBufferH;
       }
       this.dpr = dpr;
+      this.syncMechCanvasPosition();
     }
 
     getCanvasPos(e) {
@@ -1919,8 +1920,12 @@
         return;
       }
       if (this.state === 'MENU') {
-        // Left Hero Hangar Tap (Trigger Hero Sound & Spark)
+        // Left Hero Hangar Tap (Trigger Hero Sound or Open 3D Studio)
         if (x >= 40 && x <= 430 && y >= 88 && y <= 678) {
+          if (y >= 580 || (x >= 55 && x <= 415 && y >= 570)) {
+            window.location.href = 'preview_character.html';
+            return;
+          }
           audio.heroSlash();
           this.vibrate([30, 20, 50]);
           this.addFloatingText("⚡ APEX-01 SYSTEM ONLINE!", 235, 300, "#00e5ff", 18);
@@ -2918,12 +2923,12 @@
 
     downloadApk() {
       if (typeof window !== 'undefined' && window.AndroidBridge) {
-        if (this.addFloatingText) this.addFloatingText(640, 360, "Siz Android APK dasiz (v4.0.0)!", "#00e676");
+        if (this.addFloatingText) this.addFloatingText("Siz Android APK dasiz (v4.1.0)!", 640, 360, "#00e676", 18);
         return;
       }
       const a = document.createElement('a');
-      a.href = 'TowerDefense_LastGrid_v4.0.0.apk';
-      a.download = 'TowerDefense_LastGrid_v4.0.0.apk';
+      a.href = 'TowerDefense_LastGrid_v4.1.0.apk';
+      a.download = 'TowerDefense_LastGrid_v4.1.0.apk';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -6866,7 +6871,7 @@
       ctx.restore();
 
       // Version in separate pill badge
-      this.renderMiniButton(390, 24, 75, 24, "v4.0.0", "#ff007f");
+      this.renderMiniButton(390, 24, 75, 24, "v4.1.0", "#ff007f");
 
       // Commander Name & Status Badge
       ctx.fillStyle = "#cfd8dc";
@@ -6991,7 +6996,10 @@
 
       ctx.fillStyle = "#ffd600";
       ctx.font = "11px monospace";
-      ctx.fillText("▶ Qahramon jangda to'liq boshqariladi!", hx + 28, hy + 545);
+      ctx.fillText("▶ Qahramon jangda to'liq boshqariladi!", hx + 28, hy + 540);
+
+      // 3D Mech Studio Button
+      this.renderMenuButton(hx + 20, hy + 520, hw - 40, 48, "🤖 3D MECH STUDIYA (360°)", "#00e5ff", "#000");
 
       ctx.restore();
 
@@ -7019,8 +7027,8 @@
 
       // System Controls (Row 4: y: 350)
       this.drawCyberButton(455, 350, 255, 58, "SOZLAMALAR", "#00e5ff", "AUDIO & GRAFIKA", "⚙️", true);
-      this.drawCyberButton(720, 350, 255, 58, "ANDROID APK", "#00e676", "OFLAYN APK (28MB)", "📲", true);
-      this.drawCyberButton(985, 350, 255, 58, this.t("downloadOffline"), "#ffd600", "ZIP ARXIV (369KB)", "📦", false);
+      this.drawCyberButton(720, 350, 255, 58, "ANDROID APK", "#00e676", "OFLAYN APK (44MB)", "📲", true);
+      this.drawCyberButton(985, 350, 255, 58, this.t("downloadOffline"), "#ffd600", "ZIP ARXIV (40MB)", "📦", false);
 
       // Commander Tactical Report & Dossier Panel (Bottom Right: y: 420 to 678)
       ctx.save();

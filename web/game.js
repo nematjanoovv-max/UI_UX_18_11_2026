@@ -18,8 +18,8 @@
       bossRush: "BOSS RUSH DUEL",
       mapEditor: "MAP EDITOR",
       leaderboard: "GLOBAL LEADERBOARD",
-      fieldManual: "FIELD MANUAL / GUIDE",
-      downloadOffline: "DOWNLOAD OFFLINE ZIP",
+      fieldManual: "ENCYCLOPEDIA",
+      downloadOffline: "OFFLINE ZIP (19MB)",
       core: "CORE HEALTH",
       wave: "WAVE",
       start: "START",
@@ -53,8 +53,8 @@
       bossRush: "BOSS RUSH DUEL",
       mapEditor: "XARITALAR MUHARRIRI",
       leaderboard: "GLOBAL REYTING",
-      fieldManual: "QO'LLANMA / ENSIKLOPEDIYA",
-      downloadOffline: "OFLAYN O'YINNI YUKLAB OLISH (ZIP)",
+      fieldManual: "ENSIKLOPEDIYA",
+      downloadOffline: "OFLAYN ZIP (19MB)",
       core: "BAZA HOLATI",
       wave: "TO'LQIN",
       start: "BOSHLASH",
@@ -88,8 +88,8 @@
       bossRush: "БОСС РАШ ДУЭЛЬ",
       mapEditor: "РЕДАКТОР КАРТ",
       leaderboard: "ТАБЛИЦА ЛИДЕРОВ",
-      fieldManual: "РУКОВОДСТВО / СПРАВКА",
-      downloadOffline: "СКАЧАТЬ ОФЛАЙН ИГРУ (ZIP)",
+      fieldManual: "СПРАВОЧНИК",
+      downloadOffline: "ОФЛАЙН ZIP (19MB)",
       core: "ПРОЧНОСТЬ ЯДРА",
       wave: "ВОЛНА",
       start: "СТАРТ",
@@ -221,6 +221,15 @@
       if (this.bgmMuted) this.stopBGM();
       else this.startBGM();
       return !this.bgmMuted;
+    }
+    setBGMVolume(vol) {
+      if (this.bgmAudio) {
+        try {
+          this.bgmAudio.volume = Math.max(0, Math.min(1, vol));
+          if (vol <= 0) this.bgmAudio.pause();
+          else if (this.bgmAudio.paused && !this.bgmMuted) this.bgmAudio.play().catch(() => {});
+        } catch(e) {}
+      }
     }
     playBGMTrack(trackName) {
       if (this.currentBgmName === trackName && this.bgmAudio && !this.bgmAudio.paused) return;
@@ -537,7 +546,7 @@
     {
       id: "spiral_core", name: "Spiral Core", desc: "Concentric inward spiral. Optimal for Mortar and Cryo AoE setups.",
       wave_count: 15, gold: 250, hp: 20, modifier: "none", biome: "lava",
-      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ] ]
+      lanes: [ [ {x:64, y:96}, {x:1152, y:96}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ] ]
     },
     {
       id: "misty_pass", name: "Misty Pass", desc: "Dense electromagnetic fog reduces all tower ranges by -15%.",
@@ -575,13 +584,26 @@
     {
       id: "last_grid", name: "The Last Grid", desc: "Final endurance sector: full 30 waves with 3 Boss encounters!",
       wave_count: 30, gold: 350, hp: 25, modifier: "last_grid", biome: "cyber",
-      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
+      lanes: [ [ {x:64, y:96}, {x:1152, y:96}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
     }
   ];
 
   // --- TOWER BLUEPRINTS & BRANCHING SPECIALIZATIONS (TIER 3) ---
   // Calibrated with Cyberpunk 2077 & Valorant Weapon Statistics
   const TOWER_DEFS = {
+    wall: {
+      id: "wall", name: "Barricade Wall", type: "DEFENSE", color: "#78909c", cost: 40, desc: "Armored barricade wall that obstructs ground hostiles.",
+      targetsAir: false, projSpeed: 0,
+      tiers: [
+        { hp: 400, range: 40, upCost: 28 },
+        { hp: 600, range: 40, upCost: 40 },
+        { hp: 900, range: 40, upCost: 56 }
+      ],
+      branches: {
+        A: { name: "Spike Barrier", hp: 1200, reflect: 0.30, color: "#ff7043", perk: "thorns", cost: 80, desc: "Reflects 30% melee damage back to attackers." },
+        B: { name: "Electrified Gate", hp: 1000, zapDmg: 40, color: "#ffd600", perk: "electrified", cost: 85, desc: "Zaps adjacent attackers every second." }
+      }
+    },
     pulse: {
       id: "pulse", name: "Pulse Tower", type: "KINETIC", color: "#00e5ff", cost: 100, desc: "Rapid-fire kinetic tracer gun.",
       tiers: [
@@ -658,18 +680,26 @@
   ];
 
   // --- ENEMY BLUEPRINTS ---
-  const ENEMY_DEFS = {
-    grunt:        { name: "Grunt",        hp: 100, shield: 0,   armor: 0,  spd: 60,  bounty: 5,  color: "#ff5252", size: 12, marker: "●" },
-    sprinter:     { name: "Sprinter",     hp: 60,  shield: 0,   armor: 0,  spd: 110, bounty: 6,  color: "#ffd600", size: 10, marker: "▲" },
-    brute:        { name: "Brute",        hp: 400, shield: 0,   armor: 8,  spd: 40,  bounty: 15, color: "#d50000", size: 17, marker: "■" },
-    swarmling:    { name: "Swarmling",    hp: 25,  shield: 0,   armor: 0,  spd: 85,  bounty: 2,  color: "#ffab00", size: 7,  marker: "◆" },
-    shieldbearer: { name: "Shieldbearer", hp: 200, shield: 150, armor: 2,  spd: 55,  bounty: 12, color: "#00b0ff", size: 15, marker: "🛡" },
-    medic:        { name: "Medic",        hp: 150, shield: 0,   armor: 0,  spd: 50,  bounty: 14, color: "#00e676", size: 13, marker: "✚" },
-    splitter:     { name: "Splitter",     hp: 250, shield: 0,   armor: 3,  spd: 55,  bounty: 10, color: "#e040fb", size: 15, marker: "✦" },
-    phantom:      { name: "Phantom",      hp: 180, shield: 0,   armor: 0,  spd: 75,  bounty: 12, color: "#7c4dff", size: 14, marker: "★" },
-    juggernaut:   { name: "BOSS: Juggernaut", hp: 6000,  shield: 0, armor: 20, spd: 32, bounty: 100, color: "#ff1744", size: 28, isBoss: true, marker: "☠" },
-    overseer:     { name: "BOSS: Overseer",   hp: 9000,  shield: 0, armor: 10, spd: 35, bounty: 150, color: "#651fff", size: 30, isBoss: true, marker: "👁" },
-    hive_titan:   { name: "BOSS: Hive Titan", hp: 20000, shield: 0, armor: 15, spd: 30, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣" }
+    const ENEMY_DEFS = {
+    scout:        { name: "Scout",        hp: 40,  shield: 0,   armor: 0,  spd: 96, bounty: 3,  color: "#ffd600", size: 10, marker: "▲", isFlyer: false },
+    grunt:        { name: "Grunt",        hp: 100, shield: 0,   armor: 0,  spd: 60, bounty: 5,  color: "#ff5252", size: 12, marker: "●", isFlyer: false },
+    tank:         { name: "Tank",         hp: 400, shield: 0,   armor: 12, armorReduction: 0.30, spd: 36, bounty: 16, color: "#d50000", size: 18, marker: "■", isFlyer: false },
+    flyer:        { name: "Flyer",        hp: 70,  shield: 0,   armor: 0,  spd: 84, bounty: 6,  color: "#00e5ff", size: 11, marker: "✈", isFlyer: true },
+    swarm:        { name: "Swarm",        hp: 25,  shield: 0,   armor: 0,  spd: 78, bounty: 2,  color: "#ffab00", size: 7,  marker: "◆", isFlyer: false },
+    shielded:     { name: "Shielded",     hp: 120, shield: 150, armor: 4,  spd: 54, bounty: 12, color: "#00b0ff", size: 14, marker: "🛡", isFlyer: false },
+    boss:         { name: "Titan Boss",   hp: 3000, shield: 0,  armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
+
+    // Backwards-compatible aliases
+    sprinter:     { name: "Sprinter",     hp: 40,  shield: 0,   armor: 0,  spd: 96, bounty: 3,  color: "#ffd600", size: 10, marker: "▲", isFlyer: false },
+    brute:        { name: "Brute",        hp: 400, shield: 0,   armor: 12, armorReduction: 0.30, spd: 36, bounty: 16, color: "#d50000", size: 18, marker: "■", isFlyer: false },
+    swarmling:    { name: "Swarmling",    hp: 25,  shield: 0,   armor: 0,  spd: 78, bounty: 2,  color: "#ffab00", size: 7,  marker: "◆", isFlyer: false },
+    shieldbearer: { name: "Shieldbearer", hp: 120, shield: 150, armor: 4,  spd: 54, bounty: 12, color: "#00b0ff", size: 14, marker: "🛡", isFlyer: false },
+    medic:        { name: "Medic",        hp: 150, shield: 0,   armor: 0,  spd: 50, bounty: 14, color: "#00e676", size: 13, marker: "✚", isFlyer: false },
+    splitter:     { name: "Splitter",     hp: 250, shield: 0,   armor: 3,  spd: 55, bounty: 10, color: "#e040fb", size: 15, marker: "✦", isFlyer: false },
+    phantom:      { name: "Phantom",      hp: 180, shield: 0,   armor: 0,  spd: 75, bounty: 12, color: "#7c4dff", size: 14, marker: "★", isFlyer: false },
+    juggernaut:   { name: "BOSS: Juggernaut", hp: 3000,  shield: 0, armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
+    overseer:     { name: "BOSS: Overseer",   hp: 4500,  shield: 500, armor: 12, spd: 32, bounty: 200, color: "#651fff", size: 30, isBoss: true, marker: "👁", isFlyer: false },
+    hive_titan:   { name: "BOSS: Hive Titan", hp: 6500,  shield: 0, armor: 18, spd: 28, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣", isFlyer: false }
   };
 
   // --- BTD6-POWERED WAVE PROGRESSION & CHOREOGRAPHY ---
@@ -754,11 +784,10 @@
 
       this.lang = localStorage.getItem('last_grid_lang') || 'uz';
       this.gameMode = 'CAMPAIGN';
-      this.state = 'MENU'; audio.playBGMTrack('menu'); // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL', 'DRAFT', 'ANALYTICS'
+      this.state = 'MENU';
       this.speed = 1;
-      const biome = map.biome || 'cyber';
-      audio.playBGMTrack(biome);
-      setTimeout(() => audio.playSample('hq_online', 0.8), 600);
+      try { audio.playBGMTrack('menu'); } catch(e) {}
+      this.loadBackgroundImages();
       this.crtEnabled = localStorage.getItem('lg_crt') === 'true';
       this.colorblind = false;
       this.screenShake = 0;
@@ -876,6 +905,7 @@
 
       this.initEvents();
       this.setupCanvasScaling();
+      this.initMechSystem();
       this.fetchLiveScores();
       this.startLoop();
     }
@@ -975,6 +1005,31 @@
       }).catch(() => {});
     }
 
+
+    initMechSystem() {
+      const mechCanvas = document.getElementById('mech-hangar-canvas');
+      if (mechCanvas && window.Apex01System) {
+        this.apexSystem = new window.Apex01System();
+        this.apexSystem.init(mechCanvas);
+        this.syncMechCanvasPosition();
+      }
+    }
+
+    syncMechCanvasPosition() {
+      const mechCanvas = document.getElementById('mech-hangar-canvas');
+      if (!mechCanvas || !this.canvas) return;
+
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = rect.width / 1280;
+      const scaleY = rect.height / 720;
+
+      // Hangar slot in 1280x720: x: 50, y: 155, w: 370, h: 325
+      mechCanvas.style.left = `${rect.left + 50 * scaleX}px`;
+      mechCanvas.style.top = `${rect.top + 155 * scaleY}px`;
+      mechCanvas.style.width = `${Math.floor(370 * scaleX)}px`;
+      mechCanvas.style.height = `${Math.floor(325 * scaleY)}px`;
+    }
+
     setupCanvasScaling() {
       window.addEventListener('resize', () => this.resizeCanvas());
       window.addEventListener('orientationchange', () => setTimeout(() => this.resizeCanvas(), 150));
@@ -1033,9 +1088,8 @@
       }
       // 9. If in PAUSED state -> unpause
       if (this.state === 'PAUSED') {
-        if (x >= 420 && x <= 860 && y >= 335 && y <= 395) { this.togglePause(); return; }
-        if (x >= 420 && x <= 860 && y >= 400 && y <= 460) { this.showSettingsModal = true; this.settingsReturnState = 'PAUSED'; return; }
-        if (x >= 420 && x <= 860 && y >= 465 && y <= 525) { this.state = 'MENU'; audio.playBGMTrack('menu'); this.selectedTower = null; return; }
+        this.togglePause();
+        try { audio.modal(); } catch(e) {}
         return;
       }
       // 10. If in MENU -> double tap back to exit application
@@ -1208,7 +1262,8 @@
             this.settings.bgmVol = bgmLevels[i];
             localStorage.setItem('lg_bgm_vol', bgmLevels[i].toString());
             audio.bgmMuted = (bgmLevels[i] === 0.0);
-            if (audio.bgmMuted) audio.stopBGM(); else audio.startBGM();
+            if (audio.bgmMuted) audio.stopBGM();
+            else { audio.startBGM(); audio.setBGMVolume(bgmLevels[i]); }
             audio.click();
             this.vibrate(15);
             return;
@@ -1351,6 +1406,7 @@
         this.canvas.height = targetBufferH;
       }
       this.dpr = dpr;
+      this.syncMechCanvasPosition();
     }
 
     getCanvasPos(e) {
@@ -1663,15 +1719,23 @@
         lanes: [ this.editorWaypoints ]
       } : MAPS[mapIdx];
 
-      this.gold = mode === 'BOSS_RUSH' ? 1200 : map.gold;
+      this.difficulty = localStorage.getItem('lg_difficulty') || 'NORMAL';
+      const diffGoldMult = (this.difficulty === 'CASUAL') ? 1.25 : ((this.difficulty === 'HEROIC') ? 0.85 : 1.0);
+      const diffHpMult = (this.difficulty === 'CASUAL') ? 1.2 : ((this.difficulty === 'HEROIC') ? 0.8 : 1.0);
+      this.gold = Math.round((mode === 'BOSS_RUSH' ? 1200 : map.gold) * diffGoldMult);
       this.score = 0;
-      this.baseHp = map.hp;
-      this.maxBaseHp = map.hp;
+      this.baseHp = Math.round(map.hp * diffHpMult);
+      this.maxBaseHp = this.baseHp;
       this.wave = 1;
       this.maxWaves = (mode === 'ENDLESS') ? 999 : (mode === 'BOSS_RUSH' ? 3 : map.wave_count);
       this.waveActive = false;
       this.waveCountdown = 8;
       this.speed = 1;
+      try {
+        const biome = (map && map.biome) ? map.biome : 'cyber';
+        audio.playBGMTrack(biome);
+        setTimeout(() => audio.playSample('hq_online', 0.8), 600);
+      } catch(e) {}
 
       this.activeAugments = [];
       this.draftCards = [];
@@ -1856,8 +1920,12 @@
         return;
       }
       if (this.state === 'MENU') {
-        // Left Hero Hangar Tap (Trigger Hero Sound & Spark)
+        // Left Hero Hangar Tap (Trigger Hero Sound or Open 3D Studio)
         if (x >= 40 && x <= 430 && y >= 88 && y <= 678) {
+          if (y >= 580 || (x >= 55 && x <= 415 && y >= 570)) {
+            window.location.href = 'preview_character.html';
+            return;
+          }
           audio.heroSlash();
           this.vibrate([30, 20, 50]);
           this.addFloatingText("⚡ APEX-01 SYSTEM ONLINE!", 235, 300, "#00e5ff", 18);
@@ -1922,6 +1990,17 @@
 
       if (this.state === 'MAP_SELECT') {
         if (y >= 10 && y <= 65 && x >= 20 && x <= 180) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
+        if (x >= 580 && x <= 920 && y >= 18 && y <= 58) {
+          const idx = Math.floor((x - 580) / 110);
+          const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
+          if (diffs[idx]) {
+            this.difficulty = diffs[idx];
+            localStorage.setItem('lg_difficulty', this.difficulty);
+            audio.click();
+            this.vibrate(15);
+          }
+          return;
+        }
         for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
@@ -1969,6 +2048,13 @@
         if (x >= 330 && x <= 530 && y >= 405 && y <= 470) this.startMission(this.currentMapIndex, this.gameMode);
         else if (x >= 540 && x <= 740 && y >= 405 && y <= 470) this.state = 'ANALYTICS';
         else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) this.state = 'MENU'; audio.playBGMTrack('menu');
+        return;
+      }
+
+      // Tutorial Skip Click
+      if (this.currentMapIndex === 0 && !localStorage.getItem('lg_tutorial_done') && x >= 1090 && x <= 1240 && y >= 15 && y <= 50) {
+        localStorage.setItem('lg_tutorial_done', 'true');
+        this.addFloatingText("TUTORIAL O'TKAZILDI", 640, 100, "#ffd600");
         return;
       }
 
@@ -2372,7 +2458,16 @@
       ctx.font = "11px monospace";
       const charCount = Math.floor(rc.anim);
       const visibleText = rc.text.substring(0, charCount);
-      ctx.fillText(visibleText, bx + 12, by + 54);
+
+      // Multi-line wrap
+      const words = visibleText.split(" ");
+      let line1 = "", line2 = "";
+      for (const w of words) {
+        if ((line1 + " " + w).length <= 44) line1 += (line1 ? " " : "") + w;
+        else line2 += (line2 ? " " : "") + w;
+      }
+      ctx.fillText(line1, bx + 12, by + 50);
+      if (line2) ctx.fillText(line2, bx + 12, by + 64);
 
       ctx.restore();
     }
@@ -2828,12 +2923,12 @@
 
     downloadApk() {
       if (typeof window !== 'undefined' && window.AndroidBridge) {
-        if (this.addFloatingText) this.addFloatingText(640, 360, "Siz Android APK dasiz (v4.0.0)!", "#00e676");
+        if (this.addFloatingText) this.addFloatingText("Siz Android APK dasiz (v4.1.0)!", 640, 360, "#00e676", 18);
         return;
       }
       const a = document.createElement('a');
-      a.href = 'TowerDefense_LastGrid_v4.0.0.apk';
-      a.download = 'TowerDefense_LastGrid_v4.0.0.apk';
+      a.href = 'TowerDefense_LastGrid_v4.1.0.apk';
+      a.download = 'TowerDefense_LastGrid_v4.1.0.apk';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -3140,18 +3235,28 @@
     }
 
     spawnEnemy(type, laneIdx) {
-      const def = ENEMY_DEFS[type];
+      const def = ENEMY_DEFS[type] || ENEMY_DEFS['grunt'];
       const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       let spdMult = 1.0;
       let armorMult = 1.0;
       let hpMult = 1.0;
 
+      // Difficulty scaling
+      if (this.difficulty === 'CASUAL') hpMult *= 0.80;
+      else if (this.difficulty === 'HEROIC') hpMult *= 1.30;
+
       if (this.hasAugment("bounty_hunter")) spdMult *= 1.10;
-      if (this.gameMode === 'ENDLESS' && this.wave > 30) hpMult = Math.pow(1.08, this.wave - 30);
+      if (this.gameMode === 'ENDLESS' && this.wave > 20) {
+        // Soft curve after wave 20
+        hpMult *= Math.pow(1.12, 19) * Math.pow(1.05, this.wave - 20);
+      } else if (this.gameMode === 'CAMPAIGN' && this.wave > 1) {
+        hpMult *= Math.pow(1.12, this.wave - 1);
+      }
+
       if (map.modifier === 'fast_lane') spdMult = 1.15;
       if (map.modifier === 'armored') armorMult = 1.20;
 
-      let bounty = def.bounty;
+      let bounty = Math.round((def.bounty || 4) + 0.6 * this.wave);
       if (map.modifier === 'scarce') bounty = Math.floor(bounty * 0.8);
       if (this.hasAugment("bounty_hunter")) bounty = Math.floor(bounty * 1.30);
 
@@ -3192,6 +3297,7 @@
         color: def.color,
         marker: def.marker,
         isBoss: !!def.isBoss,
+        isFlyer: !!def.isFlyer,
         slowRatio: 0,
         slowTimer: 0,
         phaseTimer: 0,
@@ -3445,15 +3551,38 @@
           }
         }
 
-        if (!isBlocked) {
-          e.progress += effSpeed * dt;
-        }
-        e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
-        const pt = this.getPointAlongLane(e.laneIdx, e.progress);
-        e.x = pt.x;
-        e.y = pt.y;
-        e.angle = pt.angle;
+        if (e.isFlyer) {
+          // Aerial drone bypasses barricades and flies straight to Core
+          const endPt = lane.points[lane.points.length - 1];
+          const fdx = endPt.x - e.x;
+          const fdy = endPt.y - e.y;
+          const fdist = Math.hypot(fdx, fdy);
+          e.angle = Math.atan2(fdy, fdx);
+          e.progress += effSpeed * dt;
+          if (fdist > 8) {
+            e.x += Math.cos(e.angle) * effSpeed * dt;
+            e.y += Math.sin(e.angle) * effSpeed * dt;
+          }
+          if (Math.random() < 0.25) {
+            this.particles.push({
+              x: e.x - Math.cos(e.angle) * 12,
+              y: e.y - Math.sin(e.angle) * 12,
+              vx: -Math.cos(e.angle) * 40 + (Math.random() * 20 - 10),
+              vy: -Math.sin(e.angle) * 40 + (Math.random() * 20 - 10),
+              color: "#00e5ff", size: 2.5, life: 0.25, maxLife: 0.25
+            });
+          }
+        } else {
+          if (!isBlocked) {
+            e.progress += effSpeed * dt;
+          }
+          e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
+          const pt = this.getPointAlongLane(e.laneIdx, e.progress);
+          e.x = pt.x;
+          e.y = pt.y;
+          e.angle = pt.angle;
+        }
 
         if (e.progress >= lane.totalLength) {
           this.baseHp = Math.max(0, this.baseHp - (e.isBoss ? 10 : 1));
@@ -3723,8 +3852,11 @@
 
     findTargets(tower, range) {
       const candidates = [];
+      const tDef = TOWER_DEFS[tower.type];
+      const canHitAir = tDef ? (tDef.targetsAir !== false) : true;
       for (const e of this.enemies) {
         if (e.phased) continue;
+        if (e.isFlyer && !canHitAir) continue; // Mortars cannot target aerial flyers
         const dist = Math.hypot(e.x - tower.x, e.y - tower.y);
         if (dist <= range) candidates.push({ enemy: e, dist: dist });
       }
@@ -3963,6 +4095,19 @@
 
     onDefeat() {
       this.state = 'DEFEAT';
+      if (this.gameMode === 'ENDLESS') {
+        try {
+          const cur = parseInt(localStorage.getItem('lg_endless_wave') || '0');
+          if (this.wave > cur) {
+            localStorage.setItem('lg_endless_wave', this.wave.toString());
+          }
+          if (this.score > (this.saveData.highScores?.endless || 0)) {
+            if (!this.saveData.highScores) this.saveData.highScores = {};
+            this.saveData.highScores.endless = this.score;
+            localStorage.setItem('last_grid_save_v2', JSON.stringify(this.saveData));
+          }
+        } catch(e) {}
+      }
       audio.defeat();
       this.calculateMVP();
       const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
@@ -4041,6 +4186,68 @@
     }
 
     // --- RENDERING PIPELINE ---
+    
+    renderTutorialOverlay(ctx) {
+      ctx.save();
+      const time = Date.now() * 0.005;
+      const pulseRing = 10 + Math.sin(time) * 4;
+
+      if (this.towers.length === 0) {
+        // Step 1: Place Tower
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2.5;
+        // Highlight Pulse slot in bottom bar (x: 170, y: 648)
+        ctx.strokeRect(130, 642, 65, 72);
+
+        // Highlight optimal grid slot (x: 320, y: 320)
+        ctx.beginPath();
+        ctx.arc(384, 320, 24 + pulseRing, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(10, 25, 47, 0.92)";
+        ctx.strokeStyle = "#ffd600";
+        ctx.beginPath();
+        ctx.roundRect(140, 560, 420, 50, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("1. PASTKI PANELDAN MINORA TANLAB XARITAGA QO'YING!", 350, 590);
+      } else if (!this.waveActive) {
+        // Step 2: Engage Wave
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(1210, 90, 42 + pulseRing, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(10, 25, 47, 0.92)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.beginPath();
+        ctx.roundRect(800, 145, 410, 50, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("2. TO'LQINNI BOSHLASH UCHUN 'JANGGA'NI BOSING!", 1005, 175);
+      }
+
+      // Skip Button
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.beginPath();
+      ctx.roundRect(1100, 18, 140, 30, 6);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TUTORIALNI O'TKAZISH", 1170, 37);
+      ctx.restore();
+    }
+
     render() {
       // Clear entire backing buffer at full physical resolution
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -4055,6 +4262,10 @@
         this.ctx.translate(sx, sy);
       }
 
+            if (this.apexSystem) {
+        if (this.state === 'MENU') this.apexSystem.show();
+        else this.apexSystem.hide();
+      }
       if (this.state === 'MENU') this.renderMainMenu();
       else if (this.state === 'MAP_SELECT') this.renderMapSelect();
       else if (this.state === 'LEADERBOARD') this.renderLeaderboardModal();
@@ -4104,6 +4315,172 @@
       this.ctx.restore();
     }
 
+
+    toggleLanguage() {
+      return this.toggleLang();
+    }
+
+    loadBackgroundImages() {
+      this.bgImages = {};
+      const list = {
+        cyber: 'assets/backgrounds/bg_cyber_grid_hd.png',
+        lava: 'assets/backgrounds/bg_lava_core_hd.png',
+        cryo: 'assets/backgrounds/bg_cryo_base_hd.png',
+        menu: 'assets/backgrounds/bg_menu_hangar_hd.png'
+      };
+      for (const [key, path] of Object.entries(list)) {
+        try {
+          const img = new Image();
+          img.src = path;
+          img.onload = () => { this.bgImages[key] = img; };
+        } catch(e) {}
+      }
+    }
+
+    renderUpgradePillars() {
+      if (!this.upgradePillars || this.upgradePillars.length === 0) return;
+      const ctx = this.ctx;
+      for (const p of this.upgradePillars) {
+        const progress = Math.max(0, p.timer / p.maxTimer);
+        const alpha = progress;
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.85;
+        const grad = ctx.createLinearGradient(p.x, p.y + 10, p.x, p.y - 140);
+        grad.addColorStop(0, p.color || '#00e5ff');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(p.x - 24, p.y - 140, 48, 150);
+
+        ctx.strokeStyle = p.color || '#00e5ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 40 * (1 - progress), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    renderFlyingCoins() {
+      if (!this.flyingCoins || this.flyingCoins.length === 0) return;
+      const ctx = this.ctx;
+      ctx.save();
+      for (const c of this.flyingCoins) {
+        ctx.fillStyle = "#ffd600";
+        ctx.shadowColor = "#ffea00";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.size || 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#fff9c4";
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, (c.size || 6) * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    renderSelectedTowerRadialHUD() {
+      if (!this.selectedTower) return;
+      const t = this.selectedTower;
+      const def = TOWER_DEFS[t.type];
+      const ctx = this.ctx;
+      ctx.save();
+
+      // Top Upgrade or Branch A/B buttons
+      if (t.tier === 1) {
+        const upCost = def.tiers[0].upCost;
+        const canAfford = this.gold >= upCost;
+        ctx.fillStyle = canAfford ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x - 65, t.y - 62, 130, 32);
+        ctx.strokeStyle = canAfford ? "#00e5ff" : "#546e7a";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(t.x - 65, t.y - 62, 130, 32);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`▲ UPGRADE (${upCost}g)`, t.x, t.y - 42);
+      } else if (t.tier === 2) {
+        // Branch A (Left top)
+        const bA = def.branches.A;
+        const canA = this.gold >= bA.cost;
+        ctx.fillStyle = canA ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x - 110, t.y - 70, 105, 36);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.strokeRect(t.x - 110, t.y - 70, 105, 36);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${bA.name.slice(0, 10)}`, t.x - 57, t.y - 53);
+        ctx.fillText(`(${bA.cost}g)`, t.x - 57, t.y - 40);
+
+        // Branch B (Right top)
+        const bB = def.branches.B;
+        const canB = this.gold >= bB.cost;
+        ctx.fillStyle = canB ? "rgba(255, 145, 0, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x + 5, t.y - 70, 105, 36);
+        ctx.strokeStyle = "#ff9100";
+        ctx.strokeRect(t.x + 5, t.y - 70, 105, 36);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${bB.name.slice(0, 10)}`, t.x + 57, t.y - 53);
+        ctx.fillText(`(${bB.cost}g)`, t.x + 57, t.y - 40);
+      }
+
+      // Left Sell Button
+      const refund = Math.floor(t.totalInvested * 0.70);
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.fillRect(t.x - 115, t.y - 18, 75, 36);
+      ctx.strokeStyle = "#ff1744";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x - 115, t.y - 18, 75, 36);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("SOTISH", t.x - 77, t.y);
+      ctx.fillText(`+${refund}g`, t.x - 77, t.y + 12);
+
+      // Right Priority Button
+      ctx.fillStyle = "rgba(124, 77, 255, 0.85)";
+      ctx.fillRect(t.x + 40, t.y - 18, 75, 36);
+      ctx.strokeStyle = "#7c4dff";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x + 40, t.y - 18, 75, 36);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("NISHON", t.x + 77, t.y);
+      ctx.fillText(`${t.priority.slice(0, 6)}`, t.x + 77, t.y + 12);
+
+      // Bottom Close Button
+      ctx.fillStyle = "rgba(38, 50, 56, 0.9)";
+      ctx.fillRect(t.x - 35, t.y + 40, 70, 28);
+      ctx.strokeStyle = "#90a4ae";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x - 35, t.y + 40, 70, 28);
+      ctx.fillStyle = "#eceff1";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("✕ YOPISH", t.x, t.y + 58);
+
+      ctx.restore();
+    }
+
+    renderCriticalLowHPPulse() {
+      if (this.baseHp > 5 || this.state !== 'PLAYING') return;
+      const ctx = this.ctx;
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.008);
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 23, 68, ${0.35 + 0.35 * pulse})`;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4, 4, this.width - 8, this.height - 8);
+
+      ctx.fillStyle = `rgba(255, 23, 68, ${0.12 * pulse})`;
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
+    }
+
     renderCRTOverlay() {
       this.ctx.fillStyle = "rgba(0, 229, 255, 0.02)";
       for (let y = 0; y < this.height; y += 4) {
@@ -4131,8 +4508,17 @@
         bgGrad.addColorStop(0.5, "#080e1e");
         bgGrad.addColorStop(1, "#04060d");
       }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, this.width, this.height);
+      if (this.bgImages && this.bgImages[biome]) {
+        try {
+          ctx.drawImage(this.bgImages[biome], 0, 0, this.width, this.height);
+        } catch(e) {
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(0, 0, this.width, this.height);
+        }
+      } else {
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+      }
 
       // Grid Lines
       const gridStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.12)" :
@@ -5077,6 +5463,41 @@
         ctx.save();
         ctx.translate(e.x, e.y);
 
+        if (e.isFlyer) {
+          // Aerial Jet Shadow
+          ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+          ctx.beginPath();
+          ctx.ellipse(4, 18, 14, 7, e.angle, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Aerial Jet Silhouette
+          ctx.rotate(e.angle);
+          ctx.fillStyle = e.color || "#00e5ff";
+          ctx.beginPath();
+          ctx.moveTo(14, 0);
+          ctx.lineTo(-10, -11);
+          ctx.lineTo(-6, 0);
+          ctx.lineTo(-10, 11);
+          ctx.closePath();
+          ctx.fill();
+
+          // Cockpit glow
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(2, 0, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // HP Bar
+          ctx.rotate(-e.angle);
+          const fHpPct = Math.max(0, e.hp / e.maxHp);
+          ctx.fillStyle = "#263238";
+          ctx.fillRect(-14, -20, 28, 4);
+          ctx.fillStyle = fHpPct > 0.4 ? "#00e5ff" : "#ff1744";
+          ctx.fillRect(-14, -20, 28 * fHpPct, 4);
+          ctx.restore();
+          continue;
+        }
+
         if (e.phased) ctx.globalAlpha = 0.25;
 
         // Slow Frost Field Aura
@@ -5966,12 +6387,12 @@
       const waveLabel = isWaveActive ? `⚔ JANGDA (${this.enemies.length})` : `▶ JANG [${Math.ceil(this.waveCountdown)}s]`;
       this.drawCyberButton(450, 10, 160, 40, waveLabel, isWaveActive ? "#ff1744" : "#00e676", isWaveActive ? "HOSTILES IN BOUND" : "ENGAGE WAVE", "", !isWaveActive);
 
-      // Mode & Map Name
-      ctx.fillStyle = "#78909c";
-      ctx.font = "10px monospace";
-      ctx.textAlign = "center";
+      // Mode & Map Name displayed cleanly above action button
+      ctx.fillStyle = "#546e7a";
+      ctx.font = "9px monospace";
+      ctx.textAlign = "left";
       const mapName = (this.gameMode === 'CUSTOM') ? "CUSTOM MAP" : MAPS[this.currentMapIndex].name.toUpperCase();
-      ctx.fillText(`[${this.gameMode}] ${mapName}`, 675, 36);
+      ctx.fillText(`${mapName}`, 240, 48);
 
       // Ergonomic Wide Action Cyber Buttons
       this.drawCyberButton(625, 9, 90, 42, `${this.speed}x SPEED`, this.speed > 1 ? "#ffd600" : "#00e5ff", "TEMPO", "⏩", this.speed > 1);
@@ -6103,6 +6524,58 @@
       ctx.restore();
     }
 
+    renderAbilitySlot(x, y, w, h, icon, label, subtext, color = "#00e5ff", isReady = true, cdRatio = 0) {
+      const ctx = this.ctx;
+      ctx.save();
+      const cut = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cut);
+      ctx.lineTo(x + w - cut, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cut);
+      ctx.closePath();
+
+      ctx.fillStyle = isReady ? "rgba(16, 26, 44, 0.95)" : "rgba(8, 12, 20, 0.98)";
+      ctx.fill();
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isReady ? 1.8 : 1.0;
+      ctx.stroke();
+
+      // Top specular highlight
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y + 1);
+      ctx.lineTo(x + w - 1, y + 1);
+      ctx.stroke();
+
+      // Centered Stacked Layout:
+      // 1. Icon on top
+      ctx.fillStyle = color;
+      ctx.font = "14px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(icon, x + w / 2, y + 26);
+
+      // 2. Label below
+      ctx.fillStyle = isReady ? "#ffffff" : "#78909c";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(label, x + w / 2, y + 48);
+
+      // 3. Subtext / Cost below
+      ctx.fillStyle = isReady ? color : "#546e7a";
+      ctx.font = "9px monospace";
+      ctx.fillText(subtext, x + w / 2, y + 68);
+
+      // Cooldown Sweep
+      if (cdRatio > 0) {
+        ctx.fillStyle = "rgba(255, 23, 68, 0.65)";
+        ctx.fillRect(x + 1, y + h * (1 - cdRatio), w - 2, h * cdRatio);
+      }
+      ctx.restore();
+    }
+
     renderBottomBar() {
       const ctx = this.ctx;
       // Frosted Glassmorphism Panel
@@ -6119,11 +6592,11 @@
       ctx.lineTo(this.width, 620);
       ctx.stroke();
 
-      // 1. Hero Mech Button (Far Left: x: 6, w: 46, h: 78)
+      // 1. Hero Mech Button (Clean Stacked Slot: x: 6, w: 46, h: 78)
       const isHeroUltReady = this.hero.currentUltCd <= 0;
-      this.drawCyberButton(6, 628, 46, 78, "MECH", isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, "⚡", isHeroUltReady);
+      this.renderAbilitySlot(6, 628, 46, 78, "⚡", "MECH", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady, this.hero.currentUltCd / this.hero.ultCd);
 
-      // 2. 4 Commander Super Skills Panel (x: 56, 100, 144, 188; each w: 42, h: 78)
+      // 2. 4 Commander Super Skills Panel (Clean Stacked Slots: w: 42, h: 78)
       const skillMeta = {
         emp:       { icon: "⚡", label: "EMP",  color: "#00e5ff", sub: `${this.skills.emp.cost}g` },
         orbital:   { icon: "🛰️", label: "LAZ",  color: "#ff1744", sub: `${this.skills.orbital.cost}g` },
@@ -6140,7 +6613,7 @@
         const isAiming = (this.aimingSkill === k);
         const color = isAiming ? "#ffeb3b" : (isReady ? meta.color : "#37474f");
 
-        this.drawCyberButton(sx, 628, 42, 78, meta.label, color, meta.sub, meta.icon, isReady || isAiming);
+        this.renderAbilitySlot(sx, 628, 42, 78, meta.icon, meta.label, meta.sub, color, isReady || isAiming, s.currentCd / s.cd);
 
         // Active Aiming Highlight Ring
         if (isAiming) {
@@ -6387,20 +6860,18 @@
       ctx.lineWidth = 1.5;
       ctx.strokeRect(0, 0, this.width, 68);
 
-      // Game Title
+      // Game Title (Strictly non-overlapping)
       ctx.save();
       ctx.shadowColor = "rgba(0, 229, 255, 0.8)";
       ctx.shadowBlur = 12;
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 24px 'Segoe UI', monospace";
+      ctx.font = "900 21px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("⚡ TOWER DEFENSE: LAST GRID", 40, 42);
+      ctx.fillText("⚡ TOWER DEFENSE: LAST GRID", 35, 42);
       ctx.restore();
 
-      // Version & Platform Badge
-      ctx.fillStyle = "#ff007f";
-      ctx.font = "bold 12px monospace";
-      ctx.fillText("v4.0.0 ULTIMATE DASHBOARD", 410, 42);
+      // Version in separate pill badge
+      this.renderMiniButton(390, 24, 75, 24, "v4.1.0", "#ff007f");
 
       // Commander Name & Status Badge
       ctx.fillStyle = "#cfd8dc";
@@ -6525,7 +6996,10 @@
 
       ctx.fillStyle = "#ffd600";
       ctx.font = "11px monospace";
-      ctx.fillText("▶ Qahramon jangda to'liq boshqariladi!", hx + 28, hy + 545);
+      ctx.fillText("▶ Qahramon jangda to'liq boshqariladi!", hx + 28, hy + 540);
+
+      // 3D Mech Studio Button
+      this.renderMenuButton(hx + 20, hy + 520, hw - 40, 48, "🤖 3D MECH STUDIYA (360°)", "#00e5ff", "#000");
 
       ctx.restore();
 
@@ -6552,9 +7026,9 @@
       this.drawCyberButton(1055, 278, 185, 62, this.t("fieldManual"), "#00e5ff", "QO'LLANMA", "📖", false);
 
       // System Controls (Row 4: y: 350)
-      this.drawCyberButton(455, 350, 255, 58, "⚙️ SOZLAMALAR", "#00e5ff", "AUDIO & GRAFIKA", "⚙️", true);
-      this.drawCyberButton(720, 350, 255, 58, "📲 ANDROID APK", "#00e676", "OFLAYN APK (v3.9)", "📲", true);
-      this.drawCyberButton(985, 350, 255, 58, this.t("downloadOffline"), "#ffd600", "ZIP ARXIV (369KB)", "📦", false);
+      this.drawCyberButton(455, 350, 255, 58, "SOZLAMALAR", "#00e5ff", "AUDIO & GRAFIKA", "⚙️", true);
+      this.drawCyberButton(720, 350, 255, 58, "ANDROID APK", "#00e676", "OFLAYN APK (44MB)", "📲", true);
+      this.drawCyberButton(985, 350, 255, 58, this.t("downloadOffline"), "#ffd600", "ZIP ARXIV (40MB)", "📦", false);
 
       // Commander Tactical Report & Dossier Panel (Bottom Right: y: 420 to 678)
       ctx.save();
@@ -6708,6 +7182,38 @@
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 26px 'Segoe UI', monospace";
       ctx.fillText(this.t("sectorSelect"), 170, 48);
+
+      // Total campaign stars display
+      let totalStars = 0;
+      for (const m of MAPS) totalStars += (this.saveData.stars[m.id] || 0);
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 15px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`KAMPANIYA: ${totalStars} / 30 ★`, 1240, 45);
+
+      // Difficulty Selector Pill (CASUAL / NORMAL / HEROIC)
+      const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
+      ctx.fillStyle = "rgba(10, 25, 47, 0.9)";
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(580, 20, 335, 34, 6);
+      ctx.fill();
+      ctx.stroke();
+      diffs.forEach((d, idx) => {
+        const dx = 584 + idx * 110;
+        const isCur = this.difficulty === d;
+        if (isCur) {
+          ctx.fillStyle = "#00e5ff";
+          ctx.beginPath();
+          ctx.roundRect(dx, 23, 105, 28, 4);
+          ctx.fill();
+        }
+        ctx.fillStyle = isCur ? "#030712" : "#94a3b8";
+        ctx.font = "900 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(d, dx + 52, 42);
+      });
 
       this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
 
@@ -7308,6 +7814,7 @@
     }
 
     render3DTPS() {
+      if (!this.tps3D) this.start3DTPSMode();
       const ctx = this.ctx;
       const t = this.tps3D;
       const p = t.player;
@@ -7659,6 +8166,8 @@
     }
 
   }
+
+  window.LastGridEngine = LastGridEngine;
 
   window.addEventListener('DOMContentLoaded', () => {
     window.lastGridEngine = new LastGridEngine();
