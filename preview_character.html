@@ -1,24 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uz">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>CS2 Taktik Maxsus Kuchlar — Qora Maska & Qurolli Askarlar</title>
+<title>APEX-01 Transformer Mech — Og'ir Jangovar Robot</title>
 <style>
   :root {
-    --bg-dark: #07090e;
-    --panel-bg: rgba(10, 14, 20, 0.88);
-    --panel-border: rgba(0, 240, 255, 0.35);
-    --cyan: #00f0ff;
-    --cyan-glow: rgba(0, 240, 255, 0.45);
+    --bg-dark: #050b16;
+    --panel-bg: rgba(10, 18, 32, 0.90);
+    --panel-border: rgba(46, 230, 255, 0.35);
+    --cyan: #2ee6ff;
+    --cyan-glow: rgba(46, 230, 255, 0.45);
     --green: #00ff88;
     --orange: #ff9d00;
     --red: #ff3355;
     --text: #e6edf3;
-    --text-dim: #8b949e;
+    --text-dim: #8b9db2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
   
@@ -28,11 +28,11 @@
     width: 100vw; height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 40%, #151e2e 0%, #080c14 55%, #030406 100%);
+    background: radial-gradient(circle at 50% 35%, #101c30 0%, #060b14 55%, #020508 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
-  #webgl-canvas {
+  #c {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
@@ -48,33 +48,33 @@
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
-    padding: 7px 11px;
+    padding: 8px 12px;
     backdrop-filter: blur(14px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.7);
     z-index: 10;
-    max-width: 300px;
-    transition: all 0.25s ease;
+    max-width: 320px;
+    pointer-events: none;
   }
   #header-hud h1 {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--cyan);
     margin-bottom: 2px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
   }
   #header-hud h1::before {
     content: '';
     display: inline-block;
-    width: 6px; height: 6px;
+    width: 7px; height: 7px;
     background: var(--green);
     border-radius: 50%;
     box-shadow: 0 0 8px var(--green);
   }
   #header-hud .subtitle {
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text-dim);
   }
 
@@ -88,11 +88,10 @@
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 11px;
-    min-width: 210px;
+    min-width: 220px;
     backdrop-filter: blur(14px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.7);
     z-index: 10;
-    transition: all 0.25s ease;
   }
   .stat-row {
     display: flex;
@@ -104,11 +103,11 @@
   .stat-label { color: var(--text-dim); font-size: 10px; }
   .stat-val { color: var(--text); font-weight: 600; font-family: monospace; font-size: 10px; }
   .stat-val.badge {
-    background: rgba(0, 240, 255, 0.15);
+    background: rgba(46, 230, 255, 0.15);
     color: var(--cyan);
     padding: 1px 5px;
     border-radius: 4px;
-    border: 1px solid rgba(0, 240, 255, 0.3);
+    border: 1px solid rgba(46, 230, 255, 0.3);
   }
 
   /* Camera Presets Dock (Top Center) */
@@ -130,7 +129,7 @@
     background: transparent;
     border: none;
     color: var(--text-dim);
-    padding: 5px 8px;
+    padding: 5px 9px;
     border-radius: 12px;
     font-size: 9px;
     cursor: pointer;
@@ -179,28 +178,74 @@
     color: #000;
   }
 
-  /* Animation Dock (Bottom Center) */
-  #anim-dock {
+  /* Bottom Controls: Locomotion & Combat Docks */
+  #controls-container {
     position: absolute;
     bottom: max(12px, env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0; right: 0;
     display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 max(14px, env(safe-area-inset-left)) 0 max(14px, env(safe-area-inset-right));
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  /* D-PAD (Chapga, O'nga, Oldinga, Orqaga) */
+  #dpad-box {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(2, 44px);
     gap: 5px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
-    border-radius: 28px;
-    padding: 5px 10px;
-    z-index: 10;
+    border-radius: 12px;
+    padding: 6px;
     backdrop-filter: blur(14px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+    pointer-events: auto;
   }
-  .btn-anim {
+  .dpad-btn {
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 7px 13px;
-    border-radius: 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .dpad-btn span { font-size: 8px; color: var(--text-dim); }
+  .dpad-btn:active, .dpad-btn.active {
+    background: var(--cyan);
+    color: #000;
+    border-color: var(--cyan);
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+  .dpad-btn:active span, .dpad-btn.active span { color: #000; }
+
+  /* Action Buttons (To'p, Raketa, Dash, Transform) */
+  #action-box {
+    display: flex;
+    gap: 6px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 28px;
+    padding: 6px 10px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+    pointer-events: auto;
+  }
+  .act-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 20px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -208,248 +253,135 @@
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     white-space: nowrap;
   }
-  .btn-anim:hover {
-    background: rgba(0, 240, 255, 0.2);
+  .act-btn:hover {
+    background: rgba(46, 230, 255, 0.2);
     border-color: var(--cyan);
     color: var(--cyan);
   }
-  .btn-anim.active {
-    background: var(--cyan);
-    color: #000;
-    border-color: var(--cyan);
-    box-shadow: 0 0 16px var(--cyan-glow);
+  .act-btn:active {
+    transform: scale(0.95);
   }
   .btn-fire {
     background: rgba(255, 51, 85, 0.25);
     border-color: rgba(255, 51, 85, 0.6);
     color: #ff8899;
   }
-  .btn-fire:hover {
+  .btn-fire:hover, .btn-fire:active {
     background: #ff3355;
     color: #fff;
-    border-color: #ff3355;
-    box-shadow: 0 0 16px rgba(255, 51, 85, 0.6);
+    box-shadow: 0 0 16px rgba(255, 51, 85, 0.7);
   }
-  .btn-fire:active {
-    transform: scale(0.95);
+  .btn-missile {
+    background: rgba(255, 157, 0, 0.25);
+    border-color: rgba(255, 157, 0, 0.6);
+    color: #ffbb44;
   }
-
-  /* Left Floating Tools */
-  #tools-dock {
-    position: absolute;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: max(10px, env(safe-area-inset-left));
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 10;
+  .btn-missile:hover, .btn-missile:active {
+    background: #ff9d00;
+    color: #000;
+    box-shadow: 0 0 16px rgba(255, 157, 0, 0.7);
   }
-  .tool-btn {
-    background: var(--panel-bg);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: var(--text);
-    padding: 6px 9px;
-    border-radius: 6px;
-    font-size: 9px;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: all 0.2s;
+  .btn-transform.on {
+    background: #00ff88;
+    color: #000;
+    border-color: #00ff88;
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.7);
   }
-  .tool-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-  .tool-btn.active { border-color: var(--cyan); background: rgba(0,240,255,0.25); color: var(--cyan); }
 
   /* Keyboard Helper Badge */
   #key-helper {
     position: absolute;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    right: max(10px, env(safe-area-inset-right));
+    bottom: max(78px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
     background: var(--panel-bg);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 6px;
-    padding: 5px 9px;
+    padding: 4px 10px;
     font-size: 9px;
     color: var(--text-dim);
     display: flex;
-    gap: 6px;
+    gap: 8px;
     z-index: 10;
     backdrop-filter: blur(8px);
+    pointer-events: none;
   }
   #key-helper span { color: var(--cyan); font-weight: 600; font-family: monospace; }
 
-  /* Fullscreen Toggle Button */
-  #btn-fullscreen {
-    position: absolute;
-    top: max(10px, env(safe-area-inset-top));
-    right: max(10px, env(safe-area-inset-right));
-    background: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 6px;
-    color: var(--cyan);
-    padding: 5px 8px;
-    font-size: 9px;
-    font-weight: 700;
-    cursor: pointer;
-    z-index: 20;
-    display: none;
-  }
-
-  /* Loading Spinner & Progress Overlay */
-  #loader-overlay {
-    position: absolute;
-    inset: 0;
-    background: #06080d;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    z-index: 100;
-    transition: opacity 0.4s ease;
-    padding: 24px;
-    text-align: center;
-  }
-  .spinner {
-    width: 44px; height: 44px;
-    border: 3px solid rgba(0, 240, 255, 0.15);
-    border-top-color: var(--cyan);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  #progress-bar-container {
-    width: min(260px, 80vw);
-    height: 7px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid rgba(0,240,255,0.3);
-  }
-  #progress-bar-fill {
-    width: 5%;
-    height: 100%;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan);
-    transition: width 0.2s ease;
-  }
-  #loader-status {
-    font-size: 11px;
-    color: var(--text);
-    letter-spacing: 0.08em;
-    font-weight: 500;
-  }
-  #loader-pct {
-    font-size: 12px;
-    color: var(--cyan);
+  /* Damage Popups */
+  .dmg {
+    position: fixed;
+    color: #ff4a6a;
     font-weight: bold;
-    font-family: monospace;
+    font-size: 18px;
+    pointer-events: none;
+    text-shadow: 0 0 6px #000;
+    animation: rise 0.8s ease-out forwards;
+    z-index: 50;
   }
-  #error-box {
-    display: none;
-    max-width: 380px;
-    background: rgba(255, 50, 80, 0.15);
-    border: 1px solid #ff4466;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 11px;
-    color: #ff8899;
-    line-height: 1.4;
-  }
-  .retry-btn {
-    background: var(--cyan);
-    color: #000;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 11px;
-  }
+  @keyframes rise { to { transform: translateY(-60px); opacity: 0; } }
 
   /* Responsive Clean Layout for Mobile Screens */
   @media (max-width: 768px) {
     #stats-panel { display: none; }
     #key-helper { display: none; }
-    #tools-dock { display: none; }
-    #btn-fullscreen { display: block; }
     
     #header-hud {
       top: 8px; left: 8px;
       padding: 5px 8px;
-      max-width: calc(100vw - 85px);
+      max-width: 190px;
     }
     #header-hud h1 { font-size: 10px; }
     #header-hud .subtitle { font-size: 8px; }
 
     #cam-dock {
-      top: 40px;
+      top: 8px; right: 8px; left: auto;
+      transform: none;
       padding: 2px 4px;
       gap: 2px;
     }
     .cam-btn {
-      padding: 3px 6px;
+      padding: 3px 5px;
+      font-size: 8px;
+    }
+
+    #controls-container {
+      padding: 0 8px;
+      bottom: 8px;
+    }
+    #dpad-box {
+      grid-template-columns: repeat(3, 38px);
+      grid-template-rows: repeat(2, 38px);
+      gap: 3px;
+      padding: 4px;
+    }
+    .dpad-btn { font-size: 11px; }
+    .dpad-btn span { font-size: 7px; }
+
+    #action-box {
+      padding: 4px 6px;
+      gap: 3px;
+    }
+    .act-btn {
+      padding: 6px 7px;
       font-size: 8px;
     }
 
     #zoom-dock {
       right: 8px;
-      gap: 5px;
+      top: 40%;
+      gap: 4px;
     }
     .zoom-btn {
       width: 32px;
       height: 32px;
       font-size: 12px;
     }
-
-    #anim-dock {
-      bottom: 8px;
-      padding: 3px 6px;
-      gap: 3px;
-      width: calc(100vw - 16px);
-      max-width: 360px;
-      justify-content: center;
-    }
-    .btn-anim {
-      padding: 6px 8px;
-      font-size: 9px;
-      flex: 1;
-      justify-content: center;
-    }
   }
 </style>
-
-<!-- Early Global Error Catcher -->
-<script>
-  window.__threeLoaded = false;
-  window.addEventListener('error', function(e) {
-    console.error('Global Error Event:', e);
-    var spinner = document.getElementById('loader-spinner');
-    var status = document.getElementById('loader-status');
-    var errBox = document.getElementById('error-box');
-    var errMsg = document.getElementById('error-msg');
-    if (spinner) spinner.style.display = 'none';
-    if (status) status.innerText = "Yuklashda to'xtalish yuz berdi";
-    if (errBox) errBox.style.display = 'block';
-    if (errMsg) errMsg.innerText = (e.message || "3D skriptni yuklashda xatolik yuz berdi") + (e.filename ? " (" + e.filename + ")" : "");
-  });
-
-  window.addEventListener('unhandledrejection', function(e) {
-    console.error('Unhandled Promise Rejection:', e);
-    var spinner = document.getElementById('loader-spinner');
-    var status = document.getElementById('loader-status');
-    var errBox = document.getElementById('error-box');
-    var errMsg = document.getElementById('error-msg');
-    if (spinner) spinner.style.display = 'none';
-    if (status) status.innerText = "Yuklashda to'xtalish yuz berdi";
-    if (errBox) errBox.style.display = 'block';
-    if (errMsg) errMsg.innerText = e.reason && e.reason.message ? e.reason.message : String(e.reason);
-  });
-</script>
 
 <script type="importmap">
 {
@@ -462,37 +394,20 @@
 </head>
 <body>
 
-<!-- Loader Overlay with Real Progress Bar -->
-<div id="loader-overlay">
-  <div class="spinner" id="loader-spinner"></div>
-  <div id="loader-status">MAXSUS KUCHLAR OPERATORI YUKLANMOQDA...</div>
-  <div id="progress-bar-container">
-    <div id="progress-bar-fill"></div>
-  </div>
-  <div id="loader-pct">Yuklanmoqda... 0% (1.7 MB)</div>
-  <div id="error-box">
-    <div id="error-msg"></div>
-    <button class="retry-btn" onclick="location.reload(true)">Qayta yuklash ⟳</button>
-  </div>
-</div>
-
-<canvas id="webgl-canvas"></canvas>
+<canvas id="c"></canvas>
 
 <!-- Header HUD -->
 <div id="header-hud">
-  <h1>CS2 MAXSUS KUCHLAR</h1>
-  <div class="subtitle">Qora Maska · M4A1 Taktik Qurol · Mocap 60 FPS</div>
+  <h1>APEX-01 TRANSFORMER</h1>
+  <div class="subtitle">Og'ir Jangovar Robot · CS2 PBR Muhit · 60 FPS</div>
 </div>
-
-<!-- Mobile UI Toggle Button -->
-<button id="btn-fullscreen">👁️ Ko'rinish</button>
 
 <!-- Camera Focus Presets -->
 <div id="cam-dock">
   <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y</button>
-  <button class="cam-btn" data-target="weapon">🎯 Qurol & Qo'l</button>
-  <button class="cam-btn" data-target="mask">🪖 Qora Maska</button>
-  <button class="cam-btn" data-target="boots">🥾 Taktik Etik</button>
+  <button class="cam-btn" data-target="head">🤖 Kokpit & Yuz</button>
+  <button class="cam-btn" data-target="cannons">💥 Qo'sh To'p</button>
+  <button class="cam-btn" data-target="legs">🦾 Gidravlik Oyoq</button>
 </div>
 
 <!-- Floating Zoom Controls -->
@@ -504,616 +419,164 @@
 
 <!-- Stats Panel -->
 <div id="stats-panel">
-  <div class="stat-row"><span class="stat-label">Personaj:</span><span class="stat-val badge" id="stat-model">Special Forces Operator</span></div>
-  <div class="stat-row"><span class="stat-label">Maska:</span><span class="stat-val" style="color:var(--cyan)">Qora Ballistik Balaclava</span></div>
-  <div class="stat-row"><span class="stat-label">Qurol:</span><span class="stat-val" style="color:var(--orange)">M4A1 CQB Suppressed</span></div>
+  <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val badge">APEX-01 Heavy Mech</span></div>
+  <div class="stat-row"><span class="stat-label">Turi:</span><span class="stat-val" style="color:var(--cyan)">Gidravlik Transformer</span></div>
+  <div class="stat-row"><span class="stat-label">Qurollar:</span><span class="stat-val" style="color:var(--orange)">Dual Cannon + 6x Missile</span></div>
+  <div class="stat-row"><span class="stat-label">Reaktor:</span><span class="stat-val" style="color:var(--cyan)" id="stat-core">100% ONLINE</span></div>
   <div class="stat-row"><span class="stat-label">Frame Rate:</span><span class="stat-val" id="stat-fps" style="color:var(--green)">60 FPS</span></div>
-  <div class="stat-row"><span class="stat-label">Suyaklar:</span><span class="stat-val" id="stat-joints">51 Suyak</span></div>
-  <div class="stat-row"><span class="stat-label">Poligonlar:</span><span class="stat-val" id="stat-triangles">8,200 Tris</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val" id="stat-height">1.68 m (Oyoq Y=0)</span></div>
-  <div class="stat-row"><span class="stat-label">Harakat:</span><span class="stat-val" id="stat-anim" style="color:var(--green)">IDLE</span></div>
-</div>
-
-<!-- Animation Dock -->
-<div id="anim-dock">
-  <button class="btn-anim active" data-anim="idle">▶ IDLE</button>
-  <button class="btn-anim" data-anim="walk">▶ WALK</button>
-  <button class="btn-anim" data-anim="run">▶ RUN</button>
-  <button class="btn-anim btn-fire" id="btn-fire">🔥 ATISH</button>
-</div>
-
-<!-- Tools Dock -->
-<div id="tools-dock">
-  <button class="tool-btn active" id="btn-rotate">360° Aylanish: ON</button>
-  <button class="tool-btn" id="btn-wireframe">Wireframe: OFF</button>
-  <button class="tool-btn" id="btn-lighting">Chiroq: CS2 Taktik</button>
-  <button class="tool-btn" id="btn-reset">Kamera Qaytarish</button>
+  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val">3.20 m (Oyoq Y=0)</span></div>
+  <div class="stat-row"><span class="stat-label">Holat:</span><span class="stat-val" id="stat-action" style="color:var(--green)">IDLE</span></div>
 </div>
 
 <!-- Keyboard helper badge -->
 <div id="key-helper">
-  <span>⌨️ W: Yurish</span>
-  <span>Shift+W: Yugurish</span>
-  <span>Space / F: Otish</span>
+  <span>⌨️ W/S: Oldinga/Orqaga</span>
+  <span>A/D: Chapga/O'nga Burilish</span>
+  <span>Space: Otish</span>
+  <span>R: Raketa</span>
+  <span>Shift: Dash</span>
+</div>
+
+<!-- Bottom Locomotion & Combat Controls -->
+<div id="controls-container">
+  <!-- D-PAD (Chapga, O'nga, Oldinga, Orqaga) -->
+  <div id="dpad-box">
+    <div></div>
+    <button class="dpad-btn" id="btn-fwd">⬆️<span>OLDINGA</span></button>
+    <div></div>
+    <button class="dpad-btn" id="btn-left">⬅️<span>CHAPGA</span></button>
+    <button class="dpad-btn" id="btn-bwd">⬇️<span>ORQAGA</span></button>
+    <button class="dpad-btn" id="btn-right">➡️<span>O'NGA</span></button>
+  </div>
+
+  <!-- Combat Buttons -->
+  <div id="action-box">
+    <button class="act-btn btn-fire" id="bFire">🔥 TO'P</button>
+    <button class="act-btn btn-missile" id="bMissile">🚀 RAKETA</button>
+    <button class="act-btn" id="bDash">💨 DASH</button>
+    <button class="act-btn" id="bUlt">⚡ ULT</button>
+    <button class="act-btn btn-transform" id="bTransform">🛡️ REJIM</button>
+  </div>
 </div>
 
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 // DOM Elements
-const canvas = document.getElementById('webgl-canvas');
-const loaderOverlay = document.getElementById('loader-overlay');
-const loaderSpinner = document.getElementById('loader-spinner');
-const loaderStatus = document.getElementById('loader-status');
-const loaderPct = document.getElementById('loader-pct');
-const progressBarFill = document.getElementById('progress-bar-fill');
-const errorBox = document.getElementById('error-box');
-const errorMsg = document.getElementById('error-msg');
-const statModel = document.getElementById('stat-model');
+const canvas = document.getElementById('c');
 const statFps = document.getElementById('stat-fps');
-const statJoints = document.getElementById('stat-joints');
-const statTriangles = document.getElementById('stat-triangles');
-const statHeight = document.getElementById('stat-height');
-const statAnim = document.getElementById('stat-anim');
-const btnFire = document.getElementById('btn-fire');
-const btnFullscreen = document.getElementById('btn-fullscreen');
+const statAction = document.getElementById('stat-action');
+const statCore = document.getElementById('stat-core');
+
+const btnFwd = document.getElementById('btn-fwd');
+const btnBwd = document.getElementById('btn-bwd');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+
+const bFire = document.getElementById('bFire');
+const bMissile = document.getElementById('bMissile');
+const bDash = document.getElementById('bDash');
+const bUlt = document.getElementById('bUlt');
+const bTransform = document.getElementById('bTransform');
+
 const btnZoomIn = document.getElementById('btn-zoom-in');
 const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomFit = document.getElementById('btn-zoom-fit');
 
-function showError(msg) {
-  if (loaderSpinner) loaderSpinner.style.display = 'none';
-  if (loaderStatus) loaderStatus.innerText = "Yuklashda to'xtalish yuz berdi";
-  if (errorBox) errorBox.style.display = 'block';
-  if (errorMsg) errorMsg.innerText = msg;
-}
-
-// 1. Scene, Camera, Renderer (CS2 Source 2 PBR Settings)
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x07090e);
-scene.fog = new THREE.FogExp2(0x07090e, 0.035);
-
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-
+// 1. RENDERER & SCENE
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const PR = Math.min(window.devicePixelRatio || 1, 1.5);
+renderer.setPixelRatio(PR);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-// RoomEnvironment HDRI reflections
-const pmremGenerator = new THREE.PMREMGenerator(renderer);
-pmremGenerator.compileEquirectangularShader();
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050b16);
+scene.fog = new THREE.Fog(0x050b16, 18, 50);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
 const roomEnv = new RoomEnvironment(renderer);
-scene.environment = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+scene.environment = pmrem.fromScene(roomEnv, 0.04).texture;
 roomEnv.dispose();
-pmremGenerator.dispose();
+pmrem.dispose();
 
-// Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-controls.maxPolarAngle = Math.PI / 2 + 0.02;
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 150);
 
-// Character Root Group
-const characterGroup = new THREE.Group();
-scene.add(characterGroup);
+// Lighting
+scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x0b1020, 0.45));
+const key = new THREE.DirectionalLight(0xfff2df, 2.6);
+key.position.set(7, 12, 8);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -9; key.shadow.camera.right = 9;
+key.shadow.camera.top = 9; key.shadow.camera.bottom = -9;
+key.shadow.camera.near = 1; key.shadow.camera.far = 36;
+key.shadow.bias = -0.0004;
+scene.add(key);
 
-let characterModel = null;
-let mixer = null;
-let actions = {};
-let currentAction = null;
-let currentAnimName = 'idle';
-let autoRotate = true;
-let isWireframe = false;
-let tacticalRifle = null;
-let muzzleLight = null;
+const rimC = new THREE.PointLight(0x2ee6ff, 32, 22); rimC.position.set(-6, 4.5, -5); scene.add(rimC);
+const rimP = new THREE.PointLight(0xff2a8a, 24, 20); rimP.position.set(6, 3.5, -6); scene.add(rimP);
+const flashL = new THREE.PointLight(0x7ff4ff, 0, 14); scene.add(flashL);
+
+// Ground & Hexagonal Hangar Platform
+const ground = new THREE.Mesh(new THREE.CircleGeometry(65, 48), new THREE.MeshStandardMaterial({ color: 0x060c16, roughness: 0.92, metalness: 0.2 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.03; ground.receiveShadow = true; scene.add(ground);
+
+const grid = new THREE.GridHelper(65, 65, 0x2ee6ff, 0x0d2838);
+grid.material.transparent = true; grid.material.opacity = 0.35; grid.position.y = -0.02;
+scene.add(grid);
 
 // =========================================================================
-// ANIQ MATEMATIK DASTURIY AVTO-MASOFA (EKRANGA 100% TO'LIQ SIG'DIRISH)
+// CAMERA AUTO-FIT (TRANSFORMER ROBOTNI 100% TO'LIQ SIG'DIRISH)
 // =========================================================================
-let currentZoomFactor = 1.0;
+let currentZoomMult = 1.0;
+let camDist = 7.5;
+let camOrbitAngle = 0;
+let camPitch = 0.22;
+let isDragging = false;
+let lastMouseX = 0, lastMouseY = 0;
 
 function autoFitCamera(zoomMultiplier = 1.0) {
   const aspect = window.innerWidth / window.innerHeight;
-  
-  // Personaj bo'yi 1.68m, kengligi (qurol va qadam bilan) ~1.30m
-  const charH = 1.68;
-  const charW = 1.30;
-  const targetY = 0.84;
-
-  const fovV = (camera.fov * Math.PI) / 180;
-  // Vertikal to'liq sig'dirish (yuqori HUD va pastki tugmalar uchun 45% margin bilan)
-  const distV = (charH / 2) / Math.tan(fovV / 2) * 1.45;
-
-  // Gorizontal to'liq sig'dirish (tor mobil ekranlar uchun)
-  const fovH = 2 * Math.atan(Math.tan(fovV / 2) * aspect);
-  const distH = (charW / 2) / Math.tan(fovH / 2) * 1.45;
-
-  // Ikkala o'lchamda ham 100% sig'ishini kafolatlaydigan masofa
-  let targetDist = Math.max(distV, distH);
-
-  // Mobil vertikal ekranlar (9:16, 9:20) uchun qo'shimcha kafolatlangan masofa
+  // Robot bo'yi 3.2m, kengligi ~3.0m
   if (aspect < 0.75) {
-    targetDist = Math.max(targetDist, 6.2);
+    camDist = 8.8; // Mobil vertikal ekranlar uchun to'liq bo'y masofasi
   } else if (aspect < 1.1) {
-    targetDist = Math.max(targetDist, 4.8);
+    camDist = 7.6;
   } else {
-    targetDist = Math.max(targetDist, 3.8);
+    camDist = 6.4;
   }
+  camDist *= zoomMultiplier;
+  updateCameraPos();
+}
 
-  targetDist *= zoomMultiplier;
-
-  camera.position.set(0, targetY + (aspect < 0.8 ? 0.02 : 0.08), targetDist);
-  controls.target.set(0, targetY, 0);
-  controls.minDistance = 0.8;
-  controls.maxDistance = 18.0;
-  controls.update();
+function updateCameraPos() {
+  const targetY = 1.85;
+  const x = Math.sin(camOrbitAngle) * Math.cos(camPitch) * camDist;
+  const y = targetY + Math.sin(camPitch) * camDist;
+  const z = Math.cos(camOrbitAngle) * Math.cos(camPitch) * camDist;
+  camera.position.set(x, y, z);
+  camera.lookAt(0, targetY, 0);
 }
 autoFitCamera(1.0);
 
-// Zoom Controls Event Handlers
-if (btnZoomIn) {
-  btnZoomIn.addEventListener('click', () => {
-    currentZoomFactor = Math.max(0.35, currentZoomFactor * 0.80);
-    autoFitCamera(currentZoomFactor);
-  });
-}
-if (btnZoomOut) {
-  btnZoomOut.addEventListener('click', () => {
-    currentZoomFactor = Math.min(2.5, currentZoomFactor * 1.25);
-    autoFitCamera(currentZoomFactor);
-  });
-}
-if (btnZoomFit) {
-  btnZoomFit.addEventListener('click', () => {
-    currentZoomFactor = 1.0;
-    autoFitCamera(1.0);
-    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
-    const fullBtn = document.querySelector('.cam-btn[data-target="full"]');
-    if (fullBtn) fullBtn.classList.add('active');
-  });
-}
-
-// 2. 3-Point Tactical Lighting Setup
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x111622, 0.45);
-scene.add(hemiLight);
-
-const keyLight = new THREE.DirectionalLight(0xfff2df, 2.5);
-keyLight.position.set(2.5, 4.2, 2.6);
-keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 2048;
-keyLight.shadow.mapSize.height = 2048;
-keyLight.shadow.bias = -0.0001;
-keyLight.shadow.camera.near = 0.5;
-keyLight.shadow.camera.far = 10;
-keyLight.shadow.camera.left = -2.2;
-keyLight.shadow.camera.right = 2.2;
-keyLight.shadow.camera.top = 2.5;
-keyLight.shadow.camera.bottom = -0.5;
-scene.add(keyLight);
-
-const fillLight = new THREE.DirectionalLight(0x88bbff, 1.1);
-fillLight.position.set(-3.0, 2.2, -1.5);
-scene.add(fillLight);
-
-// Signature CS2 Cyan Contour Rim Light
-const rimLight = new THREE.DirectionalLight(0x00f0ff, 3.2);
-rimLight.position.set(0.0, 3.5, -3.2);
-scene.add(rimLight);
-
-// Floor Grid & Shadow Plane
-const floorGeo = new THREE.PlaneGeometry(14, 14);
-const floorMat = new THREE.ShadowMaterial({ opacity: 0.45 });
-const floorMesh = new THREE.Mesh(floorGeo, floorMat);
-floorMesh.rotation.x = -Math.PI / 2;
-floorMesh.position.y = 0.0;
-floorMesh.receiveShadow = true;
-scene.add(floorMesh);
-
-const gridHelper = new THREE.GridHelper(8, 32, 0x00f0ff, 0x141f2e);
-gridHelper.position.y = 0.001;
-scene.add(gridHelper);
-
-// 3. BUILD HIGH-DETAIL TACTICAL ASSAULT RIFLE (M4A1 CQB Suppressed)
-function createTacticalRifle() {
-  const rifle = new THREE.Group();
-  
-  // Tactical Gunmetal Materials
-  const metalMat = new THREE.MeshStandardMaterial({
-    color: 0x181a1f,
-    roughness: 0.35,
-    metalness: 0.85
-  });
-  const polymerMat = new THREE.MeshStandardMaterial({
-    color: 0x121417,
-    roughness: 0.70,
-    metalness: 0.20
-  });
-  const opticLensMat = new THREE.MeshStandardMaterial({
-    color: 0x00f0ff,
-    roughness: 0.1,
-    metalness: 0.9,
-    emissive: 0x003344,
-    transparent: true,
-    opacity: 0.75
-  });
-  const reticleMat = new THREE.MeshBasicMaterial({
-    color: 0xff0044
-  });
-
-  // Lower & Upper Receiver
-  const receiverGeo = new THREE.BoxGeometry(0.048, 0.085, 0.26);
-  const receiver = new THREE.Mesh(receiverGeo, metalMat);
-  receiver.position.set(0, 0, 0);
-  receiver.castShadow = true;
-  rifle.add(receiver);
-
-  // Pistol Grip
-  const gripGeo = new THREE.BoxGeometry(0.036, 0.10, 0.048);
-  const grip = new THREE.Mesh(gripGeo, polymerMat);
-  grip.position.set(0, -0.085, -0.065);
-  grip.rotation.x = 0.32;
-  grip.castShadow = true;
-  rifle.add(grip);
-
-  // Curved 30-Round Magazine
-  const magGeo = new THREE.BoxGeometry(0.030, 0.15, 0.06);
-  const mag = new THREE.Mesh(magGeo, polymerMat);
-  mag.position.set(0, -0.10, 0.055);
-  mag.rotation.x = -0.15;
-  mag.castShadow = true;
-  rifle.add(mag);
-
-  // Handguard / Quad-Rail
-  const handguardGeo = new THREE.BoxGeometry(0.052, 0.062, 0.22);
-  const handguard = new THREE.Mesh(handguardGeo, metalMat);
-  handguard.position.set(0, 0.01, 0.24);
-  handguard.castShadow = true;
-  rifle.add(handguard);
-
-  // Angled Foregrip
-  const foregripGeo = new THREE.BoxGeometry(0.028, 0.065, 0.045);
-  const foregrip = new THREE.Mesh(foregripGeo, polymerMat);
-  foregrip.position.set(0, -0.048, 0.25);
-  foregrip.rotation.x = -0.3;
-  rifle.add(foregrip);
-
-  // Barrel
-  const barrelGeo = new THREE.CylinderGeometry(0.011, 0.011, 0.16, 12);
-  const barrel = new THREE.Mesh(barrelGeo, metalMat);
-  barrel.rotation.x = Math.PI / 2;
-  barrel.position.set(0, 0.015, 0.42);
-  rifle.add(barrel);
-
-  // Tactical Suppressor (Silencer)
-  const suppGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.16, 16);
-  const suppressor = new THREE.Mesh(suppGeo, metalMat);
-  suppressor.rotation.x = Math.PI / 2;
-  suppressor.position.set(0, 0.015, 0.55);
-  suppressor.castShadow = true;
-  rifle.add(suppressor);
-
-  // Holographic Sight (EOTech)
-  const sightBase = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.042, 0.085), metalMat);
-  sightBase.position.set(0, 0.065, 0.02);
-  sightBase.castShadow = true;
-  rifle.add(sightBase);
-
-  // Optic Glass & Glowing Red Reticle
-  const lens = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.032, 0.01), opticLensMat);
-  lens.position.set(0, 0.07, 0.048);
-  rifle.add(lens);
-
-  const reticle = new THREE.Mesh(new THREE.RingGeometry(0.004, 0.007, 16), reticleMat);
-  reticle.position.set(0, 0.07, 0.044);
-  rifle.add(reticle);
-
-  // Tactical Stock (Collapsible CTR Stock)
-  const stockTube = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.16, 12), metalMat);
-  stockTube.rotation.x = Math.PI / 2;
-  stockTube.position.set(0, 0.015, -0.20);
-  rifle.add(stockTube);
-
-  const stockPad = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.12, 0.08), polymerMat);
-  stockPad.position.set(0, -0.01, -0.28);
-  stockPad.castShadow = true;
-  rifle.add(stockPad);
-
-  // Dynamic Muzzle Flash Light
-  muzzleLight = new THREE.PointLight(0xff9922, 0, 4.0);
-  muzzleLight.position.set(0, 0.015, 0.66);
-  rifle.add(muzzleLight);
-
-  return rifle;
-}
-
-// 4. SYNTHESIZED TACTICAL GUNSHOT SOUND (Web Audio API - 100% Offline)
-let audioCtx = null;
-function playSuppressedShotSound() {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-
-    // Suppressed Pop / Thwack Noise
-    const bufferSize = audioCtx.sampleRate * 0.12;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.025));
-    }
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1600, t);
-    filter.frequency.exponentialRampToValueAtTime(150, t + 0.10);
-
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.85, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.11);
-
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-    noise.start(t);
-  } catch (e) {
-    console.warn('Audio note:', e);
-  }
-}
-
-// 5. TACTICAL WEAPON FIRING ACTION (Otish / Fire)
-let isFiring = false;
-function triggerFireWeapon() {
-  if (isFiring || !tacticalRifle) return;
-  isFiring = true;
-
-  playSuppressedShotSound();
-
-  // Muzzle flash light pulse
-  if (muzzleLight) {
-    muzzleLight.intensity = 6.0;
-    setTimeout(() => { muzzleLight.intensity = 0; }, 50);
-  }
-
-  // Weapon recoil kickback
-  tacticalRifle.position.z -= 0.04;
-  tacticalRifle.rotation.x -= 0.055;
-
-  // Spring back to neutral grip
-  setTimeout(() => {
-    tacticalRifle.position.z += 0.04;
-    tacticalRifle.rotation.x += 0.055;
-    isFiring = false;
-  }, 100);
-}
-
-if (btnFire) {
-  btnFire.addEventListener('click', () => {
-    triggerFireWeapon();
-  });
-}
-
-// 6. GLTF MODEL LOADER & WEAPON ATTACHMENT
-const gltfLoader = new GLTFLoader();
-const cacheTag = 'v=' + Date.now();
-
-const candidateUrls = [
-  'assets/characters/soldier_real.glb?' + cacheTag,
-  './assets/characters/soldier_real.glb?' + cacheTag,
-  '/assets/characters/soldier_real.glb?' + cacheTag,
-  'web/assets/characters/soldier_real.glb?' + cacheTag,
-  '/web/assets/characters/soldier_real.glb?' + cacheTag
-];
-
-function tryLoadSoldier(index = 0) {
-  if (index >= candidateUrls.length) {
-    showError("Soldier modeli serverdan topilmadi (404). Sahifani qayta yangilang.");
-    return;
-  }
-
-  const url = candidateUrls[index];
-  console.log(`[Soldier] Yuklanmoqda (${index + 1}/${candidateUrls.length}): ${url}`);
-
-  gltfLoader.load(
-    url,
-    (gltf) => {
-      window.__threeLoaded = true;
-      characterModel = gltf.scene;
-
-      // 1. Auto-normalize height via Box3 to exact 1.68m
-      const initialBox = new THREE.Box3().setFromObject(characterModel);
-      const size = new THREE.Vector3();
-      initialBox.getSize(size);
-
-      const targetHeight = 1.68;
-      const scale = size.y > 0 ? targetHeight / size.y : 1.0;
-      characterModel.scale.setScalar(scale);
-
-      const scaledBox = new THREE.Box3().setFromObject(characterModel);
-      const center = new THREE.Vector3();
-      scaledBox.getCenter(center);
-
-      characterModel.position.y = -scaledBox.min.y;
-      characterModel.position.x = -center.x;
-      characterModel.position.z = -center.z;
-
-      characterGroup.clear();
-      characterGroup.add(characterModel);
-
-      // Rotate Math.PI so soldier faces forward (+Z towards camera)
-      characterGroup.rotation.y = Math.PI;
-
-      // 2. Traversal: Shadows, Materials, PBR Properties
-      characterModel.traverse((child) => {
-        if (child.isMesh || child.isSkinnedMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          child.frustumCulled = false;
-          if (child.material) {
-            child.material.envMapIntensity = 1.25;
-            child.material.needsUpdate = true;
-          }
-        }
-      });
-
-      // 3. ATTACH TACTICAL ASSAULT RIFLE TO RIGHT HAND BONE
-      const rightHand = characterModel.getObjectByName('mixamorig:RightHand');
-      if (rightHand) {
-        tacticalRifle = createTacticalRifle();
-        // Position & orientation in hand (pointing forward, low ready patrol stance)
-        tacticalRifle.position.set(0.04, 0.08, 0.02);
-        tacticalRifle.rotation.set(-Math.PI / 2, 0, Math.PI / 2 + 0.15);
-        rightHand.add(tacticalRifle);
-        console.log('[Weapon] M4A1 taktik qurol mixamorig:RightHand suyakka ulandi!');
-      }
-
-      // 4. Setup AnimationMixer & Mocap Clips
-      mixer = new THREE.AnimationMixer(characterModel);
-      actions = {};
-
-      if (gltf.animations && gltf.animations.length > 0) {
-        gltf.animations.forEach((clip) => {
-          const lower = clip.name.toLowerCase();
-          const action = mixer.clipAction(clip);
-          actions[lower] = action;
-          if (lower.includes('idle')) actions['idle'] = action;
-          if (lower.includes('walk')) actions['walk'] = action;
-          if (lower.includes('run')) actions['run'] = action;
-        });
-      }
-
-      // Start IDLE animation immediately
-      if (actions['idle']) {
-        actions['idle'].play();
-        currentAction = actions['idle'];
-        currentAnimName = 'idle';
-      }
-
-      // Hide Loader Overlay
-      progressBarFill.style.width = '100%';
-      loaderPct.innerText = 'Yuklandi! 100%';
-      setTimeout(() => {
-        loaderOverlay.style.opacity = '0';
-        setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
-      }, 200);
-
-      // Re-adjust camera framing to ensure 100% full body visibility
-      autoFitCamera(1.0);
-    },
-    (xhr) => {
-      if (xhr.lengthComputable && xhr.total > 0) {
-        const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
-        progressBarFill.style.width = `${pct}%`;
-        loaderPct.innerText = `Yuklanmoqda... ${pct}% (${(xhr.loaded / 1024 / 1024).toFixed(2)} MB / ${(xhr.total / 1024 / 1024).toFixed(2)} MB)`;
-      } else {
-        progressBarFill.style.width = '60%';
-        loaderPct.innerText = `Taktik model yuklanmoqda...`;
-      }
-    },
-    (err) => {
-      console.warn(`URL failed: ${url}`, err);
-      tryLoadSoldier(index + 1);
-    }
-  );
-}
-tryLoadSoldier(0);
-
-// 7. Smooth 0.25s Cross-Fade Animation Controller
-function playAction(name) {
-  name = name.toLowerCase();
-  const nextAction = actions[name];
-  if (!nextAction || currentAction === nextAction) return;
-
-  const duration = 0.25;
-  if (currentAction) {
-    currentAction.fadeOut(duration);
-  }
-  nextAction.reset().fadeIn(duration).play();
-  currentAction = nextAction;
-  currentAnimName = name;
-
-  document.querySelectorAll('.btn-anim:not(.btn-fire)').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.anim === name);
-  });
-
-  if (statAnim) {
-    statAnim.innerText = name.toUpperCase();
-    statAnim.style.color = (name === 'idle') ? 'var(--green)' : 'var(--cyan)';
-  }
-}
-
-document.querySelectorAll('.btn-anim:not(.btn-fire)').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    playAction(btn.dataset.anim);
-  });
-});
-
-// 8. Keyboard Locomotion Controls (W: Walk, Shift+W: Run, Space/F: Fire)
-const keys = { w: false, shift: false };
-
-function evaluateMovementState() {
-  if (keys.w) {
-    if (keys.shift && actions['run']) {
-      playAction('run');
-    } else if (actions['walk']) {
-      playAction('walk');
-    }
-  } else {
-    playAction('idle');
-  }
-}
-
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' || e.code === 'KeyF') {
-    e.preventDefault();
-    triggerFireWeapon();
-  }
-  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = true;
-  if (e.shiftKey || e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
-  evaluateMovementState();
-});
-
-window.addEventListener('keyup', (e) => {
-  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
-  if (!e.shiftKey && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) keys.shift = false;
-  evaluateMovementState();
-});
-
-// 9. Camera Presets (Har qanday ekranga moslashtirilgan)
+// Camera presets
 const camPresets = {
-  full: () => {
-    currentZoomFactor = 1.0;
-    autoFitCamera(1.0);
-  },
-  weapon: () => {
-    camera.position.set(0.40, 1.05, 1.6);
-    controls.target.set(0.16, 0.95, 0.12);
-    controls.update();
-  },
-  mask: () => {
-    camera.position.set(0, 1.58, 1.25);
-    controls.target.set(0, 1.58, 0);
-    controls.update();
-  },
-  boots: () => {
-    camera.position.set(0, 0.38, 1.6);
-    controls.target.set(0, 0.18, 0);
-    controls.update();
-  }
+  full: () => { camOrbitAngle = 0; camPitch = 0.20; autoFitCamera(1.0); },
+  head: () => { camOrbitAngle = 0.15; camPitch = 0.08; camDist = 3.6; updateCameraPos(); },
+  cannons: () => { camOrbitAngle = -0.45; camPitch = 0.12; camDist = 4.2; updateCameraPos(); },
+  legs: () => { camOrbitAngle = 0.35; camPitch = -0.15; camDist = 4.5; updateCameraPos(); }
 };
 
-document.querySelectorAll('.cam-btn').forEach((btn) => {
+document.querySelectorAll('.cam-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -1122,53 +585,23 @@ document.querySelectorAll('.cam-btn').forEach((btn) => {
   });
 });
 
-// 10. Tools Handlers
-const btnRotate = document.getElementById('btn-rotate');
-if (btnRotate) {
-  btnRotate.addEventListener('click', () => {
-    autoRotate = !autoRotate;
-    btnRotate.innerText = `360° Aylanish: ${autoRotate ? 'ON' : 'OFF'}`;
-    btnRotate.classList.toggle('active', autoRotate);
+if (btnZoomIn) {
+  btnZoomIn.addEventListener('click', () => {
+    currentZoomMult = Math.max(0.4, currentZoomMult * 0.82);
+    autoFitCamera(currentZoomMult);
   });
 }
-
-const btnWireframe = document.getElementById('btn-wireframe');
-if (btnWireframe) {
-  btnWireframe.addEventListener('click', () => {
-    isWireframe = !isWireframe;
-    btnWireframe.innerText = `Wireframe: ${isWireframe ? 'ON' : 'OFF'}`;
-    btnWireframe.classList.toggle('active', isWireframe);
-    if (characterModel) {
-      characterModel.traverse((child) => {
-        if (child.isMesh) child.material.wireframe = isWireframe;
-      });
-    }
+if (btnZoomOut) {
+  btnZoomOut.addEventListener('click', () => {
+    currentZoomMult = Math.min(2.5, currentZoomMult * 1.25);
+    autoFitCamera(currentZoomMult);
   });
 }
-
-let lightingMode = 0;
-const btnLighting = document.getElementById('btn-lighting');
-if (btnLighting) {
-  btnLighting.addEventListener('click', () => {
-    lightingMode = (lightingMode + 1) % 2;
-    if (lightingMode === 0) {
-      btnLighting.innerText = 'Chiroq: CS2 Taktik';
-      keyLight.color.setHex(0xfff2df);
-      fillLight.color.setHex(0x88bbff);
-      rimLight.color.setHex(0x00f0ff);
-    } else {
-      btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
-      keyLight.color.setHex(0xffffff);
-      fillLight.color.setHex(0xddeeff);
-      rimLight.color.setHex(0xffffff);
-    }
-  });
-}
-
-const btnReset = document.getElementById('btn-reset');
-if (btnReset) {
-  btnReset.addEventListener('click', () => {
-    currentZoomFactor = 1.0;
+if (btnZoomFit) {
+  btnZoomFit.addEventListener('click', () => {
+    currentZoomMult = 1.0;
+    camOrbitAngle = 0;
+    camPitch = 0.22;
     autoFitCamera(1.0);
     document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
     const fullBtn = document.querySelector('.cam-btn[data-target="full"]');
@@ -1176,60 +609,655 @@ if (btnReset) {
   });
 }
 
-// Fullscreen UI Hide Toggle (Mobil uchun)
-let uiHidden = false;
-if (btnFullscreen) {
-  btnFullscreen.addEventListener('click', () => {
-    uiHidden = !uiHidden;
-    const hud = document.getElementById('header-hud');
-    const cam = document.getElementById('cam-dock');
-    if (hud) hud.style.display = uiHidden ? 'none' : 'block';
-    if (cam) cam.style.display = uiHidden ? 'none' : 'flex';
-    btnFullscreen.innerText = uiHidden ? '👁️ Ko\'rsatish' : '👁️ Keng Ekran';
-  });
-}
+// Orbit Drag
+canvas.addEventListener('pointerdown', (e) => {
+  isDragging = true;
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
+});
+window.addEventListener('pointermove', (e) => {
+  if (!isDragging) return;
+  const dx = e.clientX - lastMouseX;
+  const dy = e.clientY - lastMouseY;
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
+  camOrbitAngle -= dx * 0.006;
+  camPitch = Math.max(-0.4, Math.min(0.8, camPitch + dy * 0.005));
+  updateCameraPos();
+});
+window.addEventListener('pointerup', () => { isDragging = false; });
+canvas.addEventListener('wheel', (e) => {
+  camDist = Math.max(2.5, Math.min(18.0, camDist + e.deltaY * 0.008));
+  updateCameraPos();
+});
 
-// Window Resize & Dynamic Screen Refit
+// Resize
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  autoFitCamera(currentZoomFactor);
+  autoFitCamera(currentZoomMult);
 });
 
-// 11. FPS Counter & Render Loop
-let frameCount = 0;
-let lastFpsTime = performance.now();
-let currentFPS = 60;
+// =========================================================================
+// PROCEDURAL TEXTURES & MATERIALS
+// =========================================================================
+let _seed = 1234567;
+const rnd = () => { _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0; let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
-function updateFPS() {
-  frameCount++;
-  const now = performance.now();
-  if (now - lastFpsTime >= 500) {
-    currentFPS = Math.round((frameCount * 1000) / (now - lastFpsTime));
-    frameCount = 0;
-    lastFpsTime = now;
-    if (statFps) {
-      statFps.innerText = currentFPS + ' FPS';
-      statFps.style.color = currentFPS >= 50 ? 'var(--green)' : 'var(--orange)';
-    }
+function metalCanvas(base, size = 512) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d');
+  g.fillStyle = base; g.fillRect(0, 0, size, size);
+  const img = g.getImageData(0, 0, size, size), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (rnd() - 0.5) * 22;
+    d[i] += n; d[i+1] += n; d[i+2] += n;
+  }
+  g.putImageData(img, 0, 0);
+  for (let i = 0; i < 20; i++) {
+    const x = rnd() * size, y = rnd() * size, w = 35 + rnd() * 110, h = 30 + rnd() * 85;
+    g.fillStyle = rnd() > 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.18)';
+    g.fillRect(x, y, w, h);
+    g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,0.55)'; g.strokeRect(x, y, w, h);
+    g.strokeStyle = 'rgba(255,255,255,0.15)'; g.strokeRect(x + 1, y + 1, w, h);
+  }
+  return c;
+}
+
+function hazardCanvas() {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#e0b100'; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = '#12151b';
+  for (let i = -128; i < 256; i += 32) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 16, 0); g.lineTo(i + 144, 128); g.lineTo(i + 128, 128); g.closePath(); g.fill();
+  }
+  g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 3; g.strokeRect(0, 0, 128, 128);
+  return c;
+}
+
+function decalCanvas(txt) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 146;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(8,12,20,0.6)'; g.fillRect(0, 0, 256, 146);
+  g.strokeStyle = '#e9f7ff'; g.lineWidth = 6; g.strokeRect(6, 6, 244, 134);
+  g.fillStyle = '#e9f7ff'; g.font = 'bold 78px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(txt, 128, 80);
+  return c;
+}
+
+function tex(canvasEl, rx = 1, ry = 1) {
+  const t = new THREE.CanvasTexture(canvasEl);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+const tA = tex(metalCanvas('#252d3d')), tB = tex(metalCanvas('#181d26')), tC = tex(metalCanvas('#00f0ff'));
+const tH = tex(hazardCanvas(), 2, 2), tD = tex(decalCanvas('APEX-01'));
+
+const std = o => new THREE.MeshStandardMaterial(o);
+const M = {
+  armor:  std({ map: tA, bumpMap: tA, bumpScale: 1.5, color: 0xffffff, metalness: 0.75, roughness: 0.40, envMapIntensity: 0.9 }),
+  armor2: std({ map: tB, bumpMap: tB, bumpScale: 1.5, color: 0xffffff, metalness: 0.80, roughness: 0.42, envMapIntensity: 0.9 }),
+  accent: std({ map: tC, color: 0x00f0ff, metalness: 0.65, roughness: 0.35, envMapIntensity: 1.0 }),
+  hazard: std({ map: tH, color: 0xffffff, metalness: 0.2, roughness: 0.6 }),
+  dark:   std({ color: 0x0a0d14, metalness: 0.45, roughness: 0.70 }),
+  chrome: std({ color: 0xd5dde8, metalness: 1.0, roughness: 0.18 }),
+  barrel: std({ color: 0x1f242e, metalness: 0.95, roughness: 0.28 }),
+  trim:   std({ color: 0x06222b, emissive: 0x2ee6ff, emissiveIntensity: 2.2, metalness: 0.3, roughness: 0.4 }),
+  pinkEm: std({ color: 0x2a0614, emissive: 0xff2a8a, emissiveIntensity: 2.2, metalness: 0.3, roughness: 0.4 }),
+  vent:   std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 1.4, metalness: 0.2, roughness: 0.6 }),
+  heat:   std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 0.8, metalness: 0.2, roughness: 0.5 }),
+  glass:  std({ color: 0x0a2a3a, emissive: 0x1fb8d8, emissiveIntensity: 0.8, metalness: 0.9, roughness: 0.05, transparent: true, opacity: 0.75 }),
+  core:   new THREE.MeshBasicMaterial({ color: new THREE.Color(1.2, 2.6, 3.2) }),
+  decal:  std({ map: tD, transparent: true, roughness: 0.6, metalness: 0.2, polygonOffset: true, polygonOffsetFactor: -2 }),
+  flame:  new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.8, 2.6), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  flame2: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 2.8, 3.2), transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  tracer: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 3.2, 3.6) }),
+  shield: new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 1.2, transparent: true, opacity: 0.25, wireframe: true })
+};
+M.dish = M.armor2.clone(); M.dish.side = THREE.DoubleSide;
+
+// =========================================================================
+// BUILD HELPERS & ROBOT CONSTRUCTION
+// =========================================================================
+const _m4 = new THREE.Matrix4();
+const rbox = (w, h, d, r = 0.04) => new RoundedBoxGeometry(w, h, d, 2, r);
+const cy = (rt, rb, h, seg = 18) => new THREE.CylinderGeometry(rt, rb, h, seg);
+const tor = (r, t, seg = 24) => new THREE.TorusGeometry(r, t, 8, seg);
+const sph = r => new THREE.SphereGeometry(r, 18, 12);
+
+function put(g, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
+  m.castShadow = true; m.receiveShadow = true;
+  g.add(m);
+  return m;
+}
+
+function bake(g) {
+  g.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
+  const buckets = new Map(), old = [];
+  g.children.forEach(ch => {
+    if (!ch.isMesh || ch.userData.keep) return;
+    const geo = ch.geometry.clone();
+    geo.applyMatrix4(_m4.multiplyMatrices(inv, ch.matrixWorld));
+    Object.keys(geo.attributes).forEach(k => { if (k !== 'position' && k !== 'normal' && k !== 'uv') geo.deleteAttribute(k); });
+    if (!buckets.has(ch.material)) buckets.set(ch.material, []);
+    buckets.get(ch.material).push(geo);
+    old.push(ch);
+  });
+  old.forEach(o => { g.remove(o); o.geometry.dispose(); });
+  buckets.forEach((geos, mat) => {
+    const merged = mergeGeometries(geos, false);
+    geos.forEach(x => x.dispose());
+    if (!merged) return;
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    g.add(mesh);
+  });
+}
+
+// ROBOT ROOT & BODY
+const root = new THREE.Group(); scene.add(root);
+const body = new THREE.Group(); root.add(body);
+
+// Pelvis
+const pelvis = new THREE.Group(); body.add(pelvis);
+put(pelvis, rbox(1.9, 0.55, 1.25, 0.07), M.armor2, 0, 2.55, 0);
+put(pelvis, rbox(1.3, 0.35, 0.9, 0.05), M.dark, 0, 2.25, 0);
+put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, 0.68, 0.25, 0, 0);
+put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, -0.68, -0.25, 0, 0);
+put(pelvis, rbox(0.5, 0.06, 0.2, 0.02), M.hazard, 0, 2.5, 0.66);
+[-1, 1].forEach(s => {
+  put(pelvis, rbox(0.12, 0.65, 0.9, 0.04), M.armor, s * 1.0, 2.2, 0, 0, 0, s * 0.15);
+  put(pelvis, cy(0.34, 0.34, 0.62, 20), M.dark, s * 0.72, 2.3, 0, 0, 0, Math.PI / 2);
+  put(pelvis, tor(0.34, 0.035), M.trim, s * 1.05, 2.3, 0, 0, Math.PI / 2, 0);
+});
+bake(pelvis);
+
+// Digitigrade Hydraulic Legs
+const legs = [];
+function makeLeg(s) {
+  const hip = new THREE.Group(); hip.position.set(s * 0.72, 2.3, 0); hip.rotation.x = -0.45; body.add(hip);
+  put(hip, rbox(0.62, 1.1, 0.7, 0.06), M.armor, 0, -0.55, 0.02);
+  put(hip, rbox(0.5, 0.8, 0.12, 0.04), M.armor2, 0, -0.5, 0.42, 0.12, 0, 0);
+  put(hip, rbox(0.08, 0.7, 0.55, 0.03), M.accent, s * 0.36, -0.5, 0);
+  put(hip, rbox(0.07, 0.26, 0.34, 0.02), M.hazard, s * 0.37, -0.14, 0.18);
+  put(hip, cy(0.085, 0.085, 0.5, 12), M.armor2, s * 0.2, -0.3, -0.45);
+  put(hip, cy(0.045, 0.045, 0.65, 10), M.chrome, s * 0.2, -0.7, -0.45);
+  bake(hip);
+
+  const knee = new THREE.Group(); knee.position.set(0, -1.1, 0); knee.rotation.x = 0.9; hip.add(knee);
+  put(knee, cy(0.3, 0.3, 0.76, 20), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(knee, tor(0.3, 0.03), M.trim, s * 0.4, 0, 0, 0, Math.PI / 2, 0);
+  put(knee, rbox(0.55, 0.5, 0.4, 0.05), M.armor2, 0, 0.05, 0.38, -0.5, 0, 0);
+  put(knee, rbox(0.45, 0.08, 0.3, 0.02), M.accent, 0, 0.12, 0.52, -0.5, 0, 0);
+  put(knee, rbox(0.5, 1.2, 0.55, 0.06), M.armor, 0, -0.62, -0.05);
+  put(knee, rbox(0.44, 0.7, 0.35, 0.05), M.armor2, 0, -0.45, -0.38);
+  put(knee, rbox(0.4, 0.9, 0.1, 0.04), M.armor2, 0, -0.65, 0.28, 0.1, 0, 0);
+  put(knee, cy(0.075, 0.075, 0.5, 12), M.armor2, s * 0.2, -0.4, -0.62);
+  put(knee, cy(0.045, 0.045, 0.55, 10), M.chrome, s * 0.2, -0.85, -0.62);
+  bake(knee);
+
+  const ankle = new THREE.Group(); ankle.position.set(0, -1.2, 0); ankle.rotation.x = -0.45; knee.add(ankle);
+  put(ankle, cy(0.2, 0.2, 0.62, 16), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(ankle, rbox(0.7, 0.22, 0.55, 0.05), M.armor2, 0, -0.11, -0.12);
+  [-1, 1].forEach(k => {
+    put(ankle, rbox(0.28, 0.2, 0.62, 0.05), M.armor2, k * 0.2, -0.1, 0.42);
+    put(ankle, rbox(0.2, 0.12, 0.14, 0.03), M.dark, k * 0.2, -0.1, 0.78);
+  });
+  put(ankle, rbox(0.62, 0.1, 0.9, 0.04), M.armor, 0, 0.01, 0.12);
+  put(ankle, rbox(0.04, 0.03, 0.55, 0.01), M.trim, 0, 0.07, 0.12);
+  bake(ankle);
+  legs.push({ hip, knee, ankle, s });
+}
+makeLeg(-1); makeLeg(1);
+
+// Torso
+const torso = new THREE.Group(); torso.position.y = 2.85; body.add(torso);
+put(torso, cy(0.7, 0.7, 0.3, 24), M.dark, 0, 0.02, 0);
+put(torso, tor(0.7, 0.03, 40), M.trim, 0, 0.17, 0, Math.PI / 2, 0, 0);
+put(torso, rbox(1.3, 0.55, 0.95, 0.06), M.armor2, 0, 0.32, 0);
+put(torso, rbox(0.5, 0.3, 0.05, 0.01), M.hazard, 0, 0.32, 0.5);
+put(torso, rbox(2.0, 0.9, 1.25, 0.08), M.armor, 0, 0.95, 0);
+put(torso, rbox(1.5, 0.75, 0.14, 0.05), M.armor2, 0, 0.95, 0.66, -0.2, 0, 0);
+put(torso, rbox(1.8, 0.6, 0.95, 0.07), M.armor, 0, 1.65, -0.05);
+put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, -1.1, 1.3, 0);
+put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, 1.1, 1.3, 0);
+
+// Cockpit Canopy
+put(torso, new THREE.SphereGeometry(0.38, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, 0, 1.65, 0.35, Math.PI / 2, 0, 0);
+put(torso, tor(0.38, 0.05, 32), M.armor2, 0, 1.65, 0.38);
+put(torso, sph(0.16), M.core, 0, 1.65, 0.42);
+
+// Reactor Core
+const coreRing = put(torso, tor(0.22, 0.03), M.trim, 0, 0.78, 0.74); coreRing.userData.keep = true;
+put(torso, sph(0.1), M.core, 0, 0.78, 0.74);
+
+// Backpack & Thrusters
+put(torso, rbox(1.3, 1.2, 0.7, 0.07), M.armor2, 0, 1.15, -0.95);
+put(torso, rbox(1.1, 0.3, 0.6, 0.05), M.armor, 0, 1.85, -0.95);
+const flames = [];
+[-0.45, 0.45].forEach(x => {
+  put(torso, cy(0.2, 0.3, 0.5, 20), M.dark, x, 0.95, -1.45, Math.PI / 2, 0, 0);
+  put(torso, tor(0.29, 0.03), M.trim, x, 0.95, -1.7);
+  const w = new THREE.Group(); w.position.set(x, 0.95, -1.72); torso.add(w);
+  const o = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 16, 1, true), M.flame);
+  o.rotation.x = -Math.PI / 2; o.position.z = -0.7; w.add(o);
+  const i2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.9, 12, 1, true), M.flame2);
+  i2.rotation.x = -Math.PI / 2; i2.position.z = -0.45; w.add(i2);
+  flames.push(w);
+});
+bake(torso);
+
+// Head
+const head = new THREE.Group(); head.position.set(0, 2.25, 0.05); torso.add(head);
+put(head, rbox(0.62, 0.45, 0.7, 0.07), M.armor, 0, 0, 0);
+put(head, rbox(0.5, 0.09, 0.12, 0.02), M.trim, 0, 0.04, 0.34);
+put(head, rbox(0.12, 0.18, 0.6, 0.03), M.accent, 0, 0.28, -0.05);
+bake(head);
+
+// Arms with Dual-Barrel Heavy Cannons
+const arms = [];
+function makeArm(s) {
+  const sh = new THREE.Group(); sh.position.set(s * 1.45, 1.5, 0); sh.rotation.x = -0.5; torso.add(sh);
+  put(sh, rbox(0.9, 0.7, 1.1, 0.08), M.accent, s * 0.12, 0.2, 0);
+  put(sh, rbox(0.95, 0.16, 1.15, 0.05), M.armor2, s * 0.12, 0.6, 0);
+  put(sh, sph(0.3), M.dark, 0, -0.15, 0);
+  put(sh, rbox(0.4, 0.8, 0.45, 0.05), M.armor2, 0, -0.65, 0);
+  bake(sh);
+
+  const elbow = new THREE.Group(); elbow.position.set(0, -1.1, 0); elbow.rotation.x = 0.5; sh.add(elbow);
+  put(elbow, cy(0.24, 0.24, 0.52, 18), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(elbow, rbox(0.55, 0.55, 1.0, 0.07), M.armor, 0, 0, 0.5);
+  bake(elbow);
+
+  const barrels = new THREE.Group(); elbow.add(barrels);
+  put(barrels, rbox(0.46, 0.28, 0.5, 0.04), M.armor, 0, 0.02, 1.65);
+  [-0.13, 0.13].forEach(x => {
+    put(barrels, cy(0.075, 0.075, 1.0, 14), M.barrel, x, 0.02, 1.9, Math.PI / 2, 0, 0);
+    put(barrels, cy(0.1, 0.09, 0.2, 14), M.dark, x, 0.02, 2.5, Math.PI / 2, 0, 0);
+    put(barrels, tor(0.085, 0.022, 18), M.heat, x, 0.02, 2.3);
+  });
+  bake(barrels);
+  const muzzles = [-0.13, 0.13].map(x => { const o = new THREE.Object3D(); o.position.set(x, 0.02, 2.62); barrels.add(o); return o; });
+  const a = { sh, elbow, barrels, muzzles, s, recoil: 0 };
+  arms.push(a);
+  return a;
+}
+makeArm(-1);
+const armR = makeArm(1);
+
+// Right Shoulder: Missile Pod
+const pod = new THREE.Group(); pod.position.set(0.15, 0.95, -0.05); armR.sh.add(pod);
+put(pod, rbox(0.8, 0.55, 1.0, 0.05), M.armor2, 0, 0, 0);
+for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+  const x = -0.25 + i * 0.25, y = -0.12 + j * 0.24;
+  put(pod, cy(0.085, 0.085, 0.5, 12), M.dark, x, y, 0.5, Math.PI / 2, 0, 0);
+  put(pod, tor(0.085, 0.015, 14), M.accent, x, y, 0.76);
+  put(pod, new THREE.ConeGeometry(0.065, 0.18, 10), M.pinkEm, x, y, 0.66, Math.PI / 2, 0, 0);
+}
+bake(pod);
+
+// Left Shoulder: Radar Dish
+const armL = arms[0];
+const dish = new THREE.Group(); dish.position.set(-0.1, 0.65, -0.1); armL.sh.add(dish);
+put(dish, cy(0.04, 0.05, 0.5, 8), M.chrome, 0, 0.25, 0);
+put(dish, new THREE.SphereGeometry(0.3, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.dish, 0, 0.58, 0, Math.PI * 0.8, 0, 0);
+bake(dish);
+
+// Holographic Shield for Transform Stance
+const shieldMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(3.5, 1), M.shield);
+shieldMesh.position.y = 2.2; shieldMesh.visible = false; root.add(shieldMesh);
+
+// Projectiles & Particles
+const projs = [];
+for (let i = 0; i < 40; i++) {
+  const p = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), M.tracer);
+  p.scale.z = 7; p.visible = false; p.userData = { life: 0, vel: new THREE.Vector3() };
+  scene.add(p); projs.push(p);
+}
+
+// Orbital Beam (ULT)
+const beam = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.45, 0.45, 20, 24, 1, true),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, 2.0, 0.8), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })
+);
+beam.position.y = 10; beam.visible = false; scene.add(beam);
+
+// =========================================================================
+// SYNTHESIZED PROCEDURAL AUDIO (Web Audio API - 100% Offline)
+// =========================================================================
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playStepSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(90, t);
+    osc.frequency.exponentialRampToValueAtTime(30, t + 0.1);
+    gain.gain.setValueAtTime(0.4, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.1);
+  } catch (e) {}
+}
+
+function playCannonSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.22);
+    gain.gain.setValueAtTime(0.8, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.22);
+  } catch (e) {}
+}
+
+function playMissileSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, t);
+    osc.frequency.exponentialRampToValueAtTime(800, t + 0.3);
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.3);
+  } catch (e) {}
+}
+
+function playTransformSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.linearRampToValueAtTime(450, t + 0.25);
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.28);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.28);
+  } catch (e) {}
+}
+
+// =========================================================================
+// PRECISE LOCOMOTION ENGINE (Oldinga, Orqaga, Aniq O'nga/Chapga Burilish)
+// =========================================================================
+let t = 0, heat = 0, dashT = -1, ultT = -1, fireArm = 0;
+let yaw = 0, walkBlend = 0, phase = 0, isTransformed = false;
+const DASH_TIME = 0.45;
+const tmp = new THREE.Vector3();
+
+const moveState = {
+  forward: false,
+  backward: false,
+  turnLeft: false,
+  turnRight: false,
+  dashing: false
+};
+
+function fire() {
+  playCannonSound();
+  const a = arms[fireArm]; fireArm = 1 - fireArm;
+  a.recoil = 1; heat = Math.min(1, heat + 0.25);
+  a.muzzles.forEach(m => {
+    m.getWorldPosition(tmp);
+    const p = projs.find(x => !x.visible); if (!p) return;
+    p.position.copy(tmp); p.quaternion.copy(root.quaternion);
+    p.userData.vel.set(0, 0, 32).applyQuaternion(root.quaternion);
+    p.userData.life = 1.0; p.visible = true;
+  });
+  flashL.position.copy(tmp); flashL.intensity = 18;
+  if (statAction) statAction.innerText = 'TO\'P ATISH';
+}
+
+function missileSalvo() {
+  playMissileSound();
+  heat = Math.min(1, heat + 0.4);
+  for (let i = 0; i < 4; i++) {
+    setTimeout(() => {
+      pod.getWorldPosition(tmp);
+      const p = projs.find(x => !x.visible); if (!p) return;
+      p.position.set(tmp.x + (Math.random() - 0.5) * 0.5, tmp.y + 0.3, tmp.z + (Math.random() - 0.5) * 0.5);
+      p.quaternion.copy(root.quaternion);
+      p.userData.vel.set((Math.random() - 0.5) * 6, 4 + Math.random() * 4, 28).applyQuaternion(root.quaternion);
+      p.userData.life = 1.2; p.visible = true;
+    }, i * 70);
+  }
+  if (statAction) statAction.innerText = 'RAKETA ZALPI';
+}
+
+function dash() {
+  if (dashT < 0) {
+    dashT = 0;
+    playTransformSound();
+    if (statAction) statAction.innerText = 'REAKTIV DASH';
   }
 }
 
+function toggleTransform() {
+  isTransformed = !isTransformed;
+  playTransformSound();
+  bTransform.classList.toggle('on', isTransformed);
+  shieldMesh.visible = isTransformed;
+  bTransform.innerText = isTransformed ? '🛡️ QALQON: ON' : '🛡️ REJIM';
+  if (statAction) statAction.innerText = isTransformed ? 'HIMOYA REJIMI' : 'JANGOVAR';
+}
+
+function ult() {
+  if (ultT < 0) {
+    ultT = 0;
+    playTransformSound();
+    if (statAction) statAction.innerText = 'ORBITAL LAZER';
+  }
+}
+
+// Action Button Bindings
+bFire.addEventListener('click', fire);
+bMissile.addEventListener('click', missileSalvo);
+bDash.addEventListener('click', dash);
+bUlt.addEventListener('click', ult);
+bTransform.addEventListener('click', toggleTransform);
+
+// Directional D-PAD & Keyboard Listeners
+function bindHoldBtn(el, prop) {
+  const on = () => { moveState[prop] = true; el.classList.add('active'); };
+  const off = () => { moveState[prop] = false; el.classList.remove('active'); };
+  el.addEventListener('pointerdown', on);
+  el.addEventListener('pointerup', off);
+  el.addEventListener('pointercancel', off);
+  el.addEventListener('pointerleave', off);
+}
+bindHoldBtn(btnFwd, 'forward');
+bindHoldBtn(btnBwd, 'backward');
+bindHoldBtn(btnLeft, 'turnLeft');
+bindHoldBtn(btnRight, 'turnRight');
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyW' || e.code === 'ArrowUp') { moveState.forward = true; btnFwd.classList.add('active'); }
+  if (e.code === 'KeyS' || e.code === 'ArrowDown') { moveState.backward = true; btnBwd.classList.add('active'); }
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft') { moveState.turnLeft = true; btnLeft.classList.add('active'); }
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') { moveState.turnRight = true; btnRight.classList.add('active'); }
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') dash();
+  if (e.code === 'Space' || e.code === 'KeyF') fire();
+  if (e.code === 'KeyR') missileSalvo();
+  if (e.code === 'KeyQ' || e.code === 'KeyT') toggleTransform();
+  if (e.code === 'KeyE') ult();
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'KeyW' || e.code === 'ArrowUp') { moveState.forward = false; btnFwd.classList.remove('active'); }
+  if (e.code === 'KeyS' || e.code === 'ArrowDown') { moveState.backward = false; btnBwd.classList.remove('active'); }
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft') { moveState.turnLeft = false; btnLeft.classList.remove('active'); }
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') { moveState.turnRight = false; btnRight.classList.remove('active'); }
+});
+
+// =========================================================================
+// MAIN ANIMATION LOOP
+// =========================================================================
+let lastStepPhase = 0;
+let frameCount = 0, lastFpsTime = performance.now();
 const clock = new THREE.Clock();
+
 function animate() {
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
+  const dt = Math.min(clock.getDelta(), 0.08);
+  t += dt;
 
-  if (mixer) mixer.update(delta);
+  // Directions
+  let moveDir = 0;
+  if (moveState.forward) moveDir += 1;
+  if (moveState.backward) moveDir -= 1;
 
-  if (autoRotate && characterGroup) {
-    characterGroup.rotation.y += delta * 0.35;
+  let turnDir = 0;
+  if (moveState.turnLeft) turnDir += 1;
+  if (moveState.turnRight) turnDir -= 1;
+
+  // Exact Turning (O'nga / Chapga Aniq Burilish)
+  if (turnDir !== 0) {
+    yaw += turnDir * 2.2 * dt;
+    root.rotation.y = yaw;
+    if (statAction && !moveState.forward && !moveState.backward) {
+      statAction.innerText = turnDir > 0 ? 'CHAPGA BURILISH' : 'O\'NGA BURILISH';
+      statAction.style.color = 'var(--cyan)';
+    }
   }
 
-  controls.update();
+  // Locomotion Blending
+  const isMoving = (moveDir !== 0 || turnDir !== 0);
+  walkBlend += ((isMoving ? 1 : 0) - walkBlend) * Math.min(1, dt * 6);
+
+  if (isMoving && statAction && statAction.innerText !== 'TO\'P ATISH' && statAction.innerText !== 'RAKETA ZALPI') {
+    if (moveDir > 0) { statAction.innerText = 'OLDINGA QADAM'; statAction.style.color = 'var(--green)'; }
+    else if (moveDir < 0) { statAction.innerText = 'ORQAGA YURISH'; statAction.style.color = 'var(--orange)'; }
+  } else if (!isMoving && statAction && statAction.innerText.indexOf('ATISH') === -1 && statAction.innerText.indexOf('RAKETA') === -1) {
+    statAction.innerText = isTransformed ? 'HIMOYA REJIMI' : 'IDLE (TINCH)';
+    statAction.style.color = 'var(--green)';
+  }
+
+  // Phase stepping
+  const gaitSpeed = (moveDir < 0 ? -4.5 : 5.4) * walkBlend;
+  phase += dt * (gaitSpeed + Math.abs(turnDir) * 3.5);
+
+  // Play mechanical step sound on foot strike
+  if (Math.sin(phase) * Math.sin(lastStepPhase) < 0 && walkBlend > 0.4) {
+    playStepSound();
+  }
+  lastStepPhase = phase;
+
+  // World Translation (Oldinga / Orqaga Siljish)
+  if (moveDir !== 0) {
+    const stepDist = moveDir * 3.2 * dt;
+    root.position.x += Math.sin(yaw) * stepDist;
+    root.position.z += Math.cos(yaw) * stepDist;
+  }
+
+  const idle = Math.sin(t * 1.7);
+
+  // Hydraulic Legs Kinematics (Digitigrade walking & turning)
+  let minFoot = 1e9;
+  legs.forEach(l => {
+    const ph = phase + (l.s > 0 ? 0 : Math.PI);
+    // Differential stepping for turning
+    const turnInfluence = turnDir * l.s * 0.25;
+    const sw = Math.sin(ph) * walkBlend + turnInfluence;
+    const lift = Math.max(0, Math.cos(ph)) * walkBlend;
+    const a1 = -0.45 + sw * 0.42 + idle * 0.008 * l.s;
+    const a2 = 0.9 + lift * 0.75;
+    l.hip.rotation.x = a1; l.knee.rotation.x = a2; l.ankle.rotation.x = -(a1 + a2);
+    const f = 2.3 - 1.1 * Math.cos(a1) - 1.2 * Math.cos(a1 + a2) - 0.22;
+    if (f < minFoot) minFoot = f;
+  });
+
+  const dashK = dashT >= 0 ? Math.sin(Math.PI * Math.min(dashT / DASH_TIME, 1)) : 0;
+  body.position.y = -minFoot + idle * 0.012;
+  body.rotation.z = Math.sin(phase) * 0.035 * walkBlend - 0.22 * dashK;
+
+  // Torso Turning Twist (Korpus burilish tomoniga egiladi)
+  const turnTwist = turnDir * 0.24;
+  torso.rotation.y = Math.sin(t * 0.5) * 0.12 * (1 - walkBlend) + Math.sin(phase) * 0.1 * walkBlend + turnTwist;
+  head.rotation.y = -torso.rotation.y * 0.6 + Math.sin(t * 0.9) * 0.12;
+
+  // Arms Recoil & Stance
+  arms.forEach(a => {
+    a.recoil = Math.max(0, a.recoil - dt * 3.5);
+    const transformRaise = isTransformed ? 0.35 : 0;
+    a.sh.rotation.x = -0.5 - a.recoil * 0.14 + transformRaise + idle * 0.01 - Math.sin(phase + (a.s > 0 ? Math.PI : 0)) * 0.18 * walkBlend;
+    a.sh.rotation.y = a.s * 0.05 + (isTransformed ? a.s * 0.15 : 0);
+    a.barrels.position.z = -a.recoil * 0.28;
+  });
+
+  // Emissive Life & Rotating Core
+  heat = Math.max(0, heat - dt * 0.4);
+  M.heat.emissiveIntensity = 0.6 + heat * 4.0;
+  M.vent.emissiveIntensity = 1.0 + Math.sin(t * 2.3) * 0.35 + heat * 1.5;
+  coreRing.rotation.z += dt * (1.8 + heat * 5.0);
+  dish.rotation.y = t * 1.0;
+
+  // Thruster Flames
+  const boost = 1 + dashK * 2.0 + walkBlend * 0.25;
+  flames.forEach(w => w.scale.set(1, 1, (0.85 + Math.random() * 0.3) * boost));
+
+  // Dash Mechanics
+  if (dashT >= 0) {
+    dashT += dt;
+    const k = Math.min(dashT / DASH_TIME, 1);
+    const off = Math.sin(Math.PI * k) * 3.5 * dt;
+    root.position.x += Math.sin(yaw) * off * 10;
+    root.position.z += Math.cos(yaw) * off * 10;
+    if (k >= 1) dashT = -1;
+  }
+
+  // Projectiles
+  projs.forEach(p => {
+    if (!p.visible) return;
+    p.position.addScaledVector(p.userData.vel, dt);
+    p.userData.life -= dt;
+    if (p.userData.life <= 0) p.visible = false;
+  });
+  flashL.intensity = Math.max(0, flashL.intensity - dt * 70);
+
+  // Ultimate Beam
+  if (ultT >= 0) {
+    ultT += dt;
+    beam.visible = true;
+    beam.position.set(root.position.x + Math.sin(yaw) * 4, 10, root.position.z + Math.cos(yaw) * 4);
+    if (ultT >= 1.2) { ultT = -1; beam.visible = false; }
+  }
+
+  if (isTransformed) {
+    shieldMesh.rotation.y += dt * 0.5;
+  }
+
+  // FPS
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime >= 500) {
+    const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+    frameCount = 0;
+    lastFpsTime = now;
+    if (statFps) {
+      statFps.innerText = fps + ' FPS';
+      statFps.style.color = fps >= 50 ? 'var(--green)' : 'var(--orange)';
+    }
+  }
+
   renderer.render(scene, camera);
-  updateFPS();
 }
 animate();
 </script>
