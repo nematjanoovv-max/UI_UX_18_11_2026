@@ -1,0 +1,5090 @@
+{
+  "maps": {
+    "training_grid": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      }
+    ],
+    "crossroads": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      }
+    ],
+    "spiral_core": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "misty_pass": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "fast_track": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "scrap_yard": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "iron_wall": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 21,
+        "hpMultiplier": 9.646,
+        "totalEnemies": 30,
+        "clearBonus": 135,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 22,
+        "hpMultiplier": 10.804,
+        "totalEnemies": 30,
+        "clearBonus": 140,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 23,
+        "hpMultiplier": 12.1,
+        "totalEnemies": 30,
+        "clearBonus": 145,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 24,
+        "hpMultiplier": 13.552,
+        "totalEnemies": 30,
+        "clearBonus": 150,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 25,
+        "hpMultiplier": 15.179,
+        "totalEnemies": 27,
+        "clearBonus": 155,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "blackout_city": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 21,
+        "hpMultiplier": 9.646,
+        "totalEnemies": 30,
+        "clearBonus": 135,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 22,
+        "hpMultiplier": 10.804,
+        "totalEnemies": 30,
+        "clearBonus": 140,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 23,
+        "hpMultiplier": 12.1,
+        "totalEnemies": 30,
+        "clearBonus": 145,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 24,
+        "hpMultiplier": 13.552,
+        "totalEnemies": 30,
+        "clearBonus": 150,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 25,
+        "hpMultiplier": 15.179,
+        "totalEnemies": 27,
+        "clearBonus": 155,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "twin_gate": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 21,
+        "hpMultiplier": 9.646,
+        "totalEnemies": 30,
+        "clearBonus": 135,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 22,
+        "hpMultiplier": 10.804,
+        "totalEnemies": 30,
+        "clearBonus": 140,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 23,
+        "hpMultiplier": 12.1,
+        "totalEnemies": 30,
+        "clearBonus": 145,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 24,
+        "hpMultiplier": 13.552,
+        "totalEnemies": 30,
+        "clearBonus": 150,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 25,
+        "hpMultiplier": 15.179,
+        "totalEnemies": 27,
+        "clearBonus": 155,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 26,
+        "hpMultiplier": 17.0,
+        "totalEnemies": 30,
+        "clearBonus": 160,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 27,
+        "hpMultiplier": 19.04,
+        "totalEnemies": 30,
+        "clearBonus": 165,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 28,
+        "hpMultiplier": 21.325,
+        "totalEnemies": 30,
+        "clearBonus": 170,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 29,
+        "hpMultiplier": 23.884,
+        "totalEnemies": 30,
+        "clearBonus": 175,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 30,
+        "hpMultiplier": 26.75,
+        "totalEnemies": 27,
+        "clearBonus": 180,
+        "groups": [
+          {
+            "type": "hive_titan",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ],
+    "last_grid": [
+      {
+        "wave": 1,
+        "hpMultiplier": 1.0,
+        "totalEnemies": 9,
+        "clearBonus": 35,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 9,
+            "interval": 1.0
+          }
+        ]
+      },
+      {
+        "wave": 2,
+        "hpMultiplier": 1.12,
+        "totalEnemies": 10,
+        "clearBonus": 40,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.85
+          }
+        ]
+      },
+      {
+        "wave": 3,
+        "hpMultiplier": 1.254,
+        "totalEnemies": 15,
+        "clearBonus": 45,
+        "groups": [
+          {
+            "type": "grunt",
+            "count": 7,
+            "interval": 0.8
+          },
+          {
+            "type": "swarm",
+            "count": 8,
+            "interval": 0.3
+          }
+        ]
+      },
+      {
+        "wave": 4,
+        "hpMultiplier": 1.405,
+        "totalEnemies": 12,
+        "clearBonus": 50,
+        "groups": [
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.5
+          },
+          {
+            "type": "scout",
+            "count": 10,
+            "interval": 0.55
+          }
+        ]
+      },
+      {
+        "wave": 5,
+        "hpMultiplier": 1.574,
+        "totalEnemies": 11,
+        "clearBonus": 55,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 10,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 6,
+        "hpMultiplier": 1.762,
+        "totalEnemies": 15,
+        "clearBonus": 60,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 13,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 7,
+        "hpMultiplier": 1.974,
+        "totalEnemies": 16,
+        "clearBonus": 65,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 12,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 8,
+        "hpMultiplier": 2.211,
+        "totalEnemies": 17,
+        "clearBonus": 70,
+        "groups": [
+          {
+            "type": "flyer",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "grunt",
+            "count": 11,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 9,
+        "hpMultiplier": 2.476,
+        "totalEnemies": 18,
+        "clearBonus": 75,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 5,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 4,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 2,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 2,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 10,
+        "hpMultiplier": 2.773,
+        "totalEnemies": 17,
+        "clearBonus": 80,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "grunt",
+            "count": 16,
+            "interval": 0.7
+          }
+        ]
+      },
+      {
+        "wave": 11,
+        "hpMultiplier": 3.106,
+        "totalEnemies": 21,
+        "clearBonus": 85,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 4,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 12,
+        "hpMultiplier": 3.479,
+        "totalEnemies": 22,
+        "clearBonus": 90,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 13,
+        "hpMultiplier": 3.896,
+        "totalEnemies": 23,
+        "clearBonus": 95,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 6,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 5,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 14,
+        "hpMultiplier": 4.363,
+        "totalEnemies": 24,
+        "clearBonus": 100,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 7,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 3,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 3,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 15,
+        "hpMultiplier": 4.887,
+        "totalEnemies": 23,
+        "clearBonus": 105,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 11,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 11,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 16,
+        "hpMultiplier": 5.474,
+        "totalEnemies": 27,
+        "clearBonus": 110,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 6,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 17,
+        "hpMultiplier": 6.13,
+        "totalEnemies": 28,
+        "clearBonus": 115,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 5,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 18,
+        "hpMultiplier": 6.866,
+        "totalEnemies": 29,
+        "clearBonus": 120,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 8,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 19,
+        "hpMultiplier": 7.69,
+        "totalEnemies": 30,
+        "clearBonus": 125,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 20,
+        "hpMultiplier": 8.613,
+        "totalEnemies": 27,
+        "clearBonus": 130,
+        "groups": [
+          {
+            "type": "overseer",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 21,
+        "hpMultiplier": 9.646,
+        "totalEnemies": 30,
+        "clearBonus": 135,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 22,
+        "hpMultiplier": 10.804,
+        "totalEnemies": 30,
+        "clearBonus": 140,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 23,
+        "hpMultiplier": 12.1,
+        "totalEnemies": 30,
+        "clearBonus": 145,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 24,
+        "hpMultiplier": 13.552,
+        "totalEnemies": 30,
+        "clearBonus": 150,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 25,
+        "hpMultiplier": 15.179,
+        "totalEnemies": 27,
+        "clearBonus": 155,
+        "groups": [
+          {
+            "type": "boss",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      },
+      {
+        "wave": 26,
+        "hpMultiplier": 17.0,
+        "totalEnemies": 30,
+        "clearBonus": 160,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 27,
+        "hpMultiplier": 19.04,
+        "totalEnemies": 30,
+        "clearBonus": 165,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 28,
+        "hpMultiplier": 21.325,
+        "totalEnemies": 30,
+        "clearBonus": 170,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 29,
+        "hpMultiplier": 23.884,
+        "totalEnemies": 30,
+        "clearBonus": 175,
+        "groups": [
+          {
+            "type": "scout",
+            "count": 9,
+            "interval": 0.5
+          },
+          {
+            "type": "grunt",
+            "count": 6,
+            "interval": 0.65
+          },
+          {
+            "type": "shielded",
+            "count": 7,
+            "interval": 0.75
+          },
+          {
+            "type": "flyer",
+            "count": 4,
+            "interval": 0.7
+          },
+          {
+            "type": "tank",
+            "count": 4,
+            "interval": 1.3
+          }
+        ]
+      },
+      {
+        "wave": 30,
+        "hpMultiplier": 26.75,
+        "totalEnemies": 27,
+        "clearBonus": 180,
+        "groups": [
+          {
+            "type": "hive_titan",
+            "count": 1,
+            "interval": 2.5
+          },
+          {
+            "type": "shielded",
+            "count": 13,
+            "interval": 0.8
+          },
+          {
+            "type": "scout",
+            "count": 13,
+            "interval": 0.5
+          }
+        ]
+      }
+    ]
+  }
+}

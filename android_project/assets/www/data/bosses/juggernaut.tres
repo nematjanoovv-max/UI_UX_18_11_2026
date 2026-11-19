@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/boss_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = "juggernaut"
+display_key = "boss_juggernaut_name"
+hp = 6000.0
+shield = 0.0
+armor = 20.0
+speed = 30.0
+bounty = 100
+base_damage = 8
+visual_scale = 1.8
+traits = Array[String](["boss", "armored"])
+tags = Array[String](["ground", "boss"])
+is_boss = true
+slow_cap = 0.50
+splash_resistance_ratio = 0.25
+intro_cutscene = true
+phases = []

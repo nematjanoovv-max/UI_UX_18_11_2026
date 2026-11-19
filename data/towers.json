@@ -1,0 +1,239 @@
+{
+  "towers": {
+    "pulse": {
+      "id": "pulse",
+      "name": "Pulse Tower",
+      "type": "KINETIC",
+      "cost": 100,
+      "color": "#00e5ff",
+      "icon": "⚡",
+      "desc": "Rapid-fire kinetic tracer gun. Effective against fast scouts and light flyers.",
+      "targetsAir": true,
+      "projSpeed": 650,
+      "tiers": [
+        { "dmg": 15, "rate": 5.0, "range": 145, "upCost": 70 },
+        { "dmg": 21, "rate": 5.0, "range": 160, "upCost": 100 },
+        { "dmg": 29, "rate": 5.0, "range": 168, "upCost": 140 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Gatling Shredder",
+          "cost": 220,
+          "dmg": 26,
+          "rate": 10.0,
+          "range": 175,
+          "color": "#00e5ff",
+          "perk": "shred",
+          "desc": "Fires 10 rps. Shreds enemy armor on hit."
+        },
+        "B": {
+          "name": "Sniper Rail-Pulse",
+          "cost": 240,
+          "dmg": 320,
+          "rate": 1.2,
+          "range": 320,
+          "color": "#00b0ff",
+          "perk": "sniper",
+          "desc": "Extreme range tech sniper. Deals 300% critical damage to Bosses."
+        }
+      }
+    },
+    "mortar": {
+      "id": "mortar",
+      "name": "Mortar Tower",
+      "type": "EXPLOSIVE",
+      "cost": 150,
+      "color": "#ff9100",
+      "icon": "💥",
+      "desc": "Long-range explosive shell with area splash damage. Destroys dense swarms.",
+      "targetsAir": false,
+      "projSpeed": 380,
+      "tiers": [
+        { "dmg": 70, "rate": 0.9, "range": 210, "splash": 70, "upCost": 105 },
+        { "dmg": 98, "rate": 0.9, "range": 231, "splash": 80, "upCost": 150 },
+        { "dmg": 137, "rate": 0.9, "range": 242, "splash": 90, "upCost": 210 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Cluster Bomb",
+          "cost": 250,
+          "dmg": 120,
+          "rate": 1.0,
+          "range": 240,
+          "splash": 85,
+          "color": "#ff9100",
+          "perk": "cluster",
+          "desc": "Detonates into 4 secondary cluster bomblets."
+        },
+        "B": {
+          "name": "Napalm Cyber-Fire",
+          "cost": 260,
+          "dmg": 85,
+          "rate": 0.9,
+          "range": 235,
+          "splash": 95,
+          "color": "#ff3d00",
+          "perk": "napalm",
+          "desc": "Leaves persistent burning cyber-fire pool dealing AoE DoT."
+        }
+      }
+    },
+    "cryo": {
+      "id": "cryo",
+      "name": "Cryo Tower",
+      "type": "ENERGY",
+      "cost": 120,
+      "color": "#00f0ff",
+      "icon": "❄️",
+      "desc": "Cryogenic beam that slows hostiles by 35% for 2.0s.",
+      "targetsAir": true,
+      "projSpeed": 600,
+      "tiers": [
+        { "dmg": 12, "rate": 2.0, "range": 140, "slow": 0.35, "slowDur": 2.0, "upCost": 84 },
+        { "dmg": 17, "rate": 2.2, "range": 154, "slow": 0.40, "slowDur": 2.3, "upCost": 120 },
+        { "dmg": 24, "rate": 2.5, "range": 162, "slow": 0.45, "slowDur": 2.6, "upCost": 168 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Blizzard Zero",
+          "cost": 230,
+          "dmg": 30,
+          "rate": 2.2,
+          "range": 175,
+          "slow": 1.0,
+          "slowDur": 2.0,
+          "color": "#00f0ff",
+          "perk": "freeze_solid",
+          "desc": "Freezes targets completely solid with shatter damage."
+        },
+        "B": {
+          "name": "Tesla Chain-Frost",
+          "cost": 250,
+          "dmg": 60,
+          "rate": 2.0,
+          "range": 185,
+          "slow": 0.45,
+          "slowDur": 2.8,
+          "color": "#76ff03",
+          "perk": "tesla_chain",
+          "desc": "Chains electric arc to 3 nearby targets with EMP zap."
+        }
+      }
+    },
+    "railgun": {
+      "id": "railgun",
+      "name": "Railgun Tower",
+      "type": "PIERCE",
+      "cost": 250,
+      "color": "#ff007f",
+      "icon": "🎯",
+      "desc": "High-velocity magnetic slug piercing multiple armored targets.",
+      "targetsAir": true,
+      "projSpeed": 950,
+      "tiers": [
+        { "dmg": 180, "rate": 0.70, "range": 260, "pierce": 2, "upCost": 175 },
+        { "dmg": 252, "rate": 0.75, "range": 286, "pierce": 3, "upCost": 250 },
+        { "dmg": 353, "rate": 0.80, "range": 300, "pierce": 4, "upCost": 350 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Hyper Beam Laser",
+          "cost": 360,
+          "dmg": 580,
+          "rate": 1.2,
+          "range": 320,
+          "pierce": 6,
+          "color": "#ff007f",
+          "perk": "hyper_beam",
+          "desc": "Continuous sustained piercing plasma beam."
+        },
+        "B": {
+          "name": "Ion Disrupter",
+          "cost": 340,
+          "dmg": 420,
+          "rate": 0.85,
+          "range": 295,
+          "pierce": 99,
+          "color": "#d500f9",
+          "perk": "ion_strip",
+          "desc": "Instantly strips all enemy shields and pierces entire line."
+        }
+      }
+    },
+    "beacon": {
+      "id": "beacon",
+      "name": "Beacon Tower",
+      "type": "SUPPORT",
+      "cost": 180,
+      "color": "#b388ff",
+      "icon": "📡",
+      "desc": "Tactical support aura: +20% damage and +15% range to nearby towers.",
+      "targetsAir": false,
+      "projSpeed": 0,
+      "tiers": [
+        { "dmgBuff": 0.20, "rangeBuff": 0.15, "range": 130, "upCost": 126 },
+        { "dmgBuff": 0.28, "rangeBuff": 0.18, "range": 143, "upCost": 180 },
+        { "dmgBuff": 0.38, "rangeBuff": 0.22, "range": 150, "upCost": 252 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Overcharge Reactor",
+          "cost": 310,
+          "dmgBuff": 0.55,
+          "rangeBuff": 0.25,
+          "rateBuff": 0.20,
+          "range": 170,
+          "color": "#b388ff",
+          "perk": "overcharge",
+          "desc": "+55% damage, +25% range, and +20% attack speed to adjacent towers."
+        },
+        "B": {
+          "name": "Tactical Radar",
+          "cost": 290,
+          "dmgBuff": 0.30,
+          "rangeBuff": 0.45,
+          "range": 200,
+          "color": "#e040fb",
+          "perk": "radar",
+          "desc": "+45% range boost and permanently reveals cloaked hostiles."
+        }
+      }
+    },
+    "wall": {
+      "id": "wall",
+      "name": "Barricade Wall",
+      "type": "DEFENSE",
+      "cost": 40,
+      "color": "#78909c",
+      "icon": "🧱",
+      "desc": "Heavy armored obstruction that delays and blocks ground enemies.",
+      "targetsAir": false,
+      "projSpeed": 0,
+      "tiers": [
+        { "hp": 400, "range": 40, "upCost": 28 },
+        { "hp": 600, "range": 40, "upCost": 40 },
+        { "hp": 900, "range": 40, "upCost": 56 }
+      ],
+      "branches": {
+        "A": {
+          "name": "Spike Barrier",
+          "cost": 80,
+          "hp": 1200,
+          "reflect": 0.30,
+          "color": "#ff7043",
+          "perk": "thorns",
+          "desc": "Reflects 30% of incoming melee damage back to attackers."
+        },
+        "B": {
+          "name": "Electrified Gate",
+          "cost": 85,
+          "hp": 1000,
+          "zapDmg": 40,
+          "color": "#ffd600",
+          "perk": "electrified",
+          "desc": "Zaps adjacent attackers with electric shocks every second."
+        }
+      }
+    }
+  }
+}

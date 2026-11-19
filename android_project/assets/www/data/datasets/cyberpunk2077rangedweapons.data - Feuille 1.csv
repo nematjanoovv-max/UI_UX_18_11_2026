@@ -1,0 +1,199 @@
+Type,Title,Tech,Iconic,Effects,Intrinsic,Attack Speed,Damage per Hit,Reload Speed,Effective Range,Weapon Handling,Magazine Capacity,Headshot Damage Multiplier,Armor Penetration
+Pistol,Ambition,Tech,Comes with a unique Zetatech scope . Hits have a chance to apply Blinding and bonus headshot damage for its duration.,None,None,5.0,43.0,0.8,40.0,8.2,20,150,25
+Pistol,Apparition,Tech,"Monitors its user's vitals. When Health level is critical, fire rate, reload speed and damage are increased. Charged shots deal twice as much damage.",None,None,5.0,49.0,0.8,36.0,8.2,20,150,50
+Pistol,AR Raygun Supreme 9000,Power,None,None,None,8.0,0.0,0.9,25.0,6.6,20,125,0
+Pistol,HJKE-11 Yukimura,Smart,None,None,None,6.6,40.0,1.6,30.0,4.8,30,85,0
+Pistol,JKE-X2 Kenshin,Tech,None,None,None,5.0,49.0,0.8,36.0,8.2,20,170,50
+Pistol,Tamayura,Power,None,None,None,2.5,124.0,1.1,36.0,5.0,8,150,25
+Pistol,Slaught-O-Matic,Power,None,None,None,6.0,11.0,0.0,20.0,4.3,36,150,25
+Pistol,Catahoula,Tech,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,Fires in full auto when fully charged.,5.0,61.0,1.5,24.0,6.2,36,150,75
+Pistol,Chaos,Tech,"Crit Chance , damage type and status-effect application are randomized after each reload. Good luck!",None,None,5.0,49.0,0.6,36.0,8.0,20,150,50
+Pistol,Cheetah,Power,"Come closer - don't be shy. The nearer the target, the greater the Crit and Bleeding chance. Hits to an enemy's torso also deal more damage.",None,None,3.6,88.0,0.8,36.0,6.6,12,150,0
+Pistol,Liberty,Power,None,None,None,3.6,81.0,0.9,36.0,7.1,14,150,0
+Pistol,Unity,Power,None,None,None,3.3,94.0,0.8,36.0,6.7,12,150,0
+Pistol,Crimestopper,Smart,"Freeze, dirtbag! Rounds have a chance to disable cyber-limbs, immobilizing the enemy and increasing Crit Damage . Crit Chance is momentarily increased after equipping this weapon.",None,Can lock onto one additional enemy when aiming.,10.0,36.0,1.1,24.0,6.5,20,85,0
+Pistol,Death and Taxes,Power,"Nothing in life is free. Every powerful hit will cost you a bit of Health . When your Health gets low, rounds will start to Poison enemies.",None,None,3.3,110.0,1.1,42.0,7.8,10,125,0
+Pistol,Dying Night,Power,Wilson's Lexington gives you the additional hope of seeing yet another Night City sunrise. Increases damage while moving and guarantees Shock with rapid hits.,None,None,8.0,47.0,0.8,22.0,7.7,20,125,25
+Pistol,Genjiroh,Smart,"Rounds per burst increased to 4. Increases magazine size and projectile speed. When aiming, can lock onto 4 targets simultaneously. Projectiles deal additional Electrical damage with an increased chance to apply Shock .",None,None,7.8,40.0,1.6,36.0,4.8,40,85,0
+Pistol,HA-4 Grit,Tech,None,None,Fires in full auto when fully charged.,5.0,57.0,1.5,30.0,6.7,30,125,50
+Pistol,Her Majesty,Power,"While Optical Camo is active, this weapon's shots gain perfect accuracy and guaranteed headshot crits along with increased damage. As if that weren't enough, it comes with a unique silencer.",None,None,2.9,100.0,0.8,36.0,6.9,10,150,0
+Pistol,A-22B Chao,Smart,None,None,None,2.5,44.0,1.4,36.0,4.2,21,85,0
+Pistol,Kappa x-MOD2,Smart,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,8.3,36.0,1.3,18.0,6.2,25,85,0
+Pistol,Kongou,Power,"Thanks to highest-grade mods, the user can take advantage of ricochet technology even if they do not possess the required cyberware. Reduced recoil and an increased rate of fire make up for the smaller magazine size. It's as deadly as it is elegant.",None,None,4.9,81.0,0.9,36.0,7.3,12,150,0
+Pistol,La Chingona Dorada,Power,Each headshot briefly increases Crit Chance and Burn chance. Single Wield: Gain extra ammo equal to the number of headshots the next time this weapon is equipped. Dual Wield: Headshots instantly add extra ammo to the other dual-wield weapon (max. 10 bullets).,None,None,2.9,122.0,1.1,42.0,5.4,10,100,25
+Pistol,Lexington x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,8.0,47.0,0.9,36.0,7.9,20,175,0
+Pistol,Lizzie,Tech,Fires an extra round per shot. Increases the number of rounds fired per shot when fully charged.,None,Fires in a burst when fully charged.,5.6,80.0,1.0,24.0,7.4,15,150,50
+Pistol,3516,Power,"Has a mean streak. Like it's first owner. A Quick Melee Attack ignites the enemy and deals massive damage, but consumes all remaining bullets currently loaded in the gun.",None,None,3.3,124.0,1.4,36.0,9.5,10,150,50
+Pistol,M-10AF Lexington,Power,None,None,None,8.0,47.0,0.9,30.0,7.3,20,125,0
+Pistol,M-76e Omaha,Tech,None,None,Fires in a burst when fully charged.,5.6,80.0,1.0,30.0,6.5,9,170,50
+Pistol,Ticon,Tech,None,None,Charged shots fire 3 rounds at once. Each deals full damage.,3.3,44.0,1.0,42.0,7.3,21,170,50
+Pistol,Ogou,Smart,Fires a burst of two explosive rounds. Hits have a higher chance of dismemberment. Each dismemberment increases Crit Chance and chance to apply Bleeding .,None,None,3.3,57.0,1.4,24.0,4.3,18,50,25
+Pistol,Pariah,Tech,Reed's modifications have turned this into a silent weapon. Headshots reduce charge time and increase reload speed.,None,Charged shots fire 3 rounds at once. Each deals full damage.,3.3,40.0,1.0,42.0,7.3,21,175,50
+Pistol,Plan B,Power,"Bullets have a higher chance to apply Bleeding , but keep an eye on your wallet! Every shot costs you eddies .",None,None,5.0,67.0,0.9,36.0,7.2,20,200,0
+Pistol,Pride,Power,"Rogue's pride and joy. After neutralizing an enemy with the Prejudice power assault, Pride will not consume ammo for a short time. The first shot is a guaranteed Crit Hit. When you're at high Health , headshots deal increased damage. Increases headshot damage against Elite enemies.",None,None,3.3,113.0,0.9,36.0,7.2,10,150,0
+Pistol,Riskit,Power,"When your Health is very low, weapon handling is improved and all hits are Crits .",None,None,3.3,110.0,1.0,42.0,5.7,10,150,25
+Pistol,Rook,Power,"Fully customized with a scope and silencer. Each rapid successive hit increases Crit Chance , but decreases accuracy. Keep 'er steady! One miss and the effect is gone.",None,None,10.0,38.0,0.9,48.0,8.0,30,125,0
+Pistol,Scorch,Tech,Not all good things must end! Charged shots that hit an enemy affected by Burn are automatically replenished in the magazine.,None,Charged shots fire 3 rounds at once. Each deals full damage.,3.3,44.0,1.0,42.0,7.3,21,150,50
+Pistol,Seraph,Power,"Each subsequent hit increases the chance that your enemy will be consumed by the purifying flame of the Seraphim. Once Burning, bullets deal increased damage to the enemy.",None,Fires explosive rounds.,3.6,117.0,0.9,36.0,7.1,14,150,0
+Pistol,Skippy,Smart,None,None,None,6.7,40.0,1.6,30.0,4.8,30,85,0
+Pistol,Kappa,Smart,None,None,Can lock onto one additional enemy when aiming.,8.3,33.0,1.3,24.0,5.5,30,105,0
+Pistol,Nue,Power,None,None,None,2.9,122.0,1.1,42.0,5.5,10,125,25
+Revolver,Amnesty,Power,Cassidy's mods have turned this into the Wild West's most lethal revolver. Hip firing and landing a headshot immediately after drawing this weapon guarantees Crit Damage .,None,+50% Crit Damage,5.0,128.0,0.9,18.0,4.1,6,200,25
+Revolver,Archangel,Power,"An angel of a weapon with a devil's attitude. Full-auto mode allows you to fire rounds in the rhythm of Samurai 's "" Archangel "". Successive hits after short intervals knock enemies to the ground.",None,+20% Shock chance,1.9,128.0,0.9,42.0,4.5,6,200,25
+Revolver,Bald Eagle,Power,"After throwing Iconic knife Fang into an enemy's leg, shooting the same leg will shred it to pieces and return Fang to your hand. Effective against moving targets.",None,Fires explosive rounds.,2.0,134.0,1.1,42.0,4.1,8,250,75
+Revolver,Comrade's Hammer,Tech,The cylinder has been modified to hold a single explosive round capable of wreaking utter destruction. Automatically reloads when you perform a Quick Melee Attack.,None,"Fires explosive rounds, but cannot penetrate cover. +50% Crit Damage",1.7,559.0,1.7,30.0,2.7,1,0,75
+Revolver,Coronation,Tech,Walk like a king with a fully customizable tool to rule them all.,None,None,0,0,0,0,0,8,200,75
+Revolver,Crash,Power,Charging for a brief time while aiming enables full auto mode. Decreases recoil and bullet spread. Decreases fire rate.,None,None,2.1,128.0,1.1,42.0,4.7,6,200,25
+Revolver,DR-12 Quasar,Tech,None,None,Fires in full auto when fully charged.,5.6,62.0,1.4,36.0,6.4,20,175,50
+Revolver,DR-5 Nova,Power,None,None,None,3.3,106.0,1.2,42.0,5.4,6,200,25
+Revolver,Doom Doom,Power,Fires 3 explosive rounds per shot. Increases dismemberment chance at the cost of increased spread and recoil. Not recommended for neat freaks.,None,None,3.3,213.0,1.2,30.0,4.7,6,150,25
+Revolver,Gris-Gris,Tech,"This weapon has been fused with Slider 's cyberdeck . Each hit has a chance to upload a random quickhack to an enemy . The stronger the quickhack, the smaller the upload chance.",None,Fires in full auto when fully charged.,5.0,66.0,1.5,36.0,6.4,16,175,50
+Revolver,Laika,Tech,"Part of a special Techtronika weapon series that was banned due to humanitarian concerns. Grants a chance to inflict a unique burn on the enemy . Hitting an enemy affected by this burn always deals Crit Damage . The more enemies simultaneously affected by this burn, the more Crit Damage you deal but at the cost of accuracy.",None,"Fires explosive rounds, but cannot penetrate cover. +66% Burn Chance",1.7,284.0,1.4,34.0,3.0,2,150,50
+Revolver,Overture,Power,None,None,None,2.5,128.0,1.1,42.0,4.0,6,200,25
+Revolver,Mancinella,Power,"Equipped with a unique silencer. Headshots have a chance to apply Poison . After entering combat, your stealth damage bonus remains momentarily active.",None,None,3.3,96.0,1.1,63.0,5.5,6,200,25
+Revolver,Ol' Reliable,Power,"Even Cassidy would ditch his Amnesty for this baby. Swapping to this weapon greatly increases headshot damage and effective range. The farther the target, the greater the headshot Crit Chance .",None,+50% Crit Damage,2.5,128.0,1.4,63.0,4.2,6,200,25
+Revolver,Rosco,Power,Shooting an enemy in the leg has an increased chance to knock them down. Grants 10 style points! Headshots against enemies on the ground always do Crit Damage .,None,+50% Crit Damage,2.5,141.0,1.1,42.0,3.9,6,150,25
+Revolver,Taigan,Power,"Part of a special Techtronika weapon series that was banned due to humanitarian concerns. Grants a chance to inflict a unique burn on the enemy . Shooting an enemy affected by this burn always deals Crit Damage . The more enemies simultaneously affected by this burn, the more Crit Damage you deal but at the cost of accuracy.",None,Fires explosive rounds. +40% Burn Chance,2.0,133.0,1.5,30.0,3.8,10,175,50
+Revolver,Metel,Power,None,None,Fires explosive rounds.,1.7,169.0,1.4,30.0,3.8,8,175,50
+Revolver,RT-46 Burya,Tech,None,None,None,1.7,187.0,1.4,47.0,3.1,4,175,50
+Submachine gun,Senkoh LX,Tech,None,None,Fires in full auto when fully charged.,7.7,41.0,1.1,28.0,6.5,30,100,0
+Submachine gun,Shigure,Power,None,None,None,17.0,30.0,1.4,24.0,7.5,50,100,0
+Submachine gun,TKI-20 Shingen,Smart,None,None,None,6.7,34.0,1.9,24.0,5.3,30,50,0
+Submachine gun,Guillotine,Power,None,None,None,13.0,38.0,1.4,28.0,6.9,45,100,0
+Submachine gun,Buzzsaw,Power,A one-of-a-kind SMG that allows you to fire high-penetration rounds. Increases damage to an enemy's limbs. May cause massacres.,None,None,10.0,40.0,1.6,21.0,7.0,40,100,25
+Submachine gun,Chesapeake,Smart,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,Fire rate increases with each consecutive shot.,5.0,66.0,2.1,18.0,4.9,40,50,25
+Submachine gun,DS1 Pulsar,Power,None,None,None,13.0,40.0,1.6,21.0,7.1,40,100,0
+Submachine gun,Erebus,Power,Rounds fired from this weapon are infused with the dark energy from beyond the Blackwall . Highly effective against enemies with low Health .,None,None,6.0,80.0,1.8,18.0,5.5,50,100,25
+Submachine gun,Fenrir,Power,Rounds deal Electrical damage with a chance to disable enemy cyberware . Maelstrom gangoons will piss themselves at the sight of this weapon.,None,+20% Shock Chance,15.0,34.0,1.4,24.0,7.9,40,100,0
+Submachine gun,Guillotine x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,13.0,38.0,1.4,35.0,8.1,45,125,0
+Submachine gun,HA-7 Warden,Smart,None,None,Fire rate increases with each consecutive shot.,5.0,61.0,2.1,24.0,4.9,40,50,0
+Submachine gun,G-58 Dian,Smart,None,None,None,13.0,27.0,1.4,30.0,4.1,45,50,0
+Submachine gun,M221 Saratoga,Power,None,None,None,15.0,34.0,1.4,24.0,8.0,40,100,0
+Submachine gun,Pizdets,Smart,"Thanks to Boris's mods, the longer this weapon fires, the greater the Crit chance. Comes with its own custom silencer.",None,Fire rate increases with each consecutive shot.,5.9,53.0,2.1,24.0,6.2,20,85,0
+Submachine gun,Problem Solver,Power,Removes all safety and reason by firing almost 1000 rounds per minute.,None,None,20.0,41.0,1.2,24.0,7.0,90,100,0
+Submachine gun,Prototype: Shingen Mark V,Smart,Fires explosive rounds. The modified automated targeting system guides bullets to up to 3 targets while aiming. Perfect for when you're outnumbered.,None,+30% Burn Chance,6.7,34.0,1.9,24.0,5.3,30,50,0
+Submachine gun,Raiju,Tech,"Arasaka's combat model, manufactured for extreme precision. Shots do not require charging to penetrate obstacles. Headshots have a greater Crit Chance.",None,Fires in full auto when fully charged.,7.7,37.0,1.1,28.0,8.9,30,100,0
+Submachine gun,Yinglong,Smart,Deals additional Electrical damage with a small chance to apply an EMP on impact.,None,+20% Shock Chance,13.0,30.0,1.4,30.0,4.1,45,50,0
+Shotgun,Alabai,Power,"Part of a special Techtronika weapon series that was banned due to humanitarian concerns. Grants a chance to inflict a unique burn on the enemy. Shooting an enemy affected by this burn always deals Crit Damage. The more enemies simultaneously affected by this burn, the more Crit Damage you deal but at the cost of accuracy.",None,None,4.0,155.0,1.7,9.0,4.5,15,85,25
+Shotgun,Amstaff,Power,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,None,2.5,238.0,1.7,16.0,4.2,8,150,25
+Shotgun,Ba Xing Chong,Smart,"A rocket launcher that fires explosive rounds. This weapon can smart-target up to six enemies simultaneously. Everything caught in the blast radius is torn to shreds. Be careful - that goes for you too. At low Health , reload speed and Burn chance is increased.",None,Heavy weapon. Slightly reduces movement speed an jump height.,2.0,1316.0,2.3,30.0,2.5,2,50,0
+Shotgun,Bloody Maria,Power,"Increases knockdown , bleeding and dismemberment chance. Enemies deprived of their limbs increase your reload speed and Crit Chance . In other words, it's going to be a mess.",None,None,1.2,345.0,0.4,12.0,3.3,8,85,25
+Shotgun,Carnage,Power,None,None,Heavy weapon. Slightly reduces movement speed and jump height.,0.8,510.0,0.8,8.0,2.9,4,85,50
+Shotgun,M2038 Tactician,Power,None,None,None,1.2,345.0,0.4,12.0,3.3,8,85,25
+Shotgun,Dezerter,Power,"This shotgun's extreme firepower pulverizes everything in its path. Neutralizing an enemy engulfs you in flames except when your Health is low, granting a Movement Speed boost and increased Mitigation Chance .",None,Fires explosive rounds.,2.0,718.0,0.8,12.0,2.8,2,85,75
+Shotgun,Guts,Power,"Let the lead fly! Shoot faster, deal more damage... accuracy be damned. Just don't shoot your eye out.",None,Heavy weapon. Slightly reduces movement speed and jump height.,0.8,417.0,0.8,12.0,2.5,6,85,75
+Shotgun,L-69 Zhuo,Smart,None,None,Heavy weapon. Slightly reduces movement speed and jump height.,2.5,345.0,2.0,24.0,4.9,4,35,25
+Shotgun,Crusher,Power,None,None,None,2.5,229.0,1.7,12.0,4.5,12,135,0
+Shotgun,Mox,Power,"Judy 's mods give this weapon extra lightness and precision. When enemies get close, your Shock and Knockdown chance is increased.",None,"Improves accuracy by changing irregular pellet spread into a more uniform, predictable pattern.",0.9,404.0,0.6,12.0,5.5,8,85,25
+Shotgun,Order,Tech,"Charging this weapon above 66% vaporizes any enemies in your path, leaving an EMP trail behind it. Only for the brave of heart and steel of nerves.",None,Can be charged from hip fire.,2.0,507.0,1.2,18.0,3.1,2,50,100
+Shotgun,Pozhar x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,"Improves accuracy by changing irregular pellet spread into a more uniform, predictable pattern.",3.6,186.0,1.5,14.0,5.9,10,85,25
+Shotgun,DB-2 Satara,Tech,None,None,Can be charged from hip-fire.,3.3,458.0,0.9,18.0,3.2,2,85,50
+Shotgun,DB-2 Testera,Power,None,None,None,2.0,621.0,0.7,18.0,3.7,2,85,50
+Shotgun,DB-4 Igla,Power,None,None,None,5.0,438.0,0.9,18.0,3.9,2,85,25
+Shotgun,DB-4 Palica,Smart,None,None,"Rounds deal increased damage, but have a chance to lose target-lock and miss.",5.0,619.0,0.6,12.0,4.7,2,35,0
+Shotgun,Sovereign,Power,Guaranteed Crit Hits with point-blank shots. Increases reload speed and movement speed after shooting an enemy in the torso.,None,None,5.0,263.0,1.0,8.0,2.7,2,85,75
+Shotgun,VST-37 Pozhar,Power,None,None,None,3.6,173.0,1.7,14.0,4.7,12,85,25
+Shotgun,The Headsman,Power,"Fires a single round instead of pellets. Coupled with a unique scope, this shotgun gains ridiculous accuracy for its range. Headshots momentarily increase reload speed and accuracy and a subsequent headshot deals Crit Damage .",None,None,1.2,245.0,0.4,26.0,5.6,6,200,25
+Assault rifle,HJSH-18 Masamune,Power,None,None,None,5.9,47.0,2.4,48.0,8.3,24,125,25
+Assault rifle,Nowaki,Power,None,None,None,4.0,52.0,2.4,42.0,7.7,21,150,50
+Assault rifle,Carmen,Power,"Arms and legs... who needs 'em? Shots to limbs have an increased Crit Chance . Weapon handling is improved while running, jumping or sliding and simultaneously increases damage and Bleeding.",None,None,13.0,34.0,1.6,30.0,7.2,40,100,50
+Assault rifle,Chinook,Power,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,None,5.9,74.0,1.8,49.0,7.6,20,100,50
+Assault rifle,DA8 Umbra,Power,None,None,None,13.0,34.0,1.6,30.0,7.2,40,100,25
+Assault rifle,Divided We Stand,Smart,"You can smart-target up to five enemies simultaneously, though at the cost of accuracy. Bullets may cause Chemical explosions that can apply heavy Poison effects.",None,"Rounds deal increased damage, but have a chance to lose target-lock and miss. +20% Poison Chance",10.0,37.0,1.5,36.0,4.0,30,50,0
+Assault rifle,Hawk,Power,"Headshots temporarily weaken and mark enemies . In this weakened state, enemies move slower, cannot use abilities, deal less damage and are more prone to losing their balance.",None,None,5.0,70.0,1.8,56.0,7.0,16,175,25
+Assault rifle,Kyubi x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,5.0,79.0,1.9,63.0,7.8,16,150,25
+Assault rifle,Hercules 3AX,Smart,Has a chance to severely Poison enemies. Poisoned enemies are more susceptible to Crit Damage . Neutralizing an enemy causes them to explode and leave a pool of acid.,None,"A prototype hybrid of Power and Smart weaponry. From hipfire, projectiles have a curved trajectory. While aiming, projectiles track enemies. This weapon does not require Smart Link cyberware to use.",10.0,36.0,3.2,42.0,8.8,90,50,25
+Assault rifle,M251s Ajax,Power,None,None,None,7.5,51.0,1.8,42.0,7.8,30,100,25
+Assault rifle,Moron Labe,Power,"Annoyed by the gangly, protruding limbs of your opponents waving and flailing about? Dismembering increases Crit Chance against an enemy. Your fire rate is uneven, hindering your aim.",None,None,7.5,51.0,1.8,42.0,7.3,30,85,25
+Assault rifle,D5 Copperhead,Power,None,None,None,11.0,38.0,1.6,42.0,7.3,30,100,25
+Assault rifle,D5 Sidewinder,Smart,None,None,"Rounds deal increased damage, but have a chance to lose target-lock and miss.",10.0,37.0,1.5,36.0,4.0,30,50,0
+Assault rifle,Pit Bull,Power,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,None,7.5,66.0,1.8,30.0,5.5,20,100,50
+Assault rifle,Prejudice,Power,Biased against your enemies. Neutralizing enemies with the Pride temporarily stops ammo use while shooting from the Prejudice. The first shot is always a Crit and fire rate is greatly increased when your Health is low. Increases damage against Elite enemies.,None,+100% Crit Damage,4.0,74.0,2.4,48.0,8.6,18,100,25
+Assault rifle,Psalm 11:6,Power,Fiery coals and sulfur will rain down upon all sinners. Turns your enemies into a smoldering heap of... something.,None,+30% Burn Chance,11.0,38.0,1.6,30.0,6.7,50,100,25
+Assault rifle,Kyubi,Power,None,None,None,5.0,73.0,1.8,56.0,7.0,20,125,25
+Assault rifle,Umbra x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,11.0,41.0,1.6,36.0,8.0,30,100,25
+Light machine gun,M2067 Defender,Power,None,None,Heavy weapon. Slightly reduces movement speed and jump height.,11.0,34.0,2.1,30.0,5.6,80,85,25
+Light machine gun,MA70 HB x-MOD2,Power,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,Heavy weapon. Slightly reduces movement speed and jump height. Fires explosive rounds.,5.6,56.0,3.0,42.0,5.7,50,100,25
+Light machine gun,MA70 HB,Power,None,None,Heavy weapon. Slightly reduces movement speed and jump height. Fires explosive rounds.,7.5,51.0,3.0,30.0,5.2,60,85,25
+Light machine gun,Wild Dog,Power,Repeated hits increase fire rate and Crit Chance . Quick Melee Attacks deal massive damage when ammo is empty.,None,Heavy weapon. Slightly reduces movement speed and jump height.,13.0,34.0,2.7,30.0,5.4,150,85,25
+Heavy machine gun,Mk. 31 HMG,Power,None,None,None,6.7,95.0,3.3,60.0,5.3,300,0,25
+Precision rafle,Achilles x-MOD2,Tech,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,5.6,84.0,2.2,85.0,7.1,12,175,50
+Precision rafle,Hypercritical,Power,Sturdy design and Tiny Mike's mods – an explosive combination. Bullets detonate knocking down enemies while the final one always deals critical damage.,None,+100% Crit Damage,2.0,250.0,4.1,60.0,5.2,6,200,50
+Precision rafle,SOR-22,Power,None,None,None,2.0,151.0,2.1,60.0,5.7,10,150,25
+Precision rafle,M-179e Achilles,Tech,None,None,None,5.0,104.0,2.2,73.0,5.7,9,150,50
+Precision rafle,Kolac,Power,None,None,None,2.0,250.0,4.1,60.0,5.2,6,220,50
+Precision rafle,Widow Maker,Tech,Nash 's rifle - looks like he won't be needing it anymore. Fires two projectiles per shot and deals Chemical damage with an increased chance to apply Poison . Charged shots deal more damage.,None,+20% Poison Chance,5.0,113.0,2.2,51.0,5.4,10,150,50
+Sniper rafle,Borzaya,Power,"Part of a special Techtronika weapon series that was banned due to humanitarian concerns. Grants a chance to inflict a unique burn on the enemy . Hitting an enemy affected by this burn always deals Crit Damage . The more enemies simultaneously affected by this burn, the more Crit Damage you deal but at the cost of accuracy.",None,Fires explosive rounds. +40% Burn Chance,0.4,296.0,3.0,60.0,3.4,5,200,50
+Sniper rafle,Breakthrough,Tech,"This rifle's unique mods allow rounds to penetrate through walls without being charged, after which they can ricochet multiple times.",None,Can be charged from hip-fire.,1.7,191.0,2.0,90.0,5.7,4,300,100
+Sniper rafle,Foxhound,Tech,"Unleash the power of the pack! Gain increased movement speed on kills and dismemberments. The faster you move, the more damage you deal. BARGHEST weapons also gain increased Armor Penetration .",None,Can be charged from hip-fire.,1.8,193.0,2.0,90.0,6.1,3,300,75
+Sniper rafle,Osprey,Power,Fires a powerful series of explosive rounds. Headshots increase damage from hip firing. Neutralizing multiple enemies increases reload speed and chance to apply Burning .,None,Heavy weapon. Slightly reduces movement speed and jump height. Holding the trigger while shooting from the hip allows it to fire in full auto.,2.9,136.0,4.0,60.0,7.2,12,200,50
+Sniper rafle,O'Five,Power,"Discover your inner pyromaniac and set your enemies alight thanks to explosive-packed bullets. The more enemies burning at once, the faster you reload and the higher your Crit Chance . Go on, Samurai - we got a city to burn.",None,"Very heavy weapon. When equipped, it significantly reduces movement speed and jump height, and prevents you from sprinting, dodging and dashing. +50% Crit Damage +30% Burn Chance",0.4,774.0,3.0,40.0,3.4,3,0,50
+Sniper rafle,Overwatch,Power,Increases reload speed. Comes with a custom silencer.,None,None,0.4,215.0,2.6,90.0,4.5,5,300,50
+Sniper rafle,Sparky,Power,Modded by Scavs. Rounds fired from this weapon emit electric bolts on each headshot.,None,None,0.4,307.0,2.7,83.0,3.8,4,250,50
+Sniper rafle,SPT32 Grad,Power,None,None,Heavy weapon. Slightly reduces movement speed and jump height.,0.4,307.0,3.0,90.0,3.8,4,300,50
+Sniper rafle,Ashura,Smart,None,None,Locks onto only one enemy at a time.,1.7,469.0,1.7,59.0,3.7,1,150,25
+Sniper rafle,Nekomata,Tech,None,None,Can be charged from hip-fire.,1.7,191.0,2.0,90.0,5.5,4,300,50
+Sniper rafle,Rasetsu,Tech,Tsunami is once again a leader in arms tech innovation. Why? Charged rounds now penetrate through enemies and will bend their trajectory to hit multiple enemies simultaneously.,None,None,0.8,246.0,3.6,90.0,4.5,3,300,50
+Sniper rafle,Yasha,Smart,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,Locks onto only one enemy at a time.,1.7,422.0,1.6,48.0,4.3,1,150,25
+Blade,Black Unicorn,None,Crafted for perfect balance. Attack speed is not affected by Stamina.,None,None,2.1,148.0,6.4,25,0,0,0,0
+Blade,Cut-o-Matic,None,None,None,The unsettling noise this weapon produces will alert enemies and cause civilians to panic.,1.4,191.0,9.6,50,0,0,0,0
+Blade,Butcher's Cleaver,None,"Definition of ""bloodthirsty."" When your enemy is bleeding, the cleaver attacks faster and uses less stamina.",None,None,1.8,201.0,8.0,25,0,0,0,0
+Blade,Byakko,None,Byakko's perfect balancing allows you to leap towards an enemy with full force. Killing them allows you to temporarily perform a rapid combo of attacks.,None,None,2.1,148.0,6.4,25,0,0,0,0
+Blade,Cocktail Stick,None,"Looks like a toy, but its lethality is no joke. When Optical Camo is active, hitting an enemy causes Bleeding . Bleeding caused in this way lasts longer than usual.",None,None,2.1,133.0,6.4,25,0,0,0,0
+Blade,Cut-o-Matic x-MOD2,None,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,The unsettling noise this weapon produces will alert enemies and cause civilians to panic.,1.4,191.0,9.6,50,0,0,0,0
+Blade,Errata,None,Allows you to leap toward enemies . Attacking Burning enemies guarantees Crit Damage .,None,None,2.1,133.0,6.4,25,0,0,0,0
+Blade,Gwynbleidd,None,"Deals extra damage against bosses. After killing enemies in rapid succession, all attacks are temporarily guaranteed Crit Hits. The effect refreshes after quickly killing another enemy. If your Health is critically low, all attacks are guaranteed Crit Hits regardless of kills.",None,None,1.9,148.0,6.4,0,0,0,0,0
+Blade,Jinchu-maru,None,"The last hit in a combo guarantees Crit damage . While Optical Camo is active, all hits are critical and allow you to leap toward your target. Increases damage against Elite enemies.",None,None,2.1,148.0,6.4,25,0,0,0,0
+Blade,Katana,None,None,None,None,2.1,148.0,6.4,25,0,0,0,0
+Blade,Kukri,None,None,None,None,1.7,181.0,9.6,25,0,0,0,0
+Blade,Machete,None,None,None,None,1.7,181.0,9.6,25,0,0,0,0
+Blade,Satori,None,"Allows you to leap towards distant enemies . When Satori is sheathed, hold primary attack to perform a Quickdraw Attack that is guaranteed to inflict Bleeding . If the enemy is already affected by Bleeding from Nehan , Satori will cause hemorrhaging instead. Hemorrhaging drains enemy Health and regenerates yours.",None,None,2.1,133.0,6.4,25,0,0,0,0
+Blade,Scalpel,None,"While Sandevistan is active, increases Crit Chance by 50% and hits apply Bleeding .",None,None,2.1,148.0,6.4,25,0,0,0,0
+Blade,Sihil,None,"Deals extra damage against drones, mechs and robots. All attacks deal increased damage if the enemy is affected by a quickhack. Dashing allows you to temporarily perform a rapid combo of attacks.",None,None,1.9,148.0,6.4,25,0,0,0,0
+Blade,Razor,None,None,None,None,1.5,217.0,9.6,25,0,0,0,0
+Blade,Tsumetogi,None,Slightly increases Electrical damage and grants a small chance to apply Shock to the enemy. Non-standard attacks deal more damage.,None,+10 Electrical Resistance,2.1,163.0,6.4,25,0,0,0,0
+Blade,Volkodav,None,"Part of a special Techtronika weapon series that was banned due to humanitarian concerns. Grants a chance to inflict a unique burn on the enemy . Hitting an enemy affected by this burn always deals Crit Damage . The more enemies simultaneously affected by this burn, the more Crit Damage you deal but at the cost of accuracy.",None,None,1.5,195.0,9.6,25,0,0,0,0
+Blunt,Baby Boomer,None,Has zero tolerance for losers. Every consecutive attack in a combo increases Crit chance.,None,None,1.5,216.0,12.0,25,0,0,0,0
+Blunt,Baseball Bat,None,None,None,None,1.2,240.0,12.0,25,0,0,0,0
+Blunt,Baseball Bat x-MOD2,None,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,1.2,240.0,12.0,25,0,0,0,0
+Blunt,BFC 9000,None,"No amount of pornos and skin BDs can prepare you for an encounter with the BFC 9000. Attacks at high Stamina have a greatly increased Crit Chance . Packs a few extra inches for improved range. Strong Attacks deal more damage, both physical and psychological.",None,None,2.2,138.0,9.6,25,0,0,0,0
+Blunt,Caretaker's Spade,None,Resembles an ordinary shovel from a different dimension.,None,Heavy weapon. Slightly reduces movement speed and jump height.,1.2,240.0,16.0,25,0,0,0,0
+Blunt,Cottonmouth,None,"Electrically charged and tipped with venom, it deals Electrical and Chemical damage. Small chance to apply Poison and/or Shock .",None,None,1.3,179.0,9.6,25,0,0,0,0
+Blunt,Crowbar,None,None,None,None,1.3,223.0,9.6,25,0,0,0,0
+Blunt,Crowbar,None,Trusty as always.,None,None,2.6,134.0,9.6,25,0,0,0,0
+Blunt,Electric Baton Alpha,None,None,None,Attacks can hit multiple enemies at once.,1.7,156.0,8.0,25,0,0,0,0
+Blunt,Electric Baton Beta,None,None,None,Attacks can hit multiple enemies at once.,1.7,156.0,8.0,50,0,0,0,0
+Blunt,Electric Baton Gamma,None,None,None,Attacks can hit multiple enemies at once.,1.7,156.0,8.0,50,0,0,0,0
+Blunt,Gold-plated baseball bat,None,Infused with Denny 's rage. High chance to apply Bleeding . Low chance to apply Stun .,None,None,1.2,240.0,12.0,25,0,0,0,0
+Blunt,Hammer,None,None,None,Heavy weapon. Slightly reduces movement speed and jump height.,1.2,240.0,16.0,25,0,0,0,0
+Blunt,Kanabo,None,None,None,None,1.2,240.0,12.0,25,0,0,0,0
+Blunt,Murphy's Law,None,"For when things go very, very wrong. Hits against a knocked-down enemy increases attack speed. Strong attacks deal more damage.",None,Attacks can hit multiple enemies at once.,1.7,156.0,8.0,50,0,0,0,0
+Blunt,Sasquatch's Hammer,None,"If you're considering using Sasquatch's Hammer, be ready for blood, sweat and tears. You provide the sweat, your enemies - the blood and tears. This monster drains a lot of stamina, but inflicts massive damage.",None,"Very heavy weapon. When equipped, it significantly reduces movement speed and jump height, and prevents you from sprinting, dodging and dashing.",0.8,527.0,16.0,75,0,0,0,0
+Blunt,Sir John Phallustiff,None,"Strike your enemy in the face and watch their pride crumble as your Crit Chance rises! And if you really want to add insult to emotional injury, put some extra strength into your dildoslap – Sir John could even stun 'em.",None,None,2.2,138.0,9.6,25,0,0,0,0
+Blunt,Steel Pipe,None,None,None,None,1.3,223.0,9.6,25,0,0,0,0
+Blunt,Tinker Bell,None,"Deals less damage, but with a chance to knock out a target using a Strong Attack.",None,None,1.3,165.0,9.6,50,0,0,0,0
+Blunt,Tire Iron,None,None,None,None,1.3,223.0,9.6,25,0,0,0,0
+Thrown,Agaou,None,This one will have 'em shakin' in their boots. Crit Hits with throws emit a shockwave that can damage multiple enemies.,None,None,2.2,147.0,20.0,8.00,9.1,125,25,0
+Thrown,Blue Fang,None,Stuns the enemy on hit. Headshots stuns after 1 sec while other hits stun after 3 sec. Enemies outside combat state get stunned immediately.,None,None,3.1,106.0,26.0,4.8,7.0,150,0,0
+Thrown,Boar Carver,None,None,None,None,0,0,0,0,0,200,0,0
+Thrown,Chef's Knife,None,None,None,None,3.1,106.0,21.0,4.8,3.9,150,0,0
+Thrown,Claw,None,None,None,None,1.9,173.0,20.0,9.6,5.6,125,25,0
+Thrown,Claw x-MOD2,None,A special version of the weapon capable of additional modification. Optimized design also allows for improved handling.,None,None,2.0,165.0,26.0,8.0,4.9,125,25,0
+Thrown,Fang,None,"Thrown hits cripples the target, enemy when thrown, preventing their escape. Continuing attacks in close combat increases damage.",None,None,3.1,138.0,26.0,4.8,4.9,50,0,0
+Thrown,Headhunter,None,"Marks enemy on hit. Attacking the enemy's head with any weapon deals 200% damage, returns the Headhunter and clears the mark.",None,None,3.1,106.0,26.0,4.8,3.5,150,0,0
+Thrown,Kaiken,None,None,None,Deals bonus melee damage.,3.1,106.0,26.0,4.8,4.9,150,0,0
+Thrown,Knife,None,None,None,None,3.1,106.0,26.0,4.8,2.8,200,0,0
+Thrown,Nehan,None,"Thrown hits apply Bleeding . If the enemy is already affected by Bleeding from Satori , Nehan will cause hemorrhaging instead. Hemorrhaging drains enemy Health and regenerates yours.",None,Deals bonus melee damage.,3.1,96.0,26.0,4.8,2.8,150,0,0
+Thrown,Neurotoxin Knife,None,None,None,None,3.1,106.0,26.0,4.8,2.8,150,0,0
+Thrown,Punknife,None,None,None,None,3.1,106.0,26.0,4.8,1.4,150,0,0
+Thrown,Stinger,None,Attacks against poisoned enemies have a 100% chance to cause bleeding . Attacks against bleeding enemies have a 100% chance to cause poisoning.,None,None,3.1,106.0,26.0,4.8,2.8,150,0,0
+Thrown,Tomahawk,None,None,None,None,2.2,147.0,20.0,8.0,4.9,125,25,0
+Grenade,CHAR Incendiary Grenade,None,None,Applies Burn for 5 sec.,None,0,0,0,0,0,0,0,0
+Grenade,EMP Grenade,None,None,"Applies an EMP effect for 5 sec. Deals bonus damage against enemy netrunners, drones, mechs, robots and turrets. Disables turrets for the duration of the EMP grenade effect. Tier 2 : Deactivates enemy cyberware for 10 - 20 sec.",None,0,0,0,0,0,0,0,0
+Grenade,F-GX Frag Grenade,None,None,Hits enemies with an explosive blast and shrapnel.,None,0,0,0,0,0,0,0,0
+Grenade,GASH Antipersonnel Grenade,None,None,Activates 32 lasers that deal damage for 5 - 8 sec. Decapitates non-Boss enemies who have less than 20 - 30 % Health .,None,0,0,0,0,0,0,0,0
+Grenade,MOLODETS BioHaz Grenade,None,None,Creates a toxic cloud with a 6-second duration that applies Poison . − 50 - 95 % enemy melee damage for 10 - 25 sec. Decreased movement speed for 8 sec. and −10% Stamina .,None,0,0,0,0,0,0,0,0
+Grenade,Ozob's Nose,None,None,Hits enemies with an explosive blast and shrapnel.,None,0,0,0,0,0,0,0,0
+Grenade,Recon Grenade,None,None,Emits a sound that lures enemies. + 20 - 80 % lock-on speed with Smart weapons against affected enemies .,None,0,0,0,0,0,0,0,0
+Grenade,Smoke Grenade,None,None,Creates a smoke screen for 5 - 15 sec.,None,0,0,0,0,0,0,0,0
+Grenade,X-22 Flashbang Grenade,None,None,Applies Blinding for 3 - 12 sec. − 20 - 90 % accuracy for affected human enemies for 5 - 15 sec.,None,0,0,0,0,0,0,0,0

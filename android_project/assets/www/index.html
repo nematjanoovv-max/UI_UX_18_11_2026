@@ -69,5 +69,23 @@
   <script src="libs/three.min.js"></script>
   <script src="apex_mech.js"></script>
   <script src="game.js"></script>
+
+  <!-- Portrait Rotation Prompt Overlay -->
+  <div id="portrait-warning" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #070b14; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: #00e5ff; font-family: 'Segoe UI', monospace; text-align: center; padding: 20px;">
+    <div style="font-size: 64px; margin-bottom: 20px; animation: rotatePhone 2s infinite ease-in-out;">📱 ↷ 🖥️</div>
+    <div style="font-size: 20px; font-weight: 900; margin-bottom: 10px; color: #ffd600;">ILTIMOS, EKRANNI LANDSCAPE HOLATIGA BURING!</div>
+    <div style="font-size: 14px; color: #94a3b8; max-width: 320px;">"Tower Defense: Last Grid" to'liq taktik qo'mondonlik uchun gorizontal rejimga moslashtirilgan.</div>
+  </div>
+  <style>
+    @media (orientation: portrait) {
+      #portrait-warning { display: flex !important; }
+    }
+    @keyframes rotatePhone {
+      0%, 10% { transform: rotate(0deg); }
+      50%, 60% { transform: rotate(-90deg); }
+      90%, 100% { transform: rotate(0deg); }
+    }
+  </style>
+
 </body>
 </html>

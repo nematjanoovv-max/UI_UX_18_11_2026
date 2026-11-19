@@ -12,6 +12,7 @@ cp "$ROOT_DIR/index.html" "$DIR/assets/www/"
 cp "$ROOT_DIR/game.js" "$DIR/assets/www/"
 cp "$ROOT_DIR/apex_mech.js" "$DIR/assets/www/" 2>/dev/null || true
 cp -r "$ROOT_DIR/libs" "$DIR/assets/www/" 2>/dev/null || true
+cp -r "$ROOT_DIR/data" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/manifest.json" "$DIR/assets/www/"
 cp "$ROOT_DIR/sw.js" "$DIR/assets/www/"
 cp "$ROOT_DIR/icon.svg" "$DIR/assets/www/" 2>/dev/null || true
@@ -60,7 +61,7 @@ if [ ! -f "$KEYSTORE" ]; then
 fi
 
 echo "=== 10. Signing APK with Official Google apksigner (v1 + v2 + v3) ==="
-FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v4.0.0.apk"
+FINAL_APK="$ROOT_DIR/TowerDefense_LastGrid_v4.1.0.apk"
 apksigner sign \
     --ks "$KEYSTORE" \
     --ks-key-alias lastgrid \
@@ -76,9 +77,11 @@ echo "=== 11. Verifying Signature Schemes ==="
 apksigner verify --verbose "$FINAL_APK"
 
 echo "=== 12. Copying to aliases and web distributions ==="
+cp "$FINAL_APK" "$ROOT_DIR/TowerDefense_LastGrid_v4.0.0.apk"
 cp "$FINAL_APK" "$ROOT_DIR/last-grid.apk"
 mkdir -p "$ROOT_DIR/web" "$ROOT_DIR/export/web"
 cp "$FINAL_APK" "$ROOT_DIR/web/"
+cp "$FINAL_APK" "$ROOT_DIR/web/TowerDefense_LastGrid_v4.0.0.apk"
 cp "$FINAL_APK" "$ROOT_DIR/web/last-grid.apk"
 cp "$FINAL_APK" "$ROOT_DIR/export/web/"
 cp "$FINAL_APK" "$ROOT_DIR/export/web/last-grid.apk"

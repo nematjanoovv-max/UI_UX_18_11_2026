@@ -4,6 +4,28 @@ All notable changes to **Tower Defense: Last Grid** will be documented in this f
 
 The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
 
+## [4.1.0] - 2026-11-19
+### Added & Enhanced (PART B — DATA-DRIVEN GAMEPLAY, BALANCE, AUDIO & QA)
+- **Data-Driven JSON Architecture**: Extracted all gameplay mechanics and balance parameters into structured JSON files: `data/towers.json`, `data/enemies.json`, `data/waves.json` (all 10 campaign maps), and `data/endless.json`.
+- **Flyer Aerial Enemies & Targeting**: Introduced `flyer` aerodynamic drones that bypass surface maze lanes and obstacles to fly straight to the core. Restricted Mortar targeting to ground hostiles while Pulse, Railgun, and Cryo engage air.
+- **Wall Defense Tower**: Added Wall barricade to the hotbar (cost 40g, 400..900 HP) with Spike Barrier (thorns reflection) and Electrified Gate upgrades.
+- **Difficulty Multipliers**: Integrated live 3-tier difficulty system (`CASUAL`: 0.8x enemy HP, 1.25x gold; `NORMAL`: 1.0x; `HEROIC`: 1.3x enemy HP, 0.85x gold) selectable from Map Select screen.
+- **Step-by-Step Map 1 Interactive Tutorial**: Added highlight overlay on Map 1 guiding new players through tower placement, wave engagement, upgrading, and commander abilities with one-tap skip.
+- **Tactical Next-Wave Preview**: Added top HUD preview badge showing upcoming enemy wave compositions before triggering engagement.
+- **Star Scoring Persistence**: Integrated 3-star ranking across all 10 maps with total campaign stars tally (`X / 30 ★`) saved to localStorage.
+- **Automated Headless Balance Simulator (`tools/simulate.js`)**: Evaluated 200 bot runs per map across 10 maps (2,000 total runs). Verified 55%–85% target win rate on Normal, verified that no-tower and single-tower builds lose, and confirmed all 6 tower archetypes appear in winning builds. Output stored in `BALANCE.md`.
+- **Automated Smoke Test (`tools/smoke_test.js`)**: Validated all UI screens, 1-wave runs on all 10 maps, abilities, aspect ratios (16:9, 20:9, portrait), and verified zero memory leaks after 10 consecutive map restarts (-2.36 MB heap delta).
+- **Portrait Fallback Orientation Overlay**: Added centered warning and phone rotation guidance screen for portrait orientation.
+
+## [4.0.0] - 2026-11-19
+### Added & Enhanced (PART A — AUDIT, UI OVERHAUL, APEX-01 3D MECH)
+- **Comprehensive Interactive Audit (`AUDIT.md`)**: Full matrix of every button, touch target (>= 48px), and pointer event handling across all screens.
+- **Procedural 3D APEX-01 Mech Integration (`apex_mech.js`)**: Ported full Three.js procedural mech with digitigrade hydraulic legs, rotating radar, shoulder missile pods, dual plasma cannons, pulsating reactor core, drag-to-rotate 360° inspection, and touch hit reactions.
+- **100% Offline Standalone Three.js**: Vendored `libs/three.min.js` and `libs/three.module.js` locally for total offline Android APK and web bundle reliability.
+- **UI Bug Fixes**: Repaired title/version overlap, removed duplicate icons, fixed text clipping in 3 languages, added typewriter wrap to radio comms, and shifted Map 2 & 10 WARP spawns from under HUD.
+- **Live Sound Updates**: Added `setBGMVolume()` for instantaneous volume adjustments in settings dialog.
+- **Credits & Open Assets (`CREDITS.md`)**: Documented CC0 open licenses for Kenney, Quaternius, and Freesound assets.
+
 ## [3.7.0] - 2026-11-18
 ### Added & Enhanced (Ultimate Mobile Ergonomics & Adaptive Viewport)
 - **Universal Adaptive Viewport (All Android Phones)**: Added automatic aspect ratio support for 16:9, 18:9, 19.5:9, 20:9, and 21:9 screens. Added `FIT` (proportional centered) and `FILL` (edge-to-edge full stretch) display modes.

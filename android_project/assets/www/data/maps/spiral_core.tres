@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MapData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/lane_data.gd" id="1_lane"]
+[ext_resource type="Script" path="res://scripts/data_defs/map_data.gd" id="2_data"]
+
+[sub_resource type="Resource" id="Resource_lane1"]
+script = ExtResource("1_lane")
+lane_id = 0
+waypoints = PackedVector2Array(Vector2(64, 64), Vector2(1152, 64), Vector2(1152, 576), Vector2(192, 576), Vector2(192, 192), Vector2(960, 192), Vector2(960, 448), Vector2(384, 448), Vector2(384, 320), Vector2(640, 320))
+
+[resource]
+script = ExtResource("2_data")
+id = "spiral_core"
+name_key = "map_spiral_core_name"
+theme = "spiral"
+grid_width = 20
+grid_height = 11
+cell_size = 64
+lanes = Array[ExtResource("1_lane")]([SubResource("Resource_lane1")])
+wave_count = 15
+modifier_ids = Array[String](["none"])
+starting_gold = 250
+base_hp = 20
+unlock_requires_map_id = "crossroads"
+unlock_requires_stars = 1
+star_threshold_3 = 0.90
+star_threshold_2 = 0.50

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data_defs/spawn_group.gd" id="1_group"]
+[ext_resource type="Script" path="res://scripts/data_defs/wave_data.gd" id="2_data"]
+
+[sub_resource type="Resource" id="Resource_g1"]
+script = ExtResource("1_group")
+enemy_id = "swarmling"
+count = 25
+interval_s = 0.2
+start_delay_s = 0.0
+lane_id = 0
+hp_mult_override = 1.0
+
+[sub_resource type="Resource" id="Resource_g2"]
+script = ExtResource("1_group")
+enemy_id = "sprinter"
+count = 8
+interval_s = 0.5
+start_delay_s = 2.0
+lane_id = 0
+hp_mult_override = 1.0
+
+[resource]
+script = ExtResource("2_data")
+index = 14
+is_boss = false
+bonus_gold = 53
+notes = "Wave 14 composition"
+groups = Array[ExtResource("1_group")]([SubResource("Resource_g1"), SubResource("Resource_g2")])

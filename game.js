@@ -591,6 +591,19 @@
   // --- TOWER BLUEPRINTS & BRANCHING SPECIALIZATIONS (TIER 3) ---
   // Calibrated with Cyberpunk 2077 & Valorant Weapon Statistics
   const TOWER_DEFS = {
+    wall: {
+      id: "wall", name: "Barricade Wall", type: "DEFENSE", color: "#78909c", cost: 40, desc: "Armored barricade wall that obstructs ground hostiles.",
+      targetsAir: false, projSpeed: 0,
+      tiers: [
+        { hp: 400, range: 40, upCost: 28 },
+        { hp: 600, range: 40, upCost: 40 },
+        { hp: 900, range: 40, upCost: 56 }
+      ],
+      branches: {
+        A: { name: "Spike Barrier", hp: 1200, reflect: 0.30, color: "#ff7043", perk: "thorns", cost: 80, desc: "Reflects 30% melee damage back to attackers." },
+        B: { name: "Electrified Gate", hp: 1000, zapDmg: 40, color: "#ffd600", perk: "electrified", cost: 85, desc: "Zaps adjacent attackers every second." }
+      }
+    },
     pulse: {
       id: "pulse", name: "Pulse Tower", type: "KINETIC", color: "#00e5ff", cost: 100, desc: "Rapid-fire kinetic tracer gun.",
       tiers: [
@@ -667,18 +680,26 @@
   ];
 
   // --- ENEMY BLUEPRINTS ---
-  const ENEMY_DEFS = {
-    grunt:        { name: "Grunt",        hp: 100, shield: 0,   armor: 0,  spd: 60,  bounty: 5,  color: "#ff5252", size: 12, marker: "●" },
-    sprinter:     { name: "Sprinter",     hp: 60,  shield: 0,   armor: 0,  spd: 110, bounty: 6,  color: "#ffd600", size: 10, marker: "▲" },
-    brute:        { name: "Brute",        hp: 400, shield: 0,   armor: 8,  spd: 40,  bounty: 15, color: "#d50000", size: 17, marker: "■" },
-    swarmling:    { name: "Swarmling",    hp: 25,  shield: 0,   armor: 0,  spd: 85,  bounty: 2,  color: "#ffab00", size: 7,  marker: "◆" },
-    shieldbearer: { name: "Shieldbearer", hp: 200, shield: 150, armor: 2,  spd: 55,  bounty: 12, color: "#00b0ff", size: 15, marker: "🛡" },
-    medic:        { name: "Medic",        hp: 150, shield: 0,   armor: 0,  spd: 50,  bounty: 14, color: "#00e676", size: 13, marker: "✚" },
-    splitter:     { name: "Splitter",     hp: 250, shield: 0,   armor: 3,  spd: 55,  bounty: 10, color: "#e040fb", size: 15, marker: "✦" },
-    phantom:      { name: "Phantom",      hp: 180, shield: 0,   armor: 0,  spd: 75,  bounty: 12, color: "#7c4dff", size: 14, marker: "★" },
-    juggernaut:   { name: "BOSS: Juggernaut", hp: 6000,  shield: 0, armor: 20, spd: 32, bounty: 100, color: "#ff1744", size: 28, isBoss: true, marker: "☠" },
-    overseer:     { name: "BOSS: Overseer",   hp: 9000,  shield: 0, armor: 10, spd: 35, bounty: 150, color: "#651fff", size: 30, isBoss: true, marker: "👁" },
-    hive_titan:   { name: "BOSS: Hive Titan", hp: 20000, shield: 0, armor: 15, spd: 30, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣" }
+    const ENEMY_DEFS = {
+    scout:        { name: "Scout",        hp: 40,  shield: 0,   armor: 0,  spd: 96, bounty: 3,  color: "#ffd600", size: 10, marker: "▲", isFlyer: false },
+    grunt:        { name: "Grunt",        hp: 100, shield: 0,   armor: 0,  spd: 60, bounty: 5,  color: "#ff5252", size: 12, marker: "●", isFlyer: false },
+    tank:         { name: "Tank",         hp: 400, shield: 0,   armor: 12, armorReduction: 0.30, spd: 36, bounty: 16, color: "#d50000", size: 18, marker: "■", isFlyer: false },
+    flyer:        { name: "Flyer",        hp: 70,  shield: 0,   armor: 0,  spd: 84, bounty: 6,  color: "#00e5ff", size: 11, marker: "✈", isFlyer: true },
+    swarm:        { name: "Swarm",        hp: 25,  shield: 0,   armor: 0,  spd: 78, bounty: 2,  color: "#ffab00", size: 7,  marker: "◆", isFlyer: false },
+    shielded:     { name: "Shielded",     hp: 120, shield: 150, armor: 4,  spd: 54, bounty: 12, color: "#00b0ff", size: 14, marker: "🛡", isFlyer: false },
+    boss:         { name: "Titan Boss",   hp: 3000, shield: 0,  armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
+
+    // Backwards-compatible aliases
+    sprinter:     { name: "Sprinter",     hp: 40,  shield: 0,   armor: 0,  spd: 96, bounty: 3,  color: "#ffd600", size: 10, marker: "▲", isFlyer: false },
+    brute:        { name: "Brute",        hp: 400, shield: 0,   armor: 12, armorReduction: 0.30, spd: 36, bounty: 16, color: "#d50000", size: 18, marker: "■", isFlyer: false },
+    swarmling:    { name: "Swarmling",    hp: 25,  shield: 0,   armor: 0,  spd: 78, bounty: 2,  color: "#ffab00", size: 7,  marker: "◆", isFlyer: false },
+    shieldbearer: { name: "Shieldbearer", hp: 120, shield: 150, armor: 4,  spd: 54, bounty: 12, color: "#00b0ff", size: 14, marker: "🛡", isFlyer: false },
+    medic:        { name: "Medic",        hp: 150, shield: 0,   armor: 0,  spd: 50, bounty: 14, color: "#00e676", size: 13, marker: "✚", isFlyer: false },
+    splitter:     { name: "Splitter",     hp: 250, shield: 0,   armor: 3,  spd: 55, bounty: 10, color: "#e040fb", size: 15, marker: "✦", isFlyer: false },
+    phantom:      { name: "Phantom",      hp: 180, shield: 0,   armor: 0,  spd: 75, bounty: 12, color: "#7c4dff", size: 14, marker: "★", isFlyer: false },
+    juggernaut:   { name: "BOSS: Juggernaut", hp: 3000,  shield: 0, armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
+    overseer:     { name: "BOSS: Overseer",   hp: 4500,  shield: 500, armor: 12, spd: 32, bounty: 200, color: "#651fff", size: 30, isBoss: true, marker: "👁", isFlyer: false },
+    hive_titan:   { name: "BOSS: Hive Titan", hp: 6500,  shield: 0, armor: 18, spd: 28, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣", isFlyer: false }
   };
 
   // --- BTD6-POWERED WAVE PROGRESSION & CHOREOGRAPHY ---
@@ -1697,10 +1718,13 @@
         lanes: [ this.editorWaypoints ]
       } : MAPS[mapIdx];
 
-      this.gold = mode === 'BOSS_RUSH' ? 1200 : map.gold;
+      this.difficulty = localStorage.getItem('lg_difficulty') || 'NORMAL';
+      const diffGoldMult = (this.difficulty === 'CASUAL') ? 1.25 : ((this.difficulty === 'HEROIC') ? 0.85 : 1.0);
+      const diffHpMult = (this.difficulty === 'CASUAL') ? 1.2 : ((this.difficulty === 'HEROIC') ? 0.8 : 1.0);
+      this.gold = Math.round((mode === 'BOSS_RUSH' ? 1200 : map.gold) * diffGoldMult);
       this.score = 0;
-      this.baseHp = map.hp;
-      this.maxBaseHp = map.hp;
+      this.baseHp = Math.round(map.hp * diffHpMult);
+      this.maxBaseHp = this.baseHp;
       this.wave = 1;
       this.maxWaves = (mode === 'ENDLESS') ? 999 : (mode === 'BOSS_RUSH' ? 3 : map.wave_count);
       this.waveActive = false;
@@ -1961,6 +1985,17 @@
 
       if (this.state === 'MAP_SELECT') {
         if (y >= 10 && y <= 65 && x >= 20 && x <= 180) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
+        if (x >= 580 && x <= 920 && y >= 18 && y <= 58) {
+          const idx = Math.floor((x - 580) / 110);
+          const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
+          if (diffs[idx]) {
+            this.difficulty = diffs[idx];
+            localStorage.setItem('lg_difficulty', this.difficulty);
+            audio.click();
+            this.vibrate(15);
+          }
+          return;
+        }
         for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
@@ -2008,6 +2043,13 @@
         if (x >= 330 && x <= 530 && y >= 405 && y <= 470) this.startMission(this.currentMapIndex, this.gameMode);
         else if (x >= 540 && x <= 740 && y >= 405 && y <= 470) this.state = 'ANALYTICS';
         else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) this.state = 'MENU'; audio.playBGMTrack('menu');
+        return;
+      }
+
+      // Tutorial Skip Click
+      if (this.currentMapIndex === 0 && !localStorage.getItem('lg_tutorial_done') && x >= 1090 && x <= 1240 && y >= 15 && y <= 50) {
+        localStorage.setItem('lg_tutorial_done', 'true');
+        this.addFloatingText("TUTORIAL O'TKAZILDI", 640, 100, "#ffd600");
         return;
       }
 
@@ -3188,18 +3230,28 @@
     }
 
     spawnEnemy(type, laneIdx) {
-      const def = ENEMY_DEFS[type];
+      const def = ENEMY_DEFS[type] || ENEMY_DEFS['grunt'];
       const map = (this.gameMode === 'CUSTOM') ? { modifier: "none" } : MAPS[this.currentMapIndex];
       let spdMult = 1.0;
       let armorMult = 1.0;
       let hpMult = 1.0;
 
+      // Difficulty scaling
+      if (this.difficulty === 'CASUAL') hpMult *= 0.80;
+      else if (this.difficulty === 'HEROIC') hpMult *= 1.30;
+
       if (this.hasAugment("bounty_hunter")) spdMult *= 1.10;
-      if (this.gameMode === 'ENDLESS' && this.wave > 30) hpMult = Math.pow(1.08, this.wave - 30);
+      if (this.gameMode === 'ENDLESS' && this.wave > 20) {
+        // Soft curve after wave 20
+        hpMult *= Math.pow(1.12, 19) * Math.pow(1.05, this.wave - 20);
+      } else if (this.gameMode === 'CAMPAIGN' && this.wave > 1) {
+        hpMult *= Math.pow(1.12, this.wave - 1);
+      }
+
       if (map.modifier === 'fast_lane') spdMult = 1.15;
       if (map.modifier === 'armored') armorMult = 1.20;
 
-      let bounty = def.bounty;
+      let bounty = Math.round((def.bounty || 4) + 0.6 * this.wave);
       if (map.modifier === 'scarce') bounty = Math.floor(bounty * 0.8);
       if (this.hasAugment("bounty_hunter")) bounty = Math.floor(bounty * 1.30);
 
@@ -3240,6 +3292,7 @@
         color: def.color,
         marker: def.marker,
         isBoss: !!def.isBoss,
+        isFlyer: !!def.isFlyer,
         slowRatio: 0,
         slowTimer: 0,
         phaseTimer: 0,
@@ -3493,15 +3546,38 @@
           }
         }
 
-        if (!isBlocked) {
-          e.progress += effSpeed * dt;
-        }
-        e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
-        const pt = this.getPointAlongLane(e.laneIdx, e.progress);
-        e.x = pt.x;
-        e.y = pt.y;
-        e.angle = pt.angle;
+        if (e.isFlyer) {
+          // Aerial drone bypasses barricades and flies straight to Core
+          const endPt = lane.points[lane.points.length - 1];
+          const fdx = endPt.x - e.x;
+          const fdy = endPt.y - e.y;
+          const fdist = Math.hypot(fdx, fdy);
+          e.angle = Math.atan2(fdy, fdx);
+          e.progress += effSpeed * dt;
+          if (fdist > 8) {
+            e.x += Math.cos(e.angle) * effSpeed * dt;
+            e.y += Math.sin(e.angle) * effSpeed * dt;
+          }
+          if (Math.random() < 0.25) {
+            this.particles.push({
+              x: e.x - Math.cos(e.angle) * 12,
+              y: e.y - Math.sin(e.angle) * 12,
+              vx: -Math.cos(e.angle) * 40 + (Math.random() * 20 - 10),
+              vy: -Math.sin(e.angle) * 40 + (Math.random() * 20 - 10),
+              color: "#00e5ff", size: 2.5, life: 0.25, maxLife: 0.25
+            });
+          }
+        } else {
+          if (!isBlocked) {
+            e.progress += effSpeed * dt;
+          }
+          e.walkAnim = (e.walkAnim || 0) + effSpeed * dt * 0.15;
+          const pt = this.getPointAlongLane(e.laneIdx, e.progress);
+          e.x = pt.x;
+          e.y = pt.y;
+          e.angle = pt.angle;
+        }
 
         if (e.progress >= lane.totalLength) {
           this.baseHp = Math.max(0, this.baseHp - (e.isBoss ? 10 : 1));
@@ -3771,8 +3847,11 @@
 
     findTargets(tower, range) {
       const candidates = [];
+      const tDef = TOWER_DEFS[tower.type];
+      const canHitAir = tDef ? (tDef.targetsAir !== false) : true;
       for (const e of this.enemies) {
         if (e.phased) continue;
+        if (e.isFlyer && !canHitAir) continue; // Mortars cannot target aerial flyers
         const dist = Math.hypot(e.x - tower.x, e.y - tower.y);
         if (dist <= range) candidates.push({ enemy: e, dist: dist });
       }
@@ -4102,6 +4181,68 @@
     }
 
     // --- RENDERING PIPELINE ---
+    
+    renderTutorialOverlay(ctx) {
+      ctx.save();
+      const time = Date.now() * 0.005;
+      const pulseRing = 10 + Math.sin(time) * 4;
+
+      if (this.towers.length === 0) {
+        // Step 1: Place Tower
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 2.5;
+        // Highlight Pulse slot in bottom bar (x: 170, y: 648)
+        ctx.strokeRect(130, 642, 65, 72);
+
+        // Highlight optimal grid slot (x: 320, y: 320)
+        ctx.beginPath();
+        ctx.arc(384, 320, 24 + pulseRing, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(10, 25, 47, 0.92)";
+        ctx.strokeStyle = "#ffd600";
+        ctx.beginPath();
+        ctx.roundRect(140, 560, 420, 50, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("1. PASTKI PANELDAN MINORA TANLAB XARITAGA QO'YING!", 350, 590);
+      } else if (!this.waveActive) {
+        // Step 2: Engage Wave
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(1210, 90, 42 + pulseRing, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(10, 25, 47, 0.92)";
+        ctx.strokeStyle = "#00e5ff";
+        ctx.beginPath();
+        ctx.roundRect(800, 145, 410, 50, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("2. TO'LQINNI BOSHLASH UCHUN 'JANGGA'NI BOSING!", 1005, 175);
+      }
+
+      // Skip Button
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.beginPath();
+      ctx.roundRect(1100, 18, 140, 30, 6);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TUTORIALNI O'TKAZISH", 1170, 37);
+      ctx.restore();
+    }
+
     render() {
       // Clear entire backing buffer at full physical resolution
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -5316,6 +5457,41 @@
       for (const e of this.enemies) {
         ctx.save();
         ctx.translate(e.x, e.y);
+
+        if (e.isFlyer) {
+          // Aerial Jet Shadow
+          ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+          ctx.beginPath();
+          ctx.ellipse(4, 18, 14, 7, e.angle, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Aerial Jet Silhouette
+          ctx.rotate(e.angle);
+          ctx.fillStyle = e.color || "#00e5ff";
+          ctx.beginPath();
+          ctx.moveTo(14, 0);
+          ctx.lineTo(-10, -11);
+          ctx.lineTo(-6, 0);
+          ctx.lineTo(-10, 11);
+          ctx.closePath();
+          ctx.fill();
+
+          // Cockpit glow
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(2, 0, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // HP Bar
+          ctx.rotate(-e.angle);
+          const fHpPct = Math.max(0, e.hp / e.maxHp);
+          ctx.fillStyle = "#263238";
+          ctx.fillRect(-14, -20, 28, 4);
+          ctx.fillStyle = fHpPct > 0.4 ? "#00e5ff" : "#ff1744";
+          ctx.fillRect(-14, -20, 28 * fHpPct, 4);
+          ctx.restore();
+          continue;
+        }
 
         if (e.phased) ctx.globalAlpha = 0.25;
 
@@ -6998,6 +7174,38 @@
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 26px 'Segoe UI', monospace";
       ctx.fillText(this.t("sectorSelect"), 170, 48);
+
+      // Total campaign stars display
+      let totalStars = 0;
+      for (const m of MAPS) totalStars += (this.saveData.stars[m.id] || 0);
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 15px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`KAMPANIYA: ${totalStars} / 30 ★`, 1240, 45);
+
+      // Difficulty Selector Pill (CASUAL / NORMAL / HEROIC)
+      const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
+      ctx.fillStyle = "rgba(10, 25, 47, 0.9)";
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(580, 20, 335, 34, 6);
+      ctx.fill();
+      ctx.stroke();
+      diffs.forEach((d, idx) => {
+        const dx = 584 + idx * 110;
+        const isCur = this.difficulty === d;
+        if (isCur) {
+          ctx.fillStyle = "#00e5ff";
+          ctx.beginPath();
+          ctx.roundRect(dx, 23, 105, 28, 4);
+          ctx.fill();
+        }
+        ctx.fillStyle = isCur ? "#030712" : "#94a3b8";
+        ctx.font = "900 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(d, dx + 52, 42);
+      });
 
       this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
 

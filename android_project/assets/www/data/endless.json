@@ -1,0 +1,18 @@
+{
+  "endless": {
+    "enemyPool": ["scout", "grunt", "tank", "flyer", "swarm", "shielded"],
+    "bossRotation": ["boss", "overseer", "hive_titan"],
+    "baseGold": 250,
+    "baseHp": 20,
+    "scaling": {
+      "earlyHpRate": 1.12,
+      "softHpRate": 1.05,
+      "softCapWave": 20,
+      "baseCount": 10,
+      "countSlope": 1.15,
+      "maxEnemiesPerWave": 45
+    },
+    "bountyFormula": "Math.round((def.bounty || 4) + 0.6 * wave)",
+    "waveClearBonusFormula": "35 + 5 * wave"
+  }
+}
