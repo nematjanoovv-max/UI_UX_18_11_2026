@@ -136,12 +136,21 @@
       const sfxList = {
         click: 'assets/audio/sfx/click.mp3',
         laser: 'assets/audio/sfx/laser.mp3',
-        explosion: 'assets/audio/sfx/explosion.mp3',
-        zap: 'assets/audio/sfx/zap.mp3',
-        wave_clear: 'assets/audio/sfx/wave_clear.mp3',
-        cannon: 'assets/audio/sfx/cannon.mp3',
+        explosion: 'assets/audio/sfx/artillery_blast.wav',
+        zap: 'assets/audio/sfx/plasma_burn.wav',
+        wave_clear: 'assets/audio/voice/hq_wave_cleared.wav',
+        cannon: 'assets/audio/sfx/gatling_heavy.wav',
         modal: 'assets/audio/sfx/modal.mp3',
-        build: 'assets/audio/sfx/build.mp3'
+        build: 'assets/audio/sfx/build.mp3',
+        stomp: 'assets/audio/sfx/titan_stomp.wav',
+        siren: 'assets/audio/sfx/emergency_siren.wav',
+        hq_online: 'assets/audio/voice/hq_grid_online.wav',
+        hq_boss: 'assets/audio/voice/hq_boss_detected.wav',
+        hq_airdrop: 'assets/audio/voice/hq_airdrop_inbound.wav',
+        hq_core: 'assets/audio/voice/hq_core_critical.wav',
+        hero_dash: 'assets/audio/voice/hero_dash.wav',
+        hero_ult: 'assets/audio/voice/hero_ult.wav',
+        hero_kill: 'assets/audio/voice/hero_kill.wav'
       };
       for (const [key, path] of Object.entries(sfxList)) {
         try {
@@ -213,14 +222,40 @@
       else this.startBGM();
       return !this.bgmMuted;
     }
+    playBGMTrack(trackName) {
+      if (this.currentBgmName === trackName && this.bgmAudio && !this.bgmAudio.paused) return;
+      this.stopBGM();
+      this.currentBgmName = trackName;
+      if (this.bgmMuted) return;
+
+      const trackPaths = {
+        menu: 'assets/audio/bgm/bgm_menu.wav',
+        cyber: 'assets/audio/bgm/bgm_battle_cyber.wav',
+        lava: 'assets/audio/bgm/bgm_battle_lava.wav',
+        cryo: 'assets/audio/bgm/bgm_battle_cryo.wav',
+        boss: 'assets/audio/bgm/bgm_boss_titan.wav',
+        victory: 'assets/audio/bgm/bgm_victory.wav'
+      };
+      const path = trackPaths[trackName] || trackPaths.cyber;
+      try {
+        const bgmVol = (window.lastGridEngine && window.lastGridEngine.settings) ? window.lastGridEngine.settings.bgmVol : 0.7;
+        if (bgmVol <= 0) return;
+        this.bgmAudio = new Audio(path);
+        this.bgmAudio.loop = (trackName !== 'victory');
+        this.bgmAudio.volume = bgmVol;
+        this.bgmAudio.play().catch(() => {});
+        this.bgmPlaying = true;
+      } catch(e) {}
+    }
     startBGM() {
-      if (this.bgmTimer || !this.ctx || this.bgmMuted) return;
-      this.bgmPlaying = true;
-      const bpm = 124;
-      const interval = (60 / bpm) / 4;
-      this.bgmTimer = setInterval(() => this.bgmTick(), interval * 1000);
+      const mode = (window.lastGridEngine && window.lastGridEngine.state === 'MENU') ? 'menu' : 'cyber';
+      this.playBGMTrack(mode);
     }
     stopBGM() {
+      if (this.bgmAudio) {
+        try { this.bgmAudio.pause(); this.bgmAudio.currentTime = 0; } catch(e) {}
+        this.bgmAudio = null;
+      }
       if (this.bgmTimer) { clearInterval(this.bgmTimer); this.bgmTimer = null; }
       this.bgmPlaying = false;
     }
@@ -719,8 +754,11 @@
 
       this.lang = localStorage.getItem('last_grid_lang') || 'uz';
       this.gameMode = 'CAMPAIGN';
-      this.state = 'MENU'; // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL', 'DRAFT', 'ANALYTICS'
+      this.state = 'MENU'; audio.playBGMTrack('menu'); // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL', 'DRAFT', 'ANALYTICS'
       this.speed = 1;
+      const biome = map.biome || 'cyber';
+      audio.playBGMTrack(biome);
+      setTimeout(() => audio.playSample('hq_online', 0.8), 600);
       this.crtEnabled = localStorage.getItem('lg_crt') === 'true';
       this.colorblind = false;
       this.screenShake = 0;
@@ -814,7 +852,7 @@
       this.muzzleFlashes = []; // Dynamic weapon muzzle flashes
       this.footprints = []; // Mech / titan tread marks
 
-      // Battlefield Dynamics v3.9.0
+      // Battlefield Dynamics v4.0.0
       this.airdrops = [];
       this.redZones = [];
       this.barricades = [];
@@ -977,13 +1015,13 @@
       }
       // 6. If in sub-screens -> return to MENU
       if (['MAP_SELECT', 'MANUAL', 'LEADERBOARD', 'EDITOR', 'ANALYTICS'].includes(this.state)) {
-        this.state = 'MENU';
+        this.state = 'MENU'; audio.playBGMTrack('menu');
         audio.click();
         return;
       }
       // 7. If in 3D TPS arena -> return to MENU
       if (this.state === 'TPS_3D') {
-        this.state = 'MENU';
+        this.state = 'MENU'; audio.playBGMTrack('menu');
         audio.sell();
         return;
       }
@@ -997,7 +1035,7 @@
       if (this.state === 'PAUSED') {
         if (x >= 420 && x <= 860 && y >= 335 && y <= 395) { this.togglePause(); return; }
         if (x >= 420 && x <= 860 && y >= 400 && y <= 460) { this.showSettingsModal = true; this.settingsReturnState = 'PAUSED'; return; }
-        if (x >= 420 && x <= 860 && y >= 465 && y <= 525) { this.state = 'MENU'; this.selectedTower = null; return; }
+        if (x >= 420 && x <= 860 && y >= 465 && y <= 525) { this.state = 'MENU'; audio.playBGMTrack('menu'); this.selectedTower = null; return; }
         return;
       }
       // 10. If in MENU -> double tap back to exit application
@@ -1272,7 +1310,7 @@
           return;
         } else if (x >= mx + 420 && x <= mx + 740) {
           this.showSettingsModal = false;
-          this.state = 'MENU';
+          this.state = 'MENU'; audio.playBGMTrack('menu');
           this.selectedTower = null;
           audio.sell();
           this.vibrate(25);
@@ -1373,7 +1411,7 @@
             const ty = (touch.clientY - rect.top) * (720 / rect.height);
 
             if (tx < 160 && ty < 70) {
-              this.state = 'MENU';
+              this.state = 'MENU'; audio.playBGMTrack('menu');
               audio.sell();
               return;
             }
@@ -1585,7 +1623,7 @@
           if (k === 'r') { this.reload3DTPS(); return; }
           if (k === 'b') { this.tps3D.isBuilding = !this.tps3D.isBuilding; audio.upgrade(); return; }
           if (e.code === 'Space') { e.preventDefault(); this.shoot3DTPS(); return; }
-          if (e.key === 'Escape') { this.state = 'MENU'; return; }
+          if (e.key === 'Escape') { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
         }
         if (e.key >= '1' && e.key <= '5') {
           const keys = ['pulse', 'mortar', 'cryo', 'railgun', 'beacon'];
@@ -1787,7 +1825,7 @@
       }
       if (this.state === 'TPS_3D') {
         if (x >= 20 && x <= 160 && y >= 15 && y <= 65) {
-          this.state = 'MENU';
+          this.state = 'MENU'; audio.playBGMTrack('menu');
           audio.sell();
           return;
         }
@@ -1873,17 +1911,17 @@
       }
 
       if (this.state === 'ANALYTICS') {
-        if (x >= 450 && x <= 830 && y >= 615 && y <= 695) this.state = 'MENU';
+        if (x >= 450 && x <= 830 && y >= 615 && y <= 695) this.state = 'MENU'; audio.playBGMTrack('menu');
         return;
       }
 
       if (this.state === 'MANUAL') {
-        if (x >= 20 && x <= 180 && y >= 10 && y <= 65) this.state = 'MENU';
+        if (x >= 20 && x <= 180 && y >= 10 && y <= 65) this.state = 'MENU'; audio.playBGMTrack('menu');
         return;
       }
 
       if (this.state === 'MAP_SELECT') {
-        if (y >= 10 && y <= 65 && x >= 20 && x <= 180) { this.state = 'MENU'; return; }
+        if (y >= 10 && y <= 65 && x >= 20 && x <= 180) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
         for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
@@ -1898,7 +1936,7 @@
       }
 
       if (this.state === 'LEADERBOARD') {
-        if (y > 25 && y < 65 && x > 50 && x < 150) { this.state = 'MENU'; return; }
+        if (y > 25 && y < 65 && x > 50 && x < 150) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
         if (x > 1050 && x < 1220 && y > 25 && y < 65) {
           const newName = prompt("Enter CyberCommander handle:", this.playerName);
           if (newName && newName.trim()) {
@@ -1930,7 +1968,7 @@
         }
         if (x >= 330 && x <= 530 && y >= 405 && y <= 470) this.startMission(this.currentMapIndex, this.gameMode);
         else if (x >= 540 && x <= 740 && y >= 405 && y <= 470) this.state = 'ANALYTICS';
-        else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) this.state = 'MENU';
+        else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) this.state = 'MENU'; audio.playBGMTrack('menu');
         return;
       }
 
@@ -2172,7 +2210,7 @@
       }
     }
 
-    // --- BATTLEFIELD DYNAMICS METHODS (v3.9.0) ---
+    // --- BATTLEFIELD DYNAMICS METHODS (v4.0.0) ---
     triggerRadioComm(speaker, text, duration = 4.5) {
       this.radioComm = {
         speaker: speaker || "HQ COMMANDER",
@@ -2790,12 +2828,12 @@
 
     downloadApk() {
       if (typeof window !== 'undefined' && window.AndroidBridge) {
-        if (this.addFloatingText) this.addFloatingText(640, 360, "Siz Android APK dasiz (v3.9.0)!", "#00e676");
+        if (this.addFloatingText) this.addFloatingText(640, 360, "Siz Android APK dasiz (v4.0.0)!", "#00e676");
         return;
       }
       const a = document.createElement('a');
-      a.href = 'TowerDefense_LastGrid_v3.9.0.apk';
-      a.download = 'TowerDefense_LastGrid_v3.9.0.apk';
+      a.href = 'TowerDefense_LastGrid_v4.0.0.apk';
+      a.download = 'TowerDefense_LastGrid_v4.0.0.apk';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -2812,7 +2850,7 @@
 
     handleEditorClick(x, y) {
       if (y > 20 && y < 60) {
-        if (x > 50 && x < 150) { this.state = 'MENU'; return; }
+        if (x > 50 && x < 150) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
         if (x > 180 && x < 320) { this.startMission(0, 'CUSTOM'); return; }
         if (x > 340 && x < 460) { this.editorWaypoints = [ {x:64, y:320} ]; return; }
         if (x > 480 && x < 620) { prompt("Copy Map JSON:", JSON.stringify(this.editorWaypoints)); return; }
@@ -3121,6 +3159,8 @@
         this.triggerRadioComm("HQ OVERWATCH", `☠️ DIQQAT: ${def.name.toUpperCase()} JANG MAYDONIGA KIRDI! Barcha olovni jamlang!`, 5.0);
         this.screenShake = 20;
         audio.bossSiren();
+        audio.playBGMTrack('boss');
+        audio.playSample('hq_boss', 0.85);
         this.vibrate([150, 80, 150, 80, 350]);
         this.bossAlert = {
           name: def.name.toUpperCase(),
@@ -3914,7 +3954,7 @@
 
     onVictory() {
       this.state = 'VICTORY';
-      audio.victory();
+      audio.playBGMTrack('victory');
       this.calculateMVP();
       const stars = (this.baseHp === this.maxBaseHp) ? 3 : (this.baseHp >= this.maxBaseHp * 0.5 ? 2 : 1);
       const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
@@ -6360,7 +6400,7 @@
       // Version & Platform Badge
       ctx.fillStyle = "#ff007f";
       ctx.font = "bold 12px monospace";
-      ctx.fillText("v3.9.0 ULTIMATE DASHBOARD", 410, 42);
+      ctx.fillText("v4.0.0 ULTIMATE DASHBOARD", 410, 42);
 
       // Commander Name & Status Badge
       ctx.fillStyle = "#cfd8dc";
