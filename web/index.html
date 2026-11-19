@@ -3,18 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Tower Defense: Last Grid</title>
   <meta name="theme-color" content="#05070d">
   <meta name="description" content="Tower Defense: The Last Grid - Kiber-Neon Taktik Tower Defense O'yini. 10 xarita, 5 ta minora, 8 dushman turi, 3D Mex roboti va real vaqtli tahlil tizimi.">
   <meta property="og:title" content="Tower Defense: The Last Grid">
   <meta property="og:description" content="Kiber-Neon Taktik Tower Defense O'yini. 10 xarita, 5 ta minora, 8 dushman turi, 3D Mex roboti va real vaqtli tahlil tizimi.">
-  <meta property="og:image" content="icon.svg">
+  <meta property="og:image" content="icon.svg?v=4.1.0">
   <meta property="og:type" content="website">
 
   <!-- PWA & Mobile Web Capabilities -->
-  <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="apple-touch-icon" href="icon.svg">
-  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=4.1.0">
+  <link rel="apple-touch-icon" href="icon.svg?v=4.1.0">
+  <link rel="manifest" href="manifest.json?v=4.1.0_rev5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -83,15 +86,37 @@
     <canvas id="game-canvas" width="1280" height="720"></canvas>
     <canvas id="mech-hangar-canvas" width="370" height="340"></canvas>
   </div>
-  <script src="libs/three.min.js"></script>
-  <script src="apex_mech.js"></script>
-  <script src="game.js"></script>
+  <script src="libs/three.min.js?v=4.1.0"></script>
+  <script src="apex_mech.js?v=4.1.0_rev5"></script>
+  <script src="game.js?v=4.1.0_rev5"></script>
 
-  <!-- PWA Service Worker & Global Audio Unlock -->
+  <!-- Automatic Cache Purge & Service Worker Updater -->
   <script>
+    const LATEST_BUILD_TAG = 'v4.1.0_rev5';
+    try {
+      const currentTag = localStorage.getItem('lg_client_build_tag');
+      if (currentTag !== LATEST_BUILD_TAG) {
+        localStorage.setItem('lg_client_build_tag', LATEST_BUILD_TAG);
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            keys.forEach((k) => caches.delete(k));
+          });
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            for (let r of registrations) {
+              r.update();
+            }
+          });
+        }
+      }
+    } catch (e) {}
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js?v=4.1.0_rev5').then((reg) => {
+          reg.update();
+        }).catch(() => {});
       });
     }
 
