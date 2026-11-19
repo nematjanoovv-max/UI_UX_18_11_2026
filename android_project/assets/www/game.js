@@ -1688,6 +1688,21 @@
     }
 
     initEvents() {
+      // Pointer State & Ripple Tracking
+      this.isPointerDown = false;
+      this.buttonRipples = [];
+
+      this.canvas.addEventListener('mousedown', (e) => {
+        this.isPointerDown = true;
+        this.mousePos = this.getCanvasPos(e);
+        if (this.mousePos) {
+          this.buttonRipples.push({ x: this.mousePos.x, y: this.mousePos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
+        }
+      });
+      window.addEventListener('mouseup', () => {
+        this.isPointerDown = false;
+      });
+
       // Desktop Mouse Move
       this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
@@ -1712,7 +1727,13 @@
       // MOBILE TOUCH GESTURES & SENSORS
       this.canvas.addEventListener('touchstart', (e) => {
         this.isTouchDevice = true;
+        this.isPointerDown = true;
         audio.init();
+        const tPos = this.getCanvasPos(e);
+        if (tPos) {
+          this.mousePos = tPos;
+          this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
+        }
         if (this.state === 'TPS_3D' && this.tps3D) {
           const t = this.tps3D;
           for (let i = 0; i < e.changedTouches.length; i++) {
@@ -1863,6 +1884,7 @@
       }, { passive: false });
 
       this.canvas.addEventListener('touchend', (e) => {
+        this.isPointerDown = false;
         e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
@@ -3867,6 +3889,17 @@
         if (!this.lastTimestamp) this.lastTimestamp = timestamp;
         const dt = Math.min(0.1, (timestamp - this.lastTimestamp) / 1000.0);
         this.lastTimestamp = timestamp;
+        this.uiTime = (this.uiTime || 0) + dt;
+
+        // Animate Button Click Ripples
+        if (this.buttonRipples && this.buttonRipples.length > 0) {
+          for (let i = this.buttonRipples.length - 1; i >= 0; i--) {
+            const rip = this.buttonRipples[i];
+            rip.r += dt * 85;
+            rip.alpha -= dt * 2.2;
+            if (rip.alpha <= 0 || rip.r >= rip.maxR) this.buttonRipples.splice(i, 1);
+          }
+        }
 
         if (this.state === 'PLAYING') {
           for (let i = 0; i < this.speed; i++) this.update(dt);
@@ -7814,122 +7847,225 @@
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
       const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const ptr = this.mousePos;
+      const isHovered = !!(ptr && ptr.x >= x && ptr.x <= x + w && ptr.y >= y && ptr.y <= y + h);
+      const isPressed = isHovered && this.isPointerDown;
+
+      const pressOffset = isPressed ? 1.5 : 0;
+      const bx = x;
+      const by = y + pressOffset;
+      const bw = w;
+      const bh = h - pressOffset;
+      const cut = Math.min(6, Math.floor(bh * 0.25));
+
       ctx.save();
-      const cut = 5;
       ctx.beginPath();
-      ctx.moveTo(x + cut, y);
-      ctx.lineTo(x + w, y);
-      ctx.lineTo(x + w, y + h - cut);
-      ctx.lineTo(x + w - cut, y + h);
-      ctx.lineTo(x, y + h);
-      ctx.lineTo(x, y + cut);
+      ctx.moveTo(bx + cut, by);
+      ctx.lineTo(bx + bw, by);
+      ctx.lineTo(bx + bw, by + bh - cut);
+      ctx.lineTo(bx + bw - cut, by + bh);
+      ctx.lineTo(bx, by + bh);
+      ctx.lineTo(bx, by + cut);
       ctx.closePath();
 
-      const grad = ctx.createLinearGradient(x, y, x, y + h);
-      grad.addColorStop(0, "rgba(22, 35, 58, 0.95)");
-      grad.addColorStop(1, "rgba(9, 15, 26, 0.98)");
+      // Frosted Glassmorphism Gradient
+      const grad = ctx.createLinearGradient(bx, by, bx, by + bh);
+      if (isPressed) {
+        grad.addColorStop(0, "rgba(32, 54, 90, 0.98)");
+        grad.addColorStop(1, "rgba(14, 24, 40, 0.99)");
+      } else if (isHovered) {
+        grad.addColorStop(0, "rgba(24, 44, 76, 0.96)");
+        grad.addColorStop(1, "rgba(9, 18, 32, 0.98)");
+      } else {
+        grad.addColorStop(0, "rgba(16, 28, 48, 0.92)");
+        grad.addColorStop(1, "rgba(7, 12, 22, 0.97)");
+      }
       ctx.fillStyle = grad;
       ctx.fill();
 
+      // Animated Neon Pulse Glow on hover
+      const pulse = Math.sin(t * 3.8) * 0.5 + 0.5;
+      if (isHovered) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10 + pulse * 6;
+      }
+
       ctx.strokeStyle = color;
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = isHovered ? 1.8 : 1.2;
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+
+      // Top Specular Highlight Line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x + cut, y + 1);
-      ctx.lineTo(x + w - 1, y + 1);
+      ctx.moveTo(bx + cut, by + 1);
+      ctx.lineTo(bx + bw - 1, by + 1);
       ctx.stroke();
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = isHovered ? "#ffffff" : color;
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      ctx.shadowColor = "rgba(0,0,0,0.85)";
+      ctx.shadowColor = "rgba(0,0,0,0.9)";
       ctx.shadowBlur = 3;
-      ctx.fillText(text, x + w / 2, y + h / 2 + 4);
+      ctx.fillText(text, bx + bw / 2, by + bh / 2 + 4);
       ctx.restore();
     }
 
     drawCyberButton(x, y, w, h, text, color = "#00e5ff", subtext = "", icon = "", isHighlighted = false) {
       const ctx = this.ctx;
-      const cut = Math.min(8, Math.floor(h * 0.22));
+      const t = this.uiTime || 0;
+      const ptr = this.mousePos;
+      const isHovered = !!(ptr && ptr.x >= x && ptr.x <= x + w && ptr.y >= y && ptr.y <= y + h);
+      const isPressed = isHovered && this.isPointerDown;
+
+      const pressOffset = isPressed ? 2 : 0;
+      const bx = x;
+      const by = y + pressOffset;
+      const bw = w;
+      const bh = h - pressOffset;
+      const cut = Math.min(10, Math.floor(bh * 0.22));
+
       ctx.save();
 
       // Chamfered 45-degree tactical polygon
       ctx.beginPath();
-      ctx.moveTo(x + cut, y);
-      ctx.lineTo(x + w, y);
-      ctx.lineTo(x + w, y + h - cut);
-      ctx.lineTo(x + w - cut, y + h);
-      ctx.lineTo(x, y + h);
-      ctx.lineTo(x, y + cut);
+      ctx.moveTo(bx + cut, by);
+      ctx.lineTo(bx + bw, by);
+      ctx.lineTo(bx + bw, by + bh - cut);
+      ctx.lineTo(bx + bw - cut, by + bh);
+      ctx.lineTo(bx, by + bh);
+      ctx.lineTo(bx, by + cut);
       ctx.closePath();
 
-      // Deep metallic titanium gradient
-      const grad = ctx.createLinearGradient(x, y, x, y + h);
-      if (isHighlighted) {
-        grad.addColorStop(0, "rgba(25, 48, 80, 0.98)");
-        grad.addColorStop(0.5, "rgba(14, 28, 48, 0.98)");
-        grad.addColorStop(1, "rgba(8, 16, 28, 0.99)");
+      // 1. Frosted Glassmorphism Multi-layer Gradient Fill
+      const grad = ctx.createLinearGradient(bx, by, bx, by + bh);
+      if (isPressed) {
+        grad.addColorStop(0, "rgba(35, 68, 115, 0.98)");
+        grad.addColorStop(0.5, "rgba(20, 42, 74, 0.98)");
+        grad.addColorStop(1, "rgba(10, 22, 42, 0.99)");
+      } else if (isHovered || isHighlighted) {
+        grad.addColorStop(0, "rgba(25, 52, 92, 0.96)");
+        grad.addColorStop(0.35, "rgba(18, 38, 68, 0.94)");
+        grad.addColorStop(0.75, "rgba(11, 24, 44, 0.97)");
+        grad.addColorStop(1, "rgba(6, 13, 24, 0.99)");
       } else {
-        grad.addColorStop(0, "rgba(18, 28, 44, 0.95)");
-        grad.addColorStop(0.5, "rgba(11, 18, 29, 0.97)");
-        grad.addColorStop(1, "rgba(6, 10, 18, 0.99)");
+        grad.addColorStop(0, "rgba(16, 27, 46, 0.93)");
+        grad.addColorStop(0.4, "rgba(12, 20, 35, 0.95)");
+        grad.addColorStop(1, "rgba(6, 10, 18, 0.98)");
       }
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Neon glowing border
+      // 2. Animated Pulse Neon Outer Glow
+      const pulse = Math.sin(t * 3.8) * 0.5 + 0.5;
+      if (isHighlighted || isHovered) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isPressed ? 18 : (11 + pulse * 8);
+      } else {
+        ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+        ctx.shadowBlur = 4;
+      }
+
+      // 3. Glowing Neon Tactical Border
       ctx.strokeStyle = color;
-      ctx.lineWidth = isHighlighted ? 2.0 : 1.3;
+      ctx.lineWidth = (isHighlighted || isHovered) ? 2.0 : 1.3;
       ctx.stroke();
 
-      // Top specular highlight line
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x + cut + 2, y + 1);
-      ctx.lineTo(x + w - 2, y + 1);
-      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
 
-      // Left-side vertical status indicator strip
+      // 4. Frosted Glass Specular Sheen (Clipped to button)
+      ctx.save();
+      ctx.clip();
+
+      const sheenGrad = ctx.createLinearGradient(bx, by, bx, by + bh * 0.48);
+      sheenGrad.addColorStop(0, "rgba(255, 255, 255, 0.24)");
+      sheenGrad.addColorStop(1, "rgba(255, 255, 255, 0.02)");
+      ctx.fillStyle = sheenGrad;
+      ctx.fillRect(bx, by, bw, bh * 0.48);
+
+      // 5. Holographic Light Scanline Sweep across face (Every ~2.8s)
+      if (isHighlighted || isHovered) {
+        const sweepProgress = ((t * 0.42) % 1.5) - 0.25;
+        const sweepX = bx + bw * sweepProgress;
+        const beamGrad = ctx.createLinearGradient(sweepX - 25, by, sweepX + 25, by + bh);
+        beamGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+        beamGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.28)");
+        beamGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = beamGrad;
+        ctx.fillRect(bx, by, bw, bh);
+      }
+
+      // 6. Expanding Click/Tap Shockwave Ripples inside button
+      if (this.buttonRipples && this.buttonRipples.length > 0) {
+        for (const rip of this.buttonRipples) {
+          if (rip.x >= bx - 30 && rip.x <= bx + bw + 30 && rip.y >= by - 30 && rip.y <= by + bh + 30) {
+            ctx.strokeStyle = `rgba(255, 255, 255, ${rip.alpha * 0.65})`;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+
+      ctx.restore(); // end clip
+
+      // 7. Tactical Cyber Accents: Left Vertical Glow Strip
       ctx.fillStyle = color;
-      ctx.fillRect(x, y + cut, 3.5, Math.max(2, h - cut * 2));
+      ctx.fillRect(bx, by + cut, 3.5, Math.max(2, bh - cut * 2));
 
-      // Corner L-brackets
+      // 8. Corner Sci-Fi L-Brackets
       ctx.strokeStyle = color;
       ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.moveTo(x + w - 10, y);
-      ctx.lineTo(x + w, y);
-      ctx.lineTo(x + w, y + 8);
+      ctx.moveTo(bx + bw - 10, by);
+      ctx.lineTo(bx + bw, by);
+      ctx.lineTo(bx + bw, by + 8);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(x, y + h - 8);
-      ctx.lineTo(x, y + h);
-      ctx.lineTo(x + 10, y + h);
+      ctx.moveTo(bx, by + bh - 8);
+      ctx.lineTo(bx, by + bh);
+      ctx.lineTo(bx + 10, by + bh);
       ctx.stroke();
 
-      // High-contrast typography with drop shadow
-      ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-      ctx.shadowBlur = 4;
+      // Top specular highlight edge line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(bx + cut + 2, by + 1);
+      ctx.lineTo(bx + bw - 2, by + 1);
+      ctx.stroke();
+
+      // 9. Technical micro-status dot on top left
+      ctx.fillStyle = (isHighlighted || isHovered) ? color : "rgba(255, 255, 255, 0.4)";
+      ctx.beginPath();
+      ctx.arc(bx + cut + 5, by + 5, 2.0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 10. High-contrast Typography with Drop Shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+      ctx.shadowBlur = 5;
       ctx.shadowOffsetY = 1;
 
       const hasSub = !!subtext;
-      const titleY = hasSub ? y + h * 0.42 : y + h * 0.5 + 4;
+      const titleY = hasSub ? by + bh * 0.42 : by + bh * 0.5 + 4;
 
-      ctx.fillStyle = isHighlighted ? "#ffffff" : color;
+      ctx.fillStyle = (isHighlighted || isHovered) ? "#ffffff" : color;
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "center";
       const fullTitle = icon ? `${icon} ${text}` : text;
-      ctx.fillText(fullTitle, x + w / 2, titleY);
+      ctx.fillText(fullTitle, bx + bw / 2, titleY);
 
       if (hasSub) {
-        ctx.fillStyle = "#90a4ae";
+        ctx.fillStyle = (isHighlighted || isHovered) ? "#cfd8dc" : "#78909c";
         ctx.font = "bold 9px 'Segoe UI', monospace";
-        ctx.fillText(subtext, x + w / 2, y + h * 0.78);
+        ctx.fillText(subtext, bx + bw / 2, by + bh * 0.78);
       }
 
       ctx.restore();
@@ -7937,53 +8073,223 @@
 
     renderAbilitySlot(x, y, w, h, icon, label, subtext, color = "#00e5ff", isReady = true, cdRatio = 0) {
       const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const ptr = this.mousePos;
+      const isHovered = !!(ptr && ptr.x >= x && ptr.x <= x + w && ptr.y >= y && ptr.y <= y + h);
+      const isPressed = isHovered && this.isPointerDown;
+
+      const pressOffset = (isPressed && isReady) ? 2 : 0;
+      const bx = x;
+      const by = y + pressOffset;
+      const bw = w;
+      const bh = h - pressOffset;
+      const cut = 6;
+
       ctx.save();
-      const cut = 5;
       ctx.beginPath();
-      ctx.moveTo(x + cut, y);
-      ctx.lineTo(x + w, y);
-      ctx.lineTo(x + w, y + h - cut);
-      ctx.lineTo(x + w - cut, y + h);
-      ctx.lineTo(x, y + h);
-      ctx.lineTo(x, y + cut);
+      ctx.moveTo(bx + cut, by);
+      ctx.lineTo(bx + bw, by);
+      ctx.lineTo(bx + bw, by + bh - cut);
+      ctx.lineTo(bx + bw - cut, by + bh);
+      ctx.lineTo(bx, by + bh);
+      ctx.lineTo(bx, by + cut);
       ctx.closePath();
 
-      ctx.fillStyle = isReady ? "rgba(16, 26, 44, 0.95)" : "rgba(8, 12, 20, 0.98)";
+      // Frosted Glassmorphism Background
+      const grad = ctx.createLinearGradient(bx, by, bx, by + bh);
+      if (isReady) {
+        if (isPressed) {
+          grad.addColorStop(0, "rgba(30, 56, 95, 0.98)");
+          grad.addColorStop(1, "rgba(12, 22, 38, 0.99)");
+        } else if (isHovered) {
+          grad.addColorStop(0, "rgba(24, 48, 82, 0.96)");
+          grad.addColorStop(1, "rgba(9, 18, 32, 0.98)");
+        } else {
+          grad.addColorStop(0, "rgba(16, 30, 52, 0.94)");
+          grad.addColorStop(1, "rgba(7, 13, 24, 0.98)");
+        }
+      } else {
+        grad.addColorStop(0, "rgba(10, 15, 24, 0.95)");
+        grad.addColorStop(1, "rgba(5, 8, 14, 0.98)");
+      }
+      ctx.fillStyle = grad;
       ctx.fill();
 
+      // Neon glowing border when ready
+      const pulse = Math.sin(t * 4.5) * 0.5 + 0.5;
+      if (isReady) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = isHovered ? (14 + pulse * 6) : (8 + pulse * 4);
+      } else {
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+      }
+
       ctx.strokeStyle = color;
-      ctx.lineWidth = isReady ? 1.8 : 1.0;
+      ctx.lineWidth = isReady ? (isHovered ? 2.2 : 1.6) : 1.0;
       ctx.stroke();
 
-      // Top specular highlight
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+
+      // Frosted Glass Sheen & Holographic scan
+      ctx.save();
+      ctx.clip(); // clip to slot polygon
+
+      const sheen = ctx.createLinearGradient(bx, by, bx, by + bh * 0.45);
+      sheen.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+      sheen.addColorStop(1, "rgba(255, 255, 255, 0.02)");
+      ctx.fillStyle = sheen;
+      ctx.fillRect(bx, by, bw, bh * 0.45);
+
+      // Cooldown Sweep Overlay
+      if (cdRatio > 0) {
+        const sweepH = bh * cdRatio;
+        const sweepY = by + bh - sweepH;
+        const cdGrad = ctx.createLinearGradient(bx, sweepY, bx, by + bh);
+        cdGrad.addColorStop(0, "rgba(255, 23, 68, 0.78)");
+        cdGrad.addColorStop(1, "rgba(180, 10, 40, 0.90)");
+        ctx.fillStyle = cdGrad;
+        ctx.fillRect(bx, sweepY, bw, sweepH);
+
+        // Glowing wave line at the cooldown boundary
+        ctx.strokeStyle = "#ff5252";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(bx, sweepY);
+        ctx.lineTo(bx + bw, sweepY);
+        ctx.stroke();
+      }
+
+      // Ready Scanline Sweep
+      if (isReady) {
+        const sweepProg = ((t * 0.5) % 1.5) - 0.25;
+        const sweepX = bx + bw * sweepProg;
+        const beamGrad = ctx.createLinearGradient(sweepX - 12, by, sweepX + 12, by + bh);
+        beamGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+        beamGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.25)");
+        beamGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+        ctx.fillStyle = beamGrad;
+        ctx.fillRect(bx, sweepY || by, bw, bh);
+      }
+
+      ctx.restore(); // end clip
+
+      // Top specular highlight line
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x + cut, y + 1);
-      ctx.lineTo(x + w - 1, y + 1);
+      ctx.moveTo(bx + cut, by + 1);
+      ctx.lineTo(bx + bw - 1, by + 1);
       ctx.stroke();
 
-      // Centered Stacked Layout:
-      // 1. Icon on top
-      ctx.fillStyle = color;
-      ctx.font = "14px 'Segoe UI', monospace";
+      // Icon on top
+      ctx.fillStyle = isReady ? color : "#78909c";
+      ctx.font = "15px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText(icon, x + w / 2, y + 26);
+      ctx.shadowColor = isReady ? color : "transparent";
+      ctx.shadowBlur = isReady ? 6 : 0;
+      ctx.fillText(icon, bx + bw / 2, by + 26);
+      ctx.shadowBlur = 0;
 
-      // 2. Label below
+      // Label below
       ctx.fillStyle = isReady ? "#ffffff" : "#78909c";
       ctx.font = "bold 11px monospace";
-      ctx.fillText(label, x + w / 2, y + 48);
+      ctx.shadowColor = "rgba(0,0,0,0.95)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(label, bx + bw / 2, by + 47);
 
-      // 3. Subtext / Cost below
+      // Subtext / Cost below
       ctx.fillStyle = isReady ? color : "#546e7a";
-      ctx.font = "9px monospace";
-      ctx.fillText(subtext, x + w / 2, y + 68);
+      ctx.font = "bold 9px monospace";
+      ctx.fillText(subtext, bx + bw / 2, by + 67);
 
-      // Cooldown Sweep
-      if (cdRatio > 0) {
-        ctx.fillStyle = "rgba(255, 23, 68, 0.65)";
-        ctx.fillRect(x + 1, y + h * (1 - cdRatio), w - 2, h * cdRatio);
+      ctx.restore();
+    }
+
+    render3DCircularButton(cx, cy, radius, label, sublabel, color = "#00e5ff", isActive = false) {
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const ptr = this.mousePos;
+      const isHovered = !!(ptr && Math.hypot(ptr.x - cx, ptr.y - cy) <= radius);
+      const isPressed = isHovered && this.isPointerDown;
+
+      const r = (isPressed ? radius * 0.92 : (isHovered ? radius * 1.05 : radius));
+      ctx.save();
+
+      // Outer animated rotating radar calibration notches
+      const ringAngle = t * (isActive ? 2.5 : 1.2);
+      ctx.strokeStyle = isActive ? color : "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 12]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 4, ringAngle, ringAngle + Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Multi-layer Radial Frosted Glass Glow
+      const radGrad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
+      if (isActive) {
+        radGrad.addColorStop(0, "rgba(255, 255, 255, 0.45)");
+        radGrad.addColorStop(0.3, color);
+        radGrad.addColorStop(0.85, "rgba(10, 20, 36, 0.95)");
+        radGrad.addColorStop(1, "rgba(5, 10, 20, 0.99)");
+      } else if (isHovered) {
+        radGrad.addColorStop(0, "rgba(255, 255, 255, 0.28)");
+        radGrad.addColorStop(0.4, "rgba(30, 50, 85, 0.85)");
+        radGrad.addColorStop(1, "rgba(10, 16, 28, 0.95)");
+      } else {
+        radGrad.addColorStop(0, "rgba(255, 255, 255, 0.15)");
+        radGrad.addColorStop(0.4, "rgba(18, 28, 48, 0.80)");
+        radGrad.addColorStop(1, "rgba(6, 10, 18, 0.95)");
       }
+
+      // Neon Pulsing Outer Glow
+      const pulse = Math.sin(t * 4.0) * 0.5 + 0.5;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = isActive ? (16 + pulse * 8) : (isHovered ? 12 : 5);
+
+      ctx.fillStyle = radGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Solid Rim Stroke
+      ctx.strokeStyle = isActive ? "#ffffff" : color;
+      ctx.lineWidth = isActive ? 2.5 : (isHovered ? 2.0 : 1.4);
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = "transparent";
+
+      // Top Crescent Specular Glass Reflection
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      const crescentGrad = ctx.createLinearGradient(cx, cy - r, cx, cy);
+      crescentGrad.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+      crescentGrad.addColorStop(1, "rgba(255, 255, 255, 0.02)");
+      ctx.fillStyle = crescentGrad;
+      ctx.fillRect(cx - r, cy - r, r * 2, r);
+      ctx.restore();
+
+      // Icon & Label Typography
+      ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+      ctx.shadowBlur = 5;
+      ctx.textAlign = "center";
+      ctx.fillStyle = isActive ? "#ffffff" : (isHovered ? "#ffffff" : color);
+      ctx.font = `bold ${Math.round(r * 0.34)}px 'Segoe UI', monospace`;
+      const textY = sublabel ? cy + 1 : cy + 5;
+      ctx.fillText(label, cx, textY);
+
+      if (sublabel) {
+        ctx.fillStyle = isActive ? "#ffffff" : "#b0bec5";
+        ctx.font = `bold ${Math.round(r * 0.22)}px monospace`;
+        ctx.fillText(sublabel, cx, cy + r * 0.52);
+      }
+
       ctx.restore();
     }
 
@@ -8041,15 +8347,14 @@
           ctx.restore();
         }
 
-        // Active Cooldown Sweep
+        // Active Cooldown Countdown Text
         if (s.currentCd > 0) {
-          ctx.fillStyle = "rgba(255, 23, 68, 0.70)";
-          const pct = s.currentCd / s.cd;
-          ctx.fillRect(sx, 628 + 78 * (1 - pct), 40, 78 * pct);
           ctx.fillStyle = "#ffffff";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`${Math.ceil(s.currentCd)}`, sx + 20, 696);
+          ctx.shadowColor = "rgba(0,0,0,0.9)";
+          ctx.shadowBlur = 4;
+          ctx.fillText(`${Math.ceil(s.currentCd)}s`, sx + 20, 696);
         }
       }
 
@@ -9772,40 +10077,11 @@
         ctx.fillText("RELOADING...", 175, 675);
       }
 
-      // Mobile Touch Action Buttons (Right side)
-      ctx.fillStyle = "rgba(255, 23, 68, 0.75)";
-      ctx.beginPath();
-      ctx.arc(1200, 620, 48, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 16px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("💥 OTISH", 1200, 626);
-
-      ctx.fillStyle = p.isAiming ? "rgba(0, 229, 255, 0.85)" : "rgba(15, 23, 42, 0.75)";
-      ctx.beginPath();
-      ctx.arc(1080, 640, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = p.isAiming ? "#000" : "#fff";
-      ctx.font = "bold 12px monospace";
-      ctx.fillText("🎯 DURBIN", 1080, 645);
-
-      ctx.fillStyle = t.isBuilding ? "rgba(0, 230, 118, 0.85)" : "rgba(15, 23, 42, 0.75)";
-      ctx.beginPath();
-      ctx.arc(1200, 500, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#00e676";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.fillStyle = t.isBuilding ? "#000" : "#fff";
-      ctx.font = "bold 12px monospace";
-      ctx.fillText("🏗️ QURISH", 1200, 505);
+      // Mobile Touch Action Sci-Fi Circular Buttons (Right side)
+      this.render3DCircularButton(1200, 620, 48, "💥 OTISH", "FIRE", "#ff1744", false);
+      this.render3DCircularButton(1080, 640, 36, "🎯 DURBIN", "AIM", "#00e5ff", p.isAiming);
+      this.render3DCircularButton(1200, 500, 36, "🏗️ QURISH", "BUILD", "#00e676", t.isBuilding);
+      this.render3DCircularButton(1080, 540, 30, "🔄 O'Q", "RELOAD", "#ffd600", p.isReloading);
 
       // Mech Mode & Super Skill Action Buttons
       const modeLabel = (p.mode === 'SIEGE') ? "🚜 TANK" : "🤖 ROBOT";
@@ -9813,17 +10089,6 @@
       this.renderMiniButton(960, 615, 95, 45, modeLabel, modeCol);
       this.renderMiniButton(960, 555, 95, 45, p.empCd > 0 ? `EMP ${Math.ceil(p.empCd)}s` : "⚡ EMP", "#00e5ff");
       this.renderMiniButton(1070, 555, 95, 45, p.missileCd > 0 ? `MSL ${Math.ceil(p.missileCd)}s` : "🚀 RAKETA", "#ffd600");
-
-      ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
-      ctx.beginPath();
-      ctx.arc(1080, 540, 30, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#ffd600";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 11px monospace";
-      ctx.fillText("🔄 O'Q", 1080, 544);
 
       if (t.touch.moveId !== null) {
         ctx.fillStyle = "rgba(0, 229, 255, 0.2)";
