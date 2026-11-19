@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Tactical Operator — 3D Character Studio</title>
+<title>Tactical Operator — 100% Realistik AAA 3D Studio</title>
 <style>
   :root {
-    --bg-dark: #0a0c12;
-    --panel-bg: rgba(14, 18, 26, 0.88);
-    --panel-border: rgba(0, 240, 255, 0.25);
+    --bg-dark: #07090e;
+    --panel-bg: rgba(12, 16, 24, 0.90);
+    --panel-border: rgba(0, 240, 255, 0.3);
     --cyan: #00f0ff;
-    --cyan-glow: rgba(0, 240, 255, 0.35);
+    --cyan-glow: rgba(0, 240, 255, 0.4);
     --orange: #ff9d00;
     --text: #e6edf3;
     --text-dim: #8b949e;
@@ -19,7 +19,7 @@
   body, html {
     width: 100%; height: 100%;
     overflow: hidden;
-    background: var(--bg-dark);
+    background: radial-gradient(circle at center, #111726 0%, #05070a 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
@@ -28,7 +28,7 @@
     display: block;
   }
   
-  /* Top Header HUD */
+  /* Top Left HUD */
   #header-hud {
     position: absolute;
     top: 16px; left: 16px;
@@ -36,9 +36,8 @@
     border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 12px 18px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    pointer-events: auto;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   }
   #header-hud h1 {
     font-size: 15px;
@@ -54,9 +53,9 @@
     content: '';
     display: inline-block;
     width: 8px; height: 8px;
-    background: var(--cyan);
+    background: #00ff88;
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--cyan);
+    box-shadow: 0 0 10px #00ff88;
   }
   #header-hud .subtitle {
     font-size: 11px;
@@ -72,9 +71,9 @@
     border-radius: 8px;
     padding: 14px 18px;
     font-size: 12px;
-    min-width: 220px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 240px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   }
   .stat-row {
     display: flex;
@@ -86,6 +85,13 @@
   .stat-row:last-child { border-bottom: none; margin-bottom: 0; }
   .stat-label { color: var(--text-dim); }
   .stat-val { color: var(--cyan); font-weight: bold; }
+  .stat-val.badge {
+    background: rgba(0, 240, 255, 0.15);
+    border: 1px solid var(--cyan);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
 
   /* Bottom Animation Dock */
   #anim-dock {
@@ -95,29 +101,33 @@
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 12px;
-    padding: 10px 16px;
+    padding: 8px 14px;
     display: flex;
-    gap: 10px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    gap: 8px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
   }
   .btn-anim {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(0, 240, 255, 0.35);
     color: var(--text);
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 6px;
     font-family: inherit;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.08em;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .btn-anim:hover {
-    background: rgba(0, 240, 255, 0.15);
+    background: rgba(0, 240, 255, 0.2);
     border-color: var(--cyan);
     color: var(--cyan);
+    transform: translateY(-2px);
   }
   .btn-anim.active {
     background: var(--cyan);
@@ -126,7 +136,7 @@
     box-shadow: 0 0 16px var(--cyan-glow);
   }
 
-  /* Left Floating Tools */
+  /* Left Floating Tools & Camera Presets */
   #tools-dock {
     position: absolute;
     bottom: 24px; left: 16px;
@@ -146,13 +156,38 @@
     transition: all 0.2s;
   }
   .tool-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-  .tool-btn.active { border-color: var(--cyan); background: rgba(0,240,255,0.2); color: var(--cyan); }
+  .tool-btn.active { border-color: var(--cyan); background: rgba(0,240,255,0.25); color: var(--cyan); }
+
+  /* Camera View Focus Selector */
+  #cam-dock {
+    position: absolute;
+    top: 90px; left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .cam-btn {
+    background: rgba(14, 18, 26, 0.85);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-dim);
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .cam-btn:hover, .cam-btn.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0,240,255,0.12);
+  }
 
   /* Loading Spinner */
   #loader-overlay {
     position: absolute;
     inset: 0;
-    background: #0a0c12;
+    background: #07090e;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -162,7 +197,7 @@
     transition: opacity 0.4s ease;
   }
   .spinner {
-    width: 44px; height: 44px;
+    width: 48px; height: 48px;
     border: 3px solid rgba(0, 240, 255, 0.2);
     border-top-color: var(--cyan);
     border-radius: 50%;
@@ -184,40 +219,51 @@
 
 <div id="loader-overlay">
   <div class="spinner"></div>
-  <div style="font-size:13px; letter-spacing:0.1em; color:var(--cyan);">TACTICAL OPERATOR YUKLANMOQDA...</div>
+  <div style="font-size:13px; letter-spacing:0.12em; color:var(--cyan); font-weight:600;">100% REALISTIK AAA MODEL YUKLANMOQDA...</div>
 </div>
 
 <canvas id="webgl-canvas"></canvas>
 
 <!-- Header HUD -->
 <div id="header-hud">
-  <h1>Tactical Operator</h1>
-  <div class="subtitle">3D AAA Personaj · 360° Interaktiv Ko'rish</div>
+  <h1>Tactical Operator · 100% AAA</h1>
+  <div class="subtitle">2048x2048 PBR Materiallar · 19 Suyakli Skelet · 4 Animatsiya</div>
+</div>
+
+<!-- Camera Focus Presets -->
+<div id="cam-dock">
+  <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y (Full Body)</button>
+  <button class="cam-btn" data-target="head">🪖 Kaska & Visor (Head)</button>
+  <button class="cam-btn" data-target="chest">🛡️ Bronjilet (Chest)</button>
+  <button class="cam-btn" data-target="boots">🥾 Og'ir Etik (Boots)</button>
 </div>
 
 <!-- Stats Panel -->
 <div id="stats-panel">
   <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val">tactical_operator.glb</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi (Height):</span><span class="stat-val">1.75 m</span></div>
-  <div class="stat-row"><span class="stat-label">Hajmi (Optimized):</span><span class="stat-val">165 KB</span></div>
-  <div class="stat-row"><span class="stat-label">Siqilish (Meshopt):</span><span class="stat-val">-76.5%</span></div>
-  <div class="stat-row"><span class="stat-label">Format:</span><span class="stat-val">GLTF 2.0 Binary</span></div>
-  <div class="stat-row"><span class="stat-label">Holat:</span><span class="stat-val" id="stat-anim">IDLE</span></div>
+  <div class="stat-row"><span class="stat-label">PBR Teksturalar:</span><span class="stat-val badge">Albedo+Normal+MR+AO</span></div>
+  <div class="stat-row"><span class="stat-label">Tekstura Hajmi:</span><span class="stat-val">2048 x 2048 HD</span></div>
+  <div class="stat-row"><span class="stat-label">Bo'yi (Height):</span><span class="stat-val">1.75 m (Oyoq Y=0)</span></div>
+  <div class="stat-row"><span class="stat-label">Skelet Bo'g'inlari:</span><span class="stat-val">19 ta Humanoid Suyak</span></div>
+  <div class="stat-row"><span class="stat-label">Animatsiya Kliplari:</span><span class="stat-val">idle, walk, run, jump</span></div>
+  <div class="stat-row"><span class="stat-label">Hajmi (MB):</span><span class="stat-val">7.61 MB (Valid)</span></div>
+  <div class="stat-row"><span class="stat-label">Faol Animatsiya:</span><span class="stat-val" id="stat-anim" style="color:#00ff88;">IDLE</span></div>
 </div>
 
 <!-- Animation Dock -->
 <div id="anim-dock">
-  <button class="btn-anim active" data-anim="idle">IDLE</button>
-  <button class="btn-anim" data-anim="walk">WALK</button>
-  <button class="btn-anim" data-anim="run">RUN</button>
-  <button class="btn-anim" data-anim="jump">JUMP</button>
+  <button class="btn-anim active" data-anim="idle">▶ IDLE</button>
+  <button class="btn-anim" data-anim="walk">▶ WALK</button>
+  <button class="btn-anim" data-anim="run">▶ RUN</button>
+  <button class="btn-anim" data-anim="jump">▲ JUMP</button>
 </div>
 
 <!-- Tools Dock -->
 <div id="tools-dock">
   <button class="tool-btn" id="btn-wireframe">Wireframe: OFF</button>
-  <button class="tool-btn" id="btn-rotate">Auto-Rotate: ON</button>
+  <button class="tool-btn" id="btn-rotate">360° Aylanish: ON</button>
   <button class="tool-btn" id="btn-lighting">Chiroq: Studio Cyber</button>
+  <button class="tool-btn" id="btn-skeleton">Skelet Suyaklari: OFF</button>
   <button class="tool-btn" id="btn-reset">Kamera Qaytarish</button>
 </div>
 
@@ -225,19 +271,18 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const canvas = document.getElementById('webgl-canvas');
 const loaderOverlay = document.getElementById('loader-overlay');
 const statAnim = document.getElementById('stat-anim');
 
-// 1. Scene & Camera Setup
+// 1. Scene, Camera & ACES Filmic Renderer
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0c12);
-scene.fog = new THREE.FogExp2(0x0a0c12, 0.08);
+scene.background = new THREE.Color(0x07090e);
+scene.fog = new THREE.FogExp2(0x07090e, 0.06);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1.3, 3.2);
+camera.position.set(0, 1.25, 3.0);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -245,66 +290,64 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.2;
 
 // OrbitControls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
-controls.target.set(0, 0.95, 0);
-controls.maxPolarAngle = Math.PI / 2 + 0.05; // Don't go completely below floor
-controls.minDistance = 0.8;
-controls.maxDistance = 6.0;
+controls.target.set(0, 0.92, 0);
+controls.maxPolarAngle = Math.PI / 2 + 0.02;
+controls.minDistance = 0.5;
+controls.maxDistance = 5.5;
 
-// 2. Tactical Studio Lighting
-const ambientLight = new THREE.AmbientLight(0xdde6ed, 0.6);
+// 2. High-End Studio PBR Lighting Setup
+const ambientLight = new THREE.AmbientLight(0xd5e2ec, 0.7);
 scene.add(ambientLight);
 
-// Key Light (Cold Tactical Cyan)
-const keyLight = new THREE.DirectionalLight(0x00f0ff, 1.8);
-keyLight.position.set(2.5, 3.5, 2.5);
+// Key Light (Cyan Accent)
+const keyLight = new THREE.DirectionalLight(0x00f0ff, 2.2);
+keyLight.position.set(2.5, 4.0, 2.5);
 keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 1024;
-keyLight.shadow.mapSize.height = 1024;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
 keyLight.shadow.camera.near = 0.5;
-keyLight.shadow.camera.far = 10;
-keyLight.shadow.bias = -0.001;
+keyLight.shadow.camera.far = 8;
+keyLight.shadow.bias = -0.0005;
 scene.add(keyLight);
 
-// Fill Light (Warm Tactical Orange)
-const fillLight = new THREE.DirectionalLight(0xff9933, 1.0);
-fillLight.position.set(-3.0, 2.0, -1.5);
+// Fill Light (Warm Specular Accent)
+const fillLight = new THREE.DirectionalLight(0xff9944, 1.2);
+fillLight.position.set(-3.0, 2.5, -2.0);
 scene.add(fillLight);
 
-// Rim Light (Sharp Top Accent)
-const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
-rimLight.position.set(0, 4.0, -2.5);
+// Top Rim Light (Polycarbonate Visor & Shoulder Edge Accent)
+const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
+rimLight.position.set(0, 5.0, -3.0);
 scene.add(rimLight);
 
-// Tactical Circular Ground Grid
-const gridHelper = new THREE.GridHelper(6, 24, 0x00f0ff, 0x1f293d);
+// Floor Shadow Grid
+const gridHelper = new THREE.GridHelper(6, 24, 0x00f0ff, 0x182436);
 gridHelper.position.y = 0.001;
 scene.add(gridHelper);
 
-// Floor Shadow Receiver
 const floorGeo = new THREE.PlaneGeometry(10, 10);
-const floorMat = new THREE.ShadowMaterial({ opacity: 0.45 });
+const floorMat = new THREE.ShadowMaterial({ opacity: 0.5 });
 const floorMesh = new THREE.Mesh(floorGeo, floorMat);
 floorMesh.rotation.x = -Math.PI / 2;
 floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 
-// 3. Load GLB Model
+// 3. Load 100% Skinned PBR Model
 let characterMesh = null;
 let mixer = null;
-let currentAnim = 'idle';
-let animTime = 0;
+let actions = {};
+let activeAction = null;
+let skeletonHelper = null;
 let isWireframe = false;
 let autoRotate = true;
 
 const gltfLoader = new GLTFLoader();
-gltfLoader.setMeshoptDecoder(MeshoptDecoder);
-
 const modelUrl = 'assets/characters/tactical_operator.glb';
 
 gltfLoader.load(
@@ -315,98 +358,86 @@ gltfLoader.load(
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        
-        // Enhance tactical material
-        if (!child.material || child.material.isMeshBasicMaterial) {
-          child.material = new THREE.MeshStandardMaterial({
-            color: 0x22252a,
-            roughness: 0.4,
-            metalness: 0.6,
-          });
+        if (child.material) {
+          child.material.envMapIntensity = 1.4;
+          child.material.needsUpdate = true;
         }
       }
     });
 
     scene.add(characterMesh);
-    loaderOverlay.style.opacity = '0';
-    setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
 
-    // If skeletal animations exist
+    // Setup Skeleton Helper
+    skeletonHelper = new THREE.SkeletonHelper(characterMesh);
+    skeletonHelper.material.linewidth = 2;
+    skeletonHelper.visible = false;
+    scene.add(skeletonHelper);
+
+    // Setup Real Humanoid Skeletal Animations
     if (gltf.animations && gltf.animations.length > 0) {
       mixer = new THREE.AnimationMixer(characterMesh);
-      const action = mixer.clipAction(gltf.animations[0]);
-      action.play();
+      gltf.animations.forEach((clip) => {
+        const action = mixer.clipAction(clip);
+        actions[clip.name.toLowerCase()] = action;
+      });
+
+      // Start with idle animation
+      if (actions['idle']) {
+        actions['idle'].play();
+        activeAction = actions['idle'];
+      }
     }
+
+    loaderOverlay.style.opacity = '0';
+    setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
   },
   undefined,
   (err) => {
     console.error('Error loading GLB:', err);
-    loaderOverlay.innerHTML = `<div style="color:#ff4466;">Yuklashda xatolik yuz berdi: ${err.message}</div>`;
+    loaderOverlay.innerHTML = `<div style="color:#ff4466;">Yuklashda xatolik: ${err.message}</div>`;
   }
 );
 
-// 4. Procedural Character Movement Synthesizer
-// (Provides natural breathing, walking sway, sprint bob, and jump physics for real-time visualization)
-const clock = new THREE.Clock();
+// 4. Smooth Cross-Fade Animation Controller
+function playAnim(name) {
+  const newAction = actions[name.toLowerCase()];
+  if (!newAction || newAction === activeAction) return;
 
-function updateProceduralMotion(delta) {
-  if (!characterMesh) return;
-
-  animTime += delta;
-  
-  if (currentAnim === 'idle') {
-    // Breathing subtle chest & shoulder displacement
-    const breath = Math.sin(animTime * 2.2) * 0.008;
-    characterMesh.position.y = breath;
-    characterMesh.rotation.y += (autoRotate ? delta * 0.4 : 0);
-    characterMesh.rotation.z = Math.sin(animTime * 1.5) * 0.005;
-  } 
-  else if (currentAnim === 'walk') {
-    // Rhythmic tactical patrol march
-    const walkFreq = 5.0;
-    const bob = Math.abs(Math.sin(animTime * walkFreq)) * 0.035;
-    const sway = Math.sin(animTime * (walkFreq * 0.5)) * 0.02;
-    characterMesh.position.y = bob;
-    characterMesh.rotation.z = sway;
-    characterMesh.rotation.x = 0.04; // Slight forward lean
-    characterMesh.rotation.y += (autoRotate ? delta * 0.6 : 0);
-  } 
-  else if (currentAnim === 'run') {
-    // Energetic tactical sprint oscillation
-    const runFreq = 9.0;
-    const bob = Math.abs(Math.sin(animTime * runFreq)) * 0.07;
-    const roll = Math.sin(animTime * (runFreq * 0.5)) * 0.045;
-    characterMesh.position.y = bob;
-    characterMesh.rotation.z = roll;
-    characterMesh.rotation.x = 0.12; // Pronounced forward sprint lean
-    characterMesh.rotation.y += (autoRotate ? delta * 0.8 : 0);
-  } 
-  else if (currentAnim === 'jump') {
-    // Parabolic physics leap & landing
-    const jumpCycle = (animTime * 1.8) % 2.0;
-    if (jumpCycle < 1.0) {
-      // Ascend and descend: 4 * h * t * (1 - t)
-      const t = jumpCycle;
-      const jumpY = 4 * 0.45 * t * (1.0 - t);
-      characterMesh.position.y = jumpY;
-      characterMesh.rotation.x = -0.06;
-    } else {
-      // Touchdown recovery
-      characterMesh.position.y = 0;
-      characterMesh.rotation.x = 0;
-    }
-    characterMesh.rotation.y += (autoRotate ? delta * 0.3 : 0);
+  if (activeAction) {
+    activeAction.fadeOut(0.2);
   }
+  newAction.reset().fadeIn(0.2).play();
+  activeAction = newAction;
+  statAnim.innerText = name.toUpperCase();
 }
 
-// 5. Animation Switcher
+// Animation Buttons Click Handler
 document.querySelectorAll('.btn-anim').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.btn-anim').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    currentAnim = btn.dataset.anim;
-    animTime = 0;
-    statAnim.innerText = currentAnim.toUpperCase();
+    playAnim(btn.dataset.anim);
+  });
+});
+
+// 5. Camera Focus Presets
+const camPresets = {
+  full: { pos: [0, 1.25, 3.0], target: [0, 0.92, 0] },
+  head: { pos: [0, 1.62, 0.9], target: [0, 1.62, 0] },
+  chest: { pos: [0, 1.25, 1.1], target: [0, 1.25, 0] },
+  boots: { pos: [0, 0.25, 1.1], target: [0, 0.15, 0] },
+};
+
+document.querySelectorAll('.cam-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = camPresets[btn.dataset.target];
+    if (target) {
+      camera.position.set(...target.pos);
+      controls.target.set(...target.target);
+      controls.update();
+    }
   });
 });
 
@@ -426,7 +457,7 @@ btnWireframe.addEventListener('click', () => {
 const btnRotate = document.getElementById('btn-rotate');
 btnRotate.addEventListener('click', () => {
   autoRotate = !autoRotate;
-  btnRotate.innerText = `Auto-Rotate: ${autoRotate ? 'ON' : 'OFF'}`;
+  btnRotate.innerText = `360° Aylanish: ${autoRotate ? 'ON' : 'OFF'}`;
   btnRotate.classList.toggle('active', autoRotate);
 });
 
@@ -437,7 +468,7 @@ btnLighting.addEventListener('click', () => {
   if (lightingMode === 0) {
     btnLighting.innerText = 'Chiroq: Studio Cyber';
     keyLight.color.setHex(0x00f0ff);
-    fillLight.color.setHex(0xff9933);
+    fillLight.color.setHex(0xff9944);
   } else if (lightingMode === 1) {
     btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
     keyLight.color.setHex(0xffffff);
@@ -449,10 +480,19 @@ btnLighting.addEventListener('click', () => {
   }
 });
 
+const btnSkeleton = document.getElementById('btn-skeleton');
+btnSkeleton.addEventListener('click', () => {
+  if (skeletonHelper) {
+    skeletonHelper.visible = !skeletonHelper.visible;
+    btnSkeleton.innerText = `Skelet Suyaklari: ${skeletonHelper.visible ? 'ON' : 'OFF'}`;
+    btnSkeleton.classList.toggle('active', skeletonHelper.visible);
+  }
+});
+
 const btnReset = document.getElementById('btn-reset');
 btnReset.addEventListener('click', () => {
-  camera.position.set(0, 1.3, 3.2);
-  controls.target.set(0, 0.95, 0);
+  camera.position.set(0, 1.25, 3.0);
+  controls.target.set(0, 0.92, 0);
   controls.update();
 });
 
@@ -464,11 +504,14 @@ window.addEventListener('resize', () => {
 });
 
 // 7. Render Loop
+const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
-  updateProceduralMotion(delta);
+  if (autoRotate && characterMesh) {
+    characterMesh.rotation.y += delta * 0.35;
+  }
   controls.update();
   renderer.render(scene, camera);
 }
