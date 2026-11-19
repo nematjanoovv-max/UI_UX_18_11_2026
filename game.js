@@ -2083,11 +2083,33 @@
         else if (k === 'b') this.triggerSkill('orbital');
         else if (k === 'n') this.triggerSkill('drone');
         else if (k === 'h') this.hero.selected = !this.hero.selected;
-        else if (e.key === 'Tab') {
+        else if (k === 'f') {
+          e.preventDefault();
+          this.toggleFullscreen();
+        } else if (k === 'm') {
+          e.preventDefault();
+          audio.toggleSFX();
+          audio.toggleBGM();
+          const isMuted = audio.sfxMuted && audio.bgmMuted;
+          this.addFloatingText(isMuted ? "🔇 OVOZ O'CHIRILDI" : "🔊 OVOZ YOQILDI", 640, 100, isMuted ? "#ff5252" : "#00e676", 18);
+        } else if (e.key === 'Tab') {
           e.preventDefault();
           this.cycleSpeed();
         }
       });
+
+      // Mouse Wheel for Desktop Web Players (Tower Selection cycling)
+      this.canvas.addEventListener('wheel', (e) => {
+        if (this.state === 'PLAYING') {
+          const types = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
+          if (this.selectedBuildType) {
+            let idx = types.indexOf(this.selectedBuildType);
+            if (e.deltaY > 0) idx = (idx + 1) % types.length;
+            else idx = (idx - 1 + types.length) % types.length;
+            this.selectBuildType(types[idx]);
+          }
+        }
+      }, { passive: true });
     }
 
     startMission(mapIdx = 0, mode = 'CAMPAIGN') {
@@ -2277,6 +2299,15 @@
         audio.click();
         this.vibrate(10);
       }
+      // Right-click cancel / deselect for PC desktop web players
+      if (isRightClick) {
+        if (this.aimingSkill) { this.aimingSkill = null; return; }
+        if (this.selectedBuildType) { this.selectedBuildType = null; return; }
+        if (this.radialBuildCell) { this.radialBuildCell = null; return; }
+        if (this.selectedTower) { this.selectedTower = null; return; }
+        if (this.hero && this.hero.selected) { this.hero.selected = false; return; }
+        return;
+      }
       // If Settings Modal is open -> handle settings interactions
       if (this.showSettingsModal) {
         this.handleSettingsClick(x, y);
@@ -2393,8 +2424,23 @@
           }
         }
 
+        // Fullscreen Toggle (x: 880 to 970, y: 18 to 52)
+        if (x >= 880 && x <= 970 && y >= 18 && y <= 52) {
+          this.toggleFullscreen();
+          audio.click();
+          return;
+        }
+
+        // Quick Audio Mute / Unmute (x: 980 to 1080, y: 18 to 52)
+        if (x >= 980 && x <= 1080 && y >= 18 && y <= 52) {
+          audio.toggleSFX();
+          audio.toggleBGM();
+          audio.click();
+          return;
+        }
+
         // Language Switcher Top Right
-        if (x >= 1130 && x <= 1240 && y >= 18 && y <= 52) {
+        if (x >= 1085 && x <= 1245 && y >= 18 && y <= 52) {
           this.toggleLanguage();
           return;
         }
@@ -3554,26 +3600,60 @@
       }
     }
 
+    toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+          const docEl = document.documentElement;
+          if (docEl.requestFullscreen) {
+            docEl.requestFullscreen().catch(() => {});
+          } else if (docEl.webkitRequestFullscreen) {
+            docEl.webkitRequestFullscreen();
+          }
+          if (this.addFloatingText) this.addFloatingText("⛶ FULLSCREEN FAOL", 640, 100, "#00e5ff", 18);
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+          if (this.addFloatingText) this.addFloatingText("WINDOWED REJIM", 640, 100, "#ffd600", 18);
+        }
+      } catch (err) {}
+      setTimeout(() => this.resizeCanvas(), 120);
+    }
+
     downloadApk() {
       if (typeof window !== 'undefined' && window.AndroidBridge) {
         if (this.addFloatingText) this.addFloatingText("Siz Android APK dasiz (v4.1.0)!", 640, 360, "#00e676", 18);
         return;
       }
+      const isWeb = typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http');
+      const url = (isWeb && window.location.hostname.includes('vercel'))
+        ? 'https://raw.githubusercontent.com/nematjanoovv-max/UI_UX_18_11_2026/main/TowerDefense_LastGrid_v4.1.0.apk'
+        : 'TowerDefense_LastGrid_v4.1.0.apk';
       const a = document.createElement('a');
-      a.href = 'TowerDefense_LastGrid_v4.1.0.apk';
+      a.href = url;
       a.download = 'TowerDefense_LastGrid_v4.1.0.apk';
+      a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      if (this.addFloatingText) this.addFloatingText("APK YUKLAB OLINMOQDA (v4.1.0)...", 640, 360, "#00e676", 18);
     }
 
     downloadOfflineZip() {
+      const isWeb = typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http');
+      const url = (isWeb && window.location.hostname.includes('vercel'))
+        ? 'last-grid-offline-v2.zip'
+        : 'last-grid-offline-v2.zip';
       const a = document.createElement('a');
-      a.href = 'last-grid-offline-v2.zip';
+      a.href = url;
       a.download = 'last-grid-offline-v2.zip';
+      a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      if (this.addFloatingText) this.addFloatingText("OFFLINE ZIP YUKLAB OLINMOQDA...", 640, 360, "#ffd600", 18);
     }
 
     handleEditorClick(x, y) {
@@ -9714,16 +9794,20 @@
       ctx.restore();
 
       // Version in separate pill badge
-      this.renderMiniButton(390, 24, 75, 24, "v4.1.0", "#ff007f");
+      this.renderMiniButton(370, 22, 65, 26, "v4.1.0", "#ff007f");
 
       // Commander Name & Status Badge
-      ctx.fillStyle = "#cfd8dc";
-      ctx.font = "bold 13px monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`KOMANDIR: ${this.playerName.toUpperCase()}  |  HQ STATUS: ONLINE`, 1110, 42);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`KOMANDIR: ${this.playerName.toUpperCase()}`, 450, 42);
 
-      // Lang Button
-      this.renderMiniButton(1130, 18, 110, 34, `LANG: ${this.lang.toUpperCase()}`, "#ffd600");
+      // Web Controls in Top Header: Fullscreen & Audio & Language
+      const isFull = !!(typeof document !== 'undefined' && (document.fullscreenElement || document.webkitFullscreenElement));
+      this.renderMiniButton(880, 18, 90, 34, isFull ? "⛶ WINDOW" : "⛶ FULL", "#00e5ff");
+      const isMuted = audio.sfxMuted && audio.bgmMuted;
+      this.renderMiniButton(980, 18, 95, 34, isMuted ? "🔇 MUTE" : "🔊 OVOZ", isMuted ? "#ff5252" : "#00e676");
+      this.renderMiniButton(1085, 18, 155, 34, `🌐 LANG: ${this.lang.toUpperCase()}`, "#ffd600");
 
       // =========================================================================
       // 3. LEFT HERO SHOWCASE HANGAR (x: 40 to 420, y: 88 to 680)
