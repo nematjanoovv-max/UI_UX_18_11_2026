@@ -1,39 +1,44 @@
 ================================================================================
 LOYIHA NOMI:
-07. Tower Defense: Last Grid — Kiber-Neon Taktik Strategiya & 3D TPS Shooter
-Versiya: v3.7.0 (Ultimate Mobile Ergonomics & Adaptive Reliz)
-Sana: 2026-11-18
+Tower Defense: Last Grid & APEX-01 Transformer Mech Studio
+Versiya: v4.1.0 (AAA Fotorealistik Reliz)
+Sana: 2026-11-19
 ================================================================================
 
 1. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
-https://last-grid-td.vercel.app/TowerDefense_LastGrid_v3.7.0.apk
-Qisqa havola:
+https://last-grid-td.vercel.app/TowerDefense_LastGrid_v4.1.0.apk
+Qisqa universal havola:
 https://last-grid-td.vercel.app/last-grid.apk
 
 2. GITHUB REPOZITORIY HAVOLASI:
 https://github.com/nematjanoovv-max/UI_UX_18_11_2026
 
-3. VERCEL LIVE (ISHLAYOTGAN JONLI SAYT VA PWA):
+3. VERCEL LIVE (ASOSIY O'YIN):
 https://last-grid-td.vercel.app
 
-4. LIVE GLOBAL LEADERBOARD API:
-https://last-grid-td.vercel.app/api
+4. 3D APEX-01 TRANSFORMER MECH STUDIYA (360°):
+https://last-grid-td.vercel.app/preview_character
 
 5. TO'LIQ OFLAYN O'YIN PAKETI (ZIP):
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-ANDROID APK IMKONIYATLARI VA O'RNATISH QO'LLANMASI:
+ASOSIY IMKONIYATLAR (v4.1.0):
 
-1. 📲 O'rnatish:
-   - Yuqoridagi APK havolasini bosing yoki Vercel saytidagi "📲 ANDROID APK" tugmasini bosing.
-   - Yuklangan `TowerDefense_LastGrid_v3.7.0.apk` faylini ochib, "O'rnatish" (Install) tugmasini bosing.
-   - Ilova telefoningiz ishchi stolida "Tower Defense: Last Grid" nomi va kiber-minora ikonasi bilan paydo bo'ladi.
+1. 🤖 APEX-01 Transformer Mech (3D Fotorealistik):
+   - 1024x1024 PBR Normal xaritalar, panel choklari va bo'yoq qirilishi (Edge Wear).
+   - Dinamik teleskopik gidravlik porshenlar (qadam tashlashda real vaqtda kirib-chiqadi).
+   - 3 trubkali aylanma Gatling to'plari va otilgan jez gilzalar fizikasi.
+   - UnrealBloomPass HDR nurlanishi va studiya yoritish rejimlari.
+   - Har qanday telefon ekraniga 100% moslashuvchan zum va D-PAD boshqaruvi.
 
-2. 🚀 Yangiliklar (v3.7.0):
-   - Har qanday telefon ekraniga moslashuvchan interfeys (FIT / FILL rejimlar, AMOLED 20:9 qo'llab-quvvatlash).
-   - Yangi to'liq Sozlamalar menyusi (Ovoz, Musiqa, Haptika, FPS, Til, Ekran rejimi).
-   - Universal Android "Orqaga" tugmasi xavfsiz pauza va navigatsiya bilan ta'minlandi.
-   - Katta, qulay barmoq/bosh barmoq tugmalari (Top HUD, Bottom Barricade, 3D TPS boshqaruvi).
-   - 100% Oflayn mustaqil APK — internet umuman shart emas!
+2. 🎮 Tower Defense & 3D TPS Arena:
+   - 10 ta sektor, 3 ta biom, Roguelike kartalar va kuchaytirishlar.
+   - Cheksiz omon qolish rejimi va Boss Rush.
+   - Qahramonni to'g'ridan-to'g'ri boshqarish (Kinetic Dash, Orbital Lazer).
+
+3. 📲 Android APK:
+   - 100% oflayn — internet talab qilinmaydi.
+   - Rasmiy Google apksigner (v1 + v2 + v3) bilan imzolangan.
+   - Fon rejimida quvvat tejovchi avto-muzlatish tizimi.
 ================================================================================

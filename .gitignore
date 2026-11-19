@@ -8,18 +8,10 @@ export/
 *.exe
 *.pck
 
-# APK tracking
+# APK tracking (Only latest release & canonical alias)
 *.apk
-!TowerDefense_LastGrid_v3.5.0.apk
-!TowerDefense_LastGrid_v3.6.0.apk
-!TowerDefense_LastGrid_v3.7.0.apk
-!TowerDefense_LastGrid_v4.0.0.apk
 !TowerDefense_LastGrid_v4.1.0.apk
 !last-grid.apk
-!web/TowerDefense_LastGrid_v3.5.0.apk
-!web/TowerDefense_LastGrid_v3.6.0.apk
-!web/TowerDefense_LastGrid_v3.7.0.apk
-!web/TowerDefense_LastGrid_v4.0.0.apk
 !web/TowerDefense_LastGrid_v4.1.0.apk
 !web/last-grid.apk
 *.idsig
@@ -43,7 +35,7 @@ Thumbs.db
 *.swp
 *~
 
-# Test logs / temp
+# Temporary & build caches
 .import/
 .vercel
 apk_build/
@@ -51,3 +43,6 @@ android_project/build/
 android_project/gen/
 android_project/test*
 .tmp/
+manual_drop/
+__pycache__/
+*.pyc
