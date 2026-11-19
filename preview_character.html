@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Tactical Operator — 100% Realistik AAA 3D Studio</title>
+<title>CS2 Taktik Studiya — Realistik Mocap Personaj & PBR Studiya</title>
 <style>
   :root {
     --bg-dark: #07090e;
@@ -23,7 +23,7 @@
   body, html {
     width: 100%; height: 100%;
     overflow: hidden;
-    background: radial-gradient(circle at center, #121829 0%, #05070a 100%);
+    background: radial-gradient(circle at 50% 35%, #151e2e 0%, #080c14 55%, #040508 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
@@ -36,15 +36,15 @@
   /* Top Left HUD */
   #header-hud {
     position: absolute;
-    top: 12px; left: 12px;
+    top: 14px; left: 14px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 10px 14px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
     z-index: 10;
-    max-width: 300px;
+    max-width: 320px;
   }
   #header-hud h1 {
     font-size: 13px;
@@ -72,15 +72,15 @@
   /* Right Stats Panel */
   #stats-panel {
     position: absolute;
-    top: 12px; right: 12px;
+    top: 14px; right: 14px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
     padding: 10px 14px;
     font-size: 11px;
-    min-width: 210px;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    min-width: 220px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
     z-index: 10;
   }
   .stat-row {
@@ -95,7 +95,7 @@
   .stat-val.badge {
     background: rgba(0, 240, 255, 0.15);
     color: var(--cyan);
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
     border: 1px solid rgba(0, 240, 255, 0.3);
   }
@@ -103,11 +103,11 @@
   /* Camera Presets Dock (Top Center) */
   #cam-dock {
     position: absolute;
-    top: 12px;
+    top: 14px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 4px;
+    gap: 5px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 20px;
@@ -119,7 +119,7 @@
     background: transparent;
     border: none;
     color: var(--text-dim);
-    padding: 5px 9px;
+    padding: 6px 10px;
     border-radius: 14px;
     font-size: 10px;
     cursor: pointer;
@@ -143,20 +143,20 @@
     gap: 6px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
-    border-radius: 28px;
+    border-radius: 30px;
     padding: 6px 12px;
     z-index: 10;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.85);
   }
   .btn-anim {
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 8px 14px;
+    padding: 8px 15px;
     border-radius: 20px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.05em;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -172,11 +172,22 @@
     border-color: var(--cyan);
     box-shadow: 0 0 16px var(--cyan-glow);
   }
+  .btn-anim.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: rgba(255,255,255,0.1);
+    color: var(--text-dim);
+  }
+  .btn-anim.disabled:hover {
+    background: transparent;
+    border-color: rgba(255,255,255,0.1);
+    color: var(--text-dim);
+  }
 
   /* Left Floating Tools */
   #tools-dock {
     position: absolute;
-    bottom: 16px; left: 12px;
+    bottom: 16px; left: 14px;
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -186,7 +197,7 @@
     background: var(--panel-bg);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 6px 10px;
+    padding: 7px 11px;
     border-radius: 6px;
     font-size: 10px;
     cursor: pointer;
@@ -196,11 +207,28 @@
   .tool-btn:hover { border-color: var(--cyan); color: var(--cyan); }
   .tool-btn.active { border-color: var(--cyan); background: rgba(0,240,255,0.25); color: var(--cyan); }
 
+  /* Keyboard Helper Badge */
+  #key-helper {
+    position: absolute;
+    bottom: 16px; right: 14px;
+    background: var(--panel-bg);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 10px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+  }
+  #key-helper span { color: var(--cyan); font-weight: 600; font-family: monospace; }
+
   /* Loading Spinner & Progress Overlay */
   #loader-overlay {
     position: absolute;
     inset: 0;
-    background: #07090e;
+    background: #06080d;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -278,6 +306,7 @@
     #anim-dock { bottom: 12px; }
     .btn-anim { padding: 7px 11px; font-size: 10px; }
     #tools-dock { display: none; }
+    #key-helper { display: none; }
   }
 </style>
 
@@ -308,14 +337,12 @@
     if (errMsg) errMsg.innerText = e.reason && e.reason.message ? e.reason.message : String(e.reason);
   });
 
-  // Watchdog timer: If after 12s model is still not loaded
+  // Watchdog timer
   setTimeout(function() {
     if (!window.__threeLoaded) {
-      var spinner = document.getElementById('loader-spinner');
       var status = document.getElementById('loader-status');
       var errBox = document.getElementById('error-box');
       var errMsg = document.getElementById('error-msg');
-      var fill = document.getElementById('progress-bar-fill');
       if (status && status.innerText.indexOf("YUKLANMOQDA") !== -1) {
         status.innerText = "Yuklash kutilganidan uzoqroq davom etmoqda...";
         if (errBox) {
@@ -324,7 +351,7 @@
         }
       }
     }
-  }, 12000);
+  }, 14000);
 </script>
 
 <script type="importmap">
@@ -341,11 +368,11 @@
 <!-- Loader Overlay with Real Progress Bar -->
 <div id="loader-overlay">
   <div class="spinner" id="loader-spinner"></div>
-  <div id="loader-status">TACTICAL OPERATOR YUKLANMOQDA...</div>
+  <div id="loader-status">CS2 TAKTIK PERSONAJ YUKLANMOQDA...</div>
   <div id="progress-bar-container">
     <div id="progress-bar-fill"></div>
   </div>
-  <div id="loader-pct">Yuklanmoqda... 0% (1.2 MB)</div>
+  <div id="loader-pct">Yuklanmoqda... 0% (2.1 MB)</div>
   <div id="error-box">
     <div id="error-msg"></div>
     <button class="retry-btn" onclick="location.reload(true)">Qayta yuklash ⟳</button>
@@ -356,28 +383,26 @@
 
 <!-- Header HUD -->
 <div id="header-hud">
-  <h1>Tactical Operator</h1>
-  <div class="subtitle">100% Realistik AAA · 2048x2048 PBR · 19 Suyakli Skelet</div>
+  <h1>CS2 TAKTIK STUDIYA</h1>
+  <div class="subtitle">Source 2 PBR Muhit · Real Mocap Skelet · 60 FPS</div>
 </div>
 
 <!-- Camera Focus Presets -->
 <div id="cam-dock">
   <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y</button>
   <button class="cam-btn" data-target="head">🪖 Visor (Head)</button>
-  <button class="cam-btn" data-target="chest">🛡️ Bronjilet</button>
-  <button class="cam-btn" data-target="boots">🥾 Etik</button>
+  <button class="cam-btn" data-target="chest">🛡️ Zirh (Chest)</button>
+  <button class="cam-btn" data-target="boots">🥾 Etik (Boots)</button>
 </div>
 
 <!-- Stats Panel -->
 <div id="stats-panel">
-  <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val">tactical_operator.glb</span></div>
-  <div class="stat-row"><span class="stat-label">PBR Tekstura:</span><span class="stat-val badge">Albedo+Normal+MR+AO</span></div>
-  <div class="stat-row"><span class="stat-label">Hajm:</span><span class="stat-val">2048 x 2048 HD</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val">1.75 m (Oyoq Y=0)</span></div>
-  <div class="stat-row"><span class="stat-label">Skelet:</span><span class="stat-val">19 Humanoid Suyak</span></div>
-  <div class="stat-row"><span class="stat-label">Animatsiyalar:</span><span class="stat-val">idle, walk, run, jump</span></div>
-  <div class="stat-row"><span class="stat-label">Hajmi (MB):</span><span class="stat-val">1.24 MB (Optimized)</span></div>
-  <div class="stat-row"><span class="stat-label">Holat:</span><span class="stat-val" id="stat-anim" style="color:var(--green);">IDLE</span></div>
+  <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val badge" id="stat-model">Soldier Real</span></div>
+  <div class="stat-row"><span class="stat-label">Frame Rate:</span><span class="stat-val" id="stat-fps" style="color:var(--green)">60 FPS</span></div>
+  <div class="stat-row"><span class="stat-label">Suyaklar (Joints):</span><span class="stat-val" id="stat-joints">51 Suyak</span></div>
+  <div class="stat-row"><span class="stat-label">Poligonlar (Tris):</span><span class="stat-val" id="stat-triangles">--</span></div>
+  <div class="stat-row"><span class="stat-label">Bo'yi (Height):</span><span class="stat-val" id="stat-height">1.75 m (Oyoq Y=0)</span></div>
+  <div class="stat-row"><span class="stat-label">Harakat:</span><span class="stat-val" id="stat-anim" style="color:var(--green)">IDLE</span></div>
 </div>
 
 <!-- Animation Dock -->
@@ -385,24 +410,32 @@
   <button class="btn-anim active" data-anim="idle">▶ IDLE</button>
   <button class="btn-anim" data-anim="walk">▶ WALK</button>
   <button class="btn-anim" data-anim="run">▶ RUN</button>
-  <button class="btn-anim" data-anim="jump">▲ JUMP</button>
+  <button class="btn-anim" data-anim="jump" id="btn-jump">▲ JUMP</button>
 </div>
 
 <!-- Tools Dock -->
 <div id="tools-dock">
+  <button class="tool-btn active" id="btn-rotate">360° Aylanish: ON</button>
   <button class="tool-btn" id="btn-wireframe">Wireframe: OFF</button>
-  <button class="tool-btn" id="btn-rotate">360° Aylanish: ON</button>
-  <button class="tool-btn" id="btn-lighting">Chiroq: Studio Cyber</button>
-  <button class="tool-btn" id="btn-skeleton">Skelet: OFF</button>
+  <button class="tool-btn" id="btn-lighting">Chiroq: CS2 Studiya</button>
   <button class="tool-btn" id="btn-reset">Kamera Qaytarish</button>
+</div>
+
+<!-- Keyboard helper badge -->
+<div id="key-helper">
+  <span>⌨️ W: Yurish</span>
+  <span>Shift+W: Yugurish</span>
+  <span>Space: Sakrash</span>
 </div>
 
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// DOM elements
+// DOM Elements
 const canvas = document.getElementById('webgl-canvas');
 const loaderOverlay = document.getElementById('loader-overlay');
 const loaderSpinner = document.getElementById('loader-spinner');
@@ -411,7 +444,13 @@ const loaderPct = document.getElementById('loader-pct');
 const progressBarFill = document.getElementById('progress-bar-fill');
 const errorBox = document.getElementById('error-box');
 const errorMsg = document.getElementById('error-msg');
+const statModel = document.getElementById('stat-model');
+const statFps = document.getElementById('stat-fps');
+const statJoints = document.getElementById('stat-joints');
+const statTriangles = document.getElementById('stat-triangles');
+const statHeight = document.getElementById('stat-height');
 const statAnim = document.getElementById('stat-anim');
+const btnJump = document.getElementById('btn-jump');
 
 function showError(msg) {
   if (loaderSpinner) loaderSpinner.style.display = 'none';
@@ -420,197 +459,439 @@ function showError(msg) {
   if (errorMsg) errorMsg.innerText = msg;
 }
 
-// 1. Scene, Camera, Renderer
+// 1. Scene, Camera, Renderer (CS2 Source 2 PBR Settings)
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x07090e);
-scene.fog = new THREE.FogExp2(0x07090e, 0.05);
+scene.fog = new THREE.FogExp2(0x07090e, 0.04);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1.25, 3.0);
+camera.position.set(0, 1.25, 3.1);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.25;
 
-// Controls
+// RoomEnvironment HDRI reflections
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
+const roomEnv = new RoomEnvironment(renderer);
+scene.environment = pmremGenerator.fromScene(roomEnv, 0.04).texture;
+roomEnv.dispose();
+pmremGenerator.dispose();
+
+// OrbitControls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.target.set(0, 0.92, 0);
 controls.maxPolarAngle = Math.PI / 2 + 0.02;
-controls.minDistance = 0.5;
-controls.maxDistance = 5.5;
+controls.minDistance = 0.7;
+controls.maxDistance = 5.2;
 
-// 2. High-End Studio PBR Lighting Setup
-const ambientLight = new THREE.AmbientLight(0xd5e2ec, 0.75);
-scene.add(ambientLight);
+// 2. CS2 3-Point Tactical Studio Lighting
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x111622, 0.45);
+scene.add(hemiLight);
 
-// Key Light (Cyan)
-const keyLight = new THREE.DirectionalLight(0x00f0ff, 2.2);
-keyLight.position.set(2.5, 4.0, 2.5);
+// Key Light (Warm Main Sunlight/Studio Light)
+const keyLight = new THREE.DirectionalLight(0xfff2df, 2.4);
+keyLight.position.set(2.5, 4.2, 2.6);
 keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 1024;
-keyLight.shadow.mapSize.height = 1024;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.bias = -0.0001;
 keyLight.shadow.camera.near = 0.5;
-keyLight.shadow.camera.far = 8;
+keyLight.shadow.camera.far = 10;
+keyLight.shadow.camera.left = -2.2;
+keyLight.shadow.camera.right = 2.2;
+keyLight.shadow.camera.top = 2.5;
+keyLight.shadow.camera.bottom = -0.5;
 scene.add(keyLight);
 
-// Fill Light (Warm Specular)
-const fillLight = new THREE.DirectionalLight(0xff9944, 1.2);
-fillLight.position.set(-3.0, 2.5, -2.0);
+// Fill Light (Cool Shadow Balancer)
+const fillLight = new THREE.DirectionalLight(0x88bbff, 1.1);
+fillLight.position.set(-3.0, 2.2, -1.5);
 scene.add(fillLight);
 
-// Top Rim Light
-const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
-rimLight.position.set(0, 5.0, -3.0);
+// Rim Light (CS2 Signature Cyan Contour Light)
+const rimLight = new THREE.DirectionalLight(0x00f0ff, 3.0);
+rimLight.position.set(0.0, 3.5, -3.2);
 scene.add(rimLight);
 
 // Floor Grid & Shadow Plane
-const gridHelper = new THREE.GridHelper(6, 24, 0x00f0ff, 0x182436);
-gridHelper.position.y = 0.001;
-scene.add(gridHelper);
-
-const floorGeo = new THREE.PlaneGeometry(10, 10);
-const floorMat = new THREE.ShadowMaterial({ opacity: 0.5 });
+const floorGeo = new THREE.PlaneGeometry(12, 12);
+const floorMat = new THREE.ShadowMaterial({ opacity: 0.45 });
 const floorMesh = new THREE.Mesh(floorGeo, floorMat);
 floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.position.y = 0.0;
 floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 
-// 3. Robust Multi-Path GLB Loader with Cache-Busting
-let characterMesh = null;
+const gridHelper = new THREE.GridHelper(8, 32, 0x00f0ff, 0x162335);
+gridHelper.position.y = 0.001;
+scene.add(gridHelper);
+
+// Character Root Group
+const characterGroup = new THREE.Group();
+scene.add(characterGroup);
+
+let characterModel = null;
 let mixer = null;
 let actions = {};
-let activeAction = null;
-let skeletonHelper = null;
-let isWireframe = false;
+let currentAction = null;
+let currentAnimName = 'idle';
 let autoRotate = true;
+let isWireframe = false;
 
+// 3. Hybrid Loader (Priority 1: Mixamo SWAT FBX -> Priority 2: Soldier.glb)
 const gltfLoader = new GLTFLoader();
+const fbxLoader = new FBXLoader();
 
 const cacheTag = 'v=' + Date.now();
-const candidateUrls = [
-  'assets/characters/tactical_operator.glb?' + cacheTag,
-  './assets/characters/tactical_operator.glb?' + cacheTag,
-  '/assets/characters/tactical_operator.glb?' + cacheTag,
-  'web/assets/characters/tactical_operator.glb?' + cacheTag,
-  '/web/assets/characters/tactical_operator.glb?' + cacheTag
+
+const glbCandidates = [
+  'assets/characters/soldier_real.glb?' + cacheTag,
+  './assets/characters/soldier_real.glb?' + cacheTag,
+  '/assets/characters/soldier_real.glb?' + cacheTag,
+  'web/assets/characters/soldier_real.glb?' + cacheTag,
+  '/web/assets/characters/soldier_real.glb?' + cacheTag
 ];
 
-function tryLoadModel(urlIndex) {
-  if (urlIndex >= candidateUrls.length) {
-    showError("Model fayli serverdan topilmadi (404). Iltimos, sahifani qayta yangilang.");
+// Check if Mixamo SWAT idle.fbx exists
+async function checkSWATExists() {
+  try {
+    const res = await fetch('assets/characters/swat/idle.fbx?' + cacheTag, { method: 'HEAD' });
+    if (res.ok) return true;
+    if (res.status === 405) {
+      const g = await fetch('assets/characters/swat/idle.fbx?' + cacheTag, { method: 'GET' });
+      return g.ok;
+    }
+  } catch (e) {
+    console.log('[SWAT Check] idle.fbx topilmadi, Soldier.glb ga o\'tiladi');
+  }
+  return false;
+}
+
+function handleProgress(xhr, defaultMb) {
+  if (xhr.lengthComputable && xhr.total > 0) {
+    const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+    progressBarFill.style.width = `${pct}%`;
+    loaderPct.innerText = `Yuklanmoqda... ${pct}% (${(xhr.loaded / 1024 / 1024).toFixed(2)} MB / ${(xhr.total / 1024 / 1024).toFixed(2)} MB)`;
+  } else if (xhr.loaded > 0) {
+    const mb = (xhr.loaded / 1024 / 1024).toFixed(2);
+    progressBarFill.style.width = '70%';
+    loaderPct.innerText = `Yuklanmoqda... (${mb} MB qabul qilindi)`;
+  } else {
+    progressBarFill.style.width = '35%';
+    loaderPct.innerText = `Model ma'lumotlari qabul qilinmoqda...`;
+  }
+}
+
+function finishLoading() {
+  progressBarFill.style.width = '100%';
+  loaderPct.innerText = 'Yuklandi! 100%';
+  setTimeout(() => {
+    loaderOverlay.style.opacity = '0';
+    setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
+  }, 200);
+}
+
+// Setup and auto-normalize character
+function setupCharacter(model, modelDisplayName, animations, isSoldier) {
+  characterModel = model;
+
+  // 1. Auto-normalization via Box3 to exact 1.75m height
+  const initialBox = new THREE.Box3().setFromObject(model);
+  const size = new THREE.Vector3();
+  initialBox.getSize(size);
+
+  const targetHeight = 1.75;
+  const scale = size.y > 0 ? targetHeight / size.y : 1.0;
+  model.scale.setScalar(scale);
+
+  // Re-measure after scaling
+  const scaledBox = new THREE.Box3().setFromObject(model);
+  const center = new THREE.Vector3();
+  scaledBox.getCenter(center);
+
+  // Position: feet at exact Y=0, centered on X and Z
+  model.position.y = -scaledBox.min.y;
+  model.position.x = -center.x;
+  model.position.z = -center.z;
+
+  characterGroup.clear();
+  characterGroup.add(model);
+
+  // Orientation: Soldier.glb standard faces -Z; rotate Math.PI to face camera (+Z)
+  if (isSoldier) {
+    characterGroup.rotation.y = Math.PI;
+  } else {
+    characterGroup.rotation.y = 0;
+  }
+
+  // 2. Traversal: Shadows, Frustum Culling, Materials, Stats
+  let jointsCount = 0;
+  let trianglesCount = 0;
+  const countedSkeletons = new Set();
+
+  model.traverse((child) => {
+    if (child.isMesh || child.isSkinnedMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      child.frustumCulled = false;
+
+      if (child.geometry) {
+        if (child.geometry.index) {
+          trianglesCount += child.geometry.index.count / 3;
+        } else if (child.geometry.attributes && child.geometry.attributes.position) {
+          trianglesCount += child.geometry.attributes.position.count / 3;
+        }
+      }
+
+      if (child.skeleton && !countedSkeletons.has(child.skeleton)) {
+        countedSkeletons.add(child.skeleton);
+        jointsCount += child.skeleton.bones.length;
+      }
+
+      if (child.material) {
+        child.material.envMapIntensity = 1.2;
+        child.material.needsUpdate = true;
+      }
+    }
+  });
+
+  // 3. Setup AnimationMixer & Humanoid Clips
+  mixer = new THREE.AnimationMixer(model);
+  actions = {};
+
+  if (animations && animations.length > 0) {
+    animations.forEach((clip) => {
+      const lower = clip.name.toLowerCase();
+      const action = mixer.clipAction(clip);
+      actions[lower] = action;
+
+      if (lower.includes('idle')) actions['idle'] = action;
+      if (lower.includes('walk')) actions['walk'] = action;
+      if (lower.includes('run')) actions['run'] = action;
+      if (lower.includes('jump')) {
+        actions['jump'] = action;
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+      }
+    });
+  }
+
+  // Sahifa ochilishi bilan IDLE animatsiyasini darhol ishga tushirish!
+  if (actions['idle']) {
+    actions['idle'].play();
+    currentAction = actions['idle'];
+    currentAnimName = 'idle';
+  }
+
+  // Handle Jump completion to return to idle/walk
+  mixer.addEventListener('finished', (e) => {
+    if (currentAnimName === 'jump') {
+      evaluateMovementState();
+    }
+  });
+
+  // Update HUD
+  if (statModel) statModel.innerText = modelDisplayName;
+  if (statJoints) statJoints.innerText = (jointsCount > 0 ? jointsCount : 51) + ' Suyak';
+  if (statTriangles) statTriangles.innerText = Math.round(trianglesCount).toLocaleString() + ' Tris';
+  if (statHeight) statHeight.innerText = '1.75 m (Oyoq Y=0)';
+  if (statAnim) statAnim.innerText = 'IDLE';
+
+  // Jump button status
+  if (btnJump) {
+    if (actions['jump']) {
+      btnJump.classList.remove('disabled');
+      btnJump.disabled = false;
+      btnJump.title = 'Sakrash (Space)';
+    } else {
+      btnJump.classList.add('disabled');
+      btnJump.disabled = true;
+      btnJump.title = "Ushbu modelda Jump klipi mavjud emas (Mixamo SWAT FBX orqali qo'shiladi)";
+    }
+  }
+}
+
+// Priority 2 Loader: Soldier.glb
+function loadSoldierGLB(index = 0) {
+  if (index >= glbCandidates.length) {
+    showError("Soldier.glb modeli topilmadi (404). Iltimos, internet aloqasini tekshirib qayta urinib ko'ring.");
     return;
   }
 
-  const currentUrl = candidateUrls[urlIndex];
-  console.log(`[GLTF] Yuklanmoqda (${urlIndex + 1}/${candidateUrls.length}): ${currentUrl}`);
+  const url = glbCandidates[index];
+  console.log(`[Soldier.glb] Yuklanmoqda (${index + 1}/${glbCandidates.length}): ${url}`);
 
   gltfLoader.load(
-    currentUrl,
+    url,
     (gltf) => {
       window.__threeLoaded = true;
-      characterMesh = gltf.scene;
-      characterMesh.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-          if (child.material) {
-            child.material.envMapIntensity = 1.35;
-            child.material.needsUpdate = true;
-          }
-        }
-      });
-
-      scene.add(characterMesh);
-
-      // Skeleton Helper
-      try {
-        skeletonHelper = new THREE.SkeletonHelper(characterMesh);
-        skeletonHelper.visible = false;
-        scene.add(skeletonHelper);
-      } catch (e) {
-        console.warn('SkeletonHelper initialization note:', e);
-      }
-
-      // Humanoid Skeletal Animations
-      if (gltf.animations && gltf.animations.length > 0) {
-        mixer = new THREE.AnimationMixer(characterMesh);
-        gltf.animations.forEach((clip) => {
-          const action = mixer.clipAction(clip);
-          actions[clip.name.toLowerCase()] = action;
-        });
-
-        if (actions['idle']) {
-          actions['idle'].play();
-          activeAction = actions['idle'];
-        }
-      }
-
-      // Complete progress & hide loader
-      progressBarFill.style.width = '100%';
-      loaderPct.innerText = 'Yuklandi! 100% (1.24 MB)';
-      setTimeout(() => {
-        loaderOverlay.style.opacity = '0';
-        setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
-      }, 200);
+      setupCharacter(gltf.scene, 'Soldier Real (GLB Mocap)', gltf.animations, true);
+      finishLoading();
     },
     (xhr) => {
-      if (xhr.lengthComputable && xhr.total > 0) {
-        const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
-        progressBarFill.style.width = `${pct}%`;
-        loaderPct.innerText = `Yuklanmoqda... ${pct}% (${(xhr.loaded / 1024 / 1024).toFixed(2)} MB / ${(xhr.total / 1024 / 1024).toFixed(2)} MB)`;
-      } else if (xhr.loaded > 0) {
-        const mb = (xhr.loaded / 1024 / 1024).toFixed(2);
-        progressBarFill.style.width = '70%';
-        loaderPct.innerText = `Yuklanmoqda... (${mb} MB qabul qilindi)`;
-      } else {
-        progressBarFill.style.width = '35%';
-        loaderPct.innerText = `Model ma'lumotlari qabul qilinmoqda...`;
-      }
+      handleProgress(xhr, 2.06);
     },
     (err) => {
-      console.warn(`[GLTF] URL muvaffaqiyatsiz (${currentUrl}):`, err);
-      tryLoadModel(urlIndex + 1);
+      console.warn(`[Soldier.glb] Yuklashda to'xtalish: ${url}`, err);
+      loadSoldierGLB(index + 1);
     }
   );
 }
 
-// Start loading model
-tryLoadModel(0);
+// Priority 1 Loader: Mixamo SWAT FBX
+function loadMixamoSWAT() {
+  const url = 'assets/characters/swat/idle.fbx?' + cacheTag;
+  console.log('[Mixamo SWAT] idle.fbx yuklanmoqda:', url);
 
-// 4. Smooth Cross-Fade Animation Controller
-function playAnim(name) {
-  const newAction = actions[name.toLowerCase()];
-  if (!newAction || newAction === activeAction) return;
+  fbxLoader.load(
+    url,
+    (baseFbx) => {
+      window.__threeLoaded = true;
+      const anims = [...baseFbx.animations];
+      if (anims.length > 0) anims[0].name = 'idle';
 
-  if (activeAction) {
-    activeAction.fadeOut(0.25);
-  }
-  newAction.reset().fadeIn(0.25).play();
-  activeAction = newAction;
-  statAnim.innerText = name.toUpperCase();
+      setupCharacter(baseFbx, 'Mixamo SWAT (FBX)', anims, false);
+
+      // Async load remaining clips
+      loadExtraFBXAnim('walk');
+      loadExtraFBXAnim('run');
+      loadExtraFBXAnim('jump');
+
+      finishLoading();
+    },
+    (xhr) => {
+      handleProgress(xhr, 12.0);
+    },
+    (err) => {
+      console.warn('[Mixamo SWAT] Xatolik, Soldier.glb ga o\'tilmoqda:', err);
+      loadSoldierGLB(0);
+    }
+  );
 }
 
-// Animation Buttons
+function loadExtraFBXAnim(name) {
+  const url = `assets/characters/swat/${name}.fbx?${cacheTag}`;
+  fbxLoader.load(
+    url,
+    (animFbx) => {
+      if (animFbx.animations && animFbx.animations.length > 0) {
+        const clip = animFbx.animations[0];
+        clip.name = name;
+        const action = mixer.clipAction(clip);
+        if (name === 'jump') {
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          if (btnJump) {
+            btnJump.classList.remove('disabled');
+            btnJump.disabled = false;
+            btnJump.title = 'Sakrash (Space)';
+          }
+        }
+        actions[name] = action;
+        console.log(`[Mixamo SWAT] Klip muvaffaqiyatli ulandi: ${name}`);
+      }
+    },
+    undefined,
+    (err) => {
+      console.log(`[Mixamo SWAT] ${name}.fbx mavjud emas (ixtiyoriy)`);
+    }
+  );
+}
+
+// Initialize Hybrid Loading
+async function initPipeline() {
+  const hasSWAT = await checkSWATExists();
+  if (hasSWAT) {
+    loadMixamoSWAT();
+  } else {
+    loadSoldierGLB(0);
+  }
+}
+initPipeline();
+
+// 4. Smooth 0.25s Cross-Fade Animation Controller
+function playAction(name) {
+  name = name.toLowerCase();
+  const nextAction = actions[name];
+  if (!nextAction || currentAction === nextAction) return;
+
+  const duration = 0.25;
+  if (currentAction) {
+    currentAction.fadeOut(duration);
+  }
+  nextAction.reset().fadeIn(duration).play();
+  currentAction = nextAction;
+  currentAnimName = name;
+
+  // Update UI dock buttons
+  document.querySelectorAll('.btn-anim').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.anim === name);
+  });
+
+  // Update HUD
+  if (statAnim) {
+    statAnim.innerText = name.toUpperCase();
+    statAnim.style.color = (name === 'idle') ? 'var(--green)' : 'var(--cyan)';
+  }
+}
+
+// Animation Dock Buttons
 document.querySelectorAll('.btn-anim').forEach((btn) => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.btn-anim').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    playAnim(btn.dataset.anim);
+    if (btn.disabled) return;
+    playAction(btn.dataset.anim);
   });
 });
 
-// 5. Camera Focus Presets
+// 5. Keyboard Locomotion Controls (W: Walk, Shift+W: Run, Space: Jump)
+const keys = { w: false, shift: false, space: false };
+
+function evaluateMovementState() {
+  if (keys.space && actions['jump']) {
+    playAction('jump');
+    return;
+  }
+  if (keys.w) {
+    if (keys.shift && actions['run']) {
+      playAction('run');
+    } else if (actions['walk']) {
+      playAction('walk');
+    }
+  } else {
+    playAction('idle');
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') e.preventDefault();
+  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = true;
+  if (e.shiftKey || e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
+  if (e.code === 'Space') keys.space = true;
+  evaluateMovementState();
+});
+
+window.addEventListener('keyup', (e) => {
+  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
+  if (!e.shiftKey && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) keys.shift = false;
+  if (e.code === 'Space') keys.space = false;
+  evaluateMovementState();
+});
+
+// 6. Camera Focus Presets
 const camPresets = {
-  full: { pos: [0, 1.25, 3.0], target: [0, 0.92, 0] },
+  full: { pos: [0, 1.25, 3.1], target: [0, 0.92, 0] },
   head: { pos: [0, 1.62, 0.95], target: [0, 1.62, 0] },
   chest: { pos: [0, 1.25, 1.15], target: [0, 1.25, 0] },
-  boots: { pos: [0, 0.25, 1.15], target: [0, 0.15, 0] },
+  boots: { pos: [0, 0.28, 1.15], target: [0, 0.15, 0] },
 };
 
 document.querySelectorAll('.cam-btn').forEach((btn) => {
@@ -626,21 +907,7 @@ document.querySelectorAll('.cam-btn').forEach((btn) => {
   });
 });
 
-// 6. Tools UI Handlers
-const btnWireframe = document.getElementById('btn-wireframe');
-if (btnWireframe) {
-  btnWireframe.addEventListener('click', () => {
-    isWireframe = !isWireframe;
-    btnWireframe.innerText = `Wireframe: ${isWireframe ? 'ON' : 'OFF'}`;
-    btnWireframe.classList.toggle('active', isWireframe);
-    if (characterMesh) {
-      characterMesh.traverse((child) => {
-        if (child.isMesh) child.material.wireframe = isWireframe;
-      });
-    }
-  });
-}
-
+// 7. Tools Dock Handlers
 const btnRotate = document.getElementById('btn-rotate');
 if (btnRotate) {
   btnRotate.addEventListener('click', () => {
@@ -650,34 +917,41 @@ if (btnRotate) {
   });
 }
 
-let lightingMode = 0;
-const btnLighting = document.getElementById('btn-lighting');
-if (btnLighting) {
-  btnLighting.addEventListener('click', () => {
-    lightingMode = (lightingMode + 1) % 3;
-    if (lightingMode === 0) {
-      btnLighting.innerText = 'Chiroq: Studio Cyber';
-      keyLight.color.setHex(0x00f0ff);
-      fillLight.color.setHex(0xff9944);
-    } else if (lightingMode === 1) {
-      btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
-      keyLight.color.setHex(0xffffff);
-      fillLight.color.setHex(0xbbccdd);
-    } else {
-      btnLighting.innerText = 'Chiroq: Taktik Qizil';
-      keyLight.color.setHex(0xff3355);
-      fillLight.color.setHex(0x2244aa);
+const btnWireframe = document.getElementById('btn-wireframe');
+if (btnWireframe) {
+  btnWireframe.addEventListener('click', () => {
+    isWireframe = !isWireframe;
+    btnWireframe.innerText = `Wireframe: ${isWireframe ? 'ON' : 'OFF'}`;
+    btnWireframe.classList.toggle('active', isWireframe);
+    if (characterModel) {
+      characterModel.traverse((child) => {
+        if (child.isMesh) child.material.wireframe = isWireframe;
+      });
     }
   });
 }
 
-const btnSkeleton = document.getElementById('btn-skeleton');
-if (btnSkeleton) {
-  btnSkeleton.addEventListener('click', () => {
-    if (skeletonHelper) {
-      skeletonHelper.visible = !skeletonHelper.visible;
-      btnSkeleton.innerText = `Skelet: ${skeletonHelper.visible ? 'ON' : 'OFF'}`;
-      btnSkeleton.classList.toggle('active', skeletonHelper.visible);
+let lightingMode = 0;
+const btnLighting = document.getElementById('btn-lighting');
+if (btnLighting) {
+  btnLighting.addEventListener('click', () => {
+    lightingMode = (lightingMode + 1) % 2;
+    if (lightingMode === 0) {
+      btnLighting.innerText = 'Chiroq: CS2 Studiya';
+      keyLight.color.setHex(0xfff2df);
+      keyLight.intensity = 2.4;
+      fillLight.color.setHex(0x88bbff);
+      fillLight.intensity = 1.1;
+      rimLight.color.setHex(0x00f0ff);
+      rimLight.intensity = 3.0;
+    } else {
+      btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
+      keyLight.color.setHex(0xffffff);
+      keyLight.intensity = 2.2;
+      fillLight.color.setHex(0xddeeff);
+      fillLight.intensity = 1.3;
+      rimLight.color.setHex(0xffffff);
+      rimLight.intensity = 1.5;
     }
   });
 }
@@ -685,9 +959,12 @@ if (btnSkeleton) {
 const btnReset = document.getElementById('btn-reset');
 if (btnReset) {
   btnReset.addEventListener('click', () => {
-    camera.position.set(0, 1.25, 3.0);
+    camera.position.set(0, 1.25, 3.1);
     controls.target.set(0, 0.92, 0);
     controls.update();
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    const fullBtn = document.querySelector('.cam-btn[data-target="full"]');
+    if (fullBtn) fullBtn.classList.add('active');
   });
 }
 
@@ -698,17 +975,39 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 7. Render Loop
+// 8. Real FPS Calculation & Render Loop
+let frameCount = 0;
+let lastFpsTime = performance.now();
+let currentFPS = 60;
+
+function updateFPS() {
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime >= 500) {
+    currentFPS = Math.round((frameCount * 1000) / (now - lastFpsTime));
+    frameCount = 0;
+    lastFpsTime = now;
+    if (statFps) {
+      statFps.innerText = currentFPS + ' FPS';
+      statFps.style.color = currentFPS >= 50 ? 'var(--green)' : (currentFPS >= 30 ? 'var(--orange)' : '#ff4466');
+    }
+  }
+}
+
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
+
   if (mixer) mixer.update(delta);
-  if (autoRotate && characterMesh) {
-    characterMesh.rotation.y += delta * 0.35;
+
+  if (autoRotate && characterGroup) {
+    characterGroup.rotation.y += delta * 0.35;
   }
+
   controls.update();
   renderer.render(scene, camera);
+  updateFPS();
 }
 animate();
 </script>
