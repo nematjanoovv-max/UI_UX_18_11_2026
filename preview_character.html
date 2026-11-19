@@ -3,48 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Tactical Operator — 100% Realistik AAA 3D Studio</title>
 <style>
   :root {
     --bg-dark: #07090e;
-    --panel-bg: rgba(12, 16, 24, 0.90);
-    --panel-border: rgba(0, 240, 255, 0.3);
+    --panel-bg: rgba(12, 16, 24, 0.92);
+    --panel-border: rgba(0, 240, 255, 0.35);
     --cyan: #00f0ff;
-    --cyan-glow: rgba(0, 240, 255, 0.4);
+    --cyan-glow: rgba(0, 240, 255, 0.45);
+    --green: #00ff88;
     --orange: #ff9d00;
     --text: #e6edf3;
     --text-dim: #8b949e;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
   body, html {
     width: 100%; height: 100%;
     overflow: hidden;
-    background: radial-gradient(circle at center, #111726 0%, #05070a 100%);
+    background: radial-gradient(circle at center, #121829 0%, #05070a 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
   #webgl-canvas {
     width: 100%; height: 100%;
     display: block;
+    touch-action: none;
   }
   
   /* Top Left HUD */
   #header-hud {
     position: absolute;
-    top: 16px; left: 16px;
+    top: 12px; left: 12px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
-    padding: 12px 18px;
+    padding: 10px 14px;
     backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 10;
+    max-width: 300px;
   }
   #header-hud h1 {
-    font-size: 15px;
+    font-size: 13px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--cyan);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -53,81 +60,111 @@
     content: '';
     display: inline-block;
     width: 8px; height: 8px;
-    background: #00ff88;
+    background: var(--green);
     border-radius: 50%;
-    box-shadow: 0 0 10px #00ff88;
+    box-shadow: 0 0 10px var(--green);
   }
   #header-hud .subtitle {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-dim);
   }
 
   /* Right Stats Panel */
   #stats-panel {
     position: absolute;
-    top: 16px; right: 16px;
+    top: 12px; right: 12px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
-    padding: 14px 18px;
-    font-size: 12px;
-    min-width: 240px;
+    padding: 10px 14px;
+    font-size: 11px;
+    min-width: 210px;
     backdrop-filter: blur(12px);
     box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 10;
   }
   .stat-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding-bottom: 4px;
+    margin-bottom: 4px;
+    align-items: center;
   }
-  .stat-row:last-child { border-bottom: none; margin-bottom: 0; }
-  .stat-label { color: var(--text-dim); }
-  .stat-val { color: var(--cyan); font-weight: bold; }
+  .stat-row:last-child { margin-bottom: 0; }
+  .stat-label { color: var(--text-dim); font-size: 10px; }
+  .stat-val { color: var(--text); font-weight: 600; font-family: monospace; font-size: 10px; }
   .stat-val.badge {
     background: rgba(0, 240, 255, 0.15);
-    border: 1px solid var(--cyan);
-    padding: 1px 6px;
+    color: var(--cyan);
+    padding: 1px 5px;
     border-radius: 4px;
-    font-size: 11px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
   }
 
-  /* Bottom Animation Dock */
-  #anim-dock {
+  /* Camera Presets Dock (Top Center) */
+  #cam-dock {
     position: absolute;
-    bottom: 24px; left: 50%;
+    top: 12px;
+    left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
-    border-radius: 12px;
-    padding: 8px 14px;
+    border-radius: 20px;
+    padding: 4px 8px;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+  }
+  .cam-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 5px 9px;
+    border-radius: 14px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .cam-btn:hover { color: var(--cyan); }
+  .cam-btn.active {
+    background: var(--cyan);
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 10px var(--cyan-glow);
+  }
+
+  /* Animation Dock (Bottom Center) */
+  #anim-dock {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    gap: 8px;
-    backdrop-filter: blur(16px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    gap: 6px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 28px;
+    padding: 6px 12px;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   }
   .btn-anim {
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0, 240, 255, 0.35);
+    border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
     cursor: pointer;
     transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 6px;
   }
   .btn-anim:hover {
     background: rgba(0, 240, 255, 0.2);
     border-color: var(--cyan);
     color: var(--cyan);
-    transform: translateY(-2px);
   }
   .btn-anim.active {
     background: var(--cyan);
@@ -136,21 +173,22 @@
     box-shadow: 0 0 16px var(--cyan-glow);
   }
 
-  /* Left Floating Tools & Camera Presets */
+  /* Left Floating Tools */
   #tools-dock {
     position: absolute;
-    bottom: 24px; left: 16px;
+    bottom: 16px; left: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 5px;
+    z-index: 10;
   }
   .tool-btn {
     background: var(--panel-bg);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 10px;
     cursor: pointer;
     backdrop-filter: blur(8px);
     transition: all 0.2s;
@@ -158,32 +196,7 @@
   .tool-btn:hover { border-color: var(--cyan); color: var(--cyan); }
   .tool-btn.active { border-color: var(--cyan); background: rgba(0,240,255,0.25); color: var(--cyan); }
 
-  /* Camera View Focus Selector */
-  #cam-dock {
-    position: absolute;
-    top: 90px; left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .cam-btn {
-    background: rgba(14, 18, 26, 0.85);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: var(--text-dim);
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 11px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s;
-  }
-  .cam-btn:hover, .cam-btn.active {
-    border-color: var(--cyan);
-    color: var(--cyan);
-    background: rgba(0,240,255,0.12);
-  }
-
-  /* Loading Spinner */
+  /* Loading Spinner & Progress Overlay */
   #loader-overlay {
     position: absolute;
     inset: 0;
@@ -192,19 +205,127 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     z-index: 100;
     transition: opacity 0.4s ease;
+    padding: 24px;
+    text-align: center;
   }
   .spinner {
     width: 48px; height: 48px;
-    border: 3px solid rgba(0, 240, 255, 0.2);
+    border: 3px solid rgba(0, 240, 255, 0.15);
     border-top-color: var(--cyan);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  
+  #progress-bar-container {
+    width: min(280px, 80vw);
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(0,240,255,0.3);
+  }
+  #progress-bar-fill {
+    width: 5%;
+    height: 100%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+    transition: width 0.2s ease;
+  }
+  #loader-status {
+    font-size: 12px;
+    color: var(--text);
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  #loader-pct {
+    font-size: 13px;
+    color: var(--cyan);
+    font-weight: bold;
+    font-family: monospace;
+  }
+  #error-box {
+    display: none;
+    max-width: 380px;
+    background: rgba(255, 50, 80, 0.15);
+    border: 1px solid #ff4466;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12px;
+    color: #ff8899;
+    line-height: 1.5;
+  }
+  .retry-btn {
+    background: var(--cyan);
+    color: #000;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 12px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 768px) {
+    #stats-panel { display: none; }
+    #cam-dock { top: auto; bottom: 70px; }
+    #header-hud { max-width: 80%; }
+    #anim-dock { bottom: 12px; }
+    .btn-anim { padding: 7px 11px; font-size: 10px; }
+    #tools-dock { display: none; }
+  }
 </style>
+
+<!-- Early Global Error Catcher -->
+<script>
+  window.__threeLoaded = false;
+  window.addEventListener('error', function(e) {
+    console.error('Global Error Event:', e);
+    var spinner = document.getElementById('loader-spinner');
+    var status = document.getElementById('loader-status');
+    var errBox = document.getElementById('error-box');
+    var errMsg = document.getElementById('error-msg');
+    if (spinner) spinner.style.display = 'none';
+    if (status) status.innerText = "Yuklashda to'xtalish yuz berdi";
+    if (errBox) errBox.style.display = 'block';
+    if (errMsg) errMsg.innerText = (e.message || "3D skriptni yuklashda xatolik yuz berdi") + (e.filename ? " (" + e.filename + ")" : "");
+  });
+
+  window.addEventListener('unhandledrejection', function(e) {
+    console.error('Unhandled Promise Rejection:', e);
+    var spinner = document.getElementById('loader-spinner');
+    var status = document.getElementById('loader-status');
+    var errBox = document.getElementById('error-box');
+    var errMsg = document.getElementById('error-msg');
+    if (spinner) spinner.style.display = 'none';
+    if (status) status.innerText = "Yuklashda to'xtalish yuz berdi";
+    if (errBox) errBox.style.display = 'block';
+    if (errMsg) errMsg.innerText = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+  });
+
+  // Watchdog timer: If after 12s model is still not loaded
+  setTimeout(function() {
+    if (!window.__threeLoaded) {
+      var spinner = document.getElementById('loader-spinner');
+      var status = document.getElementById('loader-status');
+      var errBox = document.getElementById('error-box');
+      var errMsg = document.getElementById('error-msg');
+      var fill = document.getElementById('progress-bar-fill');
+      if (status && status.innerText.indexOf("YUKLANMOQDA") !== -1) {
+        status.innerText = "Yuklash kutilganidan uzoqroq davom etmoqda...";
+        if (errBox) {
+          errBox.style.display = 'block';
+          errMsg.innerText = "Internet aloqasi sekin bo'lishi mumkin. Qayta yuklash tugmasini bosing yoki ozgina kuting.";
+        }
+      }
+    }
+  }, 12000);
+</script>
 
 <script type="importmap">
 {
@@ -217,37 +338,46 @@
 </head>
 <body>
 
+<!-- Loader Overlay with Real Progress Bar -->
 <div id="loader-overlay">
-  <div class="spinner"></div>
-  <div style="font-size:13px; letter-spacing:0.12em; color:var(--cyan); font-weight:600;">100% REALISTIK AAA MODEL YUKLANMOQDA...</div>
+  <div class="spinner" id="loader-spinner"></div>
+  <div id="loader-status">TACTICAL OPERATOR YUKLANMOQDA...</div>
+  <div id="progress-bar-container">
+    <div id="progress-bar-fill"></div>
+  </div>
+  <div id="loader-pct">Yuklanmoqda... 0% (1.2 MB)</div>
+  <div id="error-box">
+    <div id="error-msg"></div>
+    <button class="retry-btn" onclick="location.reload(true)">Qayta yuklash ⟳</button>
+  </div>
 </div>
 
 <canvas id="webgl-canvas"></canvas>
 
 <!-- Header HUD -->
 <div id="header-hud">
-  <h1>Tactical Operator · 100% AAA</h1>
-  <div class="subtitle">2048x2048 PBR Materiallar · 19 Suyakli Skelet · 4 Animatsiya</div>
+  <h1>Tactical Operator</h1>
+  <div class="subtitle">100% Realistik AAA · 2048x2048 PBR · 19 Suyakli Skelet</div>
 </div>
 
 <!-- Camera Focus Presets -->
 <div id="cam-dock">
-  <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y (Full Body)</button>
-  <button class="cam-btn" data-target="head">🪖 Kaska & Visor (Head)</button>
-  <button class="cam-btn" data-target="chest">🛡️ Bronjilet (Chest)</button>
-  <button class="cam-btn" data-target="boots">🥾 Og'ir Etik (Boots)</button>
+  <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y</button>
+  <button class="cam-btn" data-target="head">🪖 Visor (Head)</button>
+  <button class="cam-btn" data-target="chest">🛡️ Bronjilet</button>
+  <button class="cam-btn" data-target="boots">🥾 Etik</button>
 </div>
 
 <!-- Stats Panel -->
 <div id="stats-panel">
   <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val">tactical_operator.glb</span></div>
-  <div class="stat-row"><span class="stat-label">PBR Teksturalar:</span><span class="stat-val badge">Albedo+Normal+MR+AO</span></div>
-  <div class="stat-row"><span class="stat-label">Tekstura Hajmi:</span><span class="stat-val">2048 x 2048 HD</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi (Height):</span><span class="stat-val">1.75 m (Oyoq Y=0)</span></div>
-  <div class="stat-row"><span class="stat-label">Skelet Bo'g'inlari:</span><span class="stat-val">19 ta Humanoid Suyak</span></div>
-  <div class="stat-row"><span class="stat-label">Animatsiya Kliplari:</span><span class="stat-val">idle, walk, run, jump</span></div>
-  <div class="stat-row"><span class="stat-label">Hajmi (MB):</span><span class="stat-val">7.61 MB (Valid)</span></div>
-  <div class="stat-row"><span class="stat-label">Faol Animatsiya:</span><span class="stat-val" id="stat-anim" style="color:#00ff88;">IDLE</span></div>
+  <div class="stat-row"><span class="stat-label">PBR Tekstura:</span><span class="stat-val badge">Albedo+Normal+MR+AO</span></div>
+  <div class="stat-row"><span class="stat-label">Hajm:</span><span class="stat-val">2048 x 2048 HD</span></div>
+  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val">1.75 m (Oyoq Y=0)</span></div>
+  <div class="stat-row"><span class="stat-label">Skelet:</span><span class="stat-val">19 Humanoid Suyak</span></div>
+  <div class="stat-row"><span class="stat-label">Animatsiyalar:</span><span class="stat-val">idle, walk, run, jump</span></div>
+  <div class="stat-row"><span class="stat-label">Hajmi (MB):</span><span class="stat-val">1.24 MB (Optimized)</span></div>
+  <div class="stat-row"><span class="stat-label">Holat:</span><span class="stat-val" id="stat-anim" style="color:var(--green);">IDLE</span></div>
 </div>
 
 <!-- Animation Dock -->
@@ -263,7 +393,7 @@
   <button class="tool-btn" id="btn-wireframe">Wireframe: OFF</button>
   <button class="tool-btn" id="btn-rotate">360° Aylanish: ON</button>
   <button class="tool-btn" id="btn-lighting">Chiroq: Studio Cyber</button>
-  <button class="tool-btn" id="btn-skeleton">Skelet Suyaklari: OFF</button>
+  <button class="tool-btn" id="btn-skeleton">Skelet: OFF</button>
   <button class="tool-btn" id="btn-reset">Kamera Qaytarish</button>
 </div>
 
@@ -272,14 +402,28 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+// DOM elements
 const canvas = document.getElementById('webgl-canvas');
 const loaderOverlay = document.getElementById('loader-overlay');
+const loaderSpinner = document.getElementById('loader-spinner');
+const loaderStatus = document.getElementById('loader-status');
+const loaderPct = document.getElementById('loader-pct');
+const progressBarFill = document.getElementById('progress-bar-fill');
+const errorBox = document.getElementById('error-box');
+const errorMsg = document.getElementById('error-msg');
 const statAnim = document.getElementById('stat-anim');
 
-// 1. Scene, Camera & ACES Filmic Renderer
+function showError(msg) {
+  if (loaderSpinner) loaderSpinner.style.display = 'none';
+  if (loaderStatus) loaderStatus.innerText = "Yuklashda to'xtalish yuz berdi";
+  if (errorBox) errorBox.style.display = 'block';
+  if (errorMsg) errorMsg.innerText = msg;
+}
+
+// 1. Scene, Camera, Renderer
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x07090e);
-scene.fog = new THREE.FogExp2(0x07090e, 0.06);
+scene.fog = new THREE.FogExp2(0x07090e, 0.05);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 1.25, 3.0);
@@ -290,9 +434,9 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.25;
 
-// OrbitControls
+// Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
@@ -302,31 +446,30 @@ controls.minDistance = 0.5;
 controls.maxDistance = 5.5;
 
 // 2. High-End Studio PBR Lighting Setup
-const ambientLight = new THREE.AmbientLight(0xd5e2ec, 0.7);
+const ambientLight = new THREE.AmbientLight(0xd5e2ec, 0.75);
 scene.add(ambientLight);
 
-// Key Light (Cyan Accent)
+// Key Light (Cyan)
 const keyLight = new THREE.DirectionalLight(0x00f0ff, 2.2);
 keyLight.position.set(2.5, 4.0, 2.5);
 keyLight.castShadow = true;
-keyLight.shadow.mapSize.width = 2048;
-keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.mapSize.width = 1024;
+keyLight.shadow.mapSize.height = 1024;
 keyLight.shadow.camera.near = 0.5;
 keyLight.shadow.camera.far = 8;
-keyLight.shadow.bias = -0.0005;
 scene.add(keyLight);
 
-// Fill Light (Warm Specular Accent)
+// Fill Light (Warm Specular)
 const fillLight = new THREE.DirectionalLight(0xff9944, 1.2);
 fillLight.position.set(-3.0, 2.5, -2.0);
 scene.add(fillLight);
 
-// Top Rim Light (Polycarbonate Visor & Shoulder Edge Accent)
+// Top Rim Light
 const rimLight = new THREE.DirectionalLight(0xffffff, 2.0);
 rimLight.position.set(0, 5.0, -3.0);
 scene.add(rimLight);
 
-// Floor Shadow Grid
+// Floor Grid & Shadow Plane
 const gridHelper = new THREE.GridHelper(6, 24, 0x00f0ff, 0x182436);
 gridHelper.position.y = 0.001;
 scene.add(gridHelper);
@@ -338,7 +481,7 @@ floorMesh.rotation.x = -Math.PI / 2;
 floorMesh.receiveShadow = true;
 scene.add(floorMesh);
 
-// 3. Load 100% Skinned PBR Model
+// 3. Robust Multi-Path GLB Loader with Cache-Busting
 let characterMesh = null;
 let mixer = null;
 let actions = {};
@@ -348,55 +491,97 @@ let isWireframe = false;
 let autoRotate = true;
 
 const gltfLoader = new GLTFLoader();
-const modelUrl = 'assets/characters/tactical_operator.glb';
 
-gltfLoader.load(
-  modelUrl,
-  (gltf) => {
-    characterMesh = gltf.scene;
-    characterMesh.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        if (child.material) {
-          child.material.envMapIntensity = 1.4;
-          child.material.needsUpdate = true;
+const cacheTag = 'v=' + Date.now();
+const candidateUrls = [
+  'assets/characters/tactical_operator.glb?' + cacheTag,
+  './assets/characters/tactical_operator.glb?' + cacheTag,
+  '/assets/characters/tactical_operator.glb?' + cacheTag,
+  'web/assets/characters/tactical_operator.glb?' + cacheTag,
+  '/web/assets/characters/tactical_operator.glb?' + cacheTag
+];
+
+function tryLoadModel(urlIndex) {
+  if (urlIndex >= candidateUrls.length) {
+    showError("Model fayli serverdan topilmadi (404). Iltimos, sahifani qayta yangilang.");
+    return;
+  }
+
+  const currentUrl = candidateUrls[urlIndex];
+  console.log(`[GLTF] Yuklanmoqda (${urlIndex + 1}/${candidateUrls.length}): ${currentUrl}`);
+
+  gltfLoader.load(
+    currentUrl,
+    (gltf) => {
+      window.__threeLoaded = true;
+      characterMesh = gltf.scene;
+      characterMesh.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          if (child.material) {
+            child.material.envMapIntensity = 1.35;
+            child.material.needsUpdate = true;
+          }
         }
-      }
-    });
-
-    scene.add(characterMesh);
-
-    // Setup Skeleton Helper
-    skeletonHelper = new THREE.SkeletonHelper(characterMesh);
-    skeletonHelper.material.linewidth = 2;
-    skeletonHelper.visible = false;
-    scene.add(skeletonHelper);
-
-    // Setup Real Humanoid Skeletal Animations
-    if (gltf.animations && gltf.animations.length > 0) {
-      mixer = new THREE.AnimationMixer(characterMesh);
-      gltf.animations.forEach((clip) => {
-        const action = mixer.clipAction(clip);
-        actions[clip.name.toLowerCase()] = action;
       });
 
-      // Start with idle animation
-      if (actions['idle']) {
-        actions['idle'].play();
-        activeAction = actions['idle'];
-      }
-    }
+      scene.add(characterMesh);
 
-    loaderOverlay.style.opacity = '0';
-    setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
-  },
-  undefined,
-  (err) => {
-    console.error('Error loading GLB:', err);
-    loaderOverlay.innerHTML = `<div style="color:#ff4466;">Yuklashda xatolik: ${err.message}</div>`;
-  }
-);
+      // Skeleton Helper
+      try {
+        skeletonHelper = new THREE.SkeletonHelper(characterMesh);
+        skeletonHelper.visible = false;
+        scene.add(skeletonHelper);
+      } catch (e) {
+        console.warn('SkeletonHelper initialization note:', e);
+      }
+
+      // Humanoid Skeletal Animations
+      if (gltf.animations && gltf.animations.length > 0) {
+        mixer = new THREE.AnimationMixer(characterMesh);
+        gltf.animations.forEach((clip) => {
+          const action = mixer.clipAction(clip);
+          actions[clip.name.toLowerCase()] = action;
+        });
+
+        if (actions['idle']) {
+          actions['idle'].play();
+          activeAction = actions['idle'];
+        }
+      }
+
+      // Complete progress & hide loader
+      progressBarFill.style.width = '100%';
+      loaderPct.innerText = 'Yuklandi! 100% (1.24 MB)';
+      setTimeout(() => {
+        loaderOverlay.style.opacity = '0';
+        setTimeout(() => { loaderOverlay.style.display = 'none'; }, 400);
+      }, 200);
+    },
+    (xhr) => {
+      if (xhr.lengthComputable && xhr.total > 0) {
+        const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+        progressBarFill.style.width = `${pct}%`;
+        loaderPct.innerText = `Yuklanmoqda... ${pct}% (${(xhr.loaded / 1024 / 1024).toFixed(2)} MB / ${(xhr.total / 1024 / 1024).toFixed(2)} MB)`;
+      } else if (xhr.loaded > 0) {
+        const mb = (xhr.loaded / 1024 / 1024).toFixed(2);
+        progressBarFill.style.width = '70%';
+        loaderPct.innerText = `Yuklanmoqda... (${mb} MB qabul qilindi)`;
+      } else {
+        progressBarFill.style.width = '35%';
+        loaderPct.innerText = `Model ma'lumotlari qabul qilinmoqda...`;
+      }
+    },
+    (err) => {
+      console.warn(`[GLTF] URL muvaffaqiyatsiz (${currentUrl}):`, err);
+      tryLoadModel(urlIndex + 1);
+    }
+  );
+}
+
+// Start loading model
+tryLoadModel(0);
 
 // 4. Smooth Cross-Fade Animation Controller
 function playAnim(name) {
@@ -404,14 +589,14 @@ function playAnim(name) {
   if (!newAction || newAction === activeAction) return;
 
   if (activeAction) {
-    activeAction.fadeOut(0.2);
+    activeAction.fadeOut(0.25);
   }
-  newAction.reset().fadeIn(0.2).play();
+  newAction.reset().fadeIn(0.25).play();
   activeAction = newAction;
   statAnim.innerText = name.toUpperCase();
 }
 
-// Animation Buttons Click Handler
+// Animation Buttons
 document.querySelectorAll('.btn-anim').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.btn-anim').forEach(b => b.classList.remove('active'));
@@ -423,9 +608,9 @@ document.querySelectorAll('.btn-anim').forEach((btn) => {
 // 5. Camera Focus Presets
 const camPresets = {
   full: { pos: [0, 1.25, 3.0], target: [0, 0.92, 0] },
-  head: { pos: [0, 1.62, 0.9], target: [0, 1.62, 0] },
-  chest: { pos: [0, 1.25, 1.1], target: [0, 1.25, 0] },
-  boots: { pos: [0, 0.25, 1.1], target: [0, 0.15, 0] },
+  head: { pos: [0, 1.62, 0.95], target: [0, 1.62, 0] },
+  chest: { pos: [0, 1.25, 1.15], target: [0, 1.25, 0] },
+  boots: { pos: [0, 0.25, 1.15], target: [0, 0.15, 0] },
 };
 
 document.querySelectorAll('.cam-btn').forEach((btn) => {
@@ -443,58 +628,68 @@ document.querySelectorAll('.cam-btn').forEach((btn) => {
 
 // 6. Tools UI Handlers
 const btnWireframe = document.getElementById('btn-wireframe');
-btnWireframe.addEventListener('click', () => {
-  isWireframe = !isWireframe;
-  btnWireframe.innerText = `Wireframe: ${isWireframe ? 'ON' : 'OFF'}`;
-  btnWireframe.classList.toggle('active', isWireframe);
-  if (characterMesh) {
-    characterMesh.traverse((child) => {
-      if (child.isMesh) child.material.wireframe = isWireframe;
-    });
-  }
-});
+if (btnWireframe) {
+  btnWireframe.addEventListener('click', () => {
+    isWireframe = !isWireframe;
+    btnWireframe.innerText = `Wireframe: ${isWireframe ? 'ON' : 'OFF'}`;
+    btnWireframe.classList.toggle('active', isWireframe);
+    if (characterMesh) {
+      characterMesh.traverse((child) => {
+        if (child.isMesh) child.material.wireframe = isWireframe;
+      });
+    }
+  });
+}
 
 const btnRotate = document.getElementById('btn-rotate');
-btnRotate.addEventListener('click', () => {
-  autoRotate = !autoRotate;
-  btnRotate.innerText = `360° Aylanish: ${autoRotate ? 'ON' : 'OFF'}`;
-  btnRotate.classList.toggle('active', autoRotate);
-});
+if (btnRotate) {
+  btnRotate.addEventListener('click', () => {
+    autoRotate = !autoRotate;
+    btnRotate.innerText = `360° Aylanish: ${autoRotate ? 'ON' : 'OFF'}`;
+    btnRotate.classList.toggle('active', autoRotate);
+  });
+}
 
 let lightingMode = 0;
 const btnLighting = document.getElementById('btn-lighting');
-btnLighting.addEventListener('click', () => {
-  lightingMode = (lightingMode + 1) % 3;
-  if (lightingMode === 0) {
-    btnLighting.innerText = 'Chiroq: Studio Cyber';
-    keyLight.color.setHex(0x00f0ff);
-    fillLight.color.setHex(0xff9944);
-  } else if (lightingMode === 1) {
-    btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
-    keyLight.color.setHex(0xffffff);
-    fillLight.color.setHex(0xbbccdd);
-  } else {
-    btnLighting.innerText = 'Chiroq: Taktik Qizil';
-    keyLight.color.setHex(0xff3355);
-    fillLight.color.setHex(0x2244aa);
-  }
-});
+if (btnLighting) {
+  btnLighting.addEventListener('click', () => {
+    lightingMode = (lightingMode + 1) % 3;
+    if (lightingMode === 0) {
+      btnLighting.innerText = 'Chiroq: Studio Cyber';
+      keyLight.color.setHex(0x00f0ff);
+      fillLight.color.setHex(0xff9944);
+    } else if (lightingMode === 1) {
+      btnLighting.innerText = 'Chiroq: Kunduzgi Oq';
+      keyLight.color.setHex(0xffffff);
+      fillLight.color.setHex(0xbbccdd);
+    } else {
+      btnLighting.innerText = 'Chiroq: Taktik Qizil';
+      keyLight.color.setHex(0xff3355);
+      fillLight.color.setHex(0x2244aa);
+    }
+  });
+}
 
 const btnSkeleton = document.getElementById('btn-skeleton');
-btnSkeleton.addEventListener('click', () => {
-  if (skeletonHelper) {
-    skeletonHelper.visible = !skeletonHelper.visible;
-    btnSkeleton.innerText = `Skelet Suyaklari: ${skeletonHelper.visible ? 'ON' : 'OFF'}`;
-    btnSkeleton.classList.toggle('active', skeletonHelper.visible);
-  }
-});
+if (btnSkeleton) {
+  btnSkeleton.addEventListener('click', () => {
+    if (skeletonHelper) {
+      skeletonHelper.visible = !skeletonHelper.visible;
+      btnSkeleton.innerText = `Skelet: ${skeletonHelper.visible ? 'ON' : 'OFF'}`;
+      btnSkeleton.classList.toggle('active', skeletonHelper.visible);
+    }
+  });
+}
 
 const btnReset = document.getElementById('btn-reset');
-btnReset.addEventListener('click', () => {
-  camera.position.set(0, 1.25, 3.0);
-  controls.target.set(0, 0.92, 0);
-  controls.update();
-});
+if (btnReset) {
+  btnReset.addEventListener('click', () => {
+    camera.position.set(0, 1.25, 3.0);
+    controls.target.set(0, 0.92, 0);
+    controls.update();
+  });
+}
 
 // Window Resize
 window.addEventListener('resize', () => {

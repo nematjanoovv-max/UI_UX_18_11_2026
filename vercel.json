@@ -15,15 +15,22 @@
       ]
     },
     {
-      "source": "/(.*)\\.(wasm|pck|js)",
+      "source": "/(.*)\\.(wasm|pck)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "/index.html",
+      "source": "/(.*)\\.glb",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache" }
+        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(index.html|preview_character.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
     }
   ]
