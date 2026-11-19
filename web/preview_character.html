@@ -10,7 +10,7 @@
 <style>
   :root {
     --bg-dark: #07090e;
-    --panel-bg: rgba(10, 14, 20, 0.90);
+    --panel-bg: rgba(10, 14, 20, 0.88);
     --panel-border: rgba(0, 240, 255, 0.35);
     --cyan: #00f0ff;
     --cyan-glow: rgba(0, 240, 255, 0.45);
@@ -21,14 +21,20 @@
     --text-dim: #8b949e;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-  body, html {
-    width: 100%; height: 100%;
+  
+  html, body {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    height: 100dvh;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 35%, #151e2e 0%, #080c14 55%, #030406 100%);
+    background: radial-gradient(circle at 50% 40%, #151e2e 0%, #080c14 55%, #030406 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
   #webgl-canvas {
+    position: absolute;
+    top: 0; left: 0;
     width: 100%; height: 100%;
     display: block;
     touch-action: none;
@@ -37,44 +43,46 @@
   /* Top Left HUD */
   #header-hud {
     position: absolute;
-    top: 12px; left: 12px;
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 7px 11px;
     backdrop-filter: blur(14px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.7);
     z-index: 10;
-    max-width: 320px;
+    max-width: 300px;
     transition: all 0.25s ease;
   }
   #header-hud h1 {
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--cyan);
     margin-bottom: 2px;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
   }
   #header-hud h1::before {
     content: '';
     display: inline-block;
-    width: 7px; height: 7px;
+    width: 6px; height: 6px;
     background: var(--green);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--green);
+    box-shadow: 0 0 8px var(--green);
   }
   #header-hud .subtitle {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--text-dim);
   }
 
   /* Right Stats Panel */
   #stats-panel {
     position: absolute;
-    top: 12px; right: 12px;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 8px;
@@ -106,7 +114,7 @@
   /* Camera Presets Dock (Top Center) */
   #cam-dock {
     position: absolute;
-    top: 12px;
+    top: max(10px, env(safe-area-inset-top));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -122,11 +130,12 @@
     background: transparent;
     border: none;
     color: var(--text-dim);
-    padding: 5px 9px;
-    border-radius: 14px;
-    font-size: 10px;
+    padding: 5px 8px;
+    border-radius: 12px;
+    font-size: 9px;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
   }
   .cam-btn:hover { color: var(--cyan); }
   .cam-btn.active {
@@ -136,10 +145,44 @@
     box-shadow: 0 0 10px var(--cyan-glow);
   }
 
+  /* Floating Zoom Controls (Right Middle) */
+  #zoom-dock {
+    position: absolute;
+    right: max(10px, env(safe-area-inset-right));
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 25;
+  }
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--cyan);
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    transition: all 0.15s ease;
+  }
+  .zoom-btn:active {
+    transform: scale(0.90);
+    background: var(--cyan);
+    color: #000;
+  }
+
   /* Animation Dock (Bottom Center) */
   #anim-dock {
     position: absolute;
-    bottom: 14px;
+    bottom: max(12px, env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -156,8 +199,8 @@
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 7px 12px;
-    border-radius: 20px;
+    padding: 7px 13px;
+    border-radius: 18px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -166,6 +209,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
   }
   .btn-anim:hover {
     background: rgba(0, 240, 255, 0.2);
@@ -179,7 +223,7 @@
     box-shadow: 0 0 16px var(--cyan-glow);
   }
   .btn-fire {
-    background: rgba(255, 51, 85, 0.2);
+    background: rgba(255, 51, 85, 0.25);
     border-color: rgba(255, 51, 85, 0.6);
     color: #ff8899;
   }
@@ -196,7 +240,8 @@
   /* Left Floating Tools */
   #tools-dock {
     position: absolute;
-    bottom: 14px; left: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(10px, env(safe-area-inset-left));
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -206,9 +251,9 @@
     background: var(--panel-bg);
     border: 1px solid rgba(255,255,255,0.15);
     color: var(--text);
-    padding: 6px 10px;
+    padding: 6px 9px;
     border-radius: 6px;
-    font-size: 10px;
+    font-size: 9px;
     cursor: pointer;
     backdrop-filter: blur(8px);
     transition: all 0.2s;
@@ -219,7 +264,8 @@
   /* Keyboard Helper Badge */
   #key-helper {
     position: absolute;
-    bottom: 14px; right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    right: max(10px, env(safe-area-inset-right));
     background: var(--panel-bg);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 6px;
@@ -236,13 +282,14 @@
   /* Fullscreen Toggle Button */
   #btn-fullscreen {
     position: absolute;
-    top: 12px; right: 12px;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
     border-radius: 6px;
     color: var(--cyan);
     padding: 5px 8px;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     cursor: pointer;
     z-index: 20;
@@ -333,28 +380,38 @@
     
     #header-hud {
       top: 8px; left: 8px;
-      padding: 5px 9px;
-      max-width: calc(100vw - 80px);
+      padding: 5px 8px;
+      max-width: calc(100vw - 85px);
     }
-    #header-hud h1 { font-size: 11px; }
-    #header-hud .subtitle { font-size: 9px; }
+    #header-hud h1 { font-size: 10px; }
+    #header-hud .subtitle { font-size: 8px; }
 
     #cam-dock {
-      top: 42px;
+      top: 40px;
       padding: 2px 4px;
       gap: 2px;
     }
     .cam-btn {
-      padding: 4px 6px;
-      font-size: 9px;
+      padding: 3px 6px;
+      font-size: 8px;
+    }
+
+    #zoom-dock {
+      right: 8px;
+      gap: 5px;
+    }
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
     }
 
     #anim-dock {
       bottom: 8px;
-      padding: 4px 6px;
+      padding: 3px 6px;
       gap: 3px;
       width: calc(100vw - 16px);
-      max-width: 380px;
+      max-width: 360px;
       justify-content: center;
     }
     .btn-anim {
@@ -438,15 +495,22 @@
   <button class="cam-btn" data-target="boots">🥾 Taktik Etik</button>
 </div>
 
+<!-- Floating Zoom Controls -->
+<div id="zoom-dock">
+  <button class="zoom-btn" id="btn-zoom-in" title="Yaqinlashtirish (Zoom In)">➕</button>
+  <button class="zoom-btn" id="btn-zoom-fit" title="Ekranga Sig'dirish (Fit)">🎯</button>
+  <button class="zoom-btn" id="btn-zoom-out" title="Uzoqlashtirish (Zoom Out)">➖</button>
+</div>
+
 <!-- Stats Panel -->
 <div id="stats-panel">
   <div class="stat-row"><span class="stat-label">Personaj:</span><span class="stat-val badge" id="stat-model">Special Forces Operator</span></div>
-  <div class="stat-row"><span class="stat-label">Maska / Kiyim:</span><span class="stat-val" style="color:var(--cyan)">Matoviy Qora Balaclava</span></div>
+  <div class="stat-row"><span class="stat-label">Maska:</span><span class="stat-val" style="color:var(--cyan)">Qora Ballistik Balaclava</span></div>
   <div class="stat-row"><span class="stat-label">Qurol:</span><span class="stat-val" style="color:var(--orange)">M4A1 CQB Suppressed</span></div>
   <div class="stat-row"><span class="stat-label">Frame Rate:</span><span class="stat-val" id="stat-fps" style="color:var(--green)">60 FPS</span></div>
-  <div class="stat-row"><span class="stat-label">Skelet Suyaklari:</span><span class="stat-val" id="stat-joints">51 Suyak</span></div>
+  <div class="stat-row"><span class="stat-label">Suyaklar:</span><span class="stat-val" id="stat-joints">51 Suyak</span></div>
   <div class="stat-row"><span class="stat-label">Poligonlar:</span><span class="stat-val" id="stat-triangles">8,200 Tris</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val" id="stat-height">1.75 m (Oyoq Y=0)</span></div>
+  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val" id="stat-height">1.68 m (Oyoq Y=0)</span></div>
   <div class="stat-row"><span class="stat-label">Harakat:</span><span class="stat-val" id="stat-anim" style="color:var(--green)">IDLE</span></div>
 </div>
 
@@ -463,7 +527,6 @@
   <button class="tool-btn active" id="btn-rotate">360° Aylanish: ON</button>
   <button class="tool-btn" id="btn-wireframe">Wireframe: OFF</button>
   <button class="tool-btn" id="btn-lighting">Chiroq: CS2 Taktik</button>
-  <button class="tool-btn" id="btn-laser">Lazer: ON</button>
   <button class="tool-btn" id="btn-reset">Kamera Qaytarish</button>
 </div>
 
@@ -497,6 +560,9 @@ const statHeight = document.getElementById('stat-height');
 const statAnim = document.getElementById('stat-anim');
 const btnFire = document.getElementById('btn-fire');
 const btnFullscreen = document.getElementById('btn-fullscreen');
+const btnZoomIn = document.getElementById('btn-zoom-in');
+const btnZoomOut = document.getElementById('btn-zoom-out');
+const btnZoomFit = document.getElementById('btn-zoom-fit');
 
 function showError(msg) {
   if (loaderSpinner) loaderSpinner.style.display = 'none';
@@ -535,31 +601,87 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.maxPolarAngle = Math.PI / 2 + 0.02;
 
-// DYNAMIC CAMERA FRAMING (Ekranga 100% to'liq sig'dirish)
-function autoFitCamera() {
+// Character Root Group
+const characterGroup = new THREE.Group();
+scene.add(characterGroup);
+
+let characterModel = null;
+let mixer = null;
+let actions = {};
+let currentAction = null;
+let currentAnimName = 'idle';
+let autoRotate = true;
+let isWireframe = false;
+let tacticalRifle = null;
+let muzzleLight = null;
+
+// =========================================================================
+// ANIQ MATEMATIK DASTURIY AVTO-MASOFA (EKRANGA 100% TO'LIQ SIG'DIRISH)
+// =========================================================================
+let currentZoomFactor = 1.0;
+
+function autoFitCamera(zoomMultiplier = 1.0) {
   const aspect = window.innerWidth / window.innerHeight;
-  // If mobile portrait (aspect < 0.8), move back to 4.5m so character fits with 30% margin
-  if (aspect < 0.8) {
-    camera.position.set(0, 0.95, 4.4);
-    controls.target.set(0, 0.85, 0);
-    controls.minDistance = 1.0;
-    controls.maxDistance = 6.0;
-  } else if (aspect < 1.2) {
-    camera.position.set(0, 1.05, 3.8);
-    controls.target.set(0, 0.88, 0);
-    controls.minDistance = 0.9;
-    controls.maxDistance = 5.5;
+  
+  // Personaj bo'yi 1.68m, kengligi (qurol va qadam bilan) ~1.30m
+  const charH = 1.68;
+  const charW = 1.30;
+  const targetY = 0.84;
+
+  const fovV = (camera.fov * Math.PI) / 180;
+  // Vertikal to'liq sig'dirish (yuqori HUD va pastki tugmalar uchun 45% margin bilan)
+  const distV = (charH / 2) / Math.tan(fovV / 2) * 1.45;
+
+  // Gorizontal to'liq sig'dirish (tor mobil ekranlar uchun)
+  const fovH = 2 * Math.atan(Math.tan(fovV / 2) * aspect);
+  const distH = (charW / 2) / Math.tan(fovH / 2) * 1.45;
+
+  // Ikkala o'lchamda ham 100% sig'ishini kafolatlaydigan masofa
+  let targetDist = Math.max(distV, distH);
+
+  // Mobil vertikal ekranlar (9:16, 9:20) uchun qo'shimcha kafolatlangan masofa
+  if (aspect < 0.75) {
+    targetDist = Math.max(targetDist, 6.2);
+  } else if (aspect < 1.1) {
+    targetDist = Math.max(targetDist, 4.8);
   } else {
-    camera.position.set(0, 1.15, 3.2);
-    controls.target.set(0, 0.90, 0);
-    controls.minDistance = 0.8;
-    controls.maxDistance = 5.0;
+    targetDist = Math.max(targetDist, 3.8);
   }
+
+  targetDist *= zoomMultiplier;
+
+  camera.position.set(0, targetY + (aspect < 0.8 ? 0.02 : 0.08), targetDist);
+  controls.target.set(0, targetY, 0);
+  controls.minDistance = 0.8;
+  controls.maxDistance = 18.0;
   controls.update();
 }
-autoFitCamera();
+autoFitCamera(1.0);
 
-// 2. 3-Point Tactical Lighting
+// Zoom Controls Event Handlers
+if (btnZoomIn) {
+  btnZoomIn.addEventListener('click', () => {
+    currentZoomFactor = Math.max(0.35, currentZoomFactor * 0.80);
+    autoFitCamera(currentZoomFactor);
+  });
+}
+if (btnZoomOut) {
+  btnZoomOut.addEventListener('click', () => {
+    currentZoomFactor = Math.min(2.5, currentZoomFactor * 1.25);
+    autoFitCamera(currentZoomFactor);
+  });
+}
+if (btnZoomFit) {
+  btnZoomFit.addEventListener('click', () => {
+    currentZoomFactor = 1.0;
+    autoFitCamera(1.0);
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    const fullBtn = document.querySelector('.cam-btn[data-target="full"]');
+    if (fullBtn) fullBtn.classList.add('active');
+  });
+}
+
+// 2. 3-Point Tactical Lighting Setup
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x111622, 0.45);
 scene.add(hemiLight);
 
@@ -587,7 +709,7 @@ rimLight.position.set(0.0, 3.5, -3.2);
 scene.add(rimLight);
 
 // Floor Grid & Shadow Plane
-const floorGeo = new THREE.PlaneGeometry(12, 12);
+const floorGeo = new THREE.PlaneGeometry(14, 14);
 const floorMat = new THREE.ShadowMaterial({ opacity: 0.45 });
 const floorMesh = new THREE.Mesh(floorGeo, floorMat);
 floorMesh.rotation.x = -Math.PI / 2;
@@ -598,21 +720,6 @@ scene.add(floorMesh);
 const gridHelper = new THREE.GridHelper(8, 32, 0x00f0ff, 0x141f2e);
 gridHelper.position.y = 0.001;
 scene.add(gridHelper);
-
-// Character Root Group
-const characterGroup = new THREE.Group();
-scene.add(characterGroup);
-
-let characterModel = null;
-let mixer = null;
-let actions = {};
-let currentAction = null;
-let currentAnimName = 'idle';
-let autoRotate = true;
-let isWireframe = false;
-let tacticalRifle = null;
-let muzzleLight = null;
-let laserBeam = null;
 
 // 3. BUILD HIGH-DETAIL TACTICAL ASSAULT RIFLE (M4A1 CQB Suppressed)
 function createTacticalRifle() {
@@ -642,99 +749,86 @@ function createTacticalRifle() {
   });
 
   // Lower & Upper Receiver
-  const receiverGeo = new THREE.BoxGeometry(0.05, 0.09, 0.28);
+  const receiverGeo = new THREE.BoxGeometry(0.048, 0.085, 0.26);
   const receiver = new THREE.Mesh(receiverGeo, metalMat);
   receiver.position.set(0, 0, 0);
   receiver.castShadow = true;
   rifle.add(receiver);
 
   // Pistol Grip
-  const gripGeo = new THREE.BoxGeometry(0.038, 0.11, 0.05);
+  const gripGeo = new THREE.BoxGeometry(0.036, 0.10, 0.048);
   const grip = new THREE.Mesh(gripGeo, polymerMat);
-  grip.position.set(0, -0.09, -0.07);
+  grip.position.set(0, -0.085, -0.065);
   grip.rotation.x = 0.32;
   grip.castShadow = true;
   rifle.add(grip);
 
   // Curved 30-Round Magazine
-  const magGeo = new THREE.BoxGeometry(0.032, 0.16, 0.065);
+  const magGeo = new THREE.BoxGeometry(0.030, 0.15, 0.06);
   const mag = new THREE.Mesh(magGeo, polymerMat);
-  mag.position.set(0, -0.11, 0.06);
+  mag.position.set(0, -0.10, 0.055);
   mag.rotation.x = -0.15;
   mag.castShadow = true;
   rifle.add(mag);
 
   // Handguard / Quad-Rail
-  const handguardGeo = new THREE.BoxGeometry(0.055, 0.065, 0.24);
+  const handguardGeo = new THREE.BoxGeometry(0.052, 0.062, 0.22);
   const handguard = new THREE.Mesh(handguardGeo, metalMat);
-  handguard.position.set(0, 0.01, 0.25);
+  handguard.position.set(0, 0.01, 0.24);
   handguard.castShadow = true;
   rifle.add(handguard);
 
   // Angled Foregrip
-  const foregripGeo = new THREE.BoxGeometry(0.03, 0.07, 0.05);
+  const foregripGeo = new THREE.BoxGeometry(0.028, 0.065, 0.045);
   const foregrip = new THREE.Mesh(foregripGeo, polymerMat);
-  foregrip.position.set(0, -0.05, 0.26);
+  foregrip.position.set(0, -0.048, 0.25);
   foregrip.rotation.x = -0.3;
   rifle.add(foregrip);
 
   // Barrel
-  const barrelGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.18, 12);
+  const barrelGeo = new THREE.CylinderGeometry(0.011, 0.011, 0.16, 12);
   const barrel = new THREE.Mesh(barrelGeo, metalMat);
   barrel.rotation.x = Math.PI / 2;
-  barrel.position.set(0, 0.015, 0.44);
+  barrel.position.set(0, 0.015, 0.42);
   rifle.add(barrel);
 
   // Tactical Suppressor (Silencer)
-  const suppGeo = new THREE.CylinderGeometry(0.024, 0.024, 0.18, 16);
+  const suppGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.16, 16);
   const suppressor = new THREE.Mesh(suppGeo, metalMat);
   suppressor.rotation.x = Math.PI / 2;
-  suppressor.position.set(0, 0.015, 0.58);
+  suppressor.position.set(0, 0.015, 0.55);
   suppressor.castShadow = true;
   rifle.add(suppressor);
 
   // Holographic Sight (EOTech)
-  const sightBase = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.045, 0.09), metalMat);
-  sightBase.position.set(0, 0.07, 0.02);
+  const sightBase = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.042, 0.085), metalMat);
+  sightBase.position.set(0, 0.065, 0.02);
   sightBase.castShadow = true;
   rifle.add(sightBase);
 
   // Optic Glass & Glowing Red Reticle
-  const lens = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.01), opticLensMat);
-  lens.position.set(0, 0.075, 0.05);
+  const lens = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.032, 0.01), opticLensMat);
+  lens.position.set(0, 0.07, 0.048);
   rifle.add(lens);
 
-  const reticle = new THREE.Mesh(new THREE.RingGeometry(0.005, 0.008, 16), reticleMat);
-  reticle.position.set(0, 0.075, 0.045);
+  const reticle = new THREE.Mesh(new THREE.RingGeometry(0.004, 0.007, 16), reticleMat);
+  reticle.position.set(0, 0.07, 0.044);
   rifle.add(reticle);
 
   // Tactical Stock (Collapsible CTR Stock)
-  const stockTube = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 0.18, 12), metalMat);
+  const stockTube = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.16, 12), metalMat);
   stockTube.rotation.x = Math.PI / 2;
-  stockTube.position.set(0, 0.015, -0.22);
+  stockTube.position.set(0, 0.015, -0.20);
   rifle.add(stockTube);
 
-  const stockPad = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.13, 0.09), polymerMat);
-  stockPad.position.set(0, -0.01, -0.30);
+  const stockPad = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.12, 0.08), polymerMat);
+  stockPad.position.set(0, -0.01, -0.28);
   stockPad.castShadow = true;
   rifle.add(stockPad);
 
-  // PEQ-15 Tactical Laser / Flashlight Module
-  const peqBox = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.025, 0.07), polymerMat);
-  peqBox.position.set(0.04, 0.035, 0.28);
-  rifle.add(peqBox);
-
-  // Tactical Green Laser Beam
-  const laserGeo = new THREE.CylinderGeometry(0.0015, 0.0015, 6.0, 6);
-  const laserMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.65 });
-  laserBeam = new THREE.Mesh(laserGeo, laserMat);
-  laserBeam.rotation.x = Math.PI / 2;
-  laserBeam.position.set(0.04, 0.035, 3.3);
-  rifle.add(laserBeam);
-
   // Dynamic Muzzle Flash Light
   muzzleLight = new THREE.PointLight(0xff9922, 0, 4.0);
-  muzzleLight.position.set(0, 0.015, 0.70);
+  muzzleLight.position.set(0, 0.015, 0.66);
   rifle.add(muzzleLight);
 
   return rifle;
@@ -774,7 +868,7 @@ function playSuppressedShotSound() {
     gain.connect(audioCtx.destination);
     noise.start(t);
   } catch (e) {
-    console.warn('Audio not available:', e);
+    console.warn('Audio note:', e);
   }
 }
 
@@ -793,13 +887,13 @@ function triggerFireWeapon() {
   }
 
   // Weapon recoil kickback
-  tacticalRifle.position.z -= 0.045;
-  tacticalRifle.rotation.x -= 0.06;
+  tacticalRifle.position.z -= 0.04;
+  tacticalRifle.rotation.x -= 0.055;
 
   // Spring back to neutral grip
   setTimeout(() => {
-    tacticalRifle.position.z += 0.045;
-    tacticalRifle.rotation.x += 0.06;
+    tacticalRifle.position.z += 0.04;
+    tacticalRifle.rotation.x += 0.055;
     isFiring = false;
   }, 100);
 }
@@ -837,12 +931,12 @@ function tryLoadSoldier(index = 0) {
       window.__threeLoaded = true;
       characterModel = gltf.scene;
 
-      // 1. Auto-normalize height via Box3 to exact 1.75m
+      // 1. Auto-normalize height via Box3 to exact 1.68m
       const initialBox = new THREE.Box3().setFromObject(characterModel);
       const size = new THREE.Vector3();
       initialBox.getSize(size);
 
-      const targetHeight = 1.75;
+      const targetHeight = 1.68;
       const scale = size.y > 0 ? targetHeight / size.y : 1.0;
       characterModel.scale.setScalar(scale);
 
@@ -877,8 +971,6 @@ function tryLoadSoldier(index = 0) {
       const rightHand = characterModel.getObjectByName('mixamorig:RightHand');
       if (rightHand) {
         tacticalRifle = createTacticalRifle();
-        // Scale and align snugly in soldier's tactical grip
-        tacticalRifle.scale.setScalar(1.0);
         // Position & orientation in hand (pointing forward, low ready patrol stance)
         tacticalRifle.position.set(0.04, 0.08, 0.02);
         tacticalRifle.rotation.set(-Math.PI / 2, 0, Math.PI / 2 + 0.15);
@@ -917,7 +1009,7 @@ function tryLoadSoldier(index = 0) {
       }, 200);
 
       // Re-adjust camera framing to ensure 100% full body visibility
-      autoFitCamera();
+      autoFitCamera(1.0);
     },
     (xhr) => {
       if (xhr.lengthComputable && xhr.total > 0) {
@@ -1000,20 +1092,23 @@ window.addEventListener('keyup', (e) => {
 
 // 9. Camera Presets (Har qanday ekranga moslashtirilgan)
 const camPresets = {
-  full: () => autoFitCamera(),
+  full: () => {
+    currentZoomFactor = 1.0;
+    autoFitCamera(1.0);
+  },
   weapon: () => {
-    camera.position.set(0.35, 1.05, 1.25);
-    controls.target.set(0.18, 0.95, 0.15);
+    camera.position.set(0.40, 1.05, 1.6);
+    controls.target.set(0.16, 0.95, 0.12);
     controls.update();
   },
   mask: () => {
-    camera.position.set(0, 1.58, 0.90);
+    camera.position.set(0, 1.58, 1.25);
     controls.target.set(0, 1.58, 0);
     controls.update();
   },
   boots: () => {
-    camera.position.set(0, 0.32, 1.25);
-    controls.target.set(0, 0.15, 0);
+    camera.position.set(0, 0.38, 1.6);
+    controls.target.set(0, 0.18, 0);
     controls.update();
   }
 };
@@ -1070,21 +1165,11 @@ if (btnLighting) {
   });
 }
 
-const btnLaser = document.getElementById('btn-laser');
-if (btnLaser) {
-  btnLaser.addEventListener('click', () => {
-    if (laserBeam) {
-      laserBeam.visible = !laserBeam.visible;
-      btnLaser.innerText = `Lazer: ${laserBeam.visible ? 'ON' : 'OFF'}`;
-      btnLaser.classList.toggle('active', laserBeam.visible);
-    }
-  });
-}
-
 const btnReset = document.getElementById('btn-reset');
 if (btnReset) {
   btnReset.addEventListener('click', () => {
-    autoFitCamera();
+    currentZoomFactor = 1.0;
+    autoFitCamera(1.0);
     document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
     const fullBtn = document.querySelector('.cam-btn[data-target="full"]');
     if (fullBtn) fullBtn.classList.add('active');
@@ -1109,7 +1194,7 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  autoFitCamera();
+  autoFitCamera(currentZoomFactor);
 });
 
 // 11. FPS Counter & Render Loop
