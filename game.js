@@ -1129,6 +1129,11 @@
       this.nextUid = 1;
       this.lastTimestamp = 0;
       this.playerName = localStorage.getItem('last_grid_player_name') || 'CyberCommander';
+      this.minimapExpanded = true;
+      this.cinematicBanner = null;
+      this.codexTab = 'TOWERS';
+      this.codexSelectedId = 'pulse';
+      this.isDraggingSlider = null;
 
       this.saveData = this.loadSave();
 
@@ -1409,27 +1414,81 @@
       ctx.font = "bold 12px monospace";
       ctx.fillText("BOSHQARUV • OVOZ • GRAFIKA • EKRAN MOSLASHUVI", 640, my + 66);
 
-      // Section 1: SFX Volume
+      // Section 1: SFX Volume Slider
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 13px monospace";
       ctx.fillText("🔊 SFX OVOZLAR:", mx + 40, my + 115);
-      const sfxLevels = [ { l: "100%", v: 1.0 }, { l: "70%", v: 0.7 }, { l: "30%", v: 0.3 }, { l: "O'CHIQ", v: 0.0 } ];
-      for (let i = 0; i < 4; i++) {
-        const bx = mx + 240 + i * 125;
-        const sel = Math.abs(this.settings.sfxVol - sfxLevels[i].v) < 0.05;
-        this.drawCyberButton(bx, my + 92, 115, 36, sfxLevels[i].l, sel ? "#00e676" : "#455a64", "", "", sel);
-      }
 
-      // Section 2: BGM Volume
+      const sfxTrackX = mx + 240;
+      const sfxTrackY = my + 104;
+      const trackW = 420;
+      const trackH = 12;
+
+      // Track base
+      ctx.fillStyle = "rgba(10, 16, 28, 0.95)";
+      ctx.fillRect(sfxTrackX, sfxTrackY, trackW, trackH);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(sfxTrackX, sfxTrackY, trackW, trackH);
+
+      // Track fill
+      const sfxFillW = Math.max(0, Math.min(trackW, trackW * this.settings.sfxVol));
+      const sfxGrad = ctx.createLinearGradient(sfxTrackX, 0, sfxTrackX + sfxFillW, 0);
+      sfxGrad.addColorStop(0, "#00b0ff");
+      sfxGrad.addColorStop(1, "#00e5ff");
+      ctx.fillStyle = sfxGrad;
+      ctx.fillRect(sfxTrackX + 1, sfxTrackY + 1, sfxFillW, trackH - 2);
+
+      // Thumb knob
+      const sfxThumbX = sfxTrackX + sfxFillW;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(sfxThumbX, sfxTrackY + trackH / 2, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Readout
+      this.drawCyberButton(mx + 680, my + 92, 80, 36, `${Math.round(this.settings.sfxVol * 100)}%`, this.settings.sfxVol > 0 ? "#00e5ff" : "#455a64", "", "", false);
+
+      // Section 2: BGM Volume Slider
       ctx.fillStyle = "#ffffff";
       ctx.fillText("🎵 MUSIQA (BGM):", mx + 40, my + 175);
-      const bgmLevels = [ { l: "100%", v: 1.0 }, { l: "70%", v: 0.7 }, { l: "30%", v: 0.3 }, { l: "O'CHIQ", v: 0.0 } ];
-      for (let i = 0; i < 4; i++) {
-        const bx = mx + 240 + i * 125;
-        const sel = Math.abs(this.settings.bgmVol - bgmLevels[i].v) < 0.05;
-        this.drawCyberButton(bx, my + 152, 115, 36, bgmLevels[i].l, sel ? "#00e676" : "#455a64", "", "", sel);
-      }
+
+      const bgmTrackX = mx + 240;
+      const bgmTrackY = my + 164;
+
+      ctx.fillStyle = "rgba(10, 16, 28, 0.95)";
+      ctx.fillRect(bgmTrackX, bgmTrackY, trackW, trackH);
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.35)";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(bgmTrackX, bgmTrackY, trackW, trackH);
+
+      const bgmFillW = Math.max(0, Math.min(trackW, trackW * this.settings.bgmVol));
+      const bgmGrad = ctx.createLinearGradient(bgmTrackX, 0, bgmTrackX + bgmFillW, 0);
+      bgmGrad.addColorStop(0, "#00b0ff");
+      bgmGrad.addColorStop(1, "#00e676");
+      ctx.fillStyle = bgmGrad;
+      ctx.fillRect(bgmTrackX + 1, bgmTrackY + 1, bgmFillW, trackH - 2);
+
+      const bgmThumbX = bgmTrackX + bgmFillW;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "#00e676";
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(bgmThumbX, bgmTrackY + trackH / 2, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e676";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      this.drawCyberButton(mx + 680, my + 152, 80, 36, `${Math.round(this.settings.bgmVol * 100)}%`, this.settings.bgmVol > 0 ? "#00e676" : "#455a64", "", "", false);
 
       // Section 3: Haptic Feedback
       ctx.fillStyle = "#ffffff";
@@ -1476,38 +1535,46 @@
       const mx = 240;
       const my = 40;
 
-      // Section 1: SFX
-      if (y >= my + 92 && y <= my + 128) {
-        const sfxLevels = [1.0, 0.7, 0.3, 0.0];
-        for (let i = 0; i < 4; i++) {
-          const bx = mx + 240 + i * 125;
-          if (x >= bx && x <= bx + 115) {
-            this.settings.sfxVol = sfxLevels[i];
-            localStorage.setItem('lg_sfx_vol', sfxLevels[i].toString());
-            audio.sfxMuted = (sfxLevels[i] === 0.0);
-            audio.click();
-            this.vibrate(15);
-            return;
-          }
-        }
+      // Section 1: SFX Slider Click / Drag
+      if (y >= my + 88 && y <= my + 130 && x >= mx + 230 && x <= mx + 670) {
+        const pct = Math.max(0, Math.min(1.0, (x - (mx + 240)) / 420));
+        this.settings.sfxVol = Math.round(pct * 20) / 20;
+        localStorage.setItem('lg_sfx_vol', this.settings.sfxVol.toString());
+        audio.sfxMuted = (this.settings.sfxVol === 0.0);
+        audio.shootPulse();
+        this.vibrate(14);
+        return;
+      }
+      if (x >= mx + 680 && x <= mx + 760 && y >= my + 92 && y <= my + 128) {
+        this.settings.sfxVol = this.settings.sfxVol > 0 ? 0 : 0.7;
+        localStorage.setItem('lg_sfx_vol', this.settings.sfxVol.toString());
+        audio.sfxMuted = (this.settings.sfxVol === 0.0);
+        audio.click();
+        this.vibrate(15);
+        return;
       }
 
-      // Section 2: BGM
-      if (y >= my + 152 && y <= my + 188) {
-        const bgmLevels = [1.0, 0.7, 0.3, 0.0];
-        for (let i = 0; i < 4; i++) {
-          const bx = mx + 240 + i * 125;
-          if (x >= bx && x <= bx + 115) {
-            this.settings.bgmVol = bgmLevels[i];
-            localStorage.setItem('lg_bgm_vol', bgmLevels[i].toString());
-            audio.bgmMuted = (bgmLevels[i] === 0.0);
-            if (audio.bgmMuted) audio.stopBGM();
-            else { audio.startBGM(); audio.setBGMVolume(bgmLevels[i]); }
-            audio.click();
-            this.vibrate(15);
-            return;
-          }
-        }
+      // Section 2: BGM Slider Click / Drag
+      if (y >= my + 148 && y <= my + 190 && x >= mx + 230 && x <= mx + 670) {
+        const pct = Math.max(0, Math.min(1.0, (x - (mx + 240)) / 420));
+        this.settings.bgmVol = Math.round(pct * 20) / 20;
+        localStorage.setItem('lg_bgm_vol', this.settings.bgmVol.toString());
+        audio.bgmMuted = (this.settings.bgmVol === 0.0);
+        if (audio.bgmMuted) audio.stopBGM();
+        else { audio.startBGM(); audio.setBGMVolume(this.settings.bgmVol); }
+        audio.click();
+        this.vibrate(14);
+        return;
+      }
+      if (x >= mx + 680 && x <= mx + 760 && y >= my + 152 && y <= my + 188) {
+        this.settings.bgmVol = this.settings.bgmVol > 0 ? 0 : 0.7;
+        localStorage.setItem('lg_bgm_vol', this.settings.bgmVol.toString());
+        audio.bgmMuted = (this.settings.bgmVol === 0.0);
+        if (audio.bgmMuted) audio.stopBGM();
+        else { audio.startBGM(); audio.setBGMVolume(this.settings.bgmVol); }
+        audio.click();
+        this.vibrate(15);
+        return;
       }
 
       // Section 3: Haptics
@@ -1707,6 +1774,9 @@
       this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
+        if (this.showSettingsModal && this.isPointerDown && this.mousePos) {
+          this.handleSettingsClick(this.mousePos.x, this.mousePos.y);
+        }
       });
 
       // Desktop Click (strictly ignores synthetic touch events)
@@ -1797,8 +1867,8 @@
             this.touchState.lastTapPos = pos;
             return;
           }
-          // Floating Wave / Speed Button (x: 1210, y: 90, radius: 40)
-          if (Math.hypot(pos.x - 1210, pos.y - 90) <= 40) {
+          // Floating Wave / Speed Button (x: 1210, y: 450, radius: 36)
+          if (Math.hypot(pos.x - 1210, pos.y - 450) <= 36) {
             e.preventDefault();
             if (!this.waveActive) this.callNextWave();
             else this.cycleSpeed();
@@ -1847,6 +1917,11 @@
         const pos = this.getCanvasPos(e);
         this.mousePos = pos;
         this.updateHoverCell();
+
+        if (this.showSettingsModal && pos) {
+          this.handleSettingsClick(pos.x, pos.y);
+          return;
+        }
 
         if (this.state === 'TPS_3D' && this.tps3D) {
           e.preventDefault();
@@ -2317,10 +2392,45 @@
       }
 
       if (this.state === 'MANUAL') {
-        if (x >= 20 && x <= 180 && y >= 10 && y <= 65) {
+        if (x >= 20 && x <= 160 && y >= 10 && y <= 65) {
           this.state = 'MENU';
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
+          return;
+        }
+
+        // Tabs
+        if (y >= 15 && y <= 55) {
+          if (x >= 440 && x <= 605) { this.codexTab = 'TOWERS'; this.codexSelectedId = 'pulse'; audio.click(); return; }
+          if (x >= 620 && x <= 795) { this.codexTab = 'ENEMIES'; this.codexSelectedId = 'grunt'; audio.click(); return; }
+          if (x >= 810 && x <= 1005) { this.codexTab = 'BOSSES'; this.codexSelectedId = 'juggernaut'; audio.click(); return; }
+          if (x >= 1020 && x <= 1205) { this.codexTab = 'MECH'; this.codexSelectedId = 'biped'; audio.click(); return; }
+        }
+
+        // Item List clicks
+        if (x >= 38 && x <= 312) {
+          const tab = this.codexTab || 'TOWERS';
+          const counts = { TOWERS: 8, ENEMIES: 9, BOSSES: 6, MECH: 2 };
+          const count = counts[tab] || 8;
+          const itemH = Math.min(68, Math.floor(590 / count));
+          for (let i = 0; i < count; i++) {
+            const iy = 88 + i * (itemH + 4);
+            if (y >= iy && y <= iy + itemH) {
+              const listMap = {
+                TOWERS: ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'],
+                ENEMIES: ['grunt', 'sprinter', 'brute', 'shieldbearer', 'medic', 'splitter', 'phantom', 'kamikaze_drone', 'gunship'],
+                BOSSES: ['juggernaut', 'overseer', 'hive_titan', 'void_titan', 'chrono_phantom', 'mecha_colossus'],
+                MECH: ['biped', 'siege']
+              };
+              const selList = listMap[tab] || listMap.TOWERS;
+              if (selList[i]) {
+                this.codexSelectedId = selList[i];
+                audio.click();
+                this.vibrate(15);
+                return;
+              }
+            }
+          }
         }
         return;
       }
@@ -2458,22 +2568,47 @@
         this.vibrate([40, 25, 70]);
         return;
       }
-      if (Math.hypot(x - 1210, y - 90) <= 40) {
+      if (Math.hypot(x - 1210, y - 450) <= 36) {
         if (!this.waveActive) this.callNextWave();
         else this.cycleSpeed();
         this.vibrate(20);
         return;
       }
 
+      // Radar Minimap Click / Tactical Waypoint Navigation
+      if (x >= 1118 && x <= 1266 && y >= 62 && y <= (this.minimapExpanded ? 162 : 92)) {
+        if (y <= (this.minimapExpanded ? 84 : 92)) {
+          this.minimapExpanded = !this.minimapExpanded;
+          audio.click();
+        } else if (this.minimapExpanded) {
+          const ix = 1118 + 6;
+          const iy = 62 + 22;
+          const iw = 148 - 12;
+          const ih = 100 - 26;
+          const targetWorldX = Math.max(64, Math.min(1216, (x - ix) / (iw / 1280)));
+          const targetWorldY = Math.max(64, Math.min(640, (y - iy) / (ih / 704)));
+          this.hero.targetX = targetWorldX;
+          this.hero.targetY = targetWorldY;
+          this.hero.selected = false;
+          this.hero.dashSpeedBoost = 2.4;
+          this.hero.dashTimer = 0.45;
+          this.spawnShockwave(targetWorldX, targetWorldY, 35, "#00e5ff");
+          this.addFloatingText("RADAR WAYPOINT", targetWorldX, targetWorldY - 20, "#00e5ff", 14);
+          if (audio) audio.shootPulse();
+          this.vibrate([20, 20]);
+        }
+        return;
+      }
+
       // 2. Mobile Quick Radial Build Wheel Clicks
       if (this.radialBuildCell) {
         const rc = this.radialBuildCell;
-        const towerList = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon'];
+        const towerList = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
         let chosen = null;
-        for (let i = 0; i < towerList.length; i++) {
-          const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
-          const bx = rc.px + Math.cos(ang) * 68;
-          const by = rc.py + Math.sin(ang) * 68;
+        for (let i = 0; i < 8; i++) {
+          const ang = -Math.PI / 2 + (Math.PI * 2 / 8) * i;
+          const bx = rc.px + Math.cos(ang) * 84;
+          const by = rc.py + Math.sin(ang) * 84;
           if (Math.hypot(x - bx, y - by) <= 28) {
             chosen = towerList[i];
             break;
@@ -2485,8 +2620,9 @@
           this.vibrate([25, 30, 25]);
           return;
         } else {
-          // Tapped outside radial buttons -> dismiss radial
+          // Tapped outside radial buttons or center dismisses
           this.radialBuildCell = null;
+          return;
         }
       }
 
@@ -3804,6 +3940,31 @@
       }
       this.spawnTimer = 0;
       this.addFloatingText(`${this.t("wave")} ${waveNum}!`, 640, 150, "#00e5ff", 28);
+
+      // Trigger Cinematic Wave Alert Banner
+      const bossGroup = groups.find(g => ENEMY_DEFS[g.type] && ENEMY_DEFS[g.type].isBoss);
+      const isBoss = !!bossGroup;
+      const bossDef = isBoss ? ENEMY_DEFS[bossGroup.type] : null;
+      const title = isBoss ? `⚠ BOSS DETECTED — WAVE ${waveNum}!` : `WAVE ${waveNum} INBOUND`;
+      const subtitle = isBoss ?
+        `${bossDef.name.toUpperCase()} (HP: ${bossDef.hp}) — HEAVY TITAN CLASS` :
+        `HOSTILE SWARM APPROACHING GRID DEFENSE PERIMETER`;
+
+      this.cinematicBanner = {
+        title: title,
+        subtitle: subtitle,
+        isBoss: isBoss,
+        duration: 3.2,
+        timer: 3.2,
+        color: isBoss ? "#ff1744" : "#00e5ff"
+      };
+
+      if (isBoss) {
+        audio.emergencySiren();
+        this.screenShake = 12;
+      } else {
+        audio.waveClear();
+      }
     }
 
     spawnEnemy(type, laneIdx) {
@@ -3914,6 +4075,10 @@
 
     update(dt) {
       if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - 20 * dt);
+
+      if (this.cinematicBanner && this.cinematicBanner.timer > 0) {
+        this.cinematicBanner.timer = Math.max(0, this.cinematicBanner.timer - dt);
+      }
 
       if (this.bossAlert && this.bossAlert.timer > 0) {
         this.bossAlert.timer = Math.max(0, this.bossAlert.timer - dt);
@@ -5130,24 +5295,24 @@
         ctx.textAlign = "center";
         ctx.fillText("1. PASTKI PANELDAN MINORA TANLAB XARITAGA QO'YING!", 350, 590);
       } else if (!this.waveActive) {
-        // Step 2: Engage Wave
+        // Step 2: Engage Wave (Top HUD Bar)
         ctx.strokeStyle = "#ffd600";
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(1210, 90, 42 + pulseRing, 0, Math.PI * 2);
+        ctx.arc(530, 30, 42 + pulseRing, 0, Math.PI * 2);
         ctx.stroke();
 
         ctx.fillStyle = "rgba(10, 25, 47, 0.92)";
         ctx.strokeStyle = "#00e5ff";
         ctx.beginPath();
-        ctx.roundRect(800, 145, 410, 50, 8);
+        ctx.roundRect(330, 80, 400, 46, 8);
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = "#00e5ff";
-        ctx.font = "bold 15px monospace";
+        ctx.font = "bold 14px monospace";
         ctx.textAlign = "center";
-        ctx.fillText("2. TO'LQINNI BOSHLASH UCHUN 'JANGGA'NI BOSING!", 1005, 175);
+        ctx.fillText("2. TO'LQINNI BOSHLASH UCHUN 'JANGGA'NI BOSING!", 530, 108);
       }
 
       // Skip Button
@@ -5217,6 +5382,8 @@
         this.renderRadialBuildWheel();
         this.renderRadioComms();
         this.renderBossAlert();
+        this.renderMinimapHUD();
+        this.renderCinematicBanner();
         this.renderTopHUD();
         this.renderBottomBar();
         this.renderMobileFloatingButtons();
@@ -7400,19 +7567,43 @@
     renderRadialBuildWheel() {
       if (!this.radialBuildCell) return;
       const ctx = this.ctx;
+      const t = this.uiTime || 0;
       const rc = this.radialBuildCell;
 
+      rc.anim = Math.min(1.0, (rc.anim || 0) + 0.14);
+      const scale = rc.anim;
+
       // 1. Highlight selected cell
+      ctx.save();
       ctx.strokeStyle = "#00e5ff";
       ctx.lineWidth = 2.5;
-      ctx.fillStyle = "rgba(0, 229, 255, 0.2)";
+      ctx.fillStyle = "rgba(0, 229, 255, 0.22)";
       ctx.fillRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
       ctx.strokeRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
 
-      // 2. Connecting dashed spokes
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      // Center close button at (rc.px, rc.py)
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.beginPath();
+      ctx.arc(rc.px, rc.py, 16 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("✕", rc.px, rc.py + 4);
+
+      // Rotating dashed calibration ring
+      const R = 84 * scale;
+      const rot = t * 1.5;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 8]);
+      ctx.beginPath();
+      ctx.arc(rc.px, rc.py, R, rot, rot + Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
 
       const options = [
         { key: 'pulse', icon: "⚡", label: "PULSE" },
@@ -7421,47 +7612,314 @@
         { key: 'tesla', icon: "⚡", label: "TESLA" },
         { key: 'flame', icon: "🔥", label: "FLAME" },
         { key: 'railgun', icon: "🎯", label: "RAILGUN" },
-        { key: 'beacon', icon: "📡", label: "BEACON" }
+        { key: 'beacon', icon: "📡", label: "BEACON" },
+        { key: 'barricade', icon: "🛡️", label: "TO'SIQ" }
       ];
 
-      for (let i = 0; i < options.length; i++) {
-        const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
-        const bx = rc.px + Math.cos(ang) * 68;
-        const by = rc.py + Math.sin(ang) * 68;
-        ctx.beginPath();
-        ctx.moveTo(rc.px, rc.py);
-        ctx.lineTo(bx, by);
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
-
-      // 3. Seven Big Glowing Touch Buttons
-      for (let i = 0; i < options.length; i++) {
+      for (let i = 0; i < 8; i++) {
         const opt = options[i];
-        const def = TOWER_DEFS[opt.key];
+        const def = (opt.key === 'barricade') ? { cost: 40, color: "#ffd600" } : TOWER_DEFS[opt.key];
         const canAfford = this.gold >= def.cost;
-        const ang = -Math.PI / 2 + (Math.PI * 2 / 7) * i;
-        const bx = rc.px + Math.cos(ang) * 68;
-        const by = rc.py + Math.sin(ang) * 68;
-        const br = 22;
+        const ang = -Math.PI / 2 + (Math.PI * 2 / 8) * i;
+        const bx = rc.px + Math.cos(ang) * R;
+        const by = rc.py + Math.sin(ang) * R;
+        const br = 24 * scale;
 
-        ctx.fillStyle = canAfford ? "#0f172a" : "#1e293b";
+        // Connecting spoke
+        ctx.strokeStyle = canAfford ? "rgba(0, 229, 255, 0.4)" : "rgba(100, 116, 139, 0.25)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(rc.px + Math.cos(ang) * 18, rc.py + Math.sin(ang) * 18);
+        ctx.lineTo(bx - Math.cos(ang) * br, by - Math.sin(ang) * br);
+        ctx.stroke();
+
+        // Orb glassmorphic fill
+        const grad = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, 0, bx, by, br);
+        if (canAfford) {
+          grad.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+          grad.addColorStop(0.3, "rgba(20, 36, 62, 0.95)");
+          grad.addColorStop(1, "rgba(8, 14, 26, 0.98)");
+        } else {
+          grad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+          grad.addColorStop(0.4, "rgba(15, 20, 28, 0.92)");
+          grad.addColorStop(1, "rgba(5, 8, 14, 0.98)");
+        }
+        ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(bx, by, br, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = canAfford ? def.color : "#475569";
-        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = canAfford ? def.color : "#455a64";
+        ctx.lineWidth = canAfford ? 2.0 : 1.2;
+        ctx.shadowColor = canAfford ? def.color : "transparent";
+        ctx.shadowBlur = canAfford ? 8 : 0;
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        ctx.font = "13px monospace";
+        // Icon & Cost Text
         ctx.textAlign = "center";
+        ctx.fillStyle = canAfford ? def.color : "#78909c";
+        ctx.font = "bold 13px 'Segoe UI', monospace";
         ctx.fillText(opt.icon, bx, by - 2);
 
-        ctx.fillStyle = canAfford ? "#ffd600" : "#ff1744";
+        ctx.fillStyle = canAfford ? "#ffffff" : "#607d8b";
         ctx.font = "bold 9px monospace";
-        ctx.fillText(`${def.cost}g`, bx, by + 11);
+        ctx.fillText(`${def.cost}g`, bx, by + 12);
       }
+
+      ctx.restore();
+    }
+
+    renderMinimapHUD() {
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const rx = 1118;
+      const ry = 62;
+      const rw = 148;
+      const rh = 100;
+      const cut = 8;
+
+      ctx.save();
+
+      // Collapsed pill badge if minimized
+      if (!this.minimapExpanded) {
+        this.renderMiniButton(rx + rw - 85, ry, 85, 28, "📡 RADAR", "#00e5ff");
+        ctx.restore();
+        return;
+      }
+
+      // Frosted Glassmorphism Radar Panel Frame
+      ctx.beginPath();
+      ctx.moveTo(rx + cut, ry);
+      ctx.lineTo(rx + rw - cut, ry);
+      ctx.lineTo(rx + rw, ry + cut);
+      ctx.lineTo(rx + rw, ry + rh - cut);
+      ctx.lineTo(rx + rw - cut, ry + rh);
+      ctx.lineTo(rx + cut, ry + rh);
+      ctx.lineTo(rx, ry + rh - cut);
+      ctx.lineTo(rx, ry + cut);
+      ctx.closePath();
+
+      const bgGrad = ctx.createLinearGradient(rx, ry, rx, ry + rh);
+      bgGrad.addColorStop(0, "rgba(10, 20, 36, 0.94)");
+      bgGrad.addColorStop(1, "rgba(4, 8, 16, 0.98)");
+      ctx.fillStyle = bgGrad;
+      ctx.fill();
+
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.4;
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Header Bar: "RADAR // FEED" + rec dot + minimize toggle
+      ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
+      ctx.fillRect(rx + 1, ry + 1, rw - 2, 18);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+      ctx.strokeRect(rx + 1, ry + 1, rw - 2, 18);
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("📡 RADAR // FEED", rx + 8, ry + 13);
+
+      const recBlink = Math.sin(t * 5) > 0;
+      ctx.fillStyle = recBlink ? "#00e676" : "#ff1744";
+      ctx.beginPath();
+      ctx.arc(rx + rw - 28, ry + 10, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#78909c";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("▾", rx + rw - 14, ry + 13);
+
+      // Inner Display Area: maps 1280 x 704 to inner display
+      const ix = rx + 6;
+      const iy = ry + 22;
+      const iw = rw - 12;
+      const ih = rh - 26;
+      const sx = iw / 1280;
+      const sy = ih / 704;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(ix, iy, iw, ih);
+      ctx.clip();
+
+      // Faint cyber grid inside radar screen
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.lineWidth = 1;
+      for (let gx = ix; gx <= ix + iw; gx += 16) {
+        ctx.beginPath(); ctx.moveTo(gx, iy); ctx.lineTo(gx, iy + ih); ctx.stroke();
+      }
+      for (let gy = iy; gy <= iy + ih; gy += 14) {
+        ctx.beginPath(); ctx.moveTo(ix, gy); ctx.lineTo(ix + iw, gy); ctx.stroke();
+      }
+
+      // Draw map lanes in glowing faint cyan
+      if (this.bakedLanes) {
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+        ctx.lineWidth = 1.5;
+        for (const lane of this.bakedLanes) {
+          if (!lane || lane.length === 0) continue;
+          ctx.beginPath();
+          ctx.moveTo(ix + lane[0].x * sx, iy + lane[0].y * sy);
+          for (let p = 1; p < lane.length; p++) {
+            ctx.lineTo(ix + lane[p].x * sx, iy + lane[p].y * sy);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Draw Towers as colored dots
+      for (const tow of this.towers) {
+        const def = TOWER_DEFS[tow.type];
+        ctx.fillStyle = def ? def.color : "#00e5ff";
+        ctx.fillRect(ix + tow.x * sx - 1.5, iy + tow.y * sy - 1.5, 3, 3);
+      }
+
+      // Draw Core Base as glowing cyan diamond
+      const map = (this.gameMode === 'CUSTOM') ? (this.customMap || { basePos: { x: 19, y: 5 } }) : MAPS[this.currentMapIndex];
+      const coreX = (map.basePos ? map.basePos.x * 64 + 32 : 1248) * sx;
+      const coreY = (map.basePos ? map.basePos.y * 64 + 32 : 352) * sy;
+      ctx.fillStyle = "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(ix + coreX, iy + coreY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Field Hero Mech as amber blip
+      if (this.hero) {
+        const hx = ix + this.hero.x * sx;
+        const hy = iy + this.hero.y * sy;
+        ctx.fillStyle = "#ffd600";
+        ctx.beginPath();
+        ctx.arc(hx, hy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Enemies as glowing red dots (Bosses as pulsing yellow/red diamond)
+      for (const e of this.enemies) {
+        const ex = ix + e.x * sx;
+        const ey = iy + e.y * sy;
+        if (e.isBoss) {
+          ctx.fillStyle = "#ff1744";
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = e.type === 'swarmling' ? "#ffab00" : (e.type === 'brute' ? "#ff007f" : "#ff5252");
+          ctx.fillRect(ex - 1, ey - 1, 2.5, 2.5);
+        }
+      }
+
+      // Rotating Radar Phosphor Sweep
+      const sweepAng = (t * 2.8) % (Math.PI * 2);
+      const sweepLen = Math.hypot(iw, ih);
+      const sweepX = ix + iw * 0.5 + Math.cos(sweepAng) * sweepLen;
+      const sweepY = iy + ih * 0.5 + Math.sin(sweepAng) * sweepLen;
+
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.75)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(ix + iw * 0.5, iy + ih * 0.5);
+      ctx.lineTo(sweepX, sweepY);
+      ctx.stroke();
+
+      ctx.restore(); // end clip
+      ctx.restore(); // end save
+    }
+
+    renderCinematicBanner() {
+      if (!this.cinematicBanner || this.cinematicBanner.timer <= 0) return;
+      const b = this.cinematicBanner;
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const progress = b.timer / b.duration; // 1 down to 0
+
+      let alpha = 1.0;
+      if (progress > 0.85) alpha = (1.0 - progress) / 0.15;
+      else if (progress < 0.2) alpha = progress / 0.2;
+      alpha = Math.max(0, Math.min(1, alpha));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // Red vignette on screen edges if Boss
+      if (b.isBoss) {
+        const pulse = Math.sin(t * 8) * 0.5 + 0.5;
+        const vigGrad = ctx.createRadialGradient(640, 360, 300, 640, 360, 720);
+        vigGrad.addColorStop(0, "rgba(255, 0, 0, 0)");
+        vigGrad.addColorStop(1, `rgba(255, 23, 68, ${0.25 + pulse * 0.2})`);
+        ctx.fillStyle = vigGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+      }
+
+      // Center Banner Background (y: 205 to 300)
+      const by = 205;
+      const bh = 95;
+      const bgGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+      bgGrad.addColorStop(0, "rgba(8, 14, 25, 0.94)");
+      bgGrad.addColorStop(0.5, b.isBoss ? "rgba(45, 10, 20, 0.96)" : "rgba(12, 28, 48, 0.96)");
+      bgGrad.addColorStop(1, "rgba(4, 7, 14, 0.98)");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, by, this.width, bh);
+
+      // Top and Bottom Glowing Neon Hazard Borders
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(0, by);
+      ctx.lineTo(this.width, by);
+      ctx.moveTo(0, by + bh);
+      ctx.lineTo(this.width, by + bh);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Animated Chevron Hazard Stripes along borders
+      ctx.fillStyle = b.color;
+      const offset = (t * 80) % 40;
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.45;
+      for (let x = -40 + offset; x < this.width + 40; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, by);
+        ctx.lineTo(x + 15, by);
+        ctx.lineTo(x + 5, by + 8);
+        ctx.lineTo(x - 10, by + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(x, by + bh - 8);
+        ctx.lineTo(x + 15, by + bh - 8);
+        ctx.lineTo(x + 5, by + bh);
+        ctx.lineTo(x - 10, by + bh);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Title Typography
+      ctx.textAlign = "center";
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = b.isBoss ? "#ff1744" : "#ffffff";
+      ctx.font = "900 28px 'Segoe UI', monospace";
+      ctx.fillText(b.title, 640, by + 42);
+
+      // Subtitle
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = b.isBoss ? "#ffd600" : "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText(b.subtitle, 640, by + 72);
+
+      ctx.restore();
     }
 
     renderMobileFloatingButtons() {
@@ -7510,9 +7968,9 @@
       }
       ctx.restore();
 
-      // 2. Floating Wave / Speed Thumb Action Button (Top Right)
+      // 2. Floating Wave / Speed Thumb Action Button (Bottom Right, above Ult)
       const wx = 1210;
-      const wy = 90;
+      const wy = 450;
       const wr = 30;
 
       ctx.save();
@@ -8818,90 +9276,290 @@
     }
 
     renderFieldManual() {
-      this.ctx.fillStyle = "#05070d";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
 
-      this.ctx.textAlign = "left";
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 24px 'Segoe UI', monospace";
-      this.ctx.fillText(this.t("fieldManual"), 60, 50);
+      // 1. Deep space cyber grid background
+      ctx.fillStyle = "#050813";
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.renderMiniButton(60, 20, 90, 32, "← MENU");
-
-      this.ctx.fillStyle = "#ffd600";
-      this.ctx.font = "bold 15px monospace";
-      this.ctx.fillText("5 TOWERS + TIER 3 BRANCHING SPECIALIZATIONS (10 ULTIMATE BLUEPRINTS):", 60, 95);
-
-      const towers = Object.values(TOWER_DEFS);
-      for (let i = 0; i < towers.length; i++) {
-        const t = towers[i];
-        const x = 60 + i * 235;
-        this.ctx.fillStyle = "#0c1527";
-        this.ctx.fillRect(x, 110, 220, 185);
-        this.ctx.strokeStyle = t.color;
-        this.ctx.strokeRect(x, 110, 220, 185);
-
-        this.ctx.fillStyle = t.color;
-        this.ctx.font = "bold 13px monospace";
-        this.ctx.fillText(t.name, x + 8, 132);
-
-        this.ctx.fillStyle = "#cfd8dc";
-        this.ctx.font = "10px monospace";
-        this.ctx.fillText(`Cost: ${t.cost}g | ${t.type}`, x + 8, 150);
-
-        this.ctx.fillStyle = t.branches.A.color;
-        this.ctx.fillText(`[A] ${t.branches.A.name}`, x + 8, 180);
-        this.ctx.fillStyle = "#90a4ae";
-        this.ctx.font = "9px monospace";
-        this.wrapText(t.branches.A.desc, x + 8, 195, 205, 13);
-
-        this.ctx.fillStyle = t.branches.B.color;
-        this.ctx.font = "10px monospace";
-        this.ctx.fillText(`[B] ${t.branches.B.name}`, x + 8, 240);
-        this.ctx.fillStyle = "#90a4ae";
-        this.ctx.font = "9px monospace";
-        this.wrapText(t.branches.B.desc, x + 8, 255, 205, 13);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= this.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.height); ctx.stroke();
+      }
+      for (let y = 0; y <= this.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
       }
 
-      this.ctx.fillStyle = "#ff1744";
-      this.ctx.font = "bold 15px monospace";
-      this.ctx.fillText("HERO MECH & HOSTILES:", 60, 330);
+      // 2. Top Header Bar with Tabs
+      ctx.fillStyle = "rgba(10, 18, 32, 0.94)";
+      ctx.fillRect(0, 0, this.width, 68);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, 0, this.width, 68);
 
-      const enemyList = [
-        { name: "Apex-01 Hero Mech", desc: "Controllable unit. Melee attack + Cyber-Slash Ult [SPACE]." },
-        { name: "Grunt / Sprinter", desc: "Standard and fast hostiles. Vulnerable to Pulse & Cryo." },
-        { name: "Brute / Shieldbearer", desc: "Heavily armored and shield regenerating threats." },
-        { name: "Medic / Splitter", desc: "Heals allies (+15 HP/s) / Splits into 2 Swarmlings on death." },
-        { name: "Phantom", desc: "Phases out every 4s. Revealed by Radar Beacon." },
-        { name: "Juggernaut (W10 Boss)", desc: "6000 HP, 20 armor, slow cap. Heavy defense." },
-        { name: "Overseer (W20 Boss)", desc: "9000 HP, summons sprinter drones, energy burst." },
-        { name: "Hive Titan (W30 Boss)", desc: "20000 HP, 3 phases, enrage speed buff (+40%)." }
+      this.renderMiniButton(30, 16, 110, 36, "← MENYU", "#ff1744");
+
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "900 18px 'Segoe UI', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("⚡ KIBER-KODEX // INTEL", 160, 40);
+
+      const tab = this.codexTab || 'TOWERS';
+      this.drawCyberButton(440, 15, 165, 38, "⚡ MINORALAR", tab === 'TOWERS' ? "#00e5ff" : "#455a64", "TOWERS", "", tab === 'TOWERS');
+      this.drawCyberButton(620, 15, 175, 38, "👾 DUSHMANLAR", tab === 'ENEMIES' ? "#00e676" : "#455a64", "HOSTILES", "", tab === 'ENEMIES');
+      this.drawCyberButton(810, 15, 195, 38, "💀 GIGANT BOSSLAR", tab === 'BOSSES' ? "#ff1744" : "#455a64", "TITANS", "", tab === 'BOSSES');
+      this.drawCyberButton(1020, 15, 185, 38, "🤖 APEX-01 MECH", tab === 'MECH' ? "#ffd600" : "#455a64", "FIELD HERO", "", tab === 'MECH');
+
+      // 3. Codex Database
+      const codexData = {
+        TOWERS: [
+          { id: 'pulse', name: 'Pulse Turret', icon: '⚡', role: 'Rapid Energy Blaster', type: 'ENERGY', cost: '100g', hp: 'N/A', dmg: '22 (High DPS)', rate: '3.5/s', range: '140px', armor: 'N/A', desc: "Yuqori chastotali lazer zarbalari beruvchi asosiy kiber-minora. Standart va tezkor dushmanlarga qarshi juda samarali.", branchA: "Plasma Overcharge (+55% DMG, Plazma portlashi)", branchB: "Gatling Overdrive (+85% O'q tezligi, 2x dps)", col: "#00e5ff" },
+          { id: 'mortar', name: 'Heavy Mortar', icon: '💣', role: 'Artillery Blast', type: 'EXPLOSIVE', cost: '150g', hp: 'N/A', dmg: '85 (AoE Splash)', rate: '0.7/s', range: '220px', armor: 'N/A', desc: "Katta radiusda maydoniy portlash (AoE) beruvchi og'ir artilleriya. Zirhli dushmanlar va to'dalar uchun ideal.", branchA: "Cluster Munitions (4 ta qo'shimcha kassetali bomba)", branchB: "Napalm Fire (4 soniya davom etuvchi olov krateri)", col: "#ff9100" },
+          { id: 'cryo', name: 'Cryo Emitter', icon: '❄️', role: 'Frost Field Slow', type: 'COLD', cost: '120g', hp: 'N/A', dmg: '14 (Slow 60%)', rate: '2.0/s', range: '130px', armor: 'N/A', desc: "Dushmanlarni 60% gacha muzlatuvchi va sekinlashtiruvchi kriogen nurlar emitteri. Tezkor dushmanlarni to'xtatadi.", branchA: "Deep Freeze (1.5 soniyaga to'liq muzlatish)", branchB: "Cryo Nova (360° to'lqinli muz portlashi)", col: "#00f0ff" },
+          { id: 'tesla', name: 'Tesla Coil', icon: '⚡', role: 'Chain Lightning', type: 'ENERGY', cost: '180g', hp: 'N/A', dmg: '48 (Chain x4)', rate: '1.4/s', range: '150px', armor: 'N/A', desc: "Bir vaqtning o'zida 4-7 ta yaqin atrofdagi dushmanga zanjirsimon elektr toki ulovchi qurol.", branchA: "EMP Disruption (1.2 soniya falaj qiluvchi shok)", branchB: "Overload Burst (Har zarbada qo'shimcha to'lqin)", col: "#ffd600" },
+          { id: 'flame', name: 'Flame Thrower', icon: '🔥', role: 'Conical Napalm Burn', type: 'FIRE', cost: '160g', hp: 'N/A', dmg: '32 (Burn DoT)', rate: '2.8/s', range: '135px', armor: 'N/A', desc: "Konus shaklidagi olov purkab, dushmanlarga 3 soniya uzluksiz yonish zarari (DoT) beradi.", branchA: "Napalm Puddle (Zaminni yoqib qoldirish)", branchB: "Armor Melt (Zirhni 70% eritib yuborish)", col: "#ff3d00" },
+          { id: 'railgun', name: 'Railgun Sniper', icon: '🎯', role: 'Kinetic Piercer', type: 'PIERCE', cost: '240g', hp: 'N/A', dmg: '210 (Pierce)', rate: '0.5/s', range: '300px', armor: 'N/A', desc: "Butun xarita bo'ylab dushmanlarni teshib o'tuvchi gipertovushli magnit to'p.", branchA: "Hyper-Velocity (Cheksiz nishonlarni teshib o'tish)", branchB: "Shield Stripper (100% qalqonlarni sindirish)", col: "#ff007f" },
+          { id: 'beacon', name: 'Radar Beacon', icon: '📡', role: 'Buff & Stealth Reveal', type: 'SUPPORT', cost: '200g', hp: 'N/A', dmg: '0 (Buff +35%)', rate: 'Aura', range: '160px', armor: 'N/A', desc: "Yaqin atrofdagi minoralarga +35% zarar beruvchi va ko'rinmas dushmanlarni fosh qiluvchi radar.", branchA: "Hyper Overclock (+50% minora tezligi)", branchB: "Sensor Jammer (Dushmanlarni sarosimaga solish)", col: "#76ff03" },
+          { id: 'barricade', name: 'Cyber Barricade', icon: '🛡️', role: 'Defensive Barrier', type: 'BARRIER', cost: '40g', hp: '500 HP', dmg: '0', rate: 'Static', range: '0px', armor: '15 Armor', desc: "Dushmanlar harakatini to'sib, ularni aylanma yo'lga buruvchi mustahkam himoya to'sig'i.", branchA: "Reinforced Plating (1200 HP)", branchB: "Shock Spikes (Urilgan dushmanga 40 zarar)", col: "#ffd600" }
+        ],
+        ENEMIES: [
+          { id: 'grunt', name: 'Cyber Grunt', icon: '◆', role: 'Basic Infantry', hp: '75 HP', dmg: 'Low', speed: '75 px/s', armor: '0', bounty: '8g', desc: "Standart kiber-piyoda dushman. Kuchli emas, ammo to'da bo'lib hujum qiladi.", col: "#00e5ff" },
+          { id: 'sprinter', name: 'Sprinter Drone', icon: '▲', role: 'Fast Infiltrator', hp: '45 HP', dmg: 'Low', speed: '135 px/s', armor: '0', bounty: '10g', desc: "Juda yuqori tezlikka ega engil dron. Cryo yoki Tesla bilan sekinlashtirish zarur.", col: "#ffd600" },
+          { id: 'brute', name: 'Armored Brute', icon: '■', role: 'Heavy Ground Breaker', hp: '280 HP', dmg: 'High', speed: '45 px/s', armor: '8 Armor', bounty: '22g', desc: "Qalin zirh bilan qoplangan og'ir robot. Railgun va Mortar zarbalariga zaif.", col: "#ff007f" },
+          { id: 'shieldbearer', name: 'Shieldbearer', icon: '⬢', role: 'Energy Shielded', hp: '160 HP', dmg: 'Medium', speed: '60 px/s', armor: '120 Shield', bounty: '25g', desc: "O'zini va ittifoqchilarini energiya qalqoni bilan himoya qiladi. EMP orqali qalqoni buziladi.", col: "#00b0ff" },
+          { id: 'medic', name: 'Nanite Medic', icon: '✚', role: 'Field Healer', hp: '140 HP', dmg: 'Heal 25/s', speed: '65 px/s', armor: '0', bounty: '28g', desc: "Yaqin atrofdagi dushmanlarni soniyasiga +25 HP bilan davolaydi. Birinchi bo'lib yo'q qilinishi kerak.", col: "#00e676" },
+          { id: 'splitter', name: 'Splitter Organism', icon: '❖', role: 'Dividing Menace', hp: '190 HP', dmg: 'Medium', speed: '55 px/s', armor: '2 Armor', bounty: '18g', desc: "O'ldirilganda ikkita kichik tezkor Swarmlingga bo'linadi.", col: "#ffab00" },
+          { id: 'phantom', name: 'Phantom Ghost', icon: '◌', role: 'Phase Shifter', hp: '120 HP', dmg: 'Medium', speed: '80 px/s', armor: 'Phasing', bounty: '30g', desc: "Har 4 soniyada fazoviy g'oyib bo'ladi. Radar Beacon orqali ko'rinadigan qilinadi.", col: "#b388ff" },
+          { id: 'kamikaze_drone', name: 'Kamikaze Drone', icon: '💥', role: 'Suicide Flyer', hp: '60 HP', dmg: '120 AoE', speed: '160 px/s', armor: '0', bounty: '15g', desc: "Uchuvchi havo dushmani. Baza yoki qahramon tomon uchib kelib portlaydi.", col: "#ff1744" },
+          { id: 'gunship', name: 'Heavy Gunship', icon: '🚁', role: 'Aerial Corvette', hp: '480 HP', dmg: 'Laser Salvo', speed: '50 px/s', armor: '6 Armor', bounty: '45g', desc: "Havodan minoralarni o'qqa tutuvchi og'ir uchuvchi kiber-korvet.", col: "#ff5252" }
+        ],
+        BOSSES: [
+          { id: 'juggernaut', name: 'Goliath Juggernaut', icon: '💀', role: 'Wave 10 Titan', hp: '6,000 HP', armor: '20 Armor', speed: '38 px/s', bounty: '150g', desc: "Super og'ir toshdek mustahkam titan. Zirhni teshuvchi Railgun va Flame minoralariga zaif.", col: "#ff1744" },
+          { id: 'overseer', name: 'Cyber Overseer', icon: '👁️', role: 'Wave 20 Titan', hp: '9,000 HP', armor: '14 Armor', speed: '42 px/s', bounty: '250g', desc: "Doimiy ravishda Sprinter dronlarni maydonga chiqaradi va energiya to'lqinlari sochadi.", col: "#e040fb" },
+          { id: 'hive_titan', name: 'Hive Titan', icon: '👑', role: 'Wave 30 Titan', hp: '20,000 HP', armor: '22 Armor', speed: '40 px/s', bounty: '500g', desc: "3 ta jangga bo'lingan faza va enrage paytida +40% tezlanishga ega bosh titan.", col: "#ffd600" },
+          { id: 'void_titan', name: 'Void Titan', icon: '🌀', role: 'Singularity Colossus', hp: '8,500 HP', armor: '18 Armor', speed: '36 px/s', bounty: '320g', desc: "Atrofidagi narsalarni tortib oluvchi qora tuynuk gravitatsion voronkasini yaratadi.", col: "#7c4dff" },
+          { id: 'chrono_phantom', name: 'Chrono Phantom', icon: '⌛', role: 'Temporal Anomaly', hp: '7,200 HP', armor: '12 Armor', speed: '46 px/s', bounty: '300g', desc: "Minoralarni 50% vaqt to'lqini bilan sekinlashtiradi va 4 soniyada 120px oldinga sakraydi.", col: "#00e5ff" },
+          { id: 'mecha_colossus', name: 'Mecha Colossus', icon: '🤖', role: 'Mobile Fortress', hp: '11,000 HP', armor: '26 Armor', speed: '32 px/s', bounty: '400g', desc: "Qo'shaloq raketalar salvosi va 120mm to'p bilan minoralarga javob zarbasi beruvchi devqomat.", col: "#ff9100" }
+        ],
+        MECH: [
+          { id: 'biped', name: 'Apex-01 (Assault Biped)', icon: '🤖', role: 'Field Commander Mech', hp: '400 HP', speed: '130 px/s', dmg: '40 Kinetic', ultDmg: '400 Cyber-Slash', desc: "Manyovrli yuruvchi robot. 2 ta aylanuvchi lazer Gatling pulemyoti, kinetik tezlanish (Dash) va 400 zarbali Cyber-Slash ultisi bor.", col: "#00e5ff" },
+          { id: 'siege', name: 'Apex-01 (Siege Tank)', icon: '🚜', role: 'Heavy Dual Artillery', hp: '400 HP', speed: '90 px/s', dmg: '140 Explosive', splash: '70px AoE', desc: "O'rnatiladigan og'ir tank. Qabul qiluvchi zarbalarni 50% kamaytiradi (og'ir zirh) va 70px maydonda portlovchi qo'shaloq 120mm artilleriya otadi.", col: "#ffd600" }
+        ]
+      };
+
+      const list = codexData[tab] || codexData.TOWERS;
+      let activeItem = list.find(i => i.id === this.codexSelectedId);
+      if (!activeItem) {
+        activeItem = list[0];
+        this.codexSelectedId = activeItem.id;
+      }
+
+      // 4. Left List Column (x: 30, y: 78, w: 290, h: 625)
+      ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
+      ctx.fillRect(30, 78, 290, 625);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(30, 78, 290, 625);
+
+      const itemH = Math.min(68, Math.floor(590 / list.length));
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i];
+        const iy = 88 + i * (itemH + 4);
+        const isSel = (item.id === activeItem.id);
+
+        this.drawCyberButton(38, iy, 274, itemH, `${item.icon} ${item.name}`, isSel ? (item.col || "#00e5ff") : "#455a64", item.role, "", isSel);
+      }
+
+      // 5. Right Holographic Bay (x: 335, y: 78, w: 915, h: 625)
+      ctx.fillStyle = "rgba(8, 14, 26, 0.95)";
+      ctx.fillRect(335, 78, 915, 625);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(335, 78, 915, 625);
+
+      // Left Sub-bay: 3D Turntable Hologram Pedestal (x: 350, y: 90, w: 400, h: 600)
+      const px = 550;
+      const py = 390;
+
+      // Holographic Turntable Base
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(px, py + 120, 140, 45, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = activeItem.col || "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(px, py + 120, 110, 35, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Rotating Scanner Rings
+      const ringAng = t * 1.5;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([8, 12]);
+      ctx.beginPath();
+      ctx.ellipse(px, py + 120, 160, 52, ringAng, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Vertical Laser Scanner Line
+      const scanY = py - 80 + Math.sin(t * 3) * 110;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(px - 100, scanY);
+      ctx.lineTo(px + 100, scanY);
+      ctx.stroke();
+
+      // Procedural Live Visual Model in Hologram Center
+      ctx.save();
+      ctx.translate(px, py + 30);
+      const rotAng = t * 1.2;
+
+      if (tab === 'TOWERS') {
+        // Tower Base Hexagon
+        ctx.fillStyle = "#1e293b";
+        ctx.strokeStyle = activeItem.col || "#00e5ff";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let a = 0; a < 6; a++) {
+          const ang = (Math.PI / 3) * a;
+          const hx = Math.cos(ang) * 45;
+          const hy = Math.sin(ang) * 45;
+          if (a === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Rotating Turret Barrels
+        ctx.rotate(rotAng);
+        ctx.fillStyle = activeItem.col || "#00e5ff";
+        ctx.fillRect(-8, -48, 16, 48);
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (tab === 'BOSSES') {
+        // Giant Boss Hologram
+        ctx.fillStyle = activeItem.col || "#ff1744";
+        ctx.shadowColor = activeItem.col || "#ff1744";
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(0, 0, 55, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.rotate(rotAng);
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-45, -45, 90, 90);
+      } else if (tab === 'MECH') {
+        // Apex-01 Mech Chassis
+        ctx.fillStyle = activeItem.col || "#00e5ff";
+        ctx.shadowColor = activeItem.col || "#00e5ff";
+        ctx.shadowBlur = 15;
+        ctx.fillRect(-35, -45, 70, 75);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(-20, -25, 40, 10);
+        ctx.fillStyle = "#455a64";
+        ctx.fillRect(-45, -20, 10, 45);
+        ctx.fillRect(35, -20, 10, 45);
+      } else {
+        // Enemy Hologram
+        ctx.fillStyle = activeItem.col || "#00e676";
+        ctx.shadowColor = activeItem.col || "#00e676";
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(0, 0, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Telemetry Label below pedestal
+      ctx.fillStyle = "#78909c";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("HOLO-FEED // 360° TURNTABLE // ACTIVE", px, py + 185);
+
+      // Right Sub-bay: Tactical Dossier & Specs (x: 770, y: 90, w: 460, h: 600)
+      const tx = 770;
+      ctx.textAlign = "left";
+      ctx.fillStyle = activeItem.col || "#00e5ff";
+      ctx.font = "900 24px 'Segoe UI', monospace";
+      ctx.shadowColor = activeItem.col || "#00e5ff";
+      ctx.shadowBlur = 10;
+      ctx.fillText(activeItem.name.toUpperCase(), tx, 125);
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#b0bec5";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText(`KLASSIFIKATSIYA: ${activeItem.role.toUpperCase()}`, tx, 150);
+
+      // Spec Meters Grid
+      const specs = [
+        { label: "XARAJAT / NARXI", val: activeItem.cost || activeItem.bounty || 'N/A' },
+        { label: "HAYOTIY KUCH (HP)", val: activeItem.hp || 'N/A' },
+        { label: "ZARBA / DPS", val: activeItem.dmg || activeItem.ultDmg || 'N/A' },
+        { label: "HUJUM RADIUSI", val: activeItem.range || 'N/A' },
+        { label: "HARAKAT TEZLIGI", val: activeItem.speed || activeItem.rate || 'N/A' },
+        { label: "ZIRH / RESISTANCE", val: activeItem.armor || '0' }
       ];
 
-      for (let i = 0; i < enemyList.length; i++) {
-        const e = enemyList[i];
-        const col = i % 4;
-        const row = Math.floor(i / 4);
-        const x = 60 + col * 295;
-        const y = 350 + row * 90;
+      for (let s = 0; s < specs.length; s++) {
+        const sy = 185 + s * 48;
+        ctx.fillStyle = "rgba(16, 28, 48, 0.85)";
+        ctx.fillRect(tx, sy, 450, 40);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+        ctx.strokeRect(tx, sy, 450, 40);
 
-        this.ctx.fillStyle = "#10192e";
-        this.ctx.fillRect(x, y, 280, 80);
-        this.ctx.strokeStyle = i === 0 ? "#ffd600" : "#ff007f";
-        this.ctx.strokeRect(x, y, 280, 80);
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText(specs[s].label, tx + 14, sy + 25);
 
-        this.ctx.fillStyle = i === 0 ? "#ffd600" : "#ff1744";
-        this.ctx.font = "bold 12px monospace";
-        this.ctx.fillText(e.name, x + 10, y + 24);
-
-        this.ctx.fillStyle = "#b0bec5";
-        this.ctx.font = "10px monospace";
-        this.wrapText(e.desc, x + 10, y + 44, 260, 15);
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "right";
+        ctx.fillText(specs[s].val, tx + 436, sy + 25);
+        ctx.textAlign = "left";
       }
 
-      this.ctx.fillStyle = "#00e5ff";
-      this.ctx.font = "bold 13px monospace";
-      this.ctx.fillText("ROGUELIKE DRAFTS OCCUR EVERY 5 WAVES (WAVE 5, 10, 15, 20, 25). CHOOSE 1 OF 3 CARDS TO STACK!", 60, 680);
+      // Branch Perks or Description Box
+      const boxY = 490;
+      ctx.fillStyle = "rgba(14, 24, 42, 0.95)";
+      ctx.fillRect(tx, boxY, 450, 185);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.strokeRect(tx, boxY, 450, 185);
+
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("TACTICAL INTEL & BLUEPRINT:", tx + 14, boxY + 26);
+
+      ctx.fillStyle = "#cfd8dc";
+      ctx.font = "11px monospace";
+      this.wrapText(activeItem.desc, tx + 14, boxY + 50, 422, 16);
+
+      if (activeItem.branchA) {
+        ctx.fillStyle = "#00e676";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText(`[A] ${activeItem.branchA}`, tx + 14, boxY + 120);
+        ctx.fillStyle = "#ffd600";
+        ctx.fillText(`[B] ${activeItem.branchB}`, tx + 14, boxY + 146);
+      }
     }
 
     renderMapSelect() {
