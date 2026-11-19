@@ -754,11 +754,10 @@
 
       this.lang = localStorage.getItem('last_grid_lang') || 'uz';
       this.gameMode = 'CAMPAIGN';
-      this.state = 'MENU'; audio.playBGMTrack('menu'); // 'MENU', 'PLAYING', 'PAUSED', 'VICTORY', 'DEFEAT', 'MAP_SELECT', 'EDITOR', 'LEADERBOARD', 'MANUAL', 'DRAFT', 'ANALYTICS'
+      this.state = 'MENU';
       this.speed = 1;
-      const biome = map.biome || 'cyber';
-      audio.playBGMTrack(biome);
-      setTimeout(() => audio.playSample('hq_online', 0.8), 600);
+      try { audio.playBGMTrack('menu'); } catch(e) {}
+      this.loadBackgroundImages();
       this.crtEnabled = localStorage.getItem('lg_crt') === 'true';
       this.colorblind = false;
       this.screenShake = 0;
@@ -1033,9 +1032,8 @@
       }
       // 9. If in PAUSED state -> unpause
       if (this.state === 'PAUSED') {
-        if (x >= 420 && x <= 860 && y >= 335 && y <= 395) { this.togglePause(); return; }
-        if (x >= 420 && x <= 860 && y >= 400 && y <= 460) { this.showSettingsModal = true; this.settingsReturnState = 'PAUSED'; return; }
-        if (x >= 420 && x <= 860 && y >= 465 && y <= 525) { this.state = 'MENU'; audio.playBGMTrack('menu'); this.selectedTower = null; return; }
+        this.togglePause();
+        try { audio.modal(); } catch(e) {}
         return;
       }
       // 10. If in MENU -> double tap back to exit application
@@ -1672,6 +1670,11 @@
       this.waveActive = false;
       this.waveCountdown = 8;
       this.speed = 1;
+      try {
+        const biome = (map && map.biome) ? map.biome : 'cyber';
+        audio.playBGMTrack(biome);
+        setTimeout(() => audio.playSample('hq_online', 0.8), 600);
+      } catch(e) {}
 
       this.activeAugments = [];
       this.draftCards = [];
@@ -4104,6 +4107,172 @@
       this.ctx.restore();
     }
 
+
+    toggleLanguage() {
+      return this.toggleLang();
+    }
+
+    loadBackgroundImages() {
+      this.bgImages = {};
+      const list = {
+        cyber: 'assets/backgrounds/bg_cyber_grid_hd.png',
+        lava: 'assets/backgrounds/bg_lava_core_hd.png',
+        cryo: 'assets/backgrounds/bg_cryo_base_hd.png',
+        menu: 'assets/backgrounds/bg_menu_hangar_hd.png'
+      };
+      for (const [key, path] of Object.entries(list)) {
+        try {
+          const img = new Image();
+          img.src = path;
+          img.onload = () => { this.bgImages[key] = img; };
+        } catch(e) {}
+      }
+    }
+
+    renderUpgradePillars() {
+      if (!this.upgradePillars || this.upgradePillars.length === 0) return;
+      const ctx = this.ctx;
+      for (const p of this.upgradePillars) {
+        const progress = Math.max(0, p.timer / p.maxTimer);
+        const alpha = progress;
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.85;
+        const grad = ctx.createLinearGradient(p.x, p.y + 10, p.x, p.y - 140);
+        grad.addColorStop(0, p.color || '#00e5ff');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(p.x - 24, p.y - 140, 48, 150);
+
+        ctx.strokeStyle = p.color || '#00e5ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 40 * (1 - progress), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    renderFlyingCoins() {
+      if (!this.flyingCoins || this.flyingCoins.length === 0) return;
+      const ctx = this.ctx;
+      ctx.save();
+      for (const c of this.flyingCoins) {
+        ctx.fillStyle = "#ffd600";
+        ctx.shadowColor = "#ffea00";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.size || 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#fff9c4";
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, (c.size || 6) * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    renderSelectedTowerRadialHUD() {
+      if (!this.selectedTower) return;
+      const t = this.selectedTower;
+      const def = TOWER_DEFS[t.type];
+      const ctx = this.ctx;
+      ctx.save();
+
+      // Top Upgrade or Branch A/B buttons
+      if (t.tier === 1) {
+        const upCost = def.tiers[0].upCost;
+        const canAfford = this.gold >= upCost;
+        ctx.fillStyle = canAfford ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x - 65, t.y - 62, 130, 32);
+        ctx.strokeStyle = canAfford ? "#00e5ff" : "#546e7a";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(t.x - 65, t.y - 62, 130, 32);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`▲ UPGRADE (${upCost}g)`, t.x, t.y - 42);
+      } else if (t.tier === 2) {
+        // Branch A (Left top)
+        const bA = def.branches.A;
+        const canA = this.gold >= bA.cost;
+        ctx.fillStyle = canA ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x - 110, t.y - 70, 105, 36);
+        ctx.strokeStyle = "#00e5ff";
+        ctx.strokeRect(t.x - 110, t.y - 70, 105, 36);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${bA.name.slice(0, 10)}`, t.x - 57, t.y - 53);
+        ctx.fillText(`(${bA.cost}g)`, t.x - 57, t.y - 40);
+
+        // Branch B (Right top)
+        const bB = def.branches.B;
+        const canB = this.gold >= bB.cost;
+        ctx.fillStyle = canB ? "rgba(255, 145, 0, 0.9)" : "rgba(80, 90, 100, 0.85)";
+        ctx.fillRect(t.x + 5, t.y - 70, 105, 36);
+        ctx.strokeStyle = "#ff9100";
+        ctx.strokeRect(t.x + 5, t.y - 70, 105, 36);
+        ctx.fillStyle = "#05070d";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${bB.name.slice(0, 10)}`, t.x + 57, t.y - 53);
+        ctx.fillText(`(${bB.cost}g)`, t.x + 57, t.y - 40);
+      }
+
+      // Left Sell Button
+      const refund = Math.floor(t.totalInvested * 0.70);
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.fillRect(t.x - 115, t.y - 18, 75, 36);
+      ctx.strokeStyle = "#ff1744";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x - 115, t.y - 18, 75, 36);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("SOTISH", t.x - 77, t.y);
+      ctx.fillText(`+${refund}g`, t.x - 77, t.y + 12);
+
+      // Right Priority Button
+      ctx.fillStyle = "rgba(124, 77, 255, 0.85)";
+      ctx.fillRect(t.x + 40, t.y - 18, 75, 36);
+      ctx.strokeStyle = "#7c4dff";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x + 40, t.y - 18, 75, 36);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("NISHON", t.x + 77, t.y);
+      ctx.fillText(`${t.priority.slice(0, 6)}`, t.x + 77, t.y + 12);
+
+      // Bottom Close Button
+      ctx.fillStyle = "rgba(38, 50, 56, 0.9)";
+      ctx.fillRect(t.x - 35, t.y + 40, 70, 28);
+      ctx.strokeStyle = "#90a4ae";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(t.x - 35, t.y + 40, 70, 28);
+      ctx.fillStyle = "#eceff1";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("✕ YOPISH", t.x, t.y + 58);
+
+      ctx.restore();
+    }
+
+    renderCriticalLowHPPulse() {
+      if (this.baseHp > 5 || this.state !== 'PLAYING') return;
+      const ctx = this.ctx;
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.008);
+      ctx.save();
+      ctx.strokeStyle = `rgba(255, 23, 68, ${0.35 + 0.35 * pulse})`;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4, 4, this.width - 8, this.height - 8);
+
+      ctx.fillStyle = `rgba(255, 23, 68, ${0.12 * pulse})`;
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
+    }
+
     renderCRTOverlay() {
       this.ctx.fillStyle = "rgba(0, 229, 255, 0.02)";
       for (let y = 0; y < this.height; y += 4) {
@@ -4131,8 +4300,17 @@
         bgGrad.addColorStop(0.5, "#080e1e");
         bgGrad.addColorStop(1, "#04060d");
       }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, this.width, this.height);
+      if (this.bgImages && this.bgImages[biome]) {
+        try {
+          ctx.drawImage(this.bgImages[biome], 0, 0, this.width, this.height);
+        } catch(e) {
+          ctx.fillStyle = bgGrad;
+          ctx.fillRect(0, 0, this.width, this.height);
+        }
+      } else {
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+      }
 
       // Grid Lines
       const gridStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.12)" :
@@ -7308,6 +7486,7 @@
     }
 
     render3DTPS() {
+      if (!this.tps3D) this.start3DTPSMode();
       const ctx = this.ctx;
       const t = this.tps3D;
       const p = t.player;
