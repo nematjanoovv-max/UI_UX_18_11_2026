@@ -588,6 +588,34 @@
       this.playTone(880, 'sine', 0.05, 0.08);
       setTimeout(() => this.playTone(1174, 'sine', 0.07, 0.08), 60);
     }
+    radioChirp() {
+      this.playTone(1800, 'sine', 0.04, 0.1, 2400);
+      setTimeout(() => this.playTone(2400, 'sine', 0.05, 0.08, 1200), 50);
+      this.playNoise(0.06, 0.03);
+    }
+    voiceRadio(text, sampleKey) {
+      if (this.sfxMuted) return;
+      this.radioChirp();
+      if (sampleKey && this.playSample(sampleKey, 0.95)) {
+        return;
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const cleanText = (text || "").replace(/[^\w\s.,!?:-]/gi, ' ').trim();
+          if (cleanText) {
+            const u = new SpeechSynthesisUtterance(cleanText);
+            u.pitch = 0.85;
+            u.rate = 1.08;
+            u.volume = 0.85;
+            const voices = window.speechSynthesis.getVoices();
+            const v = voices.find(x => x.lang.startsWith('en') && (x.name.includes('Google') || x.name.includes('Natural') || x.name.includes('Robot')));
+            if (v) u.voice = v;
+            window.speechSynthesis.speak(u);
+          }
+        } catch(e) {}
+      }
+    }
     defeat() {
       [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
     }
@@ -853,11 +881,17 @@
     { id: "reactive_core", title: "REACTIVE CORE", desc: "Base Core reflects 50% leak damage back as an area EMP stun.", icon: "🛡️", color: "#ff007f" },
     { id: "nanite_repair", title: "NANITE REPAIR", desc: "Base Core automatically repairs +2 HP at the end of each wave.", icon: "💚", color: "#00e676" },
     { id: "cluster_munitions", title: "CLUSTER MUNITIONS", desc: "Mortar splash explosion radius and damage increased by +35%.", icon: "💥", color: "#ff9100" },
-    { id: "hero_overdrive", title: "HERO OVERDRIVE", desc: "Field Hero Champion gains +60% melee damage and moves +25% faster.", icon: "🤖", color: "#b388ff" }
+    { id: "hero_overdrive", title: "HERO OVERDRIVE", desc: "Field Hero Champion gains +60% melee damage and moves +25% faster.", icon: "🤖", color: "#b388ff" },
+    { id: "plasma_inferno", title: "PLASMA INFERNO", desc: "Flame & Tesla attacks cause burning to chain to nearby enemies (+45% DoT).", icon: "🔥", color: "#ff3d00" },
+    { id: "tesla_overcharge", title: "TESLA OVERCHARGE", desc: "Tesla Coil arcs to +3 extra targets, and EMP shockwaves inflict 2.5x stun.", icon: "⚡", color: "#ffd600" },
+    { id: "nanite_aegis", title: "NANITE AEGIS", desc: "Shield Dome gains +500 HP and reflects 50% absorbed damage back as homing bolts.", icon: "🛡️", color: "#00e5ff" },
+    { id: "siege_artillery_core", title: "SIEGE ARTILLERY", desc: "Siege Tank mode deals +60% explosion splash damage and creates burning craters.", icon: "🚜", color: "#ff9100" },
+    { id: "void_collector", title: "VOID COLLECTOR", desc: "Slain hostiles award +3 gold per 5 kills and charge Mech Ult 2x faster.", icon: "🌌", color: "#b388ff" },
+    { id: "chronos_overdrive", title: "CHRONOS OVERDRIVE", desc: "Mech movement speed +30%, and all skill cooldowns recharge 35% quicker.", icon: "⌛", color: "#76ff03" }
   ];
 
   // --- ENEMY BLUEPRINTS ---
-    const ENEMY_DEFS = {
+  const ENEMY_DEFS = {
     scout:        { name: "Scout",        hp: 40,  shield: 0,   armor: 0,  spd: 96, bounty: 3,  color: "#ffd600", size: 10, marker: "▲", isFlyer: false },
     grunt:        { name: "Grunt",        hp: 100, shield: 0,   armor: 0,  spd: 60, bounty: 5,  color: "#ff5252", size: 12, marker: "●", isFlyer: false },
     tank:         { name: "Tank",         hp: 400, shield: 0,   armor: 12, armorReduction: 0.30, spd: 36, bounty: 16, color: "#d50000", size: 18, marker: "■", isFlyer: false },
@@ -879,7 +913,10 @@
     siege_breaker:{ name: "Siege Breaker",hp: 1250,shield: 300, armor: 22, armorReduction: 0.40, spd: 32, bounty: 45, color: "#7c4dff", size: 24, marker: "🗿", isFlyer: false, isSiegeBreaker: true },
     juggernaut:   { name: "BOSS: Juggernaut", hp: 3000,  shield: 0, armor: 15, spd: 30, bounty: 150, color: "#ff1744", size: 28, isBoss: true, marker: "☠", isFlyer: false },
     overseer:     { name: "BOSS: Overseer",   hp: 4500,  shield: 500, armor: 12, spd: 32, bounty: 200, color: "#651fff", size: 30, isBoss: true, marker: "👁", isFlyer: false },
-    hive_titan:   { name: "BOSS: Hive Titan", hp: 6500,  shield: 0, armor: 18, spd: 28, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣", isFlyer: false }
+    hive_titan:   { name: "BOSS: Hive Titan", hp: 6500,  shield: 0, armor: 18, spd: 28, bounty: 250, color: "#f50057", size: 34, isBoss: true, marker: "☣", isFlyer: false },
+    void_titan:   { name: "BOSS: Void Titan", hp: 8500,  shield: 1200, armor: 20, armorReduction: 0.35, spd: 26, bounty: 300, color: "#9c27b0", size: 36, isBoss: true, isVoidTitan: true, marker: "🌌", isFlyer: false },
+    chrono_phantom:{ name: "BOSS: Chrono Phantom", hp: 7200, shield: 800, armor: 14, spd: 34, bounty: 280, color: "#00e5ff", size: 32, isBoss: true, isChronoPhantom: true, marker: "⌛", isFlyer: false },
+    mecha_colossus:{ name: "BOSS: Mecha Colossus", hp: 11000, shield: 1500, armor: 26, armorReduction: 0.45, spd: 24, bounty: 450, color: "#ffd600", size: 38, isBoss: true, isMechaColossus: true, marker: "🤖", isFlyer: false }
   };
 
   // --- BTD6-POWERED WAVE PROGRESSION & CHOREOGRAPHY ---
@@ -930,10 +967,17 @@
 
   function getWaveConfig(waveNum, mode = 'CAMPAIGN') {
     if (mode === 'BOSS_RUSH') {
-      if (waveNum === 1) return [{ type: "juggernaut", count: 1, interval: 2.0 }, { type: "brute", count: 8, interval: 1.0 }];
-      if (waveNum === 2) return [{ type: "overseer", count: 1, interval: 2.0 }, { type: "phantom", count: 12, interval: 0.8 }];
-      if (waveNum === 3) return [{ type: "hive_titan", count: 1, interval: 2.0 }, { type: "splitter", count: 15, interval: 0.7 }];
-      return [{ type: "hive_titan", count: 2, interval: 3.0 }];
+      if (waveNum === 1) return [{ type: "juggernaut", count: 1, interval: 2.5 }, { type: "brute", count: 6, interval: 1.0 }];
+      if (waveNum === 2) return [{ type: "overseer", count: 1, interval: 2.5 }, { type: "gunship", count: 6, interval: 0.9 }];
+      if (waveNum === 3) return [{ type: "hive_titan", count: 1, interval: 3.0 }, { type: "swarmling", count: 25, interval: 0.35 }];
+      if (waveNum === 4) return [{ type: "juggernaut", count: 2, interval: 3.5 }, { type: "kamikaze", count: 12, interval: 0.5 }];
+      if (waveNum === 5) return [{ type: "chrono_phantom", count: 1, interval: 3.0 }, { type: "phantom", count: 16, interval: 0.5 }];
+      if (waveNum === 6) return [{ type: "void_titan", count: 1, interval: 3.0 }, { type: "shieldbearer", count: 14, interval: 0.6 }];
+      if (waveNum === 7) return [{ type: "chrono_phantom", count: 1, interval: 3.0 }, { type: "void_titan", count: 1, interval: 4.0 }, { type: "gunship", count: 8, interval: 0.8 }];
+      if (waveNum === 8) return [{ type: "mecha_colossus", count: 1, interval: 4.0 }, { type: "siege_breaker", count: 5, interval: 1.5 }];
+      if (waveNum === 9) return [{ type: "overseer", count: 1, interval: 3.0 }, { type: "chrono_phantom", count: 1, interval: 3.5 }, { type: "void_titan", count: 1, interval: 4.0 }];
+      if (waveNum === 10) return [{ type: "mecha_colossus", count: 1, interval: 3.0 }, { type: "hive_titan", count: 1, interval: 3.5 }, { type: "juggernaut", count: 2, interval: 4.0 }];
+      return [{ type: "mecha_colossus", count: 2, interval: 4.0 }];
     }
     if (mode === 'CAMPAIGN' && waveNum >= 1 && waveNum <= 30) {
       return CAMPAIGN_WAVES_BTD6[waveNum - 1];
@@ -948,7 +992,7 @@
       { type: secondary, count: Math.floor(baseCount * 0.7), interval: 0.5 }
     ];
     if (waveNum % 10 === 0) {
-      const bossType = (waveNum % 30 === 0) ? "hive_titan" : (waveNum % 20 === 0 ? "overseer" : "juggernaut");
+      const bossType = (waveNum % 60 === 0) ? "mecha_colossus" : (waveNum % 50 === 0 ? "void_titan" : (waveNum % 40 === 0 ? "chrono_phantom" : (waveNum % 30 === 0 ? "hive_titan" : (waveNum % 20 === 0 ? "overseer" : "juggernaut"))));
       groups.unshift({ type: bossType, count: Math.floor(waveNum / 30) + 1, interval: 2.5 });
     }
     return groups;
@@ -1887,10 +1931,20 @@
           if (k === 'a') { this.tps3D.keys.a = true; return; }
           if (k === 'd') { this.tps3D.keys.d = true; return; }
           if (k === 'shift') { this.tps3D.keys.shift = true; return; }
-          if (k === 'r') { this.reload3DTPS(); return; }
+          if (k === 't') { this.toggle3DMechMode(); return; }
+          if (k === 'r') { this.fire3DMissiles(); return; }
+          if (k === 'z') { this.fire3DEMP(); return; }
           if (k === 'b') { this.tps3D.isBuilding = !this.tps3D.isBuilding; audio.upgrade(); return; }
           if (e.code === 'Space') { e.preventDefault(); this.shoot3DTPS(); return; }
-          if (e.key === 'Escape') { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
+          if (e.key === 'Escape' || k === 'p') {
+            this.state = (this.waveActive || this.wave > 1) ? 'PLAYING' : 'MENU';
+            if (this.state === 'MENU') audio.playBGMTrack('menu');
+            return;
+          }
+        }
+        if (k === 'p' && this.state === 'PLAYING') {
+          this.start3DTPSMode();
+          return;
         }
         if (e.key >= '1' && e.key <= '8') {
           const keys = ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'];
@@ -1929,10 +1983,20 @@
     startMission(mapIdx = 0, mode = 'CAMPAIGN') {
       this.gameMode = mode;
       this.currentMapIndex = mapIdx;
+      const savedCustom = localStorage.getItem('lg_custom_map');
+      let customData = null;
+      if (savedCustom) {
+        try { customData = JSON.parse(savedCustom); } catch(e) {}
+      }
+      const customWaypoints = (customData && customData.waypoints && customData.waypoints.length >= 2) ? customData.waypoints : this.editorWaypoints;
+      const customBiome = (customData && customData.biome) ? customData.biome : (this.editorBiome || 'cyber');
+      const customGold = (customData && customData.gold) ? customData.gold : (this.editorGold || 350);
+      const customWaves = (customData && customData.waves) ? customData.waves : (this.editorWaves || 20);
+
       const map = (mode === 'CUSTOM') ? {
-        id: "custom", name: "Custom Sector",
-        gold: 300, hp: 20, wave_count: 20, modifier: "none",
-        lanes: [ this.editorWaypoints ]
+        id: "custom", name: "Maxsus Sektor",
+        gold: customGold, hp: 20, wave_count: customWaves, modifier: "none", biome: customBiome,
+        lanes: [ customWaypoints ]
       } : MAPS[mapIdx];
 
       this.difficulty = localStorage.getItem('lg_difficulty') || 'NORMAL';
@@ -1943,7 +2007,7 @@
       this.baseHp = Math.round(map.hp * diffHpMult);
       this.maxBaseHp = this.baseHp;
       this.wave = 1;
-      this.maxWaves = (mode === 'ENDLESS') ? 999 : (mode === 'BOSS_RUSH' ? 3 : map.wave_count);
+      this.maxWaves = (mode === 'ENDLESS') ? 999 : (mode === 'BOSS_RUSH' ? 10 : map.wave_count);
       this.waveActive = false;
       this.waveCountdown = 8;
       this.speed = 1;
@@ -2109,9 +2173,25 @@
         return;
       }
       if (this.state === 'TPS_3D') {
-        if (x >= 20 && x <= 160 && y >= 15 && y <= 65) {
-          this.state = 'MENU'; audio.playBGMTrack('menu');
+        if (x >= 20 && x <= 200 && y >= 15 && y <= 65) {
+          this.state = (this.waveActive || this.wave > 1) ? 'PLAYING' : 'MENU';
+          if (this.state === 'MENU') audio.playBGMTrack('menu');
           audio.sell();
+          return;
+        }
+        // Mode toggle button
+        if (x >= 955 && x <= 1060 && y >= 610 && y <= 665) {
+          this.toggle3DMechMode();
+          return;
+        }
+        // EMP button
+        if (x >= 955 && x <= 1060 && y >= 550 && y <= 605) {
+          this.fire3DEMP();
+          return;
+        }
+        // Missile button
+        if (x >= 1065 && x <= 1170 && y >= 550 && y <= 605) {
+          this.fire3DMissiles();
           return;
         }
         if (Math.hypot(x - 1200, y - 620) <= 52) {
@@ -2248,6 +2328,16 @@
           const my = 75 + row * 245;
           if (x >= mx && x <= mx + 230 && y >= my && y <= my + 230) {
             this.startMission(i, 'CAMPAIGN');
+            return;
+          }
+        }
+        if (y >= 565 && y <= 700) {
+          if (x >= 820 && x <= 1040) {
+            this.startMission(0, 'CUSTOM');
+            return;
+          }
+          if (x >= 1060 && x <= 1220) {
+            this.state = 'EDITOR';
             return;
           }
         }
@@ -2424,6 +2514,10 @@
           this.state = 'PAUSED';
           audio.modal();
         }
+        else if (x >= 1092 && x <= 1265) {
+          this.start3DTPSMode();
+          return;
+        }
         return;
       }
 
@@ -2583,7 +2677,7 @@
     }
 
     // --- BATTLEFIELD DYNAMICS METHODS (v4.0.0) ---
-    triggerRadioComm(speaker, text, duration = 4.5) {
+    triggerRadioComm(speaker, text, duration = 4.5, sampleKey = null) {
       this.radioComm = {
         speaker: speaker || "HQ COMMANDER",
         text: text || "",
@@ -2591,7 +2685,7 @@
         timer: duration,
         anim: 0
       };
-      audio.radioBeep();
+      audio.voiceRadio(text, sampleKey);
     }
 
     updateRadioComms(dt) {
@@ -3230,26 +3324,103 @@
     }
 
     handleEditorClick(x, y) {
-      if (y > 20 && y < 60) {
-        if (x > 50 && x < 150) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
-        if (x > 180 && x < 320) { this.startMission(0, 'CUSTOM'); return; }
-        if (x > 340 && x < 460) { this.editorWaypoints = [ {x:64, y:320} ]; return; }
-        if (x > 480 && x < 620) { prompt("Copy Map JSON:", JSON.stringify(this.editorWaypoints)); return; }
-        if (x > 640 && x < 780) {
-          const input = prompt("Paste Map JSON:");
+      if (y >= 10 && y <= 55) {
+        // 1. Menu
+        if (x >= 20 && x <= 115) { this.state = 'MENU'; if (this.apexSystem) this.apexSystem.show(); audio.playBGMTrack('menu'); return; }
+        // 2. Test Play
+        if (x >= 120 && x <= 245) { this.startMission(0, 'CUSTOM'); return; }
+        // 3. Save
+        if (x >= 250 && x <= 355) {
+          localStorage.setItem('lg_custom_map', JSON.stringify({
+            waypoints: this.editorWaypoints,
+            biome: this.editorBiome || 'cyber',
+            waves: this.editorWaves || 20,
+            gold: this.editorGold || 350
+          }));
+          this.addFloatingText("💾 XARITA SAQLANDI!", 640, 200, "#ffd600", 24);
+          audio.upgrade();
+          return;
+        }
+        // 4. Clear
+        if (x >= 360 && x <= 455) {
+          this.editorWaypoints = [{ x: 64, y: 320 }];
+          this.addFloatingText("XARITA TOZALANDI!", 640, 200, "#ff1744", 20);
+          audio.sell();
+          return;
+        }
+        // 5. Export
+        if (x >= 460 && x <= 555) {
+          prompt("Xarita JSON nusxasi:", JSON.stringify({
+            waypoints: this.editorWaypoints,
+            biome: this.editorBiome || 'cyber',
+            waves: this.editorWaves || 20,
+            gold: this.editorGold || 350
+          }));
+          return;
+        }
+        // 6. Import
+        if (x >= 560 && x <= 655) {
+          const input = prompt("Xarita JSON kodini kiriting:");
           if (input) {
             try {
               const parsed = JSON.parse(input);
               if (Array.isArray(parsed) && parsed.length >= 2) this.editorWaypoints = parsed;
+              else if (parsed.waypoints && parsed.waypoints.length >= 2) {
+                this.editorWaypoints = parsed.waypoints;
+                if (parsed.biome) this.editorBiome = parsed.biome;
+                if (parsed.waves) this.editorWaves = parsed.waves;
+                if (parsed.gold) this.editorGold = parsed.gold;
+              }
+              this.addFloatingText("XARITA YUKLANDI!", 640, 200, "#00e676", 24);
+              audio.upgrade();
             } catch(e) {}
           }
           return;
         }
+        // 7. Biome Toggle
+        if (x >= 660 && x <= 790) {
+          const biomes = ['cyber', 'lava', 'cryo'];
+          const curIdx = biomes.indexOf(this.editorBiome || 'cyber');
+          this.editorBiome = biomes[(curIdx + 1) % biomes.length];
+          audio.click();
+          return;
+        }
+        // 8. Waves Toggle
+        if (x >= 795 && x <= 905) {
+          const waveOptions = [10, 15, 20, 25, 30];
+          const wIdx = waveOptions.indexOf(this.editorWaves || 20);
+          this.editorWaves = waveOptions[(wIdx + 1) % waveOptions.length];
+          audio.click();
+          return;
+        }
+        // 9. Gold Toggle
+        if (x >= 910 && x <= 1020) {
+          const goldOptions = [250, 350, 500, 1000];
+          const gIdx = goldOptions.indexOf(this.editorGold || 350);
+          this.editorGold = goldOptions[(gIdx + 1) % goldOptions.length];
+          audio.click();
+          return;
+        }
+        // 10. Undo
+        if (x >= 1025 && x <= 1130) {
+          if (this.editorWaypoints.length > 1) {
+            this.editorWaypoints.pop();
+            audio.sell();
+          }
+          return;
+        }
       }
-      if (y >= 70 && y <= 650) {
+      if (y >= 65 && y <= 660) {
         const gx = Math.floor(x / 64) * 64 + 32;
         const gy = Math.floor(y / 64) * 64 + 32;
-        this.editorWaypoints.push({ x: gx, y: gy });
+        const existingIdx = this.editorWaypoints.findIndex(pt => Math.hypot(pt.x - gx, pt.y - gy) < 32);
+        if (existingIdx > 0 && this.editorWaypoints.length > 2) {
+          this.editorWaypoints.splice(existingIdx, 1);
+          audio.sell();
+        } else {
+          this.editorWaypoints.push({ x: gx, y: gy });
+          audio.build();
+        }
       }
     }
 
@@ -3361,11 +3532,12 @@
       } else if (skillKey === 'shield') {
         this.gold -= s.cost;
         s.currentCd = s.cd;
-        this.hero.shieldDome = { active: true, radius: 170, maxHp: 1000, hp: 1000, duration: 10.0, timer: 10.0 };
+        const shieldMaxHp = this.hasAugment("nanite_aegis") ? 1500 : 1000;
+        this.hero.shieldDome = { active: true, radius: 170, maxHp: shieldMaxHp, hp: shieldMaxHp, duration: 10.0, timer: 10.0 };
         audio.shieldDome();
         this.screenShake = 5;
         this.spawnShockwave(this.hero.x, this.hero.y, 170, "#00e5ff");
-        this.addFloatingText("🛡️ SHIELD DOME FAOL (1000 HP / 10s)!", this.hero.x, this.hero.y - 30, "#00e5ff", 22);
+        this.addFloatingText(`🛡️ SHIELD DOME FAOL (${shieldMaxHp} HP / 10s)!`, this.hero.x, this.hero.y - 30, "#00e5ff", 22);
         this.triggerRadioComm("HQ COMMANDER", "Qalqon gumbazi o'rnatildi! Barcha zarbalar yutiladi!", 3.5);
       } else if (skillKey === 'missiles') {
         this.gold -= s.cost;
@@ -3422,13 +3594,14 @@
         this.screenShake = 10;
         this.spawnShockwave(x, y, 260, "#00e5ff");
         this.spawnShockwave(x, y, 160, "#ffffff");
+        const stunDur = this.hasAugment("tesla_overcharge") ? 10.0 : 4.0;
         for (const e of this.enemies) {
           if (Math.hypot(e.x - x, e.y - y) <= 260) {
             e.slowRatio = 1.0;
-            e.slowTimer = 4.0;
+            e.slowTimer = stunDur;
             e.shield = 0; // Destroy 100% of enemy shields!
             this.applyDamage(e, 120, 'SKILL');
-            this.addFloatingText("⚡ EMP STUN + SHIELD SHATTER!", e.x, e.y - 14, "#00e5ff", 14);
+            this.addFloatingText(this.hasAugment("tesla_overcharge") ? "⚡ TESLA OVERCHARGE STUN (10s)!" : "⚡ EMP STUN + SHIELD SHATTER!", e.x, e.y - 14, "#00e5ff", 14);
           }
         }
       } else if (skillKey === 'orbital') {
@@ -3758,8 +3931,9 @@
         }
       }
 
+      const skillCdMult = this.hasAugment("chronos_overdrive") ? 1.35 : 1.0;
       for (const k in this.skills) {
-        if (this.skills[k].currentCd > 0) this.skills[k].currentCd = Math.max(0, this.skills[k].currentCd - dt);
+        if (this.skills[k].currentCd > 0) this.skills[k].currentCd = Math.max(0, this.skills[k].currentCd - dt * skillCdMult);
       }
       if (this.skills.overclock.activeTime > 0) {
         this.skills.overclock.activeTime = Math.max(0, this.skills.overclock.activeTime - dt);
@@ -3883,6 +4057,63 @@
               });
             }
           }
+
+          // 4. Void Titan Gravity Well (Every 4.5s)
+          if (e.type === 'void_titan' && e.abilityTimer >= 4.5) {
+            e.abilityTimer = 0;
+            this.spawnShockwave(e.x, e.y, 160, "#9c27b0");
+            this.addFloatingText("🌌 VOID GRAVITY VORTEX!", e.x, e.y - 36, "#ba68c8", 20);
+            if (audio) audio.zap();
+            // Pull hero and nearby barricades
+            if (this.hero) {
+              const dHero = Math.hypot(this.hero.x - e.x, this.hero.y - e.y);
+              if (dHero <= 200) {
+                const pullAngle = Math.atan2(e.y - this.hero.y, e.x - this.hero.x);
+                this.hero.x += Math.cos(pullAngle) * 35;
+                this.hero.y += Math.sin(pullAngle) * 35;
+                this.damageHero(25);
+              }
+            }
+          }
+
+          // 5. Chrono Phantom Temporal Warp (Every 3.8s)
+          if (e.type === 'chrono_phantom' && e.abilityTimer >= 3.8) {
+            e.abilityTimer = 0;
+            e.progress += 30; // Temporal time leap forward!
+            this.spawnShockwave(e.x, e.y, 130, "#00e5ff");
+            this.addFloatingText("⌛ TIME DILATION WARP!", e.x, e.y - 34, "#00e5ff", 20);
+            if (audio) audio.teleport();
+            // Disrupt nearby towers attack cooldowns
+            for (const tw of this.towers) {
+              if (Math.hypot(tw.x - e.x, tw.y - e.y) <= 160) {
+                tw.cooldown = Math.max(tw.cooldown, 2.2);
+              }
+            }
+          }
+
+          // 6. Mecha Colossus Missile Barrage (Every 5.0s)
+          if (e.type === 'mecha_colossus' && e.abilityTimer >= 5.0) {
+            e.abilityTimer = 0;
+            this.screenShake = 14;
+            this.addFloatingText("🤖 COLOSSUS MISSILE SALVO!", e.x, e.y - 38, "#ffd600", 22);
+            if (audio) audio.missileLaunch();
+            for (let m = 0; m < 2; m++) {
+              const targetObj = this.hero || (this.barricades && this.barricades[0]) || { x: e.x + 80, y: e.y };
+              this.projectiles.push({
+                type: 'missile',
+                x: e.x + (m === 0 ? -15 : 15),
+                y: e.y,
+                vx: (Math.random() - 0.5) * 60,
+                vy: (Math.random() - 0.5) * 60,
+                damage: 75,
+                radius: 40,
+                target: targetObj,
+                color: "#ffd600",
+                homing: true,
+                isEnemyProj: true
+              });
+            }
+          }
         }
 
         // Burning Flame DoT
@@ -3891,7 +4122,17 @@
           e.burnTick = (e.burnTick || 0) + dt;
           if (e.burnTick >= 0.4) {
             e.burnTick = 0;
-            this.applyDamage(e, (e.burnDmg || 25) * 0.4, 'FIRE', null, 'flame');
+            const dotMult = this.activeAugments.includes('plasma_inferno') ? 1.45 : 1.0;
+            this.applyDamage(e, (e.burnDmg || 25) * 0.4 * dotMult, 'FIRE', null, 'flame');
+            if (this.activeAugments.includes('plasma_inferno')) {
+              // Spread flame to nearby enemies
+              for (const other of this.enemies) {
+                if (other !== e && Math.hypot(other.x - e.x, other.y - e.y) <= 65) {
+                  other.burnTimer = Math.max(other.burnTimer || 0, 2.5);
+                  other.burnDmg = Math.max(other.burnDmg || 0, 30);
+                }
+              }
+            }
             this.particles.push({
               x: e.x + (Math.random() * 12 - 6),
               y: e.y + (Math.random() * 12 - 6),
@@ -4105,12 +4346,16 @@
           if (p.t >= 1.0) {
             this.screenShake = 6;
             audio.artilleryBlast();
-            this.spawnShockwave(p.targetX, p.targetY, p.splash, "#ffd600");
-            this.spawnScorchMark(p.targetX, p.targetY, p.splash * 0.7);
+            const splashRad = p.splash * (this.hasAugment("siege_artillery_core") ? 1.6 : 1.0);
+            this.spawnShockwave(p.targetX, p.targetY, splashRad, "#ffd600");
+            this.spawnScorchMark(p.targetX, p.targetY, splashRad * 0.7);
+            if (this.hasAugment("siege_artillery_core")) {
+              this.groundHazards.push({ x: p.targetX, y: p.targetY, radius: splashRad * 0.65, life: 4.0, tickTimer: 0 });
+            }
             for (const e of this.enemies) {
               const d = Math.hypot(e.x - p.targetX, e.y - p.targetY);
-              if (d <= p.splash) {
-                const falloff = 1.0 - (d / p.splash) * 0.4;
+              if (d <= splashRad) {
+                const falloff = 1.0 - (d / splashRad) * 0.4;
                 this.applyDamage(e, p.damage * falloff, 'EXPLOSIVE', null, 'hero');
               }
             }
@@ -4203,7 +4448,7 @@
 
     updateHero(dt) {
       const h = this.hero;
-      if (h.currentUltCd > 0) h.currentUltCd = Math.max(0, h.currentUltCd - dt);
+      if (h.currentUltCd > 0) h.currentUltCd = Math.max(0, h.currentUltCd - dt * (this.hasAugment("chronos_overdrive") ? 1.35 : 1.0));
       if (h.ultActiveTime > 0) h.ultActiveTime = Math.max(0, h.ultActiveTime - dt);
       if (h.slashAnim > 0) h.slashAnim = Math.max(0, h.slashAnim - dt);
       if (h.dashTimer > 0) h.dashTimer = Math.max(0, h.dashTimer - dt);
@@ -4222,7 +4467,7 @@
       const distToTarget = Math.hypot(h.targetX - h.x, h.targetY - h.y);
       if (distToTarget > 4) {
         const dashMult = (h.dashTimer > 0) ? 2.4 : 1.0;
-        const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0) * dashMult;
+        const moveSpd = h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0) * (this.hasAugment("chronos_overdrive") ? 1.30 : 1.0) * dashMult;
         h.angle = Math.atan2(h.targetY - h.y, h.targetX - h.x);
         h.x += Math.cos(h.angle) * moveSpd * dt;
         h.y += Math.sin(h.angle) * moveSpd * dt;
@@ -4483,7 +4728,8 @@
       } else if (tower.type === 'tesla') {
         audio.shootTesla();
         this.spawnMuzzleFlash(tower.x, tower.y, tower.angle, 28, "#ffd600");
-        const chainCount = spec.chainCount || 4;
+        const bonusChains = this.hasAugment("tesla_overcharge") ? 3 : 0;
+        const chainCount = (spec.chainCount || 4) + bonusChains;
         const chained = [];
         let curr = primary;
         let chainDmg = finalDmg;
@@ -4554,6 +4800,10 @@
       this.screenShake = 6;
       let finalRadius = splashRadius;
       if (this.hasAugment("cluster_munitions")) finalRadius *= 1.35;
+      if (this.hasAugment("siege_artillery_core")) {
+        finalRadius *= 1.60;
+        this.groundHazards.push({ x: x, y: y, radius: finalRadius * 0.65, life: 4.0, tickTimer: 0 });
+      }
 
       this.spawnShockwave(x, y, finalRadius, '#ff9100');
       this.spawnScorchMark(x, y, finalRadius * 0.75);
@@ -4633,6 +4883,19 @@
       this.score += enemy.bounty * 50;
       this.spawnFlyingCoins(enemy.x, enemy.y, enemy.bounty);
 
+      // Void Collector Augment
+      if (this.hasAugment("void_collector")) {
+        this.voidKillCount = (this.voidKillCount || 0) + 1;
+        if (this.voidKillCount % 5 === 0) {
+          this.gold += 3;
+          this.analytics.totalGold += 3;
+          this.addFloatingText("+3g VOID HARVEST", enemy.x, enemy.y - 32, "#7c4dff", 14);
+        }
+        if (this.hero.currentUltCd > 0) {
+          this.hero.currentUltCd = Math.max(0, this.hero.currentUltCd - 0.5);
+        }
+      }
+
       // Hero XP
       this.hero.xp += (enemy.isBoss ? 40 : 10);
       if (this.hero.xp >= this.hero.maxXp && this.hero.level < 10) {
@@ -4686,16 +4949,16 @@
       this.addFloatingText(`${this.t("waveCleared")} +${bonus}g`, 640, 150, '#00e676', 26);
       audio.upgrade();
 
-      // Roguelike Draft at Wave 5, 10, 15, 20, 25
-      if (this.wave % 5 === 0 && this.wave < this.maxWaves) {
+      // Roguelike Draft at Wave 5, 10, 15, 20, 25 OR after every wave in BOSS_RUSH!
+      if ((this.gameMode === 'BOSS_RUSH' && this.wave < this.maxWaves) || (this.wave % 5 === 0 && this.wave < this.maxWaves)) {
         this.triggerAugmentDraft();
         this.wave++;
         this.waveCountdown = 8;
         return;
       }
 
-      if (this.gameMode === 'CAMPAIGN' && this.wave >= this.maxWaves) this.onVictory();
-      else if (this.gameMode === 'BOSS_RUSH' && this.wave >= 3) this.onVictory();
+      if ((this.gameMode === 'CAMPAIGN' || this.gameMode === 'CUSTOM') && this.wave >= this.maxWaves) this.onVictory();
+      else if (this.gameMode === 'BOSS_RUSH' && this.wave >= this.maxWaves) this.onVictory();
       else {
         this.wave++;
         this.waveCountdown = 8;
@@ -6903,6 +7166,92 @@
           ctx.moveTo(9, -11); ctx.lineTo(21 + snap, -5);
           ctx.moveTo(9, 11); ctx.lineTo(21 + snap, 5);
           ctx.stroke();
+        } else if (e.type === 'void_titan') {
+          // BOSS 4: Gravitational Singularity Core & Orbit Crystals
+          const tNow = performance.now() * 0.003;
+          ctx.strokeStyle = "rgba(156, 39, 176, 0.75)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 38, 20, tNow, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = "rgba(186, 104, 200, 0.9)";
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 30, 14, -tNow * 1.5, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = "#000000";
+          ctx.beginPath();
+          ctx.arc(0, 0, 22, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#e040fb";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          for (let c = 0; c < 4; c++) {
+            const ang = tNow * 2 + (Math.PI / 2) * c;
+            const cx = Math.cos(ang) * 34;
+            const cy = Math.sin(ang) * 18;
+            ctx.fillStyle = "#ba68c8";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (e.type === 'chrono_phantom') {
+          // BOSS 5: Chrono Phantom Temporal Clock & Prismatic Hologram
+          const tNow = performance.now() * 0.004;
+          ctx.rotate(e.angle);
+
+          ctx.strokeStyle = "#00e5ff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 26, 0, Math.PI * 2);
+          ctx.stroke();
+
+          for (let g = 0; g < 8; g++) {
+            const ga = tNow + (Math.PI / 4) * g;
+            ctx.fillStyle = "#00e5ff";
+            ctx.fillRect(Math.cos(ga) * 26 - 2, Math.sin(ga) * 26 - 2, 4, 4);
+          }
+
+          ctx.fillStyle = "rgba(0, 229, 255, 0.3)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 18, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(0, 0, 6, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (e.type === 'mecha_colossus') {
+          // BOSS 6: Apex Mecha Colossus (Heavy Golden-Titanium War Machine)
+          ctx.rotate(e.angle);
+
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(-22, -26, 44, 10);
+          ctx.fillRect(-22, 16, 44, 10);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.8;
+          ctx.strokeRect(-22, -26, 44, 10);
+          ctx.strokeRect(-22, 16, 44, 10);
+
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.roundRect(-20, -18, 40, 36, 6);
+          ctx.fill();
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          ctx.fillStyle = "#ff1744";
+          ctx.fillRect(-18, -24, 10, 6);
+          ctx.fillRect(-18, 18, 10, 6);
+
+          ctx.fillStyle = "#475569";
+          ctx.fillRect(14, -8, 18, 5);
+          ctx.fillRect(14, 3, 18, 5);
+
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(4, -4, 8, 8);
         } else {
           ctx.fillStyle = e.color;
           ctx.beginPath();
@@ -7460,6 +7809,7 @@
       this.drawCyberButton(725, 9, 125, 42, "SOZLAMALAR", "#00e5ff", "SETTINGS", "⚙️", false);
       this.drawCyberButton(860, 9, 105, 42, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff", "PAUSE", "⏸", false);
       this.drawCyberButton(975, 9, 110, 42, "← MENYU", "#ff1744", "ABORT", "🚪", false);
+      this.drawCyberButton(1095, 9, 165, 42, "🕹️ 3D PILOT", "#e040fb", "TPS BATTLE", "🎮", false);
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
@@ -8355,59 +8705,171 @@
 
         ctx.restore();
       }
+
+      // 11. Custom Created Map Card (y: 565, w: 1200, h: 135)
+      const savedCustom = localStorage.getItem('lg_custom_map');
+      let customData = null;
+      if (savedCustom) {
+        try { customData = JSON.parse(savedCustom); } catch(e) {}
+      }
+      const cWaypoints = (customData && customData.waypoints) ? customData.waypoints : this.editorWaypoints;
+      const cBiome = (customData && customData.biome) ? customData.biome : (this.editorBiome || 'cyber');
+      const cGold = (customData && customData.gold) ? customData.gold : (this.editorGold || 350);
+      const cWaves = (customData && customData.waves) ? customData.waves : (this.editorWaves || 20);
+
+      const cx = 40, cy = 565, cw = 1200, ch = 135;
+      ctx.save();
+      ctx.fillStyle = "rgba(12, 22, 38, 0.95)";
+      ctx.beginPath();
+      ctx.roundRect(cx, cy, cw, ch, 8);
+      ctx.fill();
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 16px 'Segoe UI', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("🛠️ SHAXSIY XARITA (CUSTOM LEVEL)", cx + 24, cy + 32);
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "12px monospace";
+      ctx.fillText(`Nuqtalar: ${cWaypoints.length} ta  |  Biom: ${cBiome.toUpperCase()}  |  Boshlang'ich Oltin: ${cGold}G  |  To'lqinlar: ${cWaves}`, cx + 24, cy + 58);
+      ctx.fillText("Xarita muharririda o'zingiz chizgan maxsus xaritani darhol sinab ko'ring yoki qayta tahrirlang!", cx + 24, cy + 82);
+
+      this.drawCyberButton(cx + 780, cy + 32, 220, 70, "▶ MAXSUS O'YIN", "#00e676", "PLAY CUSTOM", "🚀", true);
+      this.drawCyberButton(cx + 1020, cy + 32, 160, 70, "✏️ TAHRIRLASH", "#00e5ff", "EDIT MAP", "🛠️", false);
+      ctx.restore();
     }
 
     renderEditor() {
-      this.ctx.fillStyle = "#070b14";
-      this.ctx.fillRect(0, 0, this.width, this.height);
+      const ctx = this.ctx;
+      const bColor = (this.editorBiome === 'lava') ? "#1a0808" : (this.editorBiome === 'cryo' ? "#05131e" : "#070b14");
+      ctx.fillStyle = bColor;
+      ctx.fillRect(0, 0, this.width, this.height);
 
-      this.ctx.fillStyle = "#0c1527";
-      this.ctx.fillRect(0, 0, this.width, 65);
-      this.ctx.strokeStyle = "#00e5ff";
-      this.ctx.strokeRect(0, 0, this.width, 65);
+      // Top Toolbar Header
+      ctx.fillStyle = "#0c1527";
+      ctx.fillRect(0, 0, this.width, 65);
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, 0, this.width, 65);
 
-      this.renderMiniButton(50, 16, 90, 34, "← MENU");
-      this.renderMiniButton(160, 16, 120, 34, "▶ TEST PLAY");
-      this.renderMiniButton(295, 16, 90, 34, "CLEAR");
-      this.renderMiniButton(400, 16, 120, 34, "EXPORT JSON");
-      this.renderMiniButton(535, 16, 120, 34, "IMPORT JSON");
+      this.renderMiniButton(20, 15, 90, 36, "← MENYU", "#ff1744");
+      this.renderMiniButton(120, 15, 125, 36, "▶ TEST O'YNASH", "#00e676");
+      this.renderMiniButton(255, 15, 95, 36, "💾 SAQLASH", "#ffd600");
+      this.renderMiniButton(360, 15, 95, 36, "🗑️ TOZALASH", "#ff5252");
+      this.renderMiniButton(465, 15, 95, 36, "📋 EXPORT", "#00e5ff");
+      this.renderMiniButton(570, 15, 95, 36, "📥 IMPORT", "#00e5ff");
+      this.renderMiniButton(675, 15, 125, 36, `BIOM: ${(this.editorBiome || 'CYBER').toUpperCase()}`, (this.editorBiome === 'lava' ? "#ff5722" : (this.editorBiome === 'cryo' ? "#80deea" : "#00e5ff")));
+      this.renderMiniButton(810, 15, 105, 36, `WAVES: ${this.editorWaves || 20}`, "#e040fb");
+      this.renderMiniButton(925, 15, 110, 36, `GOLD: ${this.editorGold || 350}G`, "#ffd600");
+      this.renderMiniButton(1045, 15, 85, 36, "UNDO ↩️", "#cfd8dc");
 
-      this.ctx.fillStyle = "#78909c";
-      this.ctx.font = "11px monospace";
-      this.ctx.textAlign = "left";
-      this.ctx.fillText("Click grid to add lane waypoints from SPAWN to BASE CORE.", 680, 38);
+      // Subheader guide banner
+      ctx.fillStyle = "rgba(12, 21, 39, 0.85)";
+      ctx.fillRect(0, 65, this.width, 24);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("🎯 Kataklarni bosing: 1-nuqta = [SPAWN 🚪 Dushman kirishi], Oxirgi = [CORE 💎 Baza]. Nuqtani qayta bosish uni o'chiradi.", this.width / 2, 81);
 
-      this.ctx.strokeStyle = "rgba(0, 229, 255, 0.1)";
+      // Grid Lines
+      const gridColor = (this.editorBiome === 'lava') ? "rgba(255, 61, 0, 0.12)" : (this.editorBiome === 'cryo' ? "rgba(0, 240, 255, 0.12)" : "rgba(0, 229, 255, 0.12)");
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 1;
       for (let x = 0; x <= this.width; x += 64) {
-        this.ctx.beginPath(); this.ctx.moveTo(x, 65); this.ctx.lineTo(x, 650); this.ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, 90); ctx.lineTo(x, 700); ctx.stroke();
       }
-      for (let y = 65; y <= 650; y += 64) {
-        this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.width, y); this.ctx.stroke();
+      for (let y = 96; y <= 700; y += 64) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
       }
 
+      // Connecting Laser Path Highway
       if (this.editorWaypoints.length >= 2) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(this.editorWaypoints[0].x, this.editorWaypoints[0].y);
+        ctx.beginPath();
+        ctx.moveTo(this.editorWaypoints[0].x, this.editorWaypoints[0].y);
         for (let i = 1; i < this.editorWaypoints.length; i++) {
-          this.ctx.lineTo(this.editorWaypoints[i].x, this.editorWaypoints[i].y);
+          ctx.lineTo(this.editorWaypoints[i].x, this.editorWaypoints[i].y);
         }
-        this.ctx.strokeStyle = "rgba(0, 229, 255, 0.6)";
-        this.ctx.lineWidth = 36;
-        this.ctx.lineCap = "round";
-        this.ctx.stroke();
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+        ctx.lineWidth = 42;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.stroke();
+
+        ctx.strokeStyle = "#00e5ff";
+        ctx.lineWidth = 6;
+        ctx.stroke();
+
+        // Directional arrows along path
+        for (let i = 0; i < this.editorWaypoints.length - 1; i++) {
+          const p1 = this.editorWaypoints[i];
+          const p2 = this.editorWaypoints[i + 1];
+          const mx = (p1.x + p2.x) / 2;
+          const my = (p1.y + p2.y) / 2;
+          const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+          ctx.save();
+          ctx.translate(mx, my);
+          ctx.rotate(ang);
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath();
+          ctx.moveTo(8, 0); ctx.lineTo(-6, -6); ctx.lineTo(-3, 0); ctx.lineTo(-6, 6);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
       }
 
+      // Waypoint Nodes
       for (let i = 0; i < this.editorWaypoints.length; i++) {
         const pt = this.editorWaypoints[i];
-        this.ctx.fillStyle = (i === 0) ? "#ff1744" : (i === this.editorWaypoints.length - 1 ? "#00e5ff" : "#ffd600");
-        this.ctx.beginPath();
-        this.ctx.arc(pt.x, pt.y, 14, 0, Math.PI * 2);
-        this.ctx.fill();
+        const isStart = (i === 0);
+        const isEnd = (i === this.editorWaypoints.length - 1 && this.editorWaypoints.length >= 2);
 
-        this.ctx.fillStyle = "#000";
-        this.ctx.font = "bold 10px monospace";
-        this.ctx.textAlign = "center";
-        this.ctx.fillText(`${i + 1}`, pt.x, pt.y + 4);
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+
+        if (isStart) {
+          // Pulsing Red Portal Spawn
+          ctx.fillStyle = "rgba(255, 23, 68, 0.25)";
+          ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#ff1744";
+          ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("SPAWN 🚪", 0, -22);
+          ctx.fillText("1", 0, 3);
+        } else if (isEnd) {
+          // Pulsing Cyan Base Core
+          ctx.fillStyle = "rgba(0, 229, 255, 0.25)";
+          ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#00e5ff";
+          ctx.beginPath();
+          ctx.moveTo(0, -16); ctx.lineTo(16, 0); ctx.lineTo(0, 16); ctx.lineTo(-16, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "bold 9px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("CORE 💎", 0, -22);
+          ctx.fillStyle = "#000";
+          ctx.fillText(`${i + 1}`, 0, 3);
+        } else {
+          // Intermediate Amber Waypoint
+          ctx.fillStyle = "#ffd600";
+          ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#000000"; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.fillStyle = "#000";
+          ctx.font = "bold 10px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(`${i + 1}`, 0, 4);
+        }
+        ctx.restore();
       }
     }
 
@@ -8649,8 +9111,10 @@
         p.walkAnim = 0;
       }
 
-      // Gun Fire Cooldown & Recoil Decay
+      // Gun Fire Cooldown, Skills & Recoil Decay
       if (p.fireCd > 0) p.fireCd = Math.max(0, p.fireCd - dt);
+      if (p.missileCd > 0) p.missileCd = Math.max(0, p.missileCd - dt);
+      if (p.empCd > 0) p.empCd = Math.max(0, p.empCd - dt);
       if (p.recoil > 0) p.recoil = Math.max(0, p.recoil - dt * 10);
 
       // Reloading
@@ -8671,21 +9135,23 @@
         t.spawnInterval -= dt;
         if (t.spawnInterval <= 0 && t.spawnQueue > 0) {
           t.spawnQueue--;
-          t.spawnInterval = 1.2;
+          t.spawnInterval = 1.1;
           const ang = Math.random() * Math.PI - Math.PI / 2;
           const dist = 75;
           const ex = Math.sin(ang) * dist;
           const ez = -35 - Math.cos(ang) * (dist * 0.7);
-          const eType = Math.random() < 0.25 ? 'brute' : (Math.random() < 0.4 ? 'sprinter' : 'grunt');
+          const randType = Math.random();
+          const eType = randType < 0.20 ? 'kamikaze' : (randType < 0.40 ? 'gunship' : (randType < 0.65 ? 'brute' : (randType < 0.85 ? 'sprinter' : 'grunt')));
           t.enemies.push({
             type: eType,
-            x: ex, y: 0, z: ez,
-            hp: eType === 'brute' ? 350 : (eType === 'sprinter' ? 60 : 120),
-            maxHp: eType === 'brute' ? 350 : (eType === 'sprinter' ? 60 : 120),
-            speed: eType === 'sprinter' ? 12 : (eType === 'brute' ? 4.5 : 7.0),
-            size: eType === 'brute' ? 1.8 : 1.1,
-            color: eType === 'brute' ? '#ffd600' : (eType === 'sprinter' ? '#ff9100' : '#ff1744'),
-            atkCd: 0
+            x: ex, y: (eType === 'gunship' ? 3.5 : 0), z: ez,
+            hp: eType === 'brute' ? 350 : (eType === 'gunship' ? 240 : (eType === 'kamikaze' ? 65 : (eType === 'sprinter' ? 60 : 120))),
+            maxHp: eType === 'brute' ? 350 : (eType === 'gunship' ? 240 : (eType === 'kamikaze' ? 65 : (eType === 'sprinter' ? 60 : 120))),
+            speed: eType === 'kamikaze' ? 16 : (eType === 'sprinter' ? 12 : (eType === 'gunship' ? 8.5 : (eType === 'brute' ? 4.5 : 7.0))),
+            size: eType === 'brute' ? 1.8 : (eType === 'gunship' ? 1.4 : 1.1),
+            color: eType === 'kamikaze' ? '#ff3d00' : (eType === 'gunship' ? '#00e5ff' : (eType === 'brute' ? '#ffd600' : (eType === 'sprinter' ? '#ff9100' : '#ff1744'))),
+            atkCd: 0,
+            stunTimer: 0
           });
         }
         if (t.spawnQueue <= 0 && t.enemies.length === 0) {
@@ -8702,6 +9168,11 @@
       // 3. Enemies Update
       for (let i = t.enemies.length - 1; i >= 0; i--) {
         const e = t.enemies[i];
+        if (e.stunTimer > 0) {
+          e.stunTimer -= dt;
+          continue;
+        }
+
         const distToPlayer = Math.hypot(p.x - e.x, p.z - e.z);
         let targetX = t.core.x;
         let targetZ = t.core.z;
@@ -8720,9 +9191,14 @@
           e.atkCd = (e.atkCd || 0) - dt;
           if (e.atkCd <= 0) {
             e.atkCd = 1.0;
-            t.core.health = Math.max(0, t.core.health - 25);
-            this.screenShake = 4;
+            const dmg = (e.type === 'kamikaze') ? 60 : 25;
+            t.core.health = Math.max(0, t.core.health - dmg);
+            this.screenShake = 6;
             audio.leak();
+            if (e.type === 'kamikaze') {
+              t.enemies.splice(i, 1);
+              continue;
+            }
           }
         }
         // Attack player
@@ -8730,10 +9206,16 @@
           e.atkCd = (e.atkCd || 0) - dt;
           if (e.atkCd <= 0) {
             e.atkCd = 1.2;
-            p.health = Math.max(0, p.health - 15);
+            const rawDmg = (e.type === 'kamikaze') ? 45 : 15;
+            const armorRed = (p.mode === 'SIEGE') ? 0.50 : 1.0;
+            p.health = Math.max(0, p.health - Math.round(rawDmg * armorRed));
             this.screenShake = 6;
             this.vibrate([60, 40, 60]);
             audio.leak();
+            if (e.type === 'kamikaze') {
+              t.enemies.splice(i, 1);
+              continue;
+            }
           }
         }
       }
@@ -8793,6 +9275,18 @@
             this.screenShake = isHeadshot ? 5 : 2;
             const pColor = isHeadshot ? "#ffd600" : "#ff1744";
             t.particles.push({ x: e.x, y: 1.2, z: e.z, life: 0.3, maxLife: 0.3, color: pColor });
+
+            if (b.splashRadius > 0) {
+              for (const other of t.enemies) {
+                if (other !== e && Math.hypot(other.x - b.x, other.z - b.z) <= b.splashRadius) {
+                  other.hp -= Math.round(finalDmg * 0.7);
+                }
+              }
+              for (let k = 0; k < 12; k++) {
+                t.particles.push({ x: b.x + (Math.random() - 0.5) * 4, y: 0.5 + Math.random() * 2, z: b.z + (Math.random() - 0.5) * 4, life: 0.4, maxLife: 0.4, color: "#ff9100" });
+              }
+            }
+
             if (isHeadshot) {
               this.addFloatingText("CRIT 2.2x!", 640, 300, "#ffd600", 22);
             }
@@ -8821,13 +9315,16 @@
       if (p.isReloading || p.fireCd > 0) return;
       if (p.ammo <= 0) { this.reload3DTPS(); return; }
 
-      p.ammo--;
-      p.fireCd = 0.12;
-      p.recoil = 1.0;
-      audio.shootPulse();
-      this.screenShake = 2;
+      const isSiege = (p.mode === 'SIEGE');
+      p.ammo -= (isSiege ? 2 : 1);
+      p.fireCd = (isSiege ? 0.45 : 0.12);
+      p.recoil = (isSiege ? 2.2 : 1.0);
+      this.screenShake = (isSiege ? 7 : 2);
 
-      const speed = 120;
+      if (isSiege) audio.explosion();
+      else audio.shootPulse();
+
+      const speed = isSiege ? 95 : 120;
       const spread = p.hasRedDot ? 0.02 : 0.05;
       const yawSpread = (Math.random() * 2 - 1) * spread;
       const pitchSpread = (Math.random() * 2 - 1) * spread;
@@ -8842,9 +9339,80 @@
         vx: Math.sin(aimYaw) * speed,
         vy: -Math.sin(aimPitch) * speed,
         vz: -Math.cos(aimYaw) * speed,
-        damage: 45,
-        life: 0.8
+        damage: isSiege ? 160 : 45,
+        isSiege: isSiege,
+        splashRadius: isSiege ? 7.0 : 0,
+        life: 0.85
       });
+    }
+
+    fire3DMissiles() {
+      const t = this.tps3D;
+      const p = t.player;
+      if (p.missileCd > 0) return;
+      p.missileCd = 8.0;
+      audio.missileLaunch();
+      this.screenShake = 6;
+      this.addFloatingText("🚀 3D MISSILE SALVO!", 640, 260, "#ffd600", 22);
+
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          if (!this.tps3D) return;
+          const target = t.enemies[i % t.enemies.length] || null;
+          const a = p.yaw + (Math.random() - 0.5) * 0.8;
+          t.bullets.push({
+            x: p.x + (i % 2 === 0 ? -1.0 : 1.0),
+            y: 2.2,
+            z: p.z,
+            vx: Math.sin(a) * 45,
+            vy: 8.0 + Math.random() * 6,
+            vz: -Math.cos(a) * 45,
+            damage: 95,
+            isMissile: true,
+            splashRadius: 5.0,
+            target: target,
+            life: 1.8
+          });
+        }, i * 90);
+      }
+    }
+
+    fire3DEMP() {
+      const t = this.tps3D;
+      const p = t.player;
+      if (p.empCd > 0) return;
+      p.empCd = 12.0;
+      audio.zap();
+      this.screenShake = 12;
+      this.addFloatingText("⚡ 3D EMP SHOCKWAVE DISCHARGED!", 640, 240, "#00e5ff", 24);
+
+      for (const e of t.enemies) {
+        e.stunTimer = 4.0;
+        e.hp -= 40;
+      }
+      for (let i = 0; i < 30; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 5 + Math.random() * 30;
+        t.particles.push({
+          x: p.x + Math.cos(ang) * dist,
+          y: 0.5 + Math.random() * 2.5,
+          z: p.z + Math.sin(ang) * dist,
+          life: 0.6, maxLife: 0.6,
+          color: "#00e5ff"
+        });
+      }
+    }
+
+    toggle3DMechMode() {
+      const p = this.tps3D.player;
+      p.mode = (p.mode === 'SIEGE') ? 'BIPED' : 'SIEGE';
+      p.speed = (p.mode === 'SIEGE') ? 8.0 : 14.0;
+      audio.mechTransform();
+      this.screenShake = 8;
+      const modeStr = (p.mode === 'SIEGE') ? "🚜 SIEGE TANK FAOL! 120MM GAUBITSA" : "🤖 ASSAULT ROBOT! TEZKOR HARAKAT";
+      const modeCol = (p.mode === 'SIEGE') ? "#ffd600" : "#00e5ff";
+      this.addFloatingText(modeStr, 640, 200, modeCol, 22);
+      this.triggerRadioComm("APEX-01 AI", modeStr, 3.5, "hero_dash");
     }
 
     reload3DTPS() {
@@ -9080,13 +9648,35 @@
         ctx.fillStyle = "#00e5ff";
         ctx.fillRect(pp.x - pw * 0.2, pp.y - ph * 0.98, pw * 0.4, ph * 0.1);
 
+        if (p.mode === 'SIEGE') {
+          // Dual Heavy Caterpillar Treads
+          ctx.fillStyle = "#1e293b";
+          ctx.fillRect(pp.x - pw * 0.7, pp.y - ph * 0.4, pw * 0.35, ph * 0.45);
+          ctx.fillRect(pp.x + pw * 0.35, pp.y - ph * 0.4, pw * 0.35, ph * 0.45);
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(pp.x - pw * 0.7, pp.y - ph * 0.4, pw * 0.35, ph * 0.45);
+          ctx.strokeRect(pp.x + pw * 0.35, pp.y - ph * 0.4, pw * 0.35, ph * 0.45);
+        }
+
         const recoilOffset = p.recoil * 10;
         const gunX = pp.x + pw * 0.45;
         const gunY = pp.y - ph * 0.55 + recoilOffset;
-        ctx.fillStyle = "#475569";
-        ctx.fillRect(gunX - 4, gunY - 3, 24, 7);
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillRect(gunX + 16, gunY - 2, 8, 3);
+
+        if (p.mode === 'SIEGE') {
+          // Twin 120mm Heavy Artillery Cannons
+          ctx.fillStyle = "#334155";
+          ctx.fillRect(gunX - 6, gunY - 4, 28, 6);
+          ctx.fillRect(gunX - 6, gunY + 4, 28, 6);
+          ctx.fillStyle = "#ffd600";
+          ctx.fillRect(gunX + 20, gunY - 5, 4, 8);
+          ctx.fillRect(gunX + 20, gunY + 3, 4, 8);
+        } else {
+          ctx.fillStyle = "#475569";
+          ctx.fillRect(gunX - 4, gunY - 3, 24, 7);
+          ctx.fillStyle = "#00e5ff";
+          ctx.fillRect(gunX + 16, gunY - 2, 8, 3);
+        }
 
         if (p.hasLaser && !p.isAiming) {
           ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
@@ -9144,7 +9734,7 @@
       }
 
       // 10. Tactical 3D HUD & Controls
-      this.renderMiniButton(30, 20, 110, 36, "← MENYU");
+      this.renderMiniButton(20, 18, 175, 38, "← 2D STRATEGIYA", "#00e5ff");
 
       ctx.fillStyle = "#0c1527";
       ctx.fillRect(160, 18, 960, 40);
@@ -9216,6 +9806,13 @@
       ctx.fillStyle = t.isBuilding ? "#000" : "#fff";
       ctx.font = "bold 12px monospace";
       ctx.fillText("🏗️ QURISH", 1200, 505);
+
+      // Mech Mode & Super Skill Action Buttons
+      const modeLabel = (p.mode === 'SIEGE') ? "🚜 TANK" : "🤖 ROBOT";
+      const modeCol = (p.mode === 'SIEGE') ? "#ffd600" : "#00e5ff";
+      this.renderMiniButton(960, 615, 95, 45, modeLabel, modeCol);
+      this.renderMiniButton(960, 555, 95, 45, p.empCd > 0 ? `EMP ${Math.ceil(p.empCd)}s` : "⚡ EMP", "#00e5ff");
+      this.renderMiniButton(1070, 555, 95, 45, p.missileCd > 0 ? `MSL ${Math.ceil(p.missileCd)}s` : "🚀 RAKETA", "#ffd600");
 
       ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
       ctx.beginPath();
