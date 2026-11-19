@@ -6,19 +6,20 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>APEX-01 Transformer Mech — Og'ir Jangovar Robot</title>
+<title>APEX-01 Hyper-Realistic Transformer Mech — AAA Darajadagi Robot</title>
 <style>
   :root {
-    --bg-dark: #050b16;
-    --panel-bg: rgba(10, 18, 32, 0.90);
+    --bg-dark: #040810;
+    --panel-bg: rgba(8, 14, 24, 0.92);
     --panel-border: rgba(46, 230, 255, 0.35);
     --cyan: #2ee6ff;
     --cyan-glow: rgba(46, 230, 255, 0.45);
     --green: #00ff88;
     --orange: #ff9d00;
     --red: #ff3355;
-    --text: #e6edf3;
-    --text-dim: #8b9db2;
+    --gold: #ffcc00;
+    --text: #eaf2fc;
+    --text-dim: #8ba2bc;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
   
@@ -28,7 +29,7 @@
     width: 100vw; height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 35%, #101c30 0%, #060b14 55%, #020508 100%);
+    background: radial-gradient(circle at 50% 30%, #0d1624 0%, #060b13 60%, #020408 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
     color: var(--text);
   }
@@ -144,6 +145,35 @@
     box-shadow: 0 0 10px var(--cyan-glow);
   }
 
+  /* Quick Toggles Bar (Below Camera Dock) */
+  #fx-bar {
+    position: absolute;
+    top: max(48px, env(safe-area-inset-top) + 38px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+  .fx-btn {
+    background: var(--panel-bg);
+    border: 1px solid rgba(46, 230, 255, 0.25);
+    border-radius: 14px;
+    color: var(--text-dim);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 3px 8px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+  }
+  .fx-btn:hover { color: #fff; border-color: var(--cyan); }
+  .fx-btn.active {
+    background: rgba(46, 230, 255, 0.2);
+    color: var(--cyan);
+    border-color: var(--cyan);
+  }
+
   /* Floating Zoom Controls (Right Middle) */
   #zoom-dock {
     position: absolute;
@@ -194,8 +224,8 @@
   /* D-PAD (Chapga, O'nga, Oldinga, Orqaga) */
   #dpad-box {
     display: grid;
-    grid-template-columns: repeat(3, 44px);
-    grid-template-rows: repeat(2, 44px);
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(2, 46px);
     gap: 5px;
     background: var(--panel-bg);
     border: 1px solid var(--panel-border);
@@ -228,7 +258,7 @@
   }
   .dpad-btn:active span, .dpad-btn.active span { color: #000; }
 
-  /* Action Buttons (To'p, Raketa, Dash, Transform) */
+  /* Action Buttons */
   #action-box {
     display: flex;
     gap: 6px;
@@ -311,19 +341,6 @@
   }
   #key-helper span { color: var(--cyan); font-weight: 600; font-family: monospace; }
 
-  /* Damage Popups */
-  .dmg {
-    position: fixed;
-    color: #ff4a6a;
-    font-weight: bold;
-    font-size: 18px;
-    pointer-events: none;
-    text-shadow: 0 0 6px #000;
-    animation: rise 0.8s ease-out forwards;
-    z-index: 50;
-  }
-  @keyframes rise { to { transform: translateY(-60px); opacity: 0; } }
-
   /* Responsive Clean Layout for Mobile Screens */
   @media (max-width: 768px) {
     #stats-panel { display: none; }
@@ -348,13 +365,23 @@
       font-size: 8px;
     }
 
+    #fx-bar {
+      top: 42px; right: 8px; left: auto;
+      transform: none;
+      gap: 4px;
+    }
+    .fx-btn {
+      padding: 2px 6px;
+      font-size: 8px;
+    }
+
     #controls-container {
       padding: 0 8px;
       bottom: 8px;
     }
     #dpad-box {
-      grid-template-columns: repeat(3, 38px);
-      grid-template-rows: repeat(2, 38px);
+      grid-template-columns: repeat(3, 40px);
+      grid-template-rows: repeat(2, 40px);
       gap: 3px;
       padding: 4px;
     }
@@ -372,7 +399,7 @@
 
     #zoom-dock {
       right: 8px;
-      top: 40%;
+      top: 45%;
       gap: 4px;
     }
     .zoom-btn {
@@ -399,15 +426,22 @@
 <!-- Header HUD -->
 <div id="header-hud">
   <h1>APEX-01 TRANSFORMER</h1>
-  <div class="subtitle">Og'ir Jangovar Robot · CS2 PBR Muhit · 60 FPS</div>
+  <div class="subtitle">AAA Fotorealistik Mech · CS2 Hangar · PBR Normal Maps</div>
 </div>
 
 <!-- Camera Focus Presets -->
 <div id="cam-dock">
   <button class="cam-btn active" data-target="full">👁️ To'liq Bo'y</button>
   <button class="cam-btn" data-target="head">🤖 Kokpit & Yuz</button>
-  <button class="cam-btn" data-target="cannons">💥 Qo'sh To'p</button>
-  <button class="cam-btn" data-target="legs">🦾 Gidravlik Oyoq</button>
+  <button class="cam-btn" data-target="cannons">💥 Aylanma To'plar</button>
+  <button class="cam-btn" data-target="legs">🦾 Gidravlik Pistonlar</button>
+</div>
+
+<!-- FX & Mode Bar -->
+<div id="fx-bar">
+  <button class="fx-btn active" id="btn-toggle-bloom">✨ Bloom: ON</button>
+  <button class="fx-btn" id="btn-toggle-light">💡 CS2 Hangar</button>
+  <button class="fx-btn" id="btn-toggle-speed">⏱️ 1.0x</button>
 </div>
 
 <!-- Floating Zoom Controls -->
@@ -421,10 +455,10 @@
 <div id="stats-panel">
   <div class="stat-row"><span class="stat-label">Model:</span><span class="stat-val badge">APEX-01 Heavy Mech</span></div>
   <div class="stat-row"><span class="stat-label">Turi:</span><span class="stat-val" style="color:var(--cyan)">Gidravlik Transformer</span></div>
-  <div class="stat-row"><span class="stat-label">Qurollar:</span><span class="stat-val" style="color:var(--orange)">Dual Cannon + 6x Missile</span></div>
+  <div class="stat-row"><span class="stat-label">Qurollar:</span><span class="stat-val" style="color:var(--orange)">Twin Rotary Gatling + Pod</span></div>
   <div class="stat-row"><span class="stat-label">Reaktor:</span><span class="stat-val" style="color:var(--cyan)" id="stat-core">100% ONLINE</span></div>
+  <div class="stat-row"><span class="stat-label">Gidravlika:</span><span class="stat-val" style="color:var(--green)">Dinamik Pistonlar (Faol)</span></div>
   <div class="stat-row"><span class="stat-label">Frame Rate:</span><span class="stat-val" id="stat-fps" style="color:var(--green)">60 FPS</span></div>
-  <div class="stat-row"><span class="stat-label">Bo'yi:</span><span class="stat-val">3.20 m (Oyoq Y=0)</span></div>
   <div class="stat-row"><span class="stat-label">Holat:</span><span class="stat-val" id="stat-action" style="color:var(--green)">IDLE</span></div>
 </div>
 
@@ -432,9 +466,9 @@
 <div id="key-helper">
   <span>⌨️ W/S: Oldinga/Orqaga</span>
   <span>A/D: Chapga/O'nga Burilish</span>
-  <span>Space: Otish</span>
-  <span>R: Raketa</span>
-  <span>Shift: Dash</span>
+  <span>Space: Gatling O't Ochish</span>
+  <span>R: Raketa Zalpi</span>
+  <span>Shift: Reaktiv Dash</span>
 </div>
 
 <!-- Bottom Locomotion & Combat Controls -->
@@ -451,7 +485,7 @@
 
   <!-- Combat Buttons -->
   <div id="action-box">
-    <button class="act-btn btn-fire" id="bFire">🔥 TO'P</button>
+    <button class="act-btn btn-fire" id="bFire">🔥 GATLİNG</button>
     <button class="act-btn btn-missile" id="bMissile">🚀 RAKETA</button>
     <button class="act-btn" id="bDash">💨 DASH</button>
     <button class="act-btn" id="bUlt">⚡ ULT</button>
@@ -464,6 +498,10 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 // DOM Elements
 const canvas = document.getElementById('c');
@@ -486,7 +524,13 @@ const btnZoomIn = document.getElementById('btn-zoom-in');
 const btnZoomOut = document.getElementById('btn-zoom-out');
 const btnZoomFit = document.getElementById('btn-zoom-fit');
 
-// 1. RENDERER & SCENE
+const btnToggleBloom = document.getElementById('btn-toggle-bloom');
+const btnToggleLight = document.getElementById('btn-toggle-light');
+const btnToggleSpeed = document.getElementById('btn-toggle-speed');
+
+// =========================================================================
+// 1. RENDERER, SCENE & POST-PROCESSING
+// =========================================================================
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 const PR = Math.min(window.devicePixelRatio || 1, 1.5);
 renderer.setPixelRatio(PR);
@@ -498,9 +542,10 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050b16);
-scene.fog = new THREE.Fog(0x050b16, 18, 50);
+scene.background = new THREE.Color(0x040810);
+scene.fog = new THREE.Fog(0x040810, 18, 55);
 
+// PMREM Studio Environment Reflections
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
 const roomEnv = new RoomEnvironment(renderer);
@@ -508,34 +553,811 @@ scene.environment = pmrem.fromScene(roomEnv, 0.04).texture;
 roomEnv.dispose();
 pmrem.dispose();
 
-const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 150);
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 160);
 
-// Lighting
-scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x0b1020, 0.45));
-const key = new THREE.DirectionalLight(0xfff2df, 2.6);
-key.position.set(7, 12, 8);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = -9; key.shadow.camera.right = 9;
-key.shadow.camera.top = 9; key.shadow.camera.bottom = -9;
-key.shadow.camera.near = 1; key.shadow.camera.far = 36;
-key.shadow.bias = -0.0004;
-scene.add(key);
+// Post-Processing Composer (UnrealBloomPass)
+let useBloom = true;
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2), 0.65, 0.45, 0.85);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
 
-const rimC = new THREE.PointLight(0x2ee6ff, 32, 22); rimC.position.set(-6, 4.5, -5); scene.add(rimC);
-const rimP = new THREE.PointLight(0xff2a8a, 24, 20); rimP.position.set(6, 3.5, -6); scene.add(rimP);
-const flashL = new THREE.PointLight(0x7ff4ff, 0, 14); scene.add(flashL);
+// =========================================================================
+// 2. STUDIO LIGHTING RIGS (CS2 Hangar, Cyberpunk, Desert Daylight)
+// =========================================================================
+const hemiLight = new THREE.HemisphereLight(0x7fb8ff, 0x09101c, 0.55);
+scene.add(hemiLight);
 
-// Ground & Hexagonal Hangar Platform
-const ground = new THREE.Mesh(new THREE.CircleGeometry(65, 48), new THREE.MeshStandardMaterial({ color: 0x060c16, roughness: 0.92, metalness: 0.2 }));
+const keyLight = new THREE.DirectionalLight(0xfff4e6, 2.6);
+keyLight.position.set(7, 12, 8);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.left = -9; keyLight.shadow.camera.right = 9;
+keyLight.shadow.camera.top = 9; keyLight.shadow.camera.bottom = -9;
+keyLight.shadow.camera.near = 1; keyLight.shadow.camera.far = 38;
+keyLight.shadow.bias = -0.0004;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x406085, 1.2);
+fillLight.position.set(-8, 6, 6);
+scene.add(fillLight);
+
+const rimCyan = new THREE.PointLight(0x2ee6ff, 32, 24);
+rimCyan.position.set(-6, 4.5, -5);
+scene.add(rimCyan);
+
+const rimMagenta = new THREE.PointLight(0xff2a8a, 24, 22);
+rimMagenta.position.set(6, 3.5, -6);
+scene.add(rimMagenta);
+
+const flashL = new THREE.PointLight(0x7ff4ff, 0, 16);
+scene.add(flashL);
+
+// Lighting presets
+let lightMode = 0; // 0: CS2 Hangar, 1: Cyberpunk, 2: Desert Daylight
+const lightPresets = [
+  { name: '💡 CS2 Hangar', bg: 0x040810, hemiSky: 0x7fb8ff, hemiGrd: 0x09101c, key: 0xfff4e6, keyI: 2.6, rimC: 0x2ee6ff, rimP: 0xff2a8a },
+  { name: '💡 Neon Kiberpank', bg: 0x070512, hemiSky: 0x00f0ff, hemiGrd: 0x220033, key: 0x00f0ff, keyI: 2.2, rimC: 0xff0077, rimP: 0x00ffcc },
+  { name: '💡 Cho\'l Poligoni', bg: 0x141a24, hemiSky: 0xffe6c2, hemiGrd: 0x4a3b2c, key: 0xffeedd, keyI: 3.4, rimC: 0xffaa44, rimP: 0x88bbff }
+];
+
+function applyLighting(idx) {
+  lightMode = idx % lightPresets.length;
+  const p = lightPresets[lightMode];
+  scene.background.setHex(p.bg);
+  scene.fog.color.setHex(p.bg);
+  hemiLight.color.setHex(p.hemiSky);
+  hemiLight.groundColor.setHex(p.hemiGrd);
+  keyLight.color.setHex(p.key);
+  keyLight.intensity = p.keyI;
+  rimCyan.color.setHex(p.rimC);
+  rimMagenta.color.setHex(p.rimP);
+  if (btnToggleLight) btnToggleLight.innerText = p.name;
+}
+
+if (btnToggleLight) {
+  btnToggleLight.addEventListener('click', () => applyLighting(lightMode + 1));
+}
+
+if (btnToggleBloom) {
+  btnToggleBloom.addEventListener('click', () => {
+    useBloom = !useBloom;
+    btnToggleBloom.innerText = useBloom ? '✨ Bloom: ON' : '✨ Bloom: OFF';
+    btnToggleBloom.classList.toggle('active', useBloom);
+  });
+}
+
+let simSpeed = 1.0;
+if (btnToggleSpeed) {
+  btnToggleSpeed.addEventListener('click', () => {
+    simSpeed = simSpeed === 1.0 ? 0.25 : 1.0;
+    btnToggleSpeed.innerText = simSpeed === 1.0 ? '⏱️ 1.0x' : '⏱️ 0.25x (Sekin)';
+    btnToggleSpeed.classList.toggle('active', simSpeed < 1.0);
+  });
+}
+
+// =========================================================================
+// 3. PROCEDURAL PBR TEXTURE SUITE (True Normal Maps & Edge Chipping)
+// =========================================================================
+let _seed = 9876543;
+const rnd = () => { _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0; let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+
+// Procedural Normal Map from Heightmap
+function createNormalMap(heightCanvas, strength = 2.4) {
+  const w = heightCanvas.width, h = heightCanvas.height;
+  const ctx = heightCanvas.getContext('2d');
+  const src = ctx.getImageData(0, 0, w, h).data;
+  const normCanvas = document.createElement('canvas');
+  normCanvas.width = w; normCanvas.height = h;
+  const normCtx = normCanvas.getContext('2d');
+  const dstImg = normCtx.createImageData(w, h);
+  const dst = dstImg.data;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const x0 = (x - 1 + w) % w, x1 = (x + 1) % w;
+      const y0 = (y - 1 + h) % h, y1 = (y + 1) % h;
+      const hL = src[(y * w + x0) * 4] / 255;
+      const hR = src[(y * w + x1) * 4] / 255;
+      const hU = src[(y0 * w + x) * 4] / 255;
+      const hD = src[(y1 * w + x) * 4] / 255;
+
+      const dx = (hR - hL) * strength;
+      const dy = (hD - hU) * strength;
+      const dz = 1.0;
+      const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      const nx = -dx / len;
+      const ny = -dy / len;
+      const nz = dz / len;
+
+      const idx = (y * w + x) * 4;
+      dst[idx] = Math.floor((nx * 0.5 + 0.5) * 255);
+      dst[idx + 1] = Math.floor((ny * 0.5 + 0.5) * 255);
+      dst[idx + 2] = Math.floor((nz * 0.5 + 0.5) * 255);
+      dst[idx + 3] = 255;
+    }
+  }
+  normCtx.putImageData(dstImg, 0, 0);
+  return normCanvas;
+}
+
+// Heavy Armor PBR Maps Generator (Diffuse, Height, Normal, Roughness)
+function generatePBRSet(baseHex, accentHex, isDark = false, size = 1024) {
+  const diffC = document.createElement('canvas'); diffC.width = diffC.height = size;
+  const heightC = document.createElement('canvas'); heightC.width = heightC.height = size;
+  const roughC = document.createElement('canvas'); roughC.width = roughC.height = size;
+
+  const gDiff = diffC.getContext('2d');
+  const gHeight = heightC.getContext('2d');
+  const gRough = roughC.getContext('2d');
+
+  // 1. Base Tone & Micro-grit
+  gDiff.fillStyle = baseHex; gDiff.fillRect(0, 0, size, size);
+  gHeight.fillStyle = '#808080'; gHeight.fillRect(0, 0, size, size); // Neutral height
+  gRough.fillStyle = isDark ? '#707070' : '#5a5a5a'; gRough.fillRect(0, 0, size, size); // Base roughness ~0.38
+
+  const img = gDiff.getImageData(0, 0, size, size), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (rnd() - 0.5) * 20;
+    d[i] = Math.min(255, Math.max(0, d[i] + n));
+    d[i+1] = Math.min(255, Math.max(0, d[i+1] + n));
+    d[i+2] = Math.min(255, Math.max(0, d[i+2] + n));
+  }
+  gDiff.putImageData(img, 0, 0);
+
+  // 2. Armor Panels, Seams & Chamfers
+  const panelCount = 36;
+  for (let i = 0; i < panelCount; i++) {
+    const px = Math.floor(rnd() * (size - 180));
+    const py = Math.floor(rnd() * (size - 180));
+    const pw = Math.floor(70 + rnd() * 220);
+    const ph = Math.floor(60 + rnd() * 180);
+
+    // Diffuse Panel
+    const isLit = rnd() > 0.45;
+    gDiff.fillStyle = isLit ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.18)';
+    gDiff.fillRect(px, py, pw, ph);
+
+    // Recessed Panel Seam
+    gDiff.strokeStyle = 'rgba(10,14,20,0.85)'; gDiff.lineWidth = 3;
+    gDiff.strokeRect(px, py, pw, ph);
+
+    // Chipped Bare Metal Edges (Paint worn away exposing silver)
+    gDiff.strokeStyle = 'rgba(215, 230, 245, 0.45)'; gDiff.lineWidth = 1.5;
+    gDiff.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
+
+    // Height: Recessed seams (-45) & Beveled edges (+25)
+    gHeight.strokeStyle = '#404040'; gHeight.lineWidth = 4;
+    gHeight.strokeRect(px, py, pw, ph);
+    gHeight.strokeStyle = '#a5a5a5'; gHeight.lineWidth = 2;
+    gHeight.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
+
+    // Roughness: Scratched edges are ultra-shiny (low roughness), crevices are rough
+    gRough.strokeStyle = '#252525'; gRough.lineWidth = 2; // Smooth shiny edge
+    gRough.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
+    gRough.strokeStyle = '#c0c0c0'; gRough.lineWidth = 3; // Grimy rough seam
+    gRough.strokeRect(px, py, pw, ph);
+
+    // Hexagonal Allen Fastening Bolts at Panel Corners
+    const boltPts = [[px + 10, py + 10], [px + pw - 10, py + 10], [px + 10, py + ph - 10], [px + pw - 10, py + ph - 10]];
+    boltPts.forEach(bp => {
+      // Diffuse Bolt Head
+      gDiff.fillStyle = 'rgba(12,16,22,0.9)';
+      gDiff.beginPath(); gDiff.arc(bp[0], bp[1], 4.5, 0, Math.PI * 2); gDiff.fill();
+      gDiff.fillStyle = 'rgba(200,215,230,0.8)';
+      gDiff.beginPath(); gDiff.arc(bp[0] - 1, bp[1] - 1, 2.2, 0, Math.PI * 2); gDiff.fill();
+
+      // Height: Raised 3D Bolt
+      gHeight.fillStyle = '#ffffff';
+      gHeight.beginPath(); gHeight.arc(bp[0], bp[1], 4.5, 0, Math.PI * 2); gHeight.fill();
+      gHeight.fillStyle = '#303030';
+      gHeight.beginPath(); gHeight.arc(bp[0], bp[1], 2.0, 0, Math.PI * 2); gHeight.fill();
+    });
+  }
+
+  // 3. Stenciled Military Decals & Serial Markings
+  gDiff.fillStyle = 'rgba(46, 230, 255, 0.45)';
+  gDiff.font = 'bold 22px monospace';
+  gDiff.fillText('APEX // UNIT-01', 50, 75);
+  gDiff.fillText('HYDRAULIC 3200 PSI', 50, 105);
+  gDiff.font = '16px monospace';
+  gDiff.fillText('SN: TX-904-ALPHA', 50, 130);
+
+  // 4. Directional Brushed Metal Micro-Scratches
+  for (let i = 0; i < 180; i++) {
+    const sx = rnd() * size, sy = rnd() * size, len = 20 + rnd() * 60;
+    gDiff.strokeStyle = 'rgba(230,240,255,' + (0.04 + rnd() * 0.12) + ')';
+    gDiff.lineWidth = 0.8;
+    gDiff.beginPath(); gDiff.moveTo(sx, sy); gDiff.lineTo(sx + len, sy + (rnd() - 0.5) * 6); gDiff.stroke();
+
+    gHeight.strokeStyle = 'rgba(255,255,255,0.18)';
+    gHeight.lineWidth = 0.8;
+    gHeight.beginPath(); gHeight.moveTo(sx, sy); gHeight.lineTo(sx + len, sy + (rnd() - 0.5) * 6); gHeight.stroke();
+  }
+
+  // Generate Tangent-Space Normal Map
+  const normC = createNormalMap(heightC, 2.8);
+
+  return { diffC, normC, roughC };
+}
+
+// Thermal Bluing / Heat Tempering Gradient (For Autocannon Muzzle Brakes & Thrusters)
+function heatGradientCanvas() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 32;
+  const g = c.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 256, 0);
+  gr.addColorStop(0.00, '#1c222c'); // Steel
+  gr.addColorStop(0.25, '#d4af37'); // Straw gold
+  gr.addColorStop(0.50, '#9e1b65'); // Violet / Purple
+  gr.addColorStop(0.75, '#0088ff'); // Electric blue
+  gr.addColorStop(1.00, '#11151c'); // Soot carbon
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 32);
+  return c;
+}
+
+// Hazard Tape Canvas
+function hazardCanvas() {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f0b800'; g.fillRect(0, 0, 256, 256);
+  g.fillStyle = '#141820';
+  for (let i = -256; i < 512; i += 48) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 24, 0); g.lineTo(i + 280, 256); g.lineTo(i + 256, 256); g.closePath(); g.fill();
+  }
+  g.strokeStyle = 'rgba(0,0,0,0.6)'; g.lineWidth = 4; g.strokeRect(0, 0, 256, 256);
+  return c;
+}
+
+// Holographic Pilot Cockpit HUD Texture
+function cockpitHudCanvas() {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, 512, 512);
+  g.strokeStyle = '#00f0ff'; g.lineWidth = 2.5;
+  // Reticle
+  g.beginPath(); g.arc(256, 256, 90, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.arc(256, 256, 35, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.moveTo(256, 130); g.lineTo(256, 380); g.moveTo(130, 256); g.lineTo(380, 256); g.stroke();
+  // Target brackets
+  g.strokeRect(210, 210, 92, 92);
+  // Telemetry Text
+  g.fillStyle = '#00f0ff'; g.font = 'bold 20px monospace';
+  g.fillText('TARGET LOCK // 100%', 150, 80);
+  g.fillText('REACTOR: 1.21 GW', 150, 440);
+  g.fillText('HYD: NORMAL', 310, 256);
+  return c;
+}
+
+// Industrial Hangar Floor Texture
+function hangarFloorCanvas() {
+  const c = document.createElement('canvas'); c.width = c.height = 1024;
+  const g = c.getContext('2d');
+  g.fillStyle = '#0a1018'; g.fillRect(0, 0, 1024, 1024);
+  // Grid Tiles
+  g.strokeStyle = '#182434'; g.lineWidth = 3;
+  for (let i = 0; i <= 1024; i += 128) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 1024); g.stroke();
+    g.beginPath(); g.moveTo(0, i); g.lineTo(1024, i); g.stroke();
+  }
+  // Catapult Track
+  g.fillStyle = '#121e2c'; g.fillRect(480, 0, 64, 1024);
+  g.strokeStyle = '#2ee6ff'; g.lineWidth = 2;
+  g.strokeRect(482, 0, 60, 1024);
+  // Launch Stencil
+  g.fillStyle = 'rgba(46, 230, 255, 0.4)'; g.font = 'bold 36px monospace';
+  g.fillText('GANTRY BAY-04 // MECH READY', 160, 520);
+  return c;
+}
+
+// Convert canvas to Three.js texture with repeat & SRGB
+function makeTex(canvasEl, rx = 1, ry = 1) {
+  const t = new THREE.CanvasTexture(canvasEl);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(rx, ry);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Generate Textures
+const pbrPrimary = generatePBRSet('#232a38', '#2ee6ff', false);
+const pbrSecondary = generatePBRSet('#151b24', '#ff9d00', true);
+const pbrAccent = generatePBRSet('#0d3b4a', '#00f0ff', false);
+
+const tDiffA = makeTex(pbrPrimary.diffC);
+const tNormA = makeTex(pbrPrimary.normC);
+const tRoughA = makeTex(pbrPrimary.roughC);
+
+const tDiffB = makeTex(pbrSecondary.diffC);
+const tNormB = makeTex(pbrSecondary.normC);
+const tRoughB = makeTex(pbrSecondary.roughC);
+
+const tDiffC = makeTex(pbrAccent.diffC);
+const tNormC = makeTex(pbrAccent.normC);
+const tRoughC = makeTex(pbrAccent.roughC);
+
+const tHeat = makeTex(heatGradientCanvas(), 1, 1);
+const tHazard = makeTex(hazardCanvas(), 3, 3);
+const tHud = makeTex(cockpitHudCanvas());
+const tFloor = makeTex(hangarFloorCanvas(), 6, 6);
+
+// =========================================================================
+// 4. AAA PBR MATERIALS
+// =========================================================================
+const std = o => new THREE.MeshStandardMaterial(o);
+const M = {
+  // Heavy Gunmetal Composite Armor with true Normal Map & Edge Wear
+  armor: std({
+    map: tDiffA,
+    normalMap: tNormA,
+    normalScale: new THREE.Vector2(1.2, 1.2),
+    roughnessMap: tRoughA,
+    metalness: 0.82,
+    roughness: 0.38,
+    envMapIntensity: 1.1
+  }),
+  // Dark Reinforced Internal Chassis & Plates
+  armor2: std({
+    map: tDiffB,
+    normalMap: tNormB,
+    normalScale: new THREE.Vector2(1.3, 1.3),
+    roughnessMap: tRoughB,
+    metalness: 0.88,
+    roughness: 0.42,
+    envMapIntensity: 1.0
+  }),
+  // Cyan Accent Armor Panels
+  accent: std({
+    map: tDiffC,
+    normalMap: tNormC,
+    normalScale: new THREE.Vector2(1.0, 1.0),
+    roughnessMap: tRoughC,
+    metalness: 0.70,
+    roughness: 0.35,
+    envMapIntensity: 1.2
+  }),
+  // High-Visibility Hazard Chevrons
+  hazard: std({ map: tHazard, metalness: 0.25, roughness: 0.55 }),
+  // Dark Machinery Joint Castings
+  dark: std({ color: 0x090d14, metalness: 0.45, roughness: 0.75 }),
+  // Mirror-Polished Chrome Hydraulic Piston Shafts
+  chrome: std({ color: 0xe6eef8, metalness: 1.0, roughness: 0.05, envMapIntensity: 1.6 }),
+  // Heat-Treated Gunmetal Autocannon Barrels
+  barrel: std({ map: tHeat, metalness: 0.95, roughness: 0.22, envMapIntensity: 1.3 }),
+  // Spent Golden Brass Shell Casings
+  brass: std({ color: 0xe2b755, metalness: 0.95, roughness: 0.16, envMapIntensity: 1.4 }),
+  // Glowing Neon Cyan Trims & Visor
+  trim: std({ color: 0x06222b, emissive: 0x2ee6ff, emissiveIntensity: 2.5, metalness: 0.3, roughness: 0.3 }),
+  pinkEm: std({ color: 0x2a0614, emissive: 0xff2a8a, emissiveIntensity: 2.5, metalness: 0.3, roughness: 0.3 }),
+  vent: std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.6 }),
+  heat: std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 1.2, metalness: 0.2, roughness: 0.5 }),
+  // Iridium Dichroic Mirrored Cockpit Canopy
+  glass: std({ color: 0x0a2233, emissive: 0x0d4c60, emissiveIntensity: 0.6, metalness: 0.95, roughness: 0.04, transparent: true, opacity: 0.78, envMapIntensity: 1.8 }),
+  // Holographic Cockpit Pilot Display
+  hud: new THREE.MeshBasicMaterial({ map: tHud, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }),
+  // HDR Reactor Core
+  core: new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, 3.2, 4.0) }),
+  // Thruster Plasma Flames
+  flame: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.4, 2.0, 3.2), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  flame2: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.8, 3.2, 3.8), transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
+  // Tracer Projectiles & Shells
+  tracer: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, 3.4, 4.0) }),
+  // Kinetic Transform Shield
+  shield: std({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 1.4, transparent: true, opacity: 0.28, wireframe: true }),
+  // Floor Material
+  floor: std({ map: tFloor, metalness: 0.45, roughness: 0.65, envMapIntensity: 0.8 })
+};
+M.dish = M.armor2.clone(); M.dish.side = THREE.DoubleSide;
+
+// =========================================================================
+// 5. GEOMETRY HELPERS & ROBOT CONSTRUCTION
+// =========================================================================
+const _m4 = new THREE.Matrix4();
+const rbox = (w, h, d, r = 0.04) => new RoundedBoxGeometry(w, h, d, 2, r);
+const cy = (rt, rb, h, seg = 18) => new THREE.CylinderGeometry(rt, rb, h, seg);
+const tor = (r, t, seg = 24) => new THREE.TorusGeometry(r, t, 8, seg);
+const sph = r => new THREE.SphereGeometry(r, 18, 12);
+
+function put(g, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
+  m.castShadow = true; m.receiveShadow = true;
+  g.add(m);
+  return m;
+}
+
+function bake(g) {
+  g.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
+  const buckets = new Map(), old = [];
+  g.children.forEach(ch => {
+    if (!ch.isMesh || ch.userData.keep) return;
+    const geo = ch.geometry.clone();
+    geo.applyMatrix4(_m4.multiplyMatrices(inv, ch.matrixWorld));
+    Object.keys(geo.attributes).forEach(k => { if (k !== 'position' && k !== 'normal' && k !== 'uv') geo.deleteAttribute(k); });
+    if (!buckets.has(ch.material)) buckets.set(ch.material, []);
+    buckets.get(ch.material).push(geo);
+    old.push(ch);
+  });
+  old.forEach(o => { g.remove(o); o.geometry.dispose(); });
+  buckets.forEach((geos, mat) => {
+    const merged = mergeGeometries(geos, false);
+    geos.forEach(x => x.dispose());
+    if (!merged) return;
+    const mesh = new THREE.Mesh(merged, mat);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    g.add(mesh);
+  });
+}
+
+// Ground & Hangar Floor
+const ground = new THREE.Mesh(new THREE.CircleGeometry(65, 48), M.floor);
 ground.rotation.x = -Math.PI / 2; ground.position.y = -0.03; ground.receiveShadow = true; scene.add(ground);
 
 const grid = new THREE.GridHelper(65, 65, 0x2ee6ff, 0x0d2838);
 grid.material.transparent = true; grid.material.opacity = 0.35; grid.position.y = -0.02;
 scene.add(grid);
 
+// ROBOT ROOT & HIERARCHY
+const root = new THREE.Group(); scene.add(root);
+const body = new THREE.Group(); root.add(body);
+
+// Pelvis & Lower Chassis
+const pelvis = new THREE.Group(); body.add(pelvis);
+put(pelvis, rbox(1.9, 0.55, 1.25, 0.07), M.armor2, 0, 2.55, 0);
+put(pelvis, rbox(1.3, 0.35, 0.9, 0.05), M.dark, 0, 2.25, 0);
+put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, 0.68, 0.25, 0, 0);
+put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, -0.68, -0.25, 0, 0);
+put(pelvis, rbox(0.5, 0.06, 0.2, 0.02), M.hazard, 0, 2.5, 0.66);
+[-1, 1].forEach(s => {
+  put(pelvis, rbox(0.12, 0.65, 0.9, 0.04), M.armor, s * 1.0, 2.2, 0, 0, 0, s * 0.15);
+  put(pelvis, cy(0.34, 0.34, 0.62, 20), M.dark, s * 0.72, 2.3, 0, 0, 0, Math.PI / 2);
+  put(pelvis, tor(0.34, 0.035), M.trim, s * 1.05, 2.3, 0, 0, Math.PI / 2, 0);
+});
+bake(pelvis);
+
 // =========================================================================
-// CAMERA AUTO-FIT (TRANSFORMER ROBOTNI 100% TO'LIQ SIG'DIRISH)
+// 6. DIGITIGRADE LEGS WITH DYNAMIC SLIDING HYDRAULIC PISTONS
+// =========================================================================
+const legs = [];
+const dynamicPistons = [];
+
+function makeLeg(s) {
+  const hip = new THREE.Group(); hip.position.set(s * 0.72, 2.3, 0); hip.rotation.x = -0.45; body.add(hip);
+  put(hip, rbox(0.62, 1.1, 0.7, 0.06), M.armor, 0, -0.55, 0.02);
+  put(hip, rbox(0.5, 0.8, 0.12, 0.04), M.armor2, 0, -0.5, 0.42, 0.12, 0, 0);
+  put(hip, rbox(0.08, 0.7, 0.55, 0.03), M.accent, s * 0.36, -0.5, 0);
+  put(hip, rbox(0.07, 0.26, 0.34, 0.02), M.hazard, s * 0.37, -0.14, 0.18);
+  bake(hip);
+
+  // Dynamic Hydraulic Piston Mount on Hip
+  const hipPistonMount = new THREE.Object3D();
+  hipPistonMount.position.set(s * 0.22, -0.25, -0.38);
+  hip.add(hipPistonMount);
+
+  const knee = new THREE.Group(); knee.position.set(0, -1.1, 0); knee.rotation.x = 0.9; hip.add(knee);
+  put(knee, cy(0.3, 0.3, 0.76, 20), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(knee, tor(0.3, 0.03), M.trim, s * 0.4, 0, 0, 0, Math.PI / 2, 0);
+  put(knee, rbox(0.55, 0.5, 0.4, 0.05), M.armor2, 0, 0.05, 0.38, -0.5, 0, 0);
+  put(knee, rbox(0.45, 0.08, 0.3, 0.02), M.accent, 0, 0.12, 0.52, -0.5, 0, 0);
+  put(knee, rbox(0.5, 1.2, 0.55, 0.06), M.armor, 0, -0.62, -0.05);
+  put(knee, rbox(0.44, 0.7, 0.35, 0.05), M.armor2, 0, -0.45, -0.38);
+  put(knee, rbox(0.4, 0.9, 0.1, 0.04), M.armor2, 0, -0.65, 0.28, 0.1, 0, 0);
+  bake(knee);
+
+  // Dynamic Hydraulic Piston Mount on Knee/Shin
+  const kneePistonMount = new THREE.Object3D();
+  kneePistonMount.position.set(s * 0.22, -0.65, -0.45);
+  knee.add(kneePistonMount);
+
+  // Real Telescopic Sliding Hydraulic Piston Assembly
+  const pistonCylinder = new THREE.Group();
+  body.add(pistonCylinder);
+  const barrelMesh = put(pistonCylinder, cy(0.065, 0.065, 0.55, 14), M.armor2, 0, 0.275, 0);
+  barrelMesh.userData.keep = true;
+  const rodMesh = put(pistonCylinder, cy(0.04, 0.04, 0.65, 14), M.chrome, 0, 0.65, 0);
+  rodMesh.userData.keep = true;
+
+  dynamicPistons.push({
+    pistonCylinder,
+    barrelMesh,
+    rodMesh,
+    pA: hipPistonMount,
+    pB: kneePistonMount
+  });
+
+  const ankle = new THREE.Group(); ankle.position.set(0, -1.2, 0); ankle.rotation.x = -0.45; knee.add(ankle);
+  put(ankle, cy(0.2, 0.2, 0.62, 16), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(ankle, rbox(0.7, 0.22, 0.55, 0.05), M.armor2, 0, -0.11, -0.12);
+  [-1, 1].forEach(k => {
+    put(ankle, rbox(0.28, 0.2, 0.62, 0.05), M.armor2, k * 0.2, -0.1, 0.42);
+    put(ankle, rbox(0.2, 0.12, 0.14, 0.03), M.dark, k * 0.2, -0.1, 0.78);
+  });
+  put(ankle, rbox(0.62, 0.1, 0.9, 0.04), M.armor, 0, 0.01, 0.12);
+  put(ankle, rbox(0.04, 0.03, 0.55, 0.01), M.trim, 0, 0.07, 0.12);
+  bake(ankle);
+
+  legs.push({ hip, knee, ankle, s });
+}
+makeLeg(-1); makeLeg(1);
+
+// =========================================================================
+// 7. TORSO, COCKPIT CANOPY & BACKPACK THRUSTERS
+// =========================================================================
+const torso = new THREE.Group(); torso.position.y = 2.85; body.add(torso);
+put(torso, cy(0.7, 0.7, 0.3, 24), M.dark, 0, 0.02, 0);
+put(torso, tor(0.7, 0.03, 40), M.trim, 0, 0.17, 0, Math.PI / 2, 0, 0);
+put(torso, rbox(1.3, 0.55, 0.95, 0.06), M.armor2, 0, 0.32, 0);
+put(torso, rbox(0.5, 0.3, 0.05, 0.01), M.hazard, 0, 0.32, 0.5);
+put(torso, rbox(2.0, 0.9, 1.25, 0.08), M.armor, 0, 0.95, 0);
+put(torso, rbox(1.5, 0.75, 0.14, 0.05), M.armor2, 0, 0.95, 0.66, -0.2, 0, 0);
+put(torso, rbox(1.8, 0.6, 0.95, 0.07), M.armor, 0, 1.65, -0.05);
+put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, -1.1, 1.3, 0);
+put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, 1.1, 1.3, 0);
+
+// Cockpit Canopy Glass & Holographic HUD
+put(torso, new THREE.SphereGeometry(0.38, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, 0, 1.65, 0.35, Math.PI / 2, 0, 0);
+put(torso, tor(0.38, 0.05, 32), M.armor2, 0, 1.65, 0.38);
+put(torso, sph(0.16), M.core, 0, 1.65, 0.42);
+const cockpitHud = put(torso, new THREE.PlaneGeometry(0.32, 0.32), M.hud, 0, 1.65, 0.48);
+cockpitHud.userData.keep = true;
+
+// Reactor Core
+const coreRing = put(torso, tor(0.22, 0.03), M.trim, 0, 0.78, 0.74); coreRing.userData.keep = true;
+put(torso, sph(0.1), M.core, 0, 0.78, 0.74);
+
+// Backpack & Thruster Bells
+put(torso, rbox(1.3, 1.2, 0.7, 0.07), M.armor2, 0, 1.15, -0.95);
+put(torso, rbox(1.1, 0.3, 0.6, 0.05), M.armor, 0, 1.85, -0.95);
+const flames = [];
+[-0.45, 0.45].forEach(x => {
+  put(torso, cy(0.2, 0.3, 0.5, 20), M.barrel, x, 0.95, -1.45, Math.PI / 2, 0, 0);
+  put(torso, tor(0.29, 0.03), M.trim, x, 0.95, -1.7);
+  const w = new THREE.Group(); w.position.set(x, 0.95, -1.72); torso.add(w);
+  const o = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 16, 1, true), M.flame);
+  o.rotation.x = -Math.PI / 2; o.position.z = -0.7; w.add(o);
+  const i2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.9, 12, 1, true), M.flame2);
+  i2.rotation.x = -Math.PI / 2; i2.position.z = -0.45; w.add(i2);
+  flames.push(w);
+});
+bake(torso);
+
+// Mech Head with Optic Visor
+const head = new THREE.Group(); head.position.set(0, 2.25, 0.05); torso.add(head);
+put(head, rbox(0.62, 0.45, 0.7, 0.07), M.armor, 0, 0, 0);
+put(head, rbox(0.5, 0.09, 0.12, 0.02), M.trim, 0, 0.04, 0.34);
+put(head, rbox(0.12, 0.18, 0.6, 0.03), M.accent, 0, 0.28, -0.05);
+bake(head);
+
+// =========================================================================
+// 8. ARMS WITH TRIPLE ROTARY GATLING CANNONS
+// =========================================================================
+const arms = [];
+function makeArm(s) {
+  const sh = new THREE.Group(); sh.position.set(s * 1.45, 1.5, 0); sh.rotation.x = -0.5; torso.add(sh);
+  put(sh, rbox(0.9, 0.7, 1.1, 0.08), M.accent, s * 0.12, 0.2, 0);
+  put(sh, rbox(0.95, 0.16, 1.15, 0.05), M.armor2, s * 0.12, 0.6, 0);
+  put(sh, sph(0.3), M.dark, 0, -0.15, 0);
+  put(sh, rbox(0.4, 0.8, 0.45, 0.05), M.armor2, 0, -0.65, 0);
+  bake(sh);
+
+  const elbow = new THREE.Group(); elbow.position.set(0, -1.1, 0); elbow.rotation.x = 0.5; sh.add(elbow);
+  put(elbow, cy(0.24, 0.24, 0.52, 18), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
+  put(elbow, rbox(0.55, 0.55, 1.0, 0.07), M.armor, 0, 0, 0.5);
+  bake(elbow);
+
+  // Recoil Carriage Group
+  const carriage = new THREE.Group(); carriage.position.set(0, 0.02, 1.65); elbow.add(carriage);
+  put(carriage, rbox(0.46, 0.36, 0.55, 0.04), M.armor, 0, 0, 0);
+  // Shell Ejection Port
+  put(carriage, rbox(0.08, 0.14, 0.22, 0.01), M.dark, s * 0.24, 0.05, 0.05);
+  bake(carriage);
+
+  // Rotating Barrel Cluster (Triple Gatling)
+  const barrelCluster = new THREE.Group(); barrelCluster.position.set(0, 0, 0.35); carriage.add(barrelCluster);
+  const muzzles = [];
+  for (let b = 0; b < 3; b++) {
+    const ang = (b * Math.PI * 2) / 3;
+    const bx = Math.sin(ang) * 0.14;
+    const by = Math.cos(ang) * 0.14;
+    put(barrelCluster, cy(0.05, 0.05, 1.25, 14), M.barrel, bx, by, 0.62, Math.PI / 2, 0, 0);
+    put(barrelCluster, cy(0.065, 0.06, 0.2, 14), M.dark, bx, by, 1.22, Math.PI / 2, 0, 0);
+    put(barrelCluster, tor(0.06, 0.015, 14), M.heat, bx, by, 1.1);
+    const m = new THREE.Object3D(); m.position.set(bx, by, 1.35); barrelCluster.add(m);
+    muzzles.push(m);
+  }
+  bake(barrelCluster);
+
+  // Shell Ejection Spawn Point
+  const ejectPoint = new THREE.Object3D();
+  ejectPoint.position.set(s * 0.28, 0.05, 0.05);
+  carriage.add(ejectPoint);
+
+  const a = { sh, elbow, carriage, barrelCluster, muzzles, ejectPoint, s, recoil: 0, barrelSpin: 0 };
+  arms.push(a);
+  return a;
+}
+makeArm(-1);
+const armR = makeArm(1);
+
+// Right Shoulder: Heavy Missile Pod
+const pod = new THREE.Group(); pod.position.set(0.15, 0.95, -0.05); armR.sh.add(pod);
+put(pod, rbox(0.8, 0.55, 1.0, 0.05), M.armor2, 0, 0, 0);
+for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
+  const x = -0.25 + i * 0.25, y = -0.12 + j * 0.24;
+  put(pod, cy(0.085, 0.085, 0.5, 12), M.dark, x, y, 0.5, Math.PI / 2, 0, 0);
+  put(pod, tor(0.085, 0.015, 14), M.accent, x, y, 0.76);
+  put(pod, new THREE.ConeGeometry(0.065, 0.18, 10), M.pinkEm, x, y, 0.66, Math.PI / 2, 0, 0);
+}
+bake(pod);
+
+// Left Shoulder: Radar Sensor Dish
+const armL = arms[0];
+const dish = new THREE.Group(); dish.position.set(-0.1, 0.65, -0.1); armL.sh.add(dish);
+put(dish, cy(0.04, 0.05, 0.5, 8), M.chrome, 0, 0.25, 0);
+put(dish, new THREE.SphereGeometry(0.3, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.dish, 0, 0.58, 0, Math.PI * 0.8, 0, 0);
+bake(dish);
+
+// Holographic Shield for Transform Stance
+const shieldMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(3.5, 1), M.shield);
+shieldMesh.position.y = 2.2; shieldMesh.visible = false; root.add(shieldMesh);
+
+// =========================================================================
+// 9. DYNAMIC FX POOLS (Spent Brass Shells, Tracers, Shockwaves, Dust)
+// =========================================================================
+// Spent Brass Shell Casings
+const shells = [];
+const shellGeo = cy(0.038, 0.038, 0.15, 10);
+for (let i = 0; i < 28; i++) {
+  const m = new THREE.Mesh(shellGeo, M.brass);
+  m.castShadow = true; m.visible = false;
+  m.userData = { vel: new THREE.Vector3(), rotVel: new THREE.Vector3(), life: 0 };
+  scene.add(m);
+  shells.push(m);
+}
+
+// Projectile Tracers
+const projs = [];
+for (let i = 0; i < 40; i++) {
+  const p = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), M.tracer);
+  p.scale.z = 7; p.visible = false; p.userData = { life: 0, vel: new THREE.Vector3() };
+  scene.add(p); projs.push(p);
+}
+
+// Footstep Shockwave Rings
+const rings = [];
+const ringGeo = new THREE.RingGeometry(0.1, 0.22, 32);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0x2ee6ff, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
+for (let i = 0; i < 6; i++) {
+  const r = new THREE.Mesh(ringGeo, ringMat.clone());
+  r.rotation.x = -Math.PI / 2; r.position.y = 0.01; r.visible = false;
+  r.userData = { life: 0 };
+  scene.add(r);
+  rings.push(r);
+}
+
+// Footstep Dust Particles
+const dustParticles = [];
+const dustGeo = new THREE.SphereGeometry(0.06, 6, 6);
+const dustMat = new THREE.MeshStandardMaterial({ color: 0x3a4858, roughness: 0.95, transparent: true, opacity: 0.6 });
+for (let i = 0; i < 30; i++) {
+  const d = new THREE.Mesh(dustGeo, dustMat.clone());
+  d.visible = false;
+  d.userData = { vel: new THREE.Vector3(), life: 0 };
+  scene.add(d);
+  dustParticles.push(d);
+}
+
+function spawnFootstepFX(pos) {
+  // Shockwave Ring
+  const r = rings.find(x => !x.visible);
+  if (r) {
+    r.position.set(pos.x, 0.015, pos.z);
+    r.scale.set(1, 1, 1);
+    r.material.opacity = 0.75;
+    r.userData.life = 0.45;
+    r.visible = true;
+  }
+  // Dust Burst
+  for (let k = 0; k < 5; k++) {
+    const d = dustParticles.find(x => !x.visible);
+    if (!d) break;
+    d.position.set(pos.x + (Math.random() - 0.5) * 0.2, 0.05, pos.z + (Math.random() - 0.5) * 0.2);
+    d.scale.set(1, 1, 1);
+    d.material.opacity = 0.55;
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 0.8 + Math.random() * 1.5;
+    d.userData.vel.set(Math.cos(ang) * spd, 0.4 + Math.random() * 0.6, Math.sin(ang) * spd);
+    d.userData.life = 0.5 + Math.random() * 0.3;
+    d.visible = true;
+  }
+}
+
+// Orbital Beam (ULT)
+const beam = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.45, 0.45, 20, 24, 1, true),
+  new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, 2.0, 0.8), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })
+);
+beam.position.y = 10; beam.visible = false; scene.add(beam);
+
+// =========================================================================
+// 10. SYNTHESIZED PROCEDURAL WEB AUDIO (100% Offline Multi-Layer)
+// =========================================================================
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+// Footstep: Sub-bass + Steel clang + Pneumatic hiss
+function playStepSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    // Sub-bass thud
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(65, t);
+    osc.frequency.exponentialRampToValueAtTime(25, t + 0.12);
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.12);
+
+    // High metal clank
+    const clank = ctx.createOscillator(); const cGain = ctx.createGain();
+    clank.type = 'triangle'; clank.frequency.setValueAtTime(750, t);
+    clank.frequency.exponentialRampToValueAtTime(120, t + 0.08);
+    cGain.gain.setValueAtTime(0.25, t);
+    cGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+    clank.connect(cGain); cGain.connect(ctx.destination);
+    clank.start(t); clank.stop(t + 0.08);
+  } catch (e) {}
+}
+
+// Heavy Autocannon Fire + Shell Tink
+function playCannonSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(190, t);
+    osc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
+    gain.gain.setValueAtTime(0.7, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.18);
+  } catch (e) {}
+}
+
+// Missile Launch Whoosh
+function playMissileSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(850, t + 0.35);
+    gain.gain.setValueAtTime(0.5, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.35);
+  } catch (e) {}
+}
+
+// Transformation / Dash Servo Sound
+function playTransformSound() {
+  try {
+    const ctx = getAudio(); const t = ctx.currentTime;
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'square'; osc.frequency.setValueAtTime(130, t);
+    osc.frequency.linearRampToValueAtTime(520, t + 0.28);
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t); osc.stop(t + 0.3);
+  } catch (e) {}
+}
+
+// =========================================================================
+// 11. CAMERA AUTO-FIT & SMOOTH ORBIT SYSTEM
 // =========================================================================
 let currentZoomMult = 1.0;
 let camDist = 7.5;
@@ -543,6 +1365,7 @@ let camOrbitAngle = 0;
 let camPitch = 0.22;
 let isDragging = false;
 let lastMouseX = 0, lastMouseY = 0;
+let camShake = 0;
 
 function autoFitCamera(zoomMultiplier = 1.0) {
   const aspect = window.innerWidth / window.innerHeight;
@@ -560,15 +1383,17 @@ function autoFitCamera(zoomMultiplier = 1.0) {
 
 function updateCameraPos() {
   const targetY = 1.85;
-  const x = Math.sin(camOrbitAngle) * Math.cos(camPitch) * camDist;
-  const y = targetY + Math.sin(camPitch) * camDist;
+  const shakeOffX = (Math.random() - 0.5) * camShake;
+  const shakeOffY = (Math.random() - 0.5) * camShake;
+  const x = Math.sin(camOrbitAngle) * Math.cos(camPitch) * camDist + shakeOffX;
+  const y = targetY + Math.sin(camPitch) * camDist + shakeOffY;
   const z = Math.cos(camOrbitAngle) * Math.cos(camPitch) * camDist;
   camera.position.set(x, y, z);
   camera.lookAt(0, targetY, 0);
 }
 autoFitCamera(1.0);
 
-// Camera presets
+// Camera Presets
 const camPresets = {
   full: () => { camOrbitAngle = 0; camPitch = 0.20; autoFitCamera(1.0); },
   head: () => { camOrbitAngle = 0.15; camPitch = 0.08; camDist = 3.6; updateCameraPos(); },
@@ -633,375 +1458,23 @@ canvas.addEventListener('wheel', (e) => {
 
 // Resize
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloomPass.resolution.set(w / 2, h / 2);
   autoFitCamera(currentZoomMult);
 });
 
 // =========================================================================
-// PROCEDURAL TEXTURES & MATERIALS
-// =========================================================================
-let _seed = 1234567;
-const rnd = () => { _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0; let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-
-function metalCanvas(base, size = 512) {
-  const c = document.createElement('canvas'); c.width = c.height = size;
-  const g = c.getContext('2d');
-  g.fillStyle = base; g.fillRect(0, 0, size, size);
-  const img = g.getImageData(0, 0, size, size), d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const n = (rnd() - 0.5) * 22;
-    d[i] += n; d[i+1] += n; d[i+2] += n;
-  }
-  g.putImageData(img, 0, 0);
-  for (let i = 0; i < 20; i++) {
-    const x = rnd() * size, y = rnd() * size, w = 35 + rnd() * 110, h = 30 + rnd() * 85;
-    g.fillStyle = rnd() > 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.18)';
-    g.fillRect(x, y, w, h);
-    g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,0.55)'; g.strokeRect(x, y, w, h);
-    g.strokeStyle = 'rgba(255,255,255,0.15)'; g.strokeRect(x + 1, y + 1, w, h);
-  }
-  return c;
-}
-
-function hazardCanvas() {
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d');
-  g.fillStyle = '#e0b100'; g.fillRect(0, 0, 128, 128);
-  g.fillStyle = '#12151b';
-  for (let i = -128; i < 256; i += 32) {
-    g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 16, 0); g.lineTo(i + 144, 128); g.lineTo(i + 128, 128); g.closePath(); g.fill();
-  }
-  g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 3; g.strokeRect(0, 0, 128, 128);
-  return c;
-}
-
-function decalCanvas(txt) {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 146;
-  const g = c.getContext('2d');
-  g.fillStyle = 'rgba(8,12,20,0.6)'; g.fillRect(0, 0, 256, 146);
-  g.strokeStyle = '#e9f7ff'; g.lineWidth = 6; g.strokeRect(6, 6, 244, 134);
-  g.fillStyle = '#e9f7ff'; g.font = 'bold 78px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(txt, 128, 80);
-  return c;
-}
-
-function tex(canvasEl, rx = 1, ry = 1) {
-  const t = new THREE.CanvasTexture(canvasEl);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
-
-const tA = tex(metalCanvas('#252d3d')), tB = tex(metalCanvas('#181d26')), tC = tex(metalCanvas('#00f0ff'));
-const tH = tex(hazardCanvas(), 2, 2), tD = tex(decalCanvas('APEX-01'));
-
-const std = o => new THREE.MeshStandardMaterial(o);
-const M = {
-  armor:  std({ map: tA, bumpMap: tA, bumpScale: 1.5, color: 0xffffff, metalness: 0.75, roughness: 0.40, envMapIntensity: 0.9 }),
-  armor2: std({ map: tB, bumpMap: tB, bumpScale: 1.5, color: 0xffffff, metalness: 0.80, roughness: 0.42, envMapIntensity: 0.9 }),
-  accent: std({ map: tC, color: 0x00f0ff, metalness: 0.65, roughness: 0.35, envMapIntensity: 1.0 }),
-  hazard: std({ map: tH, color: 0xffffff, metalness: 0.2, roughness: 0.6 }),
-  dark:   std({ color: 0x0a0d14, metalness: 0.45, roughness: 0.70 }),
-  chrome: std({ color: 0xd5dde8, metalness: 1.0, roughness: 0.18 }),
-  barrel: std({ color: 0x1f242e, metalness: 0.95, roughness: 0.28 }),
-  trim:   std({ color: 0x06222b, emissive: 0x2ee6ff, emissiveIntensity: 2.2, metalness: 0.3, roughness: 0.4 }),
-  pinkEm: std({ color: 0x2a0614, emissive: 0xff2a8a, emissiveIntensity: 2.2, metalness: 0.3, roughness: 0.4 }),
-  vent:   std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 1.4, metalness: 0.2, roughness: 0.6 }),
-  heat:   std({ color: 0x2a0a00, emissive: 0xff7a2a, emissiveIntensity: 0.8, metalness: 0.2, roughness: 0.5 }),
-  glass:  std({ color: 0x0a2a3a, emissive: 0x1fb8d8, emissiveIntensity: 0.8, metalness: 0.9, roughness: 0.05, transparent: true, opacity: 0.75 }),
-  core:   new THREE.MeshBasicMaterial({ color: new THREE.Color(1.2, 2.6, 3.2) }),
-  decal:  std({ map: tD, transparent: true, roughness: 0.6, metalness: 0.2, polygonOffset: true, polygonOffsetFactor: -2 }),
-  flame:  new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 1.8, 2.6), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-  flame2: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 2.8, 3.2), transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-  tracer: new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 3.2, 3.6) }),
-  shield: new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 1.2, transparent: true, opacity: 0.25, wireframe: true })
-};
-M.dish = M.armor2.clone(); M.dish.side = THREE.DoubleSide;
-
-// =========================================================================
-// BUILD HELPERS & ROBOT CONSTRUCTION
-// =========================================================================
-const _m4 = new THREE.Matrix4();
-const rbox = (w, h, d, r = 0.04) => new RoundedBoxGeometry(w, h, d, 2, r);
-const cy = (rt, rb, h, seg = 18) => new THREE.CylinderGeometry(rt, rb, h, seg);
-const tor = (r, t, seg = 24) => new THREE.TorusGeometry(r, t, 8, seg);
-const sph = r => new THREE.SphereGeometry(r, 18, 12);
-
-function put(g, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
-  const m = new THREE.Mesh(geo, mat);
-  m.position.set(x, y, z); m.rotation.set(rx, ry, rz);
-  m.castShadow = true; m.receiveShadow = true;
-  g.add(m);
-  return m;
-}
-
-function bake(g) {
-  g.updateMatrixWorld(true);
-  const inv = new THREE.Matrix4().copy(g.matrixWorld).invert();
-  const buckets = new Map(), old = [];
-  g.children.forEach(ch => {
-    if (!ch.isMesh || ch.userData.keep) return;
-    const geo = ch.geometry.clone();
-    geo.applyMatrix4(_m4.multiplyMatrices(inv, ch.matrixWorld));
-    Object.keys(geo.attributes).forEach(k => { if (k !== 'position' && k !== 'normal' && k !== 'uv') geo.deleteAttribute(k); });
-    if (!buckets.has(ch.material)) buckets.set(ch.material, []);
-    buckets.get(ch.material).push(geo);
-    old.push(ch);
-  });
-  old.forEach(o => { g.remove(o); o.geometry.dispose(); });
-  buckets.forEach((geos, mat) => {
-    const merged = mergeGeometries(geos, false);
-    geos.forEach(x => x.dispose());
-    if (!merged) return;
-    const mesh = new THREE.Mesh(merged, mat);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    g.add(mesh);
-  });
-}
-
-// ROBOT ROOT & BODY
-const root = new THREE.Group(); scene.add(root);
-const body = new THREE.Group(); root.add(body);
-
-// Pelvis
-const pelvis = new THREE.Group(); body.add(pelvis);
-put(pelvis, rbox(1.9, 0.55, 1.25, 0.07), M.armor2, 0, 2.55, 0);
-put(pelvis, rbox(1.3, 0.35, 0.9, 0.05), M.dark, 0, 2.25, 0);
-put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, 0.68, 0.25, 0, 0);
-put(pelvis, rbox(0.8, 0.7, 0.1, 0.04), M.armor, 0, 2.15, -0.68, -0.25, 0, 0);
-put(pelvis, rbox(0.5, 0.06, 0.2, 0.02), M.hazard, 0, 2.5, 0.66);
-[-1, 1].forEach(s => {
-  put(pelvis, rbox(0.12, 0.65, 0.9, 0.04), M.armor, s * 1.0, 2.2, 0, 0, 0, s * 0.15);
-  put(pelvis, cy(0.34, 0.34, 0.62, 20), M.dark, s * 0.72, 2.3, 0, 0, 0, Math.PI / 2);
-  put(pelvis, tor(0.34, 0.035), M.trim, s * 1.05, 2.3, 0, 0, Math.PI / 2, 0);
-});
-bake(pelvis);
-
-// Digitigrade Hydraulic Legs
-const legs = [];
-function makeLeg(s) {
-  const hip = new THREE.Group(); hip.position.set(s * 0.72, 2.3, 0); hip.rotation.x = -0.45; body.add(hip);
-  put(hip, rbox(0.62, 1.1, 0.7, 0.06), M.armor, 0, -0.55, 0.02);
-  put(hip, rbox(0.5, 0.8, 0.12, 0.04), M.armor2, 0, -0.5, 0.42, 0.12, 0, 0);
-  put(hip, rbox(0.08, 0.7, 0.55, 0.03), M.accent, s * 0.36, -0.5, 0);
-  put(hip, rbox(0.07, 0.26, 0.34, 0.02), M.hazard, s * 0.37, -0.14, 0.18);
-  put(hip, cy(0.085, 0.085, 0.5, 12), M.armor2, s * 0.2, -0.3, -0.45);
-  put(hip, cy(0.045, 0.045, 0.65, 10), M.chrome, s * 0.2, -0.7, -0.45);
-  bake(hip);
-
-  const knee = new THREE.Group(); knee.position.set(0, -1.1, 0); knee.rotation.x = 0.9; hip.add(knee);
-  put(knee, cy(0.3, 0.3, 0.76, 20), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
-  put(knee, tor(0.3, 0.03), M.trim, s * 0.4, 0, 0, 0, Math.PI / 2, 0);
-  put(knee, rbox(0.55, 0.5, 0.4, 0.05), M.armor2, 0, 0.05, 0.38, -0.5, 0, 0);
-  put(knee, rbox(0.45, 0.08, 0.3, 0.02), M.accent, 0, 0.12, 0.52, -0.5, 0, 0);
-  put(knee, rbox(0.5, 1.2, 0.55, 0.06), M.armor, 0, -0.62, -0.05);
-  put(knee, rbox(0.44, 0.7, 0.35, 0.05), M.armor2, 0, -0.45, -0.38);
-  put(knee, rbox(0.4, 0.9, 0.1, 0.04), M.armor2, 0, -0.65, 0.28, 0.1, 0, 0);
-  put(knee, cy(0.075, 0.075, 0.5, 12), M.armor2, s * 0.2, -0.4, -0.62);
-  put(knee, cy(0.045, 0.045, 0.55, 10), M.chrome, s * 0.2, -0.85, -0.62);
-  bake(knee);
-
-  const ankle = new THREE.Group(); ankle.position.set(0, -1.2, 0); ankle.rotation.x = -0.45; knee.add(ankle);
-  put(ankle, cy(0.2, 0.2, 0.62, 16), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
-  put(ankle, rbox(0.7, 0.22, 0.55, 0.05), M.armor2, 0, -0.11, -0.12);
-  [-1, 1].forEach(k => {
-    put(ankle, rbox(0.28, 0.2, 0.62, 0.05), M.armor2, k * 0.2, -0.1, 0.42);
-    put(ankle, rbox(0.2, 0.12, 0.14, 0.03), M.dark, k * 0.2, -0.1, 0.78);
-  });
-  put(ankle, rbox(0.62, 0.1, 0.9, 0.04), M.armor, 0, 0.01, 0.12);
-  put(ankle, rbox(0.04, 0.03, 0.55, 0.01), M.trim, 0, 0.07, 0.12);
-  bake(ankle);
-  legs.push({ hip, knee, ankle, s });
-}
-makeLeg(-1); makeLeg(1);
-
-// Torso
-const torso = new THREE.Group(); torso.position.y = 2.85; body.add(torso);
-put(torso, cy(0.7, 0.7, 0.3, 24), M.dark, 0, 0.02, 0);
-put(torso, tor(0.7, 0.03, 40), M.trim, 0, 0.17, 0, Math.PI / 2, 0, 0);
-put(torso, rbox(1.3, 0.55, 0.95, 0.06), M.armor2, 0, 0.32, 0);
-put(torso, rbox(0.5, 0.3, 0.05, 0.01), M.hazard, 0, 0.32, 0.5);
-put(torso, rbox(2.0, 0.9, 1.25, 0.08), M.armor, 0, 0.95, 0);
-put(torso, rbox(1.5, 0.75, 0.14, 0.05), M.armor2, 0, 0.95, 0.66, -0.2, 0, 0);
-put(torso, rbox(1.8, 0.6, 0.95, 0.07), M.armor, 0, 1.65, -0.05);
-put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, -1.1, 1.3, 0);
-put(torso, rbox(0.3, 0.7, 0.8, 0.05), M.armor2, 1.1, 1.3, 0);
-
-// Cockpit Canopy
-put(torso, new THREE.SphereGeometry(0.38, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, 0, 1.65, 0.35, Math.PI / 2, 0, 0);
-put(torso, tor(0.38, 0.05, 32), M.armor2, 0, 1.65, 0.38);
-put(torso, sph(0.16), M.core, 0, 1.65, 0.42);
-
-// Reactor Core
-const coreRing = put(torso, tor(0.22, 0.03), M.trim, 0, 0.78, 0.74); coreRing.userData.keep = true;
-put(torso, sph(0.1), M.core, 0, 0.78, 0.74);
-
-// Backpack & Thrusters
-put(torso, rbox(1.3, 1.2, 0.7, 0.07), M.armor2, 0, 1.15, -0.95);
-put(torso, rbox(1.1, 0.3, 0.6, 0.05), M.armor, 0, 1.85, -0.95);
-const flames = [];
-[-0.45, 0.45].forEach(x => {
-  put(torso, cy(0.2, 0.3, 0.5, 20), M.dark, x, 0.95, -1.45, Math.PI / 2, 0, 0);
-  put(torso, tor(0.29, 0.03), M.trim, x, 0.95, -1.7);
-  const w = new THREE.Group(); w.position.set(x, 0.95, -1.72); torso.add(w);
-  const o = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.4, 16, 1, true), M.flame);
-  o.rotation.x = -Math.PI / 2; o.position.z = -0.7; w.add(o);
-  const i2 = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.9, 12, 1, true), M.flame2);
-  i2.rotation.x = -Math.PI / 2; i2.position.z = -0.45; w.add(i2);
-  flames.push(w);
-});
-bake(torso);
-
-// Head
-const head = new THREE.Group(); head.position.set(0, 2.25, 0.05); torso.add(head);
-put(head, rbox(0.62, 0.45, 0.7, 0.07), M.armor, 0, 0, 0);
-put(head, rbox(0.5, 0.09, 0.12, 0.02), M.trim, 0, 0.04, 0.34);
-put(head, rbox(0.12, 0.18, 0.6, 0.03), M.accent, 0, 0.28, -0.05);
-bake(head);
-
-// Arms with Dual-Barrel Heavy Cannons
-const arms = [];
-function makeArm(s) {
-  const sh = new THREE.Group(); sh.position.set(s * 1.45, 1.5, 0); sh.rotation.x = -0.5; torso.add(sh);
-  put(sh, rbox(0.9, 0.7, 1.1, 0.08), M.accent, s * 0.12, 0.2, 0);
-  put(sh, rbox(0.95, 0.16, 1.15, 0.05), M.armor2, s * 0.12, 0.6, 0);
-  put(sh, sph(0.3), M.dark, 0, -0.15, 0);
-  put(sh, rbox(0.4, 0.8, 0.45, 0.05), M.armor2, 0, -0.65, 0);
-  bake(sh);
-
-  const elbow = new THREE.Group(); elbow.position.set(0, -1.1, 0); elbow.rotation.x = 0.5; sh.add(elbow);
-  put(elbow, cy(0.24, 0.24, 0.52, 18), M.dark, 0, 0, 0, 0, 0, Math.PI / 2);
-  put(elbow, rbox(0.55, 0.55, 1.0, 0.07), M.armor, 0, 0, 0.5);
-  bake(elbow);
-
-  const barrels = new THREE.Group(); elbow.add(barrels);
-  put(barrels, rbox(0.46, 0.28, 0.5, 0.04), M.armor, 0, 0.02, 1.65);
-  [-0.13, 0.13].forEach(x => {
-    put(barrels, cy(0.075, 0.075, 1.0, 14), M.barrel, x, 0.02, 1.9, Math.PI / 2, 0, 0);
-    put(barrels, cy(0.1, 0.09, 0.2, 14), M.dark, x, 0.02, 2.5, Math.PI / 2, 0, 0);
-    put(barrels, tor(0.085, 0.022, 18), M.heat, x, 0.02, 2.3);
-  });
-  bake(barrels);
-  const muzzles = [-0.13, 0.13].map(x => { const o = new THREE.Object3D(); o.position.set(x, 0.02, 2.62); barrels.add(o); return o; });
-  const a = { sh, elbow, barrels, muzzles, s, recoil: 0 };
-  arms.push(a);
-  return a;
-}
-makeArm(-1);
-const armR = makeArm(1);
-
-// Right Shoulder: Missile Pod
-const pod = new THREE.Group(); pod.position.set(0.15, 0.95, -0.05); armR.sh.add(pod);
-put(pod, rbox(0.8, 0.55, 1.0, 0.05), M.armor2, 0, 0, 0);
-for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) {
-  const x = -0.25 + i * 0.25, y = -0.12 + j * 0.24;
-  put(pod, cy(0.085, 0.085, 0.5, 12), M.dark, x, y, 0.5, Math.PI / 2, 0, 0);
-  put(pod, tor(0.085, 0.015, 14), M.accent, x, y, 0.76);
-  put(pod, new THREE.ConeGeometry(0.065, 0.18, 10), M.pinkEm, x, y, 0.66, Math.PI / 2, 0, 0);
-}
-bake(pod);
-
-// Left Shoulder: Radar Dish
-const armL = arms[0];
-const dish = new THREE.Group(); dish.position.set(-0.1, 0.65, -0.1); armL.sh.add(dish);
-put(dish, cy(0.04, 0.05, 0.5, 8), M.chrome, 0, 0.25, 0);
-put(dish, new THREE.SphereGeometry(0.3, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.dish, 0, 0.58, 0, Math.PI * 0.8, 0, 0);
-bake(dish);
-
-// Holographic Shield for Transform Stance
-const shieldMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(3.5, 1), M.shield);
-shieldMesh.position.y = 2.2; shieldMesh.visible = false; root.add(shieldMesh);
-
-// Projectiles & Particles
-const projs = [];
-for (let i = 0; i < 40; i++) {
-  const p = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), M.tracer);
-  p.scale.z = 7; p.visible = false; p.userData = { life: 0, vel: new THREE.Vector3() };
-  scene.add(p); projs.push(p);
-}
-
-// Orbital Beam (ULT)
-const beam = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.45, 0.45, 20, 24, 1, true),
-  new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, 2.0, 0.8), transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false })
-);
-beam.position.y = 10; beam.visible = false; scene.add(beam);
-
-// =========================================================================
-// SYNTHESIZED PROCEDURAL AUDIO (Web Audio API - 100% Offline)
-// =========================================================================
-let audioCtx = null;
-function getAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-function playStepSound() {
-  try {
-    const ctx = getAudio(); const t = ctx.currentTime;
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(90, t);
-    osc.frequency.exponentialRampToValueAtTime(30, t + 0.1);
-    gain.gain.setValueAtTime(0.4, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t); osc.stop(t + 0.1);
-  } catch (e) {}
-}
-
-function playCannonSound() {
-  try {
-    const ctx = getAudio(); const t = ctx.currentTime;
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(220, t);
-    osc.frequency.exponentialRampToValueAtTime(40, t + 0.22);
-    gain.gain.setValueAtTime(0.8, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.22);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t); osc.stop(t + 0.22);
-  } catch (e) {}
-}
-
-function playMissileSound() {
-  try {
-    const ctx = getAudio(); const t = ctx.currentTime;
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(180, t);
-    osc.frequency.exponentialRampToValueAtTime(800, t + 0.3);
-    gain.gain.setValueAtTime(0.5, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t); osc.stop(t + 0.3);
-  } catch (e) {}
-}
-
-function playTransformSound() {
-  try {
-    const ctx = getAudio(); const t = ctx.currentTime;
-    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(120, t);
-    osc.frequency.linearRampToValueAtTime(450, t + 0.25);
-    gain.gain.setValueAtTime(0.3, t);
-    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.28);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t); osc.stop(t + 0.28);
-  } catch (e) {}
-}
-
-// =========================================================================
-// PRECISE LOCOMOTION ENGINE (Oldinga, Orqaga, Aniq O'nga/Chapga Burilish)
+// 12. PRECISE LOCOMOTION & WEAPON ENGINE
 // =========================================================================
 let t = 0, heat = 0, dashT = -1, ultT = -1, fireArm = 0;
 let yaw = 0, walkBlend = 0, phase = 0, isTransformed = false;
 const DASH_TIME = 0.45;
 const tmp = new THREE.Vector3();
+const tmpPos = new THREE.Vector3();
 
 const moveState = {
   forward: false,
@@ -1014,16 +1487,31 @@ const moveState = {
 function fire() {
   playCannonSound();
   const a = arms[fireArm]; fireArm = 1 - fireArm;
-  a.recoil = 1; heat = Math.min(1, heat + 0.25);
+  a.recoil = 1; a.barrelSpin = 38; heat = Math.min(1, heat + 0.25);
+
+  // Eject spent brass casing
+  a.ejectPoint.getWorldPosition(tmpPos);
+  const sh = shells.find(x => !x.visible);
+  if (sh) {
+    sh.position.copy(tmpPos);
+    const outwardDir = a.s > 0 ? 1 : -1;
+    sh.userData.vel.set(outwardDir * (2.0 + Math.random() * 1.5), 1.8 + Math.random() * 1.2, -0.4 + Math.random() * 0.8).applyQuaternion(root.quaternion);
+    sh.userData.rotVel.set(Math.random() * 18, Math.random() * 18, Math.random() * 18);
+    sh.userData.life = 3.5;
+    sh.visible = true;
+  }
+
+  // Fire Tracer Bullet
   a.muzzles.forEach(m => {
     m.getWorldPosition(tmp);
     const p = projs.find(x => !x.visible); if (!p) return;
     p.position.copy(tmp); p.quaternion.copy(root.quaternion);
-    p.userData.vel.set(0, 0, 32).applyQuaternion(root.quaternion);
+    p.userData.vel.set(0, 0, 36).applyQuaternion(root.quaternion);
     p.userData.life = 1.0; p.visible = true;
   });
-  flashL.position.copy(tmp); flashL.intensity = 18;
-  if (statAction) statAction.innerText = 'TO\'P ATISH';
+
+  flashL.position.copy(tmp); flashL.intensity = 22;
+  if (statAction) statAction.innerText = 'GATLİNG TO\'P OTISH';
 }
 
 function missileSalvo() {
@@ -1035,7 +1523,7 @@ function missileSalvo() {
       const p = projs.find(x => !x.visible); if (!p) return;
       p.position.set(tmp.x + (Math.random() - 0.5) * 0.5, tmp.y + 0.3, tmp.z + (Math.random() - 0.5) * 0.5);
       p.quaternion.copy(root.quaternion);
-      p.userData.vel.set((Math.random() - 0.5) * 6, 4 + Math.random() * 4, 28).applyQuaternion(root.quaternion);
+      p.userData.vel.set((Math.random() - 0.5) * 7, 5 + Math.random() * 4, 28).applyQuaternion(root.quaternion);
       p.userData.life = 1.2; p.visible = true;
     }, i * 70);
   }
@@ -1046,6 +1534,7 @@ function dash() {
   if (dashT < 0) {
     dashT = 0;
     playTransformSound();
+    camShake = 0.08;
     if (statAction) statAction.innerText = 'REAKTIV DASH';
   }
 }
@@ -1063,6 +1552,7 @@ function ult() {
   if (ultT < 0) {
     ultT = 0;
     playTransformSound();
+    camShake = 0.12;
     if (statAction) statAction.innerText = 'ORBITAL LAZER';
   }
 }
@@ -1108,15 +1598,19 @@ window.addEventListener('keyup', (e) => {
 });
 
 // =========================================================================
-// MAIN ANIMATION LOOP
+// 13. MAIN ANIMATION LOOP
 // =========================================================================
 let lastStepPhase = 0;
 let frameCount = 0, lastFpsTime = performance.now();
 const clock = new THREE.Clock();
 
+const _vA = new THREE.Vector3();
+const _vB = new THREE.Vector3();
+
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.08);
+  const rawDt = Math.min(clock.getDelta(), 0.08);
+  const dt = rawDt * simSpeed;
   t += dt;
 
   // Directions
@@ -1142,10 +1636,10 @@ function animate() {
   const isMoving = (moveDir !== 0 || turnDir !== 0);
   walkBlend += ((isMoving ? 1 : 0) - walkBlend) * Math.min(1, dt * 6);
 
-  if (isMoving && statAction && statAction.innerText !== 'TO\'P ATISH' && statAction.innerText !== 'RAKETA ZALPI') {
+  if (isMoving && statAction && statAction.innerText.indexOf('TO\'P') === -1 && statAction.innerText.indexOf('RAKETA') === -1) {
     if (moveDir > 0) { statAction.innerText = 'OLDINGA QADAM'; statAction.style.color = 'var(--green)'; }
     else if (moveDir < 0) { statAction.innerText = 'ORQAGA YURISH'; statAction.style.color = 'var(--orange)'; }
-  } else if (!isMoving && statAction && statAction.innerText.indexOf('ATISH') === -1 && statAction.innerText.indexOf('RAKETA') === -1) {
+  } else if (!isMoving && statAction && statAction.innerText.indexOf('TO\'P') === -1 && statAction.innerText.indexOf('RAKETA') === -1) {
     statAction.innerText = isTransformed ? 'HIMOYA REJIMI' : 'IDLE (TINCH)';
     statAction.style.color = 'var(--green)';
   }
@@ -1154,13 +1648,24 @@ function animate() {
   const gaitSpeed = (moveDir < 0 ? -4.5 : 5.4) * walkBlend;
   phase += dt * (gaitSpeed + Math.abs(turnDir) * 3.5);
 
-  // Play mechanical step sound on foot strike
+  // Foot Strike Event: Ground Shockwave + Dust + Camera Shake
   if (Math.sin(phase) * Math.sin(lastStepPhase) < 0 && walkBlend > 0.4) {
     playStepSound();
+    camShake = 0.045; // Tactile weight
+    // Spawn Dust FX at active foot
+    const activeLeg = Math.sin(phase) > 0 ? legs[0] : legs[1];
+    activeLeg.ankle.getWorldPosition(tmpPos);
+    spawnFootstepFX(tmpPos);
   }
   lastStepPhase = phase;
 
-  // World Translation (Oldinga / Orqaga Siljish)
+  // Camera Shake Dampening
+  if (camShake > 0.001) {
+    camShake *= Math.exp(-dt * 12);
+    updateCameraPos();
+  }
+
+  // World Translation
   if (moveDir !== 0) {
     const stepDist = moveDir * 3.2 * dt;
     root.position.x += Math.sin(yaw) * stepDist;
@@ -1169,11 +1674,10 @@ function animate() {
 
   const idle = Math.sin(t * 1.7);
 
-  // Hydraulic Legs Kinematics (Digitigrade walking & turning)
+  // Hydraulic Legs Kinematics
   let minFoot = 1e9;
   legs.forEach(l => {
     const ph = phase + (l.s > 0 ? 0 : Math.PI);
-    // Differential stepping for turning
     const turnInfluence = turnDir * l.s * 0.25;
     const sw = Math.sin(ph) * walkBlend + turnInfluence;
     const lift = Math.max(0, Math.cos(ph)) * walkBlend;
@@ -1188,18 +1692,34 @@ function animate() {
   body.position.y = -minFoot + idle * 0.012;
   body.rotation.z = Math.sin(phase) * 0.035 * walkBlend - 0.22 * dashK;
 
-  // Torso Turning Twist (Korpus burilish tomoniga egiladi)
+  // Dynamic Telescopic Hydraulic Actuators Update
+  dynamicPistons.forEach(dp => {
+    dp.pA.getWorldPosition(_vA);
+    dp.pB.getWorldPosition(_vB);
+    const dist = _vA.distanceTo(_vB);
+    dp.pistonCylinder.position.copy(_vA);
+    dp.pistonCylinder.lookAt(_vB);
+    // Orient cylinder along Z to Y
+    dp.pistonCylinder.rotateX(Math.PI / 2);
+    // Telescopic slide of mirror chrome rod
+    dp.rodMesh.position.y = dist * 0.48;
+  });
+
+  // Torso Turning Twist
   const turnTwist = turnDir * 0.24;
   torso.rotation.y = Math.sin(t * 0.5) * 0.12 * (1 - walkBlend) + Math.sin(phase) * 0.1 * walkBlend + turnTwist;
   head.rotation.y = -torso.rotation.y * 0.6 + Math.sin(t * 0.9) * 0.12;
 
-  // Arms Recoil & Stance
+  // Arms Recoil, Spinning Barrels & Stance
   arms.forEach(a => {
-    a.recoil = Math.max(0, a.recoil - dt * 3.5);
+    a.recoil = Math.max(0, a.recoil - dt * 4.5);
+    a.barrelSpin = Math.max(0, a.barrelSpin - dt * 10);
+    a.barrelCluster.rotation.z += a.barrelSpin * dt;
+
     const transformRaise = isTransformed ? 0.35 : 0;
     a.sh.rotation.x = -0.5 - a.recoil * 0.14 + transformRaise + idle * 0.01 - Math.sin(phase + (a.s > 0 ? Math.PI : 0)) * 0.18 * walkBlend;
     a.sh.rotation.y = a.s * 0.05 + (isTransformed ? a.s * 0.15 : 0);
-    a.barrels.position.z = -a.recoil * 0.28;
+    a.carriage.position.z = 1.65 - a.recoil * 0.28;
   });
 
   // Emissive Life & Rotating Core
@@ -1223,7 +1743,28 @@ function animate() {
     if (k >= 1) dashT = -1;
   }
 
-  // Projectiles
+  // Spent Brass Shell Casings Physics & Floor Bounce
+  shells.forEach(s => {
+    if (!s.visible) return;
+    s.position.addScaledVector(s.userData.vel, dt);
+    s.userData.vel.y -= 9.8 * dt; // Gravity
+    s.rotation.x += s.userData.rotVel.x * dt;
+    s.rotation.y += s.userData.rotVel.y * dt;
+    s.rotation.z += s.userData.rotVel.z * dt;
+
+    // Floor bounce
+    if (s.position.y <= 0.04 && s.userData.vel.y < 0) {
+      s.position.y = 0.04;
+      s.userData.vel.y = -s.userData.vel.y * 0.42; // Elastic bounce
+      s.userData.vel.x *= 0.65;
+      s.userData.vel.z *= 0.65;
+      s.userData.rotVel.multiplyScalar(0.6);
+    }
+    s.userData.life -= dt;
+    if (s.userData.life <= 0) s.visible = false;
+  });
+
+  // Tracers
   projs.forEach(p => {
     if (!p.visible) return;
     p.position.addScaledVector(p.userData.vel, dt);
@@ -1231,6 +1772,25 @@ function animate() {
     if (p.userData.life <= 0) p.visible = false;
   });
   flashL.intensity = Math.max(0, flashL.intensity - dt * 70);
+
+  // Shockwave Rings & Dust Updates
+  rings.forEach(r => {
+    if (!r.visible) return;
+    r.userData.life -= dt;
+    r.scale.addScalar(dt * 3.8);
+    r.material.opacity = Math.max(0, r.userData.life * 1.6);
+    if (r.userData.life <= 0) r.visible = false;
+  });
+
+  dustParticles.forEach(d => {
+    if (!d.visible) return;
+    d.position.addScaledVector(d.userData.vel, dt);
+    d.userData.vel.y -= 0.6 * dt; // Settling
+    d.userData.life -= dt;
+    d.scale.addScalar(dt * 0.9);
+    d.material.opacity = Math.max(0, d.userData.life * 1.2);
+    if (d.userData.life <= 0 || d.position.y < 0) d.visible = false;
+  });
 
   // Ultimate Beam
   if (ultT >= 0) {
@@ -1244,7 +1804,7 @@ function animate() {
     shieldMesh.rotation.y += dt * 0.5;
   }
 
-  // FPS
+  // FPS Counter
   frameCount++;
   const now = performance.now();
   if (now - lastFpsTime >= 500) {
@@ -1257,7 +1817,12 @@ function animate() {
     }
   }
 
-  renderer.render(scene, camera);
+  // Render via Composer (Bloom) or standard Renderer
+  if (useBloom) {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 animate();
 </script>
