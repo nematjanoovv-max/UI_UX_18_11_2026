@@ -168,3 +168,61 @@ Muammolar/Qarorlar: <notes/ fayllariga havola>
 Keyingi qadam: <M# nomi>
 Sizdan kerak: <faqat §9 dagi narsalar yoki "hech narsa">
 ```
+
+---
+
+## 13. Professional 3D O‘yin Personaji Konveyeri (0 So‘mlik Pipeline)
+
+> Ushbu bo'lim o'yin personajlarini to'liq avtonom va 0 so'mlik open-source vositalar yordamida yaratish protokolidir. Foydalanuvchi "yangi personaj yarat" yoki "3D model chiqar" deganida ushbu tartib amal qiladi.
+
+### 13.1. Qat'iy Arxitektura Qoidalari
+1. **Pullik API taqiqlanadi:** Faqat bepul ochiq vositalar (Hugging Face Spaces `gradio_client`, Blender CLI / Trimesh, `gltf-transform`, CC0 animatsiyalar).
+2. **Noldan qo'lda mesh chizilmaydi:** Python orqali kub/silindr yasash man etiladi.
+3. **Dinamik API kashfiyoti:** Endpointlar statik taxmin qilinmaydi, `view_api(return_format="dict")` orqali jonli aniqlanadi.
+4. **Xavfsizlik:** `HF_TOKEN` faqat `os.getenv("HF_TOKEN")` dan olinadi, log yoki kodga yozilmaydi.
+5. **Log va JSON ajratilgan:** Barcha progress va ogohlantirishlar faqat `stderr` ga, yakuniy natijalar esa sof JSON sifatida `stdout` ga chiqariladi.
+
+### 13.2. Interaktiv So'rov Protokoli (2-bosqichga o'tishdan oldin)
+Har qanday yangi personaj yaratishdan oldin foydalanuvchidan quyidagi 4 ta parametr so'raladi:
+1. **Personaj tavsifi** (qanday qahramon, kiyimi, uslubi — *majburiy*)
+2. **Fayl nomi** (masalan: `hero_knight` — *bo‘sh qoldirsa, tavsifdan o‘zing qisqa `snake_case` nom yasa*)
+3. **Kerakli animatsiyalar** (*standart: `idle,walk,run,jump`*)
+4. **O‘yin tizimi** (`Three.js` / `Unity` / `Godot` / *standart: faqat `.glb` asset*)
+*(Maksimal hajm: standart 12 MB)*
+
+Foydalanuvchi javob berishi bilan keyingi barcha bosqichlar to'liq avtonom tarzda bajariladi.
+
+### 13.3. Pipeline CLI Buyruqlari
+```bash
+# 1. Muhit va Space kashfiyoti
+python pro_char_pipeline.py discover
+
+# 2. 2D A-pose konsept rasm generatsiyasi
+python pro_char_pipeline.py concept \
+  --prompt "<Tavsif>" \
+  --out .tmp/concepts/<NOM>.png
+
+# 3. 3D PBR Mesh yaratish
+python pro_char_pipeline.py mesh \
+  --image .tmp/concepts/<NOM>.png \
+  --out .tmp/raw/<NOM>_raw.glb
+
+# 4. Skelet o'rnatish (Auto-rig)
+python pro_char_pipeline.py rig \
+  --in .tmp/raw/<NOM>_raw.glb \
+  --out .tmp/rigged/<NOM>_rigged.glb
+
+# 5. Yakuniy ishlov berish, optimallashtirish va validatsiya
+python pro_char_pipeline.py finalize \
+  --in .tmp/rigged/<NOM>_rigged.glb \
+  --anims idle,walk,run,jump \
+  --max-mb 12 \
+  --out assets/characters/<NOM>.glb
+```
+
+### 13.4. Graceful Fallback va Xatolarni Tuzatish Siyosati
+* **Rigging navbatda qolsa / kvota tugasa:** Skript qulamaydi, `status: "needs_manual_rig"` qaytaradi, modelni `manual_drop/<nom>_raw.glb` ga nusxalaydi va foydalanuvchiga bepul Mixamo/AccuRIG orqali suyak o'rnatib `manual_drop/<nom>_rigged.glb` ga yuklashni tavsiya qiladi.
+* **Hajm 12 MB dan oshsa (`size_exceeded`):** 3D model qayta yaratilmaydi! Faqat `finalize` bosqichi `--texture-size 512 --compress meshopt` bilan qayta ishlatiladi.
+* **Masshtab va tayanch nuqtasi xatosi (`wrong_scale`/`wrong_pivot`):** Blender CLI / Trimesh orqali avtomatik ravishda `1.75m` bo'y va `(0,0,0)` oyoq koordinatasiga to'g'rilanadi.
+* **Qayta urinish limitlari:** Har bir og'ir bosqich uchun maksimal 2 ta qayta urinish.
+

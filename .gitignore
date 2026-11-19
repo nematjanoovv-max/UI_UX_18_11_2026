@@ -50,3 +50,4 @@ apk_build/
 android_project/build/
 android_project/gen/
 android_project/test*
+.tmp/
