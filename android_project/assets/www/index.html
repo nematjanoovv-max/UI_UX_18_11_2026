@@ -27,7 +27,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      touch-action: none;
+      touch-action: manipulation;
     }
     #canvas-container {
       position: relative;
@@ -51,12 +51,23 @@
       image-rendering: -webkit-optimize-contrast;
       image-rendering: crisp-edges;
     }
+    #mech-hangar-canvas {
+      position: absolute;
+      display: none;
+      pointer-events: auto;
+      touch-action: none;
+      cursor: grab;
+      z-index: 5;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container">
     <canvas id="game-canvas" width="1280" height="720"></canvas>
+    <canvas id="mech-hangar-canvas" width="370" height="340"></canvas>
   </div>
+  <script src="libs/three.min.js"></script>
+  <script src="apex_mech.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

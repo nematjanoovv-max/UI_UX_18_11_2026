@@ -18,8 +18,8 @@
       bossRush: "BOSS RUSH DUEL",
       mapEditor: "MAP EDITOR",
       leaderboard: "GLOBAL LEADERBOARD",
-      fieldManual: "FIELD MANUAL / GUIDE",
-      downloadOffline: "DOWNLOAD OFFLINE ZIP",
+      fieldManual: "ENCYCLOPEDIA",
+      downloadOffline: "OFFLINE ZIP (19MB)",
       core: "CORE HEALTH",
       wave: "WAVE",
       start: "START",
@@ -53,8 +53,8 @@
       bossRush: "BOSS RUSH DUEL",
       mapEditor: "XARITALAR MUHARRIRI",
       leaderboard: "GLOBAL REYTING",
-      fieldManual: "QO'LLANMA / ENSIKLOPEDIYA",
-      downloadOffline: "OFLAYN O'YINNI YUKLAB OLISH (ZIP)",
+      fieldManual: "ENSIKLOPEDIYA",
+      downloadOffline: "OFLAYN ZIP (19MB)",
       core: "BAZA HOLATI",
       wave: "TO'LQIN",
       start: "BOSHLASH",
@@ -88,8 +88,8 @@
       bossRush: "БОСС РАШ ДУЭЛЬ",
       mapEditor: "РЕДАКТОР КАРТ",
       leaderboard: "ТАБЛИЦА ЛИДЕРОВ",
-      fieldManual: "РУКОВОДСТВО / СПРАВКА",
-      downloadOffline: "СКАЧАТЬ ОФЛАЙН ИГРУ (ZIP)",
+      fieldManual: "СПРАВОЧНИК",
+      downloadOffline: "ОФЛАЙН ZIP (19MB)",
       core: "ПРОЧНОСТЬ ЯДРА",
       wave: "ВОЛНА",
       start: "СТАРТ",
@@ -221,6 +221,15 @@
       if (this.bgmMuted) this.stopBGM();
       else this.startBGM();
       return !this.bgmMuted;
+    }
+    setBGMVolume(vol) {
+      if (this.bgmAudio) {
+        try {
+          this.bgmAudio.volume = Math.max(0, Math.min(1, vol));
+          if (vol <= 0) this.bgmAudio.pause();
+          else if (this.bgmAudio.paused && !this.bgmMuted) this.bgmAudio.play().catch(() => {});
+        } catch(e) {}
+      }
     }
     playBGMTrack(trackName) {
       if (this.currentBgmName === trackName && this.bgmAudio && !this.bgmAudio.paused) return;
@@ -537,7 +546,7 @@
     {
       id: "spiral_core", name: "Spiral Core", desc: "Concentric inward spiral. Optimal for Mortar and Cryo AoE setups.",
       wave_count: 15, gold: 250, hp: 20, modifier: "none", biome: "lava",
-      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ] ]
+      lanes: [ [ {x:64, y:96}, {x:1152, y:96}, {x:1152, y:576}, {x:192, y:576}, {x:192, y:192}, {x:960, y:192}, {x:960, y:448}, {x:384, y:448}, {x:384, y:320}, {x:640, y:320} ] ]
     },
     {
       id: "misty_pass", name: "Misty Pass", desc: "Dense electromagnetic fog reduces all tower ranges by -15%.",
@@ -575,7 +584,7 @@
     {
       id: "last_grid", name: "The Last Grid", desc: "Final endurance sector: full 30 waves with 3 Boss encounters!",
       wave_count: 30, gold: 350, hp: 25, modifier: "last_grid", biome: "cyber",
-      lanes: [ [ {x:64, y:64}, {x:1152, y:64}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
+      lanes: [ [ {x:64, y:96}, {x:1152, y:96}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
     }
   ];
 
@@ -875,6 +884,7 @@
 
       this.initEvents();
       this.setupCanvasScaling();
+      this.initMechSystem();
       this.fetchLiveScores();
       this.startLoop();
     }
@@ -972,6 +982,31 @@
           seed: Math.floor(Math.random() * 1000000)
         })
       }).catch(() => {});
+    }
+
+
+    initMechSystem() {
+      const mechCanvas = document.getElementById('mech-hangar-canvas');
+      if (mechCanvas && window.Apex01System) {
+        this.apexSystem = new window.Apex01System();
+        this.apexSystem.init(mechCanvas);
+        this.syncMechCanvasPosition();
+      }
+    }
+
+    syncMechCanvasPosition() {
+      const mechCanvas = document.getElementById('mech-hangar-canvas');
+      if (!mechCanvas || !this.canvas) return;
+
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = rect.width / 1280;
+      const scaleY = rect.height / 720;
+
+      // Hangar slot in 1280x720: x: 50, y: 155, w: 370, h: 325
+      mechCanvas.style.left = `${rect.left + 50 * scaleX}px`;
+      mechCanvas.style.top = `${rect.top + 155 * scaleY}px`;
+      mechCanvas.style.width = `${Math.floor(370 * scaleX)}px`;
+      mechCanvas.style.height = `${Math.floor(325 * scaleY)}px`;
     }
 
     setupCanvasScaling() {
@@ -1206,7 +1241,8 @@
             this.settings.bgmVol = bgmLevels[i];
             localStorage.setItem('lg_bgm_vol', bgmLevels[i].toString());
             audio.bgmMuted = (bgmLevels[i] === 0.0);
-            if (audio.bgmMuted) audio.stopBGM(); else audio.startBGM();
+            if (audio.bgmMuted) audio.stopBGM();
+            else { audio.startBGM(); audio.setBGMVolume(bgmLevels[i]); }
             audio.click();
             this.vibrate(15);
             return;
@@ -2375,7 +2411,16 @@
       ctx.font = "11px monospace";
       const charCount = Math.floor(rc.anim);
       const visibleText = rc.text.substring(0, charCount);
-      ctx.fillText(visibleText, bx + 12, by + 54);
+
+      // Multi-line wrap
+      const words = visibleText.split(" ");
+      let line1 = "", line2 = "";
+      for (const w of words) {
+        if ((line1 + " " + w).length <= 44) line1 += (line1 ? " " : "") + w;
+        else line2 += (line2 ? " " : "") + w;
+      }
+      ctx.fillText(line1, bx + 12, by + 50);
+      if (line2) ctx.fillText(line2, bx + 12, by + 64);
 
       ctx.restore();
     }
@@ -3966,6 +4011,19 @@
 
     onDefeat() {
       this.state = 'DEFEAT';
+      if (this.gameMode === 'ENDLESS') {
+        try {
+          const cur = parseInt(localStorage.getItem('lg_endless_wave') || '0');
+          if (this.wave > cur) {
+            localStorage.setItem('lg_endless_wave', this.wave.toString());
+          }
+          if (this.score > (this.saveData.highScores?.endless || 0)) {
+            if (!this.saveData.highScores) this.saveData.highScores = {};
+            this.saveData.highScores.endless = this.score;
+            localStorage.setItem('last_grid_save_v2', JSON.stringify(this.saveData));
+          }
+        } catch(e) {}
+      }
       audio.defeat();
       this.calculateMVP();
       const mapId = (this.gameMode === 'CUSTOM') ? 'custom' : MAPS[this.currentMapIndex].id;
@@ -4058,6 +4116,10 @@
         this.ctx.translate(sx, sy);
       }
 
+            if (this.apexSystem) {
+        if (this.state === 'MENU') this.apexSystem.show();
+        else this.apexSystem.hide();
+      }
       if (this.state === 'MENU') this.renderMainMenu();
       else if (this.state === 'MAP_SELECT') this.renderMapSelect();
       else if (this.state === 'LEADERBOARD') this.renderLeaderboardModal();
@@ -6144,12 +6206,12 @@
       const waveLabel = isWaveActive ? `⚔ JANGDA (${this.enemies.length})` : `▶ JANG [${Math.ceil(this.waveCountdown)}s]`;
       this.drawCyberButton(450, 10, 160, 40, waveLabel, isWaveActive ? "#ff1744" : "#00e676", isWaveActive ? "HOSTILES IN BOUND" : "ENGAGE WAVE", "", !isWaveActive);
 
-      // Mode & Map Name
-      ctx.fillStyle = "#78909c";
-      ctx.font = "10px monospace";
-      ctx.textAlign = "center";
+      // Mode & Map Name displayed cleanly above action button
+      ctx.fillStyle = "#546e7a";
+      ctx.font = "9px monospace";
+      ctx.textAlign = "left";
       const mapName = (this.gameMode === 'CUSTOM') ? "CUSTOM MAP" : MAPS[this.currentMapIndex].name.toUpperCase();
-      ctx.fillText(`[${this.gameMode}] ${mapName}`, 675, 36);
+      ctx.fillText(`${mapName}`, 240, 48);
 
       // Ergonomic Wide Action Cyber Buttons
       this.drawCyberButton(625, 9, 90, 42, `${this.speed}x SPEED`, this.speed > 1 ? "#ffd600" : "#00e5ff", "TEMPO", "⏩", this.speed > 1);
@@ -6281,6 +6343,58 @@
       ctx.restore();
     }
 
+    renderAbilitySlot(x, y, w, h, icon, label, subtext, color = "#00e5ff", isReady = true, cdRatio = 0) {
+      const ctx = this.ctx;
+      ctx.save();
+      const cut = 5;
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y);
+      ctx.lineTo(x + w, y);
+      ctx.lineTo(x + w, y + h - cut);
+      ctx.lineTo(x + w - cut, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x, y + cut);
+      ctx.closePath();
+
+      ctx.fillStyle = isReady ? "rgba(16, 26, 44, 0.95)" : "rgba(8, 12, 20, 0.98)";
+      ctx.fill();
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = isReady ? 1.8 : 1.0;
+      ctx.stroke();
+
+      // Top specular highlight
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y + 1);
+      ctx.lineTo(x + w - 1, y + 1);
+      ctx.stroke();
+
+      // Centered Stacked Layout:
+      // 1. Icon on top
+      ctx.fillStyle = color;
+      ctx.font = "14px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(icon, x + w / 2, y + 26);
+
+      // 2. Label below
+      ctx.fillStyle = isReady ? "#ffffff" : "#78909c";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(label, x + w / 2, y + 48);
+
+      // 3. Subtext / Cost below
+      ctx.fillStyle = isReady ? color : "#546e7a";
+      ctx.font = "9px monospace";
+      ctx.fillText(subtext, x + w / 2, y + 68);
+
+      // Cooldown Sweep
+      if (cdRatio > 0) {
+        ctx.fillStyle = "rgba(255, 23, 68, 0.65)";
+        ctx.fillRect(x + 1, y + h * (1 - cdRatio), w - 2, h * cdRatio);
+      }
+      ctx.restore();
+    }
+
     renderBottomBar() {
       const ctx = this.ctx;
       // Frosted Glassmorphism Panel
@@ -6297,11 +6411,11 @@
       ctx.lineTo(this.width, 620);
       ctx.stroke();
 
-      // 1. Hero Mech Button (Far Left: x: 6, w: 46, h: 78)
+      // 1. Hero Mech Button (Clean Stacked Slot: x: 6, w: 46, h: 78)
       const isHeroUltReady = this.hero.currentUltCd <= 0;
-      this.drawCyberButton(6, 628, 46, 78, "MECH", isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, "⚡", isHeroUltReady);
+      this.renderAbilitySlot(6, 628, 46, 78, "⚡", "MECH", isHeroUltReady ? "ULT" : `${Math.ceil(this.hero.currentUltCd)}s`, isHeroUltReady ? "#ffd600" : "#455a64", isHeroUltReady, this.hero.currentUltCd / this.hero.ultCd);
 
-      // 2. 4 Commander Super Skills Panel (x: 56, 100, 144, 188; each w: 42, h: 78)
+      // 2. 4 Commander Super Skills Panel (Clean Stacked Slots: w: 42, h: 78)
       const skillMeta = {
         emp:       { icon: "⚡", label: "EMP",  color: "#00e5ff", sub: `${this.skills.emp.cost}g` },
         orbital:   { icon: "🛰️", label: "LAZ",  color: "#ff1744", sub: `${this.skills.orbital.cost}g` },
@@ -6318,7 +6432,7 @@
         const isAiming = (this.aimingSkill === k);
         const color = isAiming ? "#ffeb3b" : (isReady ? meta.color : "#37474f");
 
-        this.drawCyberButton(sx, 628, 42, 78, meta.label, color, meta.sub, meta.icon, isReady || isAiming);
+        this.renderAbilitySlot(sx, 628, 42, 78, meta.icon, meta.label, meta.sub, color, isReady || isAiming, s.currentCd / s.cd);
 
         // Active Aiming Highlight Ring
         if (isAiming) {
@@ -6565,20 +6679,18 @@
       ctx.lineWidth = 1.5;
       ctx.strokeRect(0, 0, this.width, 68);
 
-      // Game Title
+      // Game Title (Strictly non-overlapping)
       ctx.save();
       ctx.shadowColor = "rgba(0, 229, 255, 0.8)";
       ctx.shadowBlur = 12;
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 24px 'Segoe UI', monospace";
+      ctx.font = "900 21px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("⚡ TOWER DEFENSE: LAST GRID", 40, 42);
+      ctx.fillText("⚡ TOWER DEFENSE: LAST GRID", 35, 42);
       ctx.restore();
 
-      // Version & Platform Badge
-      ctx.fillStyle = "#ff007f";
-      ctx.font = "bold 12px monospace";
-      ctx.fillText("v4.0.0 ULTIMATE DASHBOARD", 410, 42);
+      // Version in separate pill badge
+      this.renderMiniButton(390, 24, 75, 24, "v4.0.0", "#ff007f");
 
       // Commander Name & Status Badge
       ctx.fillStyle = "#cfd8dc";
@@ -6730,8 +6842,8 @@
       this.drawCyberButton(1055, 278, 185, 62, this.t("fieldManual"), "#00e5ff", "QO'LLANMA", "📖", false);
 
       // System Controls (Row 4: y: 350)
-      this.drawCyberButton(455, 350, 255, 58, "⚙️ SOZLAMALAR", "#00e5ff", "AUDIO & GRAFIKA", "⚙️", true);
-      this.drawCyberButton(720, 350, 255, 58, "📲 ANDROID APK", "#00e676", "OFLAYN APK (v3.9)", "📲", true);
+      this.drawCyberButton(455, 350, 255, 58, "SOZLAMALAR", "#00e5ff", "AUDIO & GRAFIKA", "⚙️", true);
+      this.drawCyberButton(720, 350, 255, 58, "ANDROID APK", "#00e676", "OFLAYN APK (28MB)", "📲", true);
       this.drawCyberButton(985, 350, 255, 58, this.t("downloadOffline"), "#ffd600", "ZIP ARXIV (369KB)", "📦", false);
 
       // Commander Tactical Report & Dossier Panel (Bottom Right: y: 420 to 678)
@@ -7838,6 +7950,8 @@
     }
 
   }
+
+  window.LastGridEngine = LastGridEngine;
 
   window.addEventListener('DOMContentLoaded', () => {
     window.lastGridEngine = new LastGridEngine();
