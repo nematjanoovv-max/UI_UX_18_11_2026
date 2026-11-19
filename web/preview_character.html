@@ -554,11 +554,11 @@ const btnToggleSpeed = document.getElementById('btn-toggle-speed');
 // 1. RENDERER, SCENE & POST-PROCESSING
 // =========================================================================
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-const PR = Math.min(window.devicePixelRatio || 1, 1.5);
+const PR = Math.min(window.devicePixelRatio || 1, 2.0);
 renderer.setPixelRatio(PR);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.25;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;

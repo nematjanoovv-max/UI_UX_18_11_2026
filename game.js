@@ -232,10 +232,29 @@
       }
     }
     playBGMTrack(trackName) {
-      if (this.currentBgmName === trackName && this.bgmAudio && !this.bgmAudio.paused) return;
+      const bgmVol = (window.lastGridEngine && window.lastGridEngine.settings) ? window.lastGridEngine.settings.bgmVol : 0.7;
+      if (this.bgmMuted || bgmVol <= 0) {
+        this.stopBGM();
+        this.currentBgmName = trackName;
+        return;
+      }
+
+      if (this.currentBgmName === trackName && ((this.bgmAudio && !this.bgmAudio.paused) || this.bgmTimer)) {
+        return;
+      }
+
       this.stopBGM();
       this.currentBgmName = trackName;
-      if (this.bgmMuted) return;
+      this.bgmTheme = trackName;
+
+      // Unlock AudioContext if present
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
 
       const trackPaths = {
         menu: 'assets/audio/bgm/bgm_menu.wav',
@@ -246,40 +265,148 @@
         victory: 'assets/audio/bgm/bgm_victory.wav'
       };
       const path = trackPaths[trackName] || trackPaths.cyber;
-      try {
-        const bgmVol = (window.lastGridEngine && window.lastGridEngine.settings) ? window.lastGridEngine.settings.bgmVol : 0.7;
-        if (bgmVol <= 0) return;
-        this.bgmAudio = new Audio(path);
-        this.bgmAudio.loop = (trackName !== 'victory');
-        this.bgmAudio.volume = bgmVol;
-        this.bgmAudio.play().catch(() => {});
-        this.bgmPlaying = true;
-      } catch(e) {}
+
+      if (!this.bgmAudioCache) this.bgmAudioCache = {};
+      let audioEl = this.bgmAudioCache[trackName];
+      if (!audioEl) {
+        try {
+          audioEl = new Audio(path);
+          audioEl.loop = (trackName !== 'victory');
+          this.bgmAudioCache[trackName] = audioEl;
+        } catch(e) {}
+      }
+
+      let audioSucceeded = false;
+      if (audioEl) {
+        try {
+          audioEl.volume = bgmVol;
+          audioEl.currentTime = 0;
+          const p = audioEl.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              this.bgmAudio = audioEl;
+              this.bgmPlaying = true;
+              this.stopProceduralBGM();
+            }).catch(() => {
+              // Seamless Web Audio procedural fallback - zero silence guaranteed!
+              this.startProceduralBGM(trackName);
+            });
+            audioSucceeded = true;
+          } else {
+            this.bgmAudio = audioEl;
+            this.bgmPlaying = true;
+            audioSucceeded = true;
+          }
+        } catch(e) {
+          audioSucceeded = false;
+        }
+      }
+
+      if (!audioSucceeded) {
+        this.startProceduralBGM(trackName);
+      }
     }
     startBGM() {
       const mode = (window.lastGridEngine && window.lastGridEngine.state === 'MENU') ? 'menu' : 'cyber';
       this.playBGMTrack(mode);
+    }
+    startProceduralBGM(trackName = 'menu') {
+      if (this.bgmMuted) return;
+      this.bgmTheme = trackName;
+      if (this.bgmTimer) return;
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+      this.step = 0;
+      this.bgmPlaying = true;
+      const bpm = (trackName === 'menu') ? 112 : (trackName === 'boss' ? 134 : 124);
+      const intervalMs = Math.round((60000 / bpm) / 4); // 16th notes
+      this.bgmTimer = setInterval(() => this.bgmTick(this.bgmTheme), intervalMs);
+    }
+    stopProceduralBGM() {
+      if (this.bgmTimer) {
+        clearInterval(this.bgmTimer);
+        this.bgmTimer = null;
+      }
     }
     stopBGM() {
       if (this.bgmAudio) {
         try { this.bgmAudio.pause(); this.bgmAudio.currentTime = 0; } catch(e) {}
         this.bgmAudio = null;
       }
-      if (this.bgmTimer) { clearInterval(this.bgmTimer); this.bgmTimer = null; }
+      this.stopProceduralBGM();
       this.bgmPlaying = false;
     }
-    bgmTick() {
+    bgmTick(theme = 'menu') {
       if (this.bgmMuted || !this.ctx) return;
-      const beat16 = this.step % 16;
-      if (beat16 % 4 === 0) this.playDrum(150, 0.001, 0.12, 0.15, 30);
-      if (beat16 === 4 || beat16 === 12) this.playSnare(0.08, 0.08);
-      if (beat16 % 2 === 1) this.playHiHat(0.03, 0.03);
+      const bgmVol = (window.lastGridEngine && window.lastGridEngine.settings) ? window.lastGridEngine.settings.bgmVol : 0.7;
+      if (bgmVol <= 0) return;
 
-      const bassIndex = Math.floor(this.step / 8) % this.bassNotes.length;
-      const baseFreq = this.bassNotes[bassIndex];
-      const oct = (beat16 % 4 === 2) ? 2 : 1;
-      this.playSynthBass(baseFreq * oct, 0.09, 0.06);
+      const beat16 = this.step % 16;
+      const gainScale = bgmVol * 0.45;
+
+      if (theme === 'menu') {
+        // Futuristic Cyber Hangar Ambient Music
+        if (beat16 === 0 || beat16 === 8) {
+          this.playDrum(85, 0.005, 0.18, 0.22 * gainScale, 28);
+        }
+        if (beat16 % 4 === 2) {
+          this.playHiHat(0.025, 0.04 * gainScale);
+        }
+        const menuMelody = [146.83, 174.61, 220.00, 261.63, 293.66, 349.23, 329.63, 220.00];
+        if (beat16 % 2 === 0) {
+          const mIdx = Math.floor(this.step / 2) % menuMelody.length;
+          this.playSynthNote(menuMelody[mIdx], 0.12, 0.07 * gainScale);
+        }
+        if (beat16 === 0) {
+          const bassNotes = [73.42, 87.31, 98.00, 110.00];
+          const bIdx = Math.floor(this.step / 16) % bassNotes.length;
+          this.playSynthBass(bassNotes[bIdx], 0.35, 0.08 * gainScale);
+        }
+      } else if (theme === 'boss') {
+        if (beat16 % 4 === 0) this.playDrum(180, 0.001, 0.16, 0.35 * gainScale, 25);
+        if (beat16 === 4 || beat16 === 12) this.playSnare(0.12, 0.18 * gainScale);
+        if (beat16 % 2 === 1) this.playHiHat(0.04, 0.08 * gainScale);
+        const bossBass = [55.00, 58.27, 55.00, 61.74];
+        const bIdx = Math.floor(this.step / 4) % bossBass.length;
+        this.playSynthBass(bossBass[bIdx], 0.12, 0.14 * gainScale);
+      } else {
+        if (beat16 % 4 === 0) this.playDrum(150, 0.001, 0.12, 0.25 * gainScale, 30);
+        if (beat16 === 4 || beat16 === 12) this.playSnare(0.08, 0.12 * gainScale);
+        if (beat16 % 2 === 1) this.playHiHat(0.03, 0.06 * gainScale);
+        const bassIndex = Math.floor(this.step / 8) % this.bassNotes.length;
+        const baseFreq = this.bassNotes[bassIndex];
+        const oct = (beat16 % 4 === 2) ? 2 : 1;
+        this.playSynthBass(baseFreq * oct, 0.09, 0.09 * gainScale);
+        if (beat16 % 4 === 0 || beat16 % 4 === 3) {
+          const sIdx = Math.floor(this.step / 4) % this.scale.length;
+          this.playSynthNote(this.scale[sIdx] * 2, 0.08, 0.05 * gainScale);
+        }
+      }
       this.step++;
+    }
+    playSynthNote(freq, duration, gainVal) {
+      if (!this.ctx) return;
+      try {
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1600, this.ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      } catch(e) {}
     }
     playDrum(freq, attack, duration, gainVal, slideTo) {
       try {
@@ -1041,6 +1168,7 @@
       // 1. If Settings modal is open -> close it
       if (this.showSettingsModal) {
         this.showSettingsModal = false;
+        if (this.state === 'MENU' && this.apexSystem) this.apexSystem.show();
         audio.click();
         return;
       }
@@ -1070,13 +1198,17 @@
       }
       // 6. If in sub-screens -> return to MENU
       if (['MAP_SELECT', 'MANUAL', 'LEADERBOARD', 'EDITOR', 'ANALYTICS'].includes(this.state)) {
-        this.state = 'MENU'; audio.playBGMTrack('menu');
+        this.state = 'MENU';
+        if (this.apexSystem) this.apexSystem.show();
+        audio.playBGMTrack('menu');
         audio.click();
         return;
       }
       // 7. If in 3D TPS arena -> return to MENU
       if (this.state === 'TPS_3D') {
-        this.state = 'MENU'; audio.playBGMTrack('menu');
+        this.state = 'MENU';
+        if (this.apexSystem) this.apexSystem.show();
+        audio.playBGMTrack('menu');
         audio.sell();
         return;
       }
@@ -1086,10 +1218,15 @@
         audio.modal();
         return;
       }
-      // 9. If in PAUSED state -> unpause
+      // 9. If in PAUSED state -> safely return to MENU!
       if (this.state === 'PAUSED') {
-        this.togglePause();
-        try { audio.modal(); } catch(e) {}
+        this.state = 'MENU';
+        this.selectedTower = null;
+        this.selectedBuildType = null;
+        this.radialBuildCell = null;
+        if (this.apexSystem) this.apexSystem.show();
+        audio.playBGMTrack('menu');
+        audio.sell();
         return;
       }
       // 10. If in MENU -> double tap back to exit application
@@ -1360,13 +1497,18 @@
       if (y >= my + 540 && y <= my + 590) {
         if (x >= mx + 60 && x <= mx + 380) {
           this.showSettingsModal = false;
+          if (this.state === 'MENU' && this.apexSystem) this.apexSystem.show();
           audio.click();
           this.vibrate(20);
           return;
         } else if (x >= mx + 420 && x <= mx + 740) {
           this.showSettingsModal = false;
-          this.state = 'MENU'; audio.playBGMTrack('menu');
+          this.state = 'MENU';
           this.selectedTower = null;
+          this.selectedBuildType = null;
+          this.radialBuildCell = null;
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
           audio.sell();
           this.vibrate(25);
           return;
@@ -1379,6 +1521,8 @@
       const h = window.innerHeight;
       const screenFit = (this.settings && this.settings.screenFit) || localStorage.getItem('lg_screen_fit') || 'FIT';
 
+      let cssW = w;
+      let cssH = h;
       if (screenFit === 'FILL') {
         // True Edge-to-Edge full stretch for modern 19.5:9 & 20:9 Android screens
         this.canvas.style.width = `${w}px`;
@@ -1392,20 +1536,29 @@
           targetH = h;
           targetW = h * aspect;
         }
-        this.canvas.style.width = `${Math.floor(targetW)}px`;
-        this.canvas.style.height = `${Math.floor(targetH)}px`;
+        cssW = Math.floor(targetW);
+        cssH = Math.floor(targetH);
+        this.canvas.style.width = `${cssW}px`;
+        this.canvas.style.height = `${cssH}px`;
       }
       this.canvas.style.display = 'block';
 
-      // HiDPI / Retina Crispness for Android AMOLED & High-Res displays
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const targetBufferW = Math.round(1280 * dpr);
-      const targetBufferH = Math.round(720 * dpr);
+      // True Native Resolution with DPR scaling (capped at 2.5 for mobile GPU performance)
+      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const targetBufferW = Math.round(cssW * dpr);
+      const targetBufferH = Math.round(cssH * dpr);
       if (this.canvas.width !== targetBufferW || this.canvas.height !== targetBufferH) {
         this.canvas.width = targetBufferW;
         this.canvas.height = targetBufferH;
       }
       this.dpr = dpr;
+      this.renderScaleX = targetBufferW / 1280;
+      this.renderScaleY = targetBufferH / 720;
+
+      if (this.ctx) {
+        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingQuality = 'high';
+      }
       this.syncMechCanvasPosition();
     }
 
@@ -1954,7 +2107,13 @@
 
         // System Controls Row 4 (y: 350 to 408)
         if (y >= 350 && y <= 408) {
-          if (x >= 455 && x <= 710) { this.showSettingsModal = true; this.settingsReturnState = 'MENU'; return; }
+          if (x >= 455 && x <= 710) {
+            this.showSettingsModal = true;
+            this.settingsReturnState = 'MENU';
+            if (this.apexSystem) this.apexSystem.hide();
+            audio.click();
+            return;
+          }
           if (x >= 720 && x <= 975) { this.downloadApk(); return; }
           if (x >= 985 && x <= 1240) { this.downloadOfflineZip(); return; }
         }
@@ -1979,17 +2138,30 @@
       }
 
       if (this.state === 'ANALYTICS') {
-        if (x >= 450 && x <= 830 && y >= 615 && y <= 695) this.state = 'MENU'; audio.playBGMTrack('menu');
+        if (x >= 450 && x <= 830 && y >= 615 && y <= 695) {
+          this.state = 'MENU';
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+        }
         return;
       }
 
       if (this.state === 'MANUAL') {
-        if (x >= 20 && x <= 180 && y >= 10 && y <= 65) this.state = 'MENU'; audio.playBGMTrack('menu');
+        if (x >= 20 && x <= 180 && y >= 10 && y <= 65) {
+          this.state = 'MENU';
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+        }
         return;
       }
 
       if (this.state === 'MAP_SELECT') {
-        if (y >= 10 && y <= 65 && x >= 20 && x <= 180) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
+        if (y >= 10 && y <= 65 && x >= 20 && x <= 180) {
+          this.state = 'MENU';
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+          return;
+        }
         if (x >= 580 && x <= 920 && y >= 18 && y <= 58) {
           const idx = Math.floor((x - 580) / 110);
           const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
@@ -2015,7 +2187,12 @@
       }
 
       if (this.state === 'LEADERBOARD') {
-        if (y > 25 && y < 65 && x > 50 && x < 150) { this.state = 'MENU'; audio.playBGMTrack('menu'); return; }
+        if (y > 25 && y < 65 && x > 50 && x < 150) {
+          this.state = 'MENU';
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+          return;
+        }
         if (x > 1050 && x < 1220 && y > 25 && y < 65) {
           const newName = prompt("Enter CyberCommander handle:", this.playerName);
           if (newName && newName.trim()) {
@@ -2047,8 +2224,45 @@
         }
         if (x >= 330 && x <= 530 && y >= 405 && y <= 470) this.startMission(this.currentMapIndex, this.gameMode);
         else if (x >= 540 && x <= 740 && y >= 405 && y <= 470) this.state = 'ANALYTICS';
-        else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) this.state = 'MENU'; audio.playBGMTrack('menu');
+        else if (x >= 750 && x <= 950 && y >= 405 && y <= 470) {
+          this.state = 'MENU';
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+        }
         return;
+      }
+
+      // Handle Tactic Pause Modal Clicks (Davom etish, Sozlamalar, Chiqish)
+      if (this.state === 'PAUSED') {
+        // Button 1: Davom Etish (Resume Combat: 440, 340, 400, 50)
+        if (x >= 440 && x <= 840 && y >= 340 && y <= 390) {
+          this.state = 'PLAYING';
+          audio.modal();
+          this.vibrate(15);
+          return;
+        }
+        // Button 2: Sozlamalar (440, 405, 400, 50)
+        if (x >= 440 && x <= 840 && y >= 405 && y <= 455) {
+          this.showSettingsModal = true;
+          this.settingsReturnState = 'PAUSED';
+          if (this.apexSystem) this.apexSystem.hide();
+          audio.click();
+          this.vibrate(15);
+          return;
+        }
+        // Button 3: Asosiy Menyuga Qaytish (440, 470, 400, 50)
+        if (x >= 440 && x <= 840 && y >= 470 && y <= 520) {
+          this.state = 'MENU';
+          this.selectedTower = null;
+          this.selectedBuildType = null;
+          this.radialBuildCell = null;
+          if (this.apexSystem) this.apexSystem.show();
+          audio.playBGMTrack('menu');
+          audio.sell();
+          this.vibrate(25);
+          return;
+        }
+        return; // Click blocked by pause overlay
       }
 
       // Tutorial Skip Click
@@ -2136,9 +2350,17 @@
       if (y >= 0 && y <= 60) {
         if (x >= 440 && x <= 618) this.callNextWave();
         else if (x >= 620 && x <= 718) this.cycleSpeed();
-        else if (x >= 720 && x <= 852) { this.showSettingsModal = true; this.settingsReturnState = 'PLAYING'; }
+        else if (x >= 720 && x <= 852) {
+          this.showSettingsModal = true;
+          this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
+          if (this.apexSystem) this.apexSystem.hide();
+          audio.click();
+        }
         else if (x >= 855 && x <= 968) this.togglePause();
-        else if (x >= 970 && x <= 1090) { this.togglePause(); } // opens pause dialog safely
+        else if (x >= 970 && x <= 1090) {
+          this.state = 'PAUSED';
+          audio.modal();
+        }
         return;
       }
 
@@ -4250,20 +4472,23 @@
 
     render() {
       // Clear entire backing buffer at full physical resolution
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
       this.ctx.save();
-      if (this.dpr && this.dpr !== 1) {
-        this.ctx.scale(this.dpr, this.dpr);
-      }
+      const sx = this.renderScaleX || (this.canvas.width / 1280);
+      const sy = this.renderScaleY || (this.canvas.height / 720);
+      this.ctx.setTransform(sx, 0, 0, sy, 0, 0);
+
       if (this.screenShake > 0) {
-        const sx = (Math.random() * 2 - 1) * this.screenShake;
-        const sy = (Math.random() * 2 - 1) * this.screenShake;
-        this.ctx.translate(sx, sy);
+        const shakeX = (Math.random() * 2 - 1) * this.screenShake;
+        const shakeY = (Math.random() * 2 - 1) * this.screenShake;
+        this.ctx.translate(shakeX, shakeY);
       }
 
-            if (this.apexSystem) {
-        if (this.state === 'MENU') this.apexSystem.show();
+      // Hide 3D mech when Settings modal is open or when not in MENU
+      if (this.apexSystem) {
+        if (this.state === 'MENU' && !this.showSettingsModal) this.apexSystem.show();
         else this.apexSystem.hide();
       }
       if (this.state === 'MENU') this.renderMainMenu();

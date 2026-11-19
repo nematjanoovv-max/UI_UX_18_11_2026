@@ -596,7 +596,7 @@
       this.canvas = canvasEl;
 
       try {
-        const pr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const pr = Math.min(window.devicePixelRatio || 1, 2.0);
         this.renderer = new THREE.WebGLRenderer({
           canvas: this.canvas,
           antialias: true,

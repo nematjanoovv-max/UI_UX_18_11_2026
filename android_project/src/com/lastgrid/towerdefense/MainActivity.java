@@ -105,7 +105,8 @@ public class MainActivity extends Activity {
                                 else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
                                 else if (assetPath.endsWith(".webp")) mime = "image/webp";
                                 else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
-                                return new WebResourceResponse(mime, "UTF-8", is);
+                                String encoding = (assetPath.endsWith(".html") || assetPath.endsWith(".js") || assetPath.endsWith(".css") || assetPath.endsWith(".json")) ? "UTF-8" : null;
+                                return new WebResourceResponse(mime, encoding, is);
                             } catch (Exception e) {}
                         }
                     }

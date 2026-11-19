@@ -28,6 +28,9 @@
       align-items: center;
       justify-content: center;
       touch-action: manipulation;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
     #canvas-container {
       position: relative;
@@ -48,8 +51,7 @@
       touch-action: none;
       -webkit-touch-callout: none;
       cursor: crosshair;
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
+      image-rendering: auto;
     }
     #mech-hangar-canvas {
       position: absolute;
@@ -57,7 +59,7 @@
       pointer-events: auto;
       touch-action: none;
       cursor: grab;
-      z-index: 5;
+      z-index: 4;
     }
   </style>
 </head>
