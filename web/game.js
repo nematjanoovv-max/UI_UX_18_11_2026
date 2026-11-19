@@ -1134,6 +1134,9 @@
       this.codexTab = 'TOWERS';
       this.codexSelectedId = 'pulse';
       this.isDraggingSlider = null;
+      this.combatFeed = [];
+      this.heroKillStreak = 0;
+      this.lastHeroKillTime = 0;
 
       this.saveData = this.loadSave();
 
@@ -3962,8 +3965,10 @@
       if (isBoss) {
         audio.emergencySiren();
         this.screenShake = 12;
+        this.addCombatFeed("TITAN INBOUND", `${bossDef.name.toUpperCase()} DETECTED!`, "#ff1744", "💀");
       } else {
         audio.waveClear();
+        this.addCombatFeed("WAVE INBOUND", `SECTOR DEFENSE: WAVE ${waveNum}`, "#ff9100", "⚠️");
       }
     }
 
@@ -4078,6 +4083,19 @@
 
       if (this.cinematicBanner && this.cinematicBanner.timer > 0) {
         this.cinematicBanner.timer = Math.max(0, this.cinematicBanner.timer - dt);
+      }
+
+      // Combat Kill Feed Decay & Smooth Slide
+      if (this.combatFeed) {
+        for (let i = this.combatFeed.length - 1; i >= 0; i--) {
+          const item = this.combatFeed[i];
+          item.timer -= dt;
+          item.slide = Math.min(1.0, (item.slide || 0) + dt * 8);
+          if (item.timer <= 0) this.combatFeed.splice(i, 1);
+        }
+      }
+      if (this.heroKillStreak > 0 && Date.now() - this.lastHeroKillTime > 4000) {
+        this.heroKillStreak = 0;
       }
 
       if (this.bossAlert && this.bossAlert.timer > 0) {
@@ -5124,9 +5142,29 @@
       }
 
       if (enemy.isBoss) {
+        this.addCombatFeed("TITAN DESTROYED", `${enemy.name.toUpperCase()} (+${enemy.bounty}G)`, "#ff1744", "💀");
         this.screenShake = 12;
         audio.victory();
+      } else if (['gunship', 'brute', 'phantom', 'kamikaze_drone'].includes(enemy.type)) {
+        this.addCombatFeed("ELITE DOWN", `${enemy.name.toUpperCase()} (+${enemy.bounty}G)`, "#00e5ff", "💥");
       }
+
+      const now = Date.now();
+      if (now - this.lastHeroKillTime < 3500) {
+        this.heroKillStreak = (this.heroKillStreak || 0) + 1;
+        if (this.heroKillStreak === 3) {
+          this.addCombatFeed("MECH STREAK", "TRIPLE KILL! (+15G)", "#ffd600", "⚡");
+          this.gold += 15;
+          this.spawnFlyingCoins(this.hero.x, this.hero.y, 15);
+        } else if (this.heroKillStreak === 5) {
+          this.addCombatFeed("MECH RAMPAGE", "PENTAKILL OVERDRIVE! (+35G)", "#e040fb", "🤖");
+          this.gold += 35;
+          this.spawnFlyingCoins(this.hero.x, this.hero.y, 35);
+        }
+      } else {
+        this.heroKillStreak = 1;
+      }
+      this.lastHeroKillTime = now;
 
       this.spawnDeathParticles(enemy.x, enemy.y, enemy.color);
       this.enemies = this.enemies.filter(item => item !== enemy);
@@ -5384,6 +5422,7 @@
         this.renderBossAlert();
         this.renderMinimapHUD();
         this.renderCinematicBanner();
+        this.renderCombatFeed();
         this.renderTopHUD();
         this.renderBottomBar();
         this.renderMobileFloatingButtons();
@@ -5469,84 +5508,71 @@
       const t = this.selectedTower;
       const def = TOWER_DEFS[t.type];
       const ctx = this.ctx;
+      const tm = this.uiTime || 0;
       ctx.save();
 
-      // Top Upgrade or Branch A/B buttons
+      // 1. Tactical Holographic Range Ring with rotating laser sweep
+      const rng = t.range || 140;
+      ctx.fillStyle = "rgba(0, 229, 255, 0.05)";
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, rng, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, rng, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 4 Tactical Poles on Range Boundary
+      const tickAngles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      for (const a of tickAngles) {
+        ctx.beginPath();
+        ctx.moveTo(t.x + Math.cos(a) * (rng - 6), t.y + Math.sin(a) * (rng - 6));
+        ctx.lineTo(t.x + Math.cos(a) * (rng + 6), t.y + Math.sin(a) * (rng + 6));
+        ctx.stroke();
+      }
+
+      // 2. Connecting Laser Spokes to Action Pods
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y); ctx.lineTo(t.x, t.y - 48);
+      ctx.moveTo(t.x, t.y); ctx.lineTo(t.x - 75, t.y);
+      ctx.moveTo(t.x, t.y); ctx.lineTo(t.x + 75, t.y);
+      ctx.moveTo(t.x, t.y); ctx.lineTo(t.x, t.y + 40);
+      ctx.stroke();
+
+      // 3. Top Upgrade or Branch A/B buttons
       if (t.tier === 1) {
         const upCost = def.tiers[0].upCost;
         const canAfford = this.gold >= upCost;
-        ctx.fillStyle = canAfford ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
-        ctx.fillRect(t.x - 65, t.y - 62, 130, 32);
-        ctx.strokeStyle = canAfford ? "#00e5ff" : "#546e7a";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(t.x - 65, t.y - 62, 130, 32);
-        ctx.fillStyle = "#05070d";
-        ctx.font = "bold 12px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`▲ UPGRADE (${upCost}g)`, t.x, t.y - 42);
+        this.drawCyberButton(t.x - 70, t.y - 65, 140, 34, `▲ TIER 2 (${upCost}g)`, canAfford ? "#00e5ff" : "#455a64", "+45% DPS", "⚡", canAfford);
       } else if (t.tier === 2) {
         // Branch A (Left top)
         const bA = def.branches.A;
         const canA = this.gold >= bA.cost;
-        ctx.fillStyle = canA ? "rgba(0, 229, 255, 0.9)" : "rgba(80, 90, 100, 0.85)";
-        ctx.fillRect(t.x - 110, t.y - 70, 105, 36);
-        ctx.strokeStyle = "#00e5ff";
-        ctx.strokeRect(t.x - 110, t.y - 70, 105, 36);
-        ctx.fillStyle = "#05070d";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`${bA.name.slice(0, 10)}`, t.x - 57, t.y - 53);
-        ctx.fillText(`(${bA.cost}g)`, t.x - 57, t.y - 40);
+        this.drawCyberButton(t.x - 110, t.y - 70, 105, 36, bA.name.slice(0, 9), canA ? "#00e5ff" : "#455a64", `${bA.cost}g • [A]`, "⚡", canA);
 
         // Branch B (Right top)
         const bB = def.branches.B;
         const canB = this.gold >= bB.cost;
-        ctx.fillStyle = canB ? "rgba(255, 145, 0, 0.9)" : "rgba(80, 90, 100, 0.85)";
-        ctx.fillRect(t.x + 5, t.y - 70, 105, 36);
-        ctx.strokeStyle = "#ff9100";
-        ctx.strokeRect(t.x + 5, t.y - 70, 105, 36);
-        ctx.fillStyle = "#05070d";
-        ctx.font = "bold 11px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`${bB.name.slice(0, 10)}`, t.x + 57, t.y - 53);
-        ctx.fillText(`(${bB.cost}g)`, t.x + 57, t.y - 40);
+        this.drawCyberButton(t.x + 5, t.y - 70, 105, 36, bB.name.slice(0, 9), canB ? "#ff9100" : "#455a64", `${bB.cost}g • [B]`, "🔥", canB);
       }
 
       // Left Sell Button
       const refund = Math.floor(t.totalInvested * 0.70);
-      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
-      ctx.fillRect(t.x - 115, t.y - 18, 75, 36);
-      ctx.strokeStyle = "#ff1744";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(t.x - 115, t.y - 18, 75, 36);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("SOTISH", t.x - 77, t.y);
-      ctx.fillText(`+${refund}g`, t.x - 77, t.y + 12);
+      this.drawCyberButton(t.x - 115, t.y - 18, 75, 36, "SOTISH", "#ff1744", `+${refund}g`, "🗑️", false);
 
       // Right Priority Button
-      ctx.fillStyle = "rgba(124, 77, 255, 0.85)";
-      ctx.fillRect(t.x + 40, t.y - 18, 75, 36);
-      ctx.strokeStyle = "#7c4dff";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(t.x + 40, t.y - 18, 75, 36);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("NISHON", t.x + 77, t.y);
-      ctx.fillText(`${t.priority.slice(0, 6)}`, t.x + 77, t.y + 12);
+      this.drawCyberButton(t.x + 40, t.y - 18, 75, 36, t.priority.slice(0, 6), "#7c4dff", "NISHON", "🎯", false);
 
       // Bottom Close Button
-      ctx.fillStyle = "rgba(38, 50, 56, 0.9)";
-      ctx.fillRect(t.x - 35, t.y + 40, 70, 28);
-      ctx.strokeStyle = "#90a4ae";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(t.x - 35, t.y + 40, 70, 28);
-      ctx.fillStyle = "#eceff1";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("✕ YOPISH", t.x, t.y + 58);
+      this.drawCyberButton(t.x - 35, t.y + 40, 70, 28, "YOPISH", "#90a4ae", "", "✕", false);
 
       ctx.restore();
     }
@@ -7922,6 +7948,79 @@
       ctx.restore();
     }
 
+    addCombatFeed(tag, text, color = "#00e5ff", icon = "⚡") {
+      if (!this.combatFeed) this.combatFeed = [];
+      this.combatFeed.unshift({
+        id: Math.random(),
+        tag: tag || "SYSTEM",
+        text: text || "",
+        color: color || "#00e5ff",
+        icon: icon || "⚡",
+        timer: 3.5,
+        maxTimer: 3.5,
+        slide: 0
+      });
+      if (this.combatFeed.length > 5) this.combatFeed.pop();
+    }
+
+    renderCombatFeed() {
+      if (!this.combatFeed || this.combatFeed.length === 0) return;
+      const ctx = this.ctx;
+      const startX = 16;
+      const startY = 72;
+      const feedW = 275;
+      const feedH = 26;
+
+      ctx.save();
+      for (let i = 0; i < this.combatFeed.length; i++) {
+        const item = this.combatFeed[i];
+        const alpha = Math.min(1.0, item.timer / 0.55);
+        if (alpha <= 0) continue;
+
+        const curY = startY + i * (feedH + 6);
+        const curX = startX - (1.0 - (item.slide || 1)) * 40;
+
+        ctx.globalAlpha = alpha;
+
+        // Frosted Glassmorphism Pill Body
+        ctx.fillStyle = "rgba(6, 12, 22, 0.90)";
+        ctx.beginPath();
+        ctx.roundRect(curX, curY, feedW, feedH, 6);
+        ctx.fill();
+
+        ctx.strokeStyle = item.color || "#00e5ff";
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = item.color || "#00e5ff";
+        ctx.shadowBlur = 4;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Left Accent Tag Icon
+        ctx.fillStyle = item.color || "#00e5ff";
+        ctx.beginPath();
+        ctx.roundRect(curX + 3, curY + 3, 20, feedH - 6, 4);
+        ctx.fill();
+
+        ctx.fillStyle = "#040711";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(item.icon || "⚡", curX + 13, curY + 17);
+
+        // Tag Label
+        ctx.fillStyle = item.color || "#00e5ff";
+        ctx.font = "900 10px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(item.tag, curX + 28, curY + 17);
+
+        // Event Text
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px monospace";
+        const tagW = ctx.measureText(item.tag).width;
+        ctx.fillText(item.text, curX + 34 + tagW, curY + 17);
+      }
+      ctx.restore();
+    }
+
     renderMobileFloatingButtons() {
       const ctx = this.ctx;
 
@@ -8822,19 +8921,33 @@
         const def = TOWER_DEFS[t.type];
         const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
 
-        // Tower info box
-        ctx.fillStyle = spec.color || def.color;
-        ctx.font = "bold 14px monospace";
+        // Cyber-Dossier Telemetry Box (Left)
+        ctx.save();
+        ctx.fillStyle = "rgba(10, 18, 32, 0.94)";
+        ctx.beginPath();
+        ctx.roundRect(275, 626, 215, 80, 8);
+        ctx.fill();
+        ctx.strokeStyle = spec.color || def.color || "#00e5ff";
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        ctx.fillStyle = spec.color || def.color || "#00e5ff";
+        ctx.font = "bold 13px 'Segoe UI', monospace";
         ctx.textAlign = "left";
         const titleStr = t.branch ? spec.name.toUpperCase() : `${def.name.toUpperCase()} (T${t.tier})`;
-        ctx.fillText(titleStr, 280, 652);
+        ctx.fillText(`⬢ ${titleStr}`, 286, 646);
 
         ctx.fillStyle = "#cfd8dc";
         ctx.font = "11px monospace";
         const stats = t.type === 'beacon' ?
-          `Aura: +${(spec.dmgBuff || 0.35) * 100}% Dmg | Radius: ${spec.range}px` :
-          `Dmg: ${spec.dmg} | Rate: ${spec.rate}/s | Kills: ${t.kills} | Deal: ${t.damageDealt}`;
-        ctx.fillText(stats, 280, 674);
+          `AURA: +${(spec.dmgBuff || 0.35) * 100}% DMG | RNG: ${spec.range}px` :
+          `DMG: ${spec.dmg} | SPD: ${spec.rate}/s | RNG: ${spec.range}px`;
+        ctx.fillText(stats, 286, 667);
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`💀 KILLS: ${t.kills}  |  ⚡ DEAL: ${(t.damageDealt || 0).toLocaleString()} DMG`, 286, 688);
+        ctx.restore();
 
         // Branching upgrade at Tier 2
         if (t.tier === 2) {
@@ -8842,25 +8955,25 @@
           const bB = def.branches.B;
           const canA = this.gold >= bA.cost;
           const canB = this.gold >= bB.cost;
-          this.drawCyberButton(490, 632, 140, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "", canA);
-          this.drawCyberButton(645, 632, 140, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "", canB);
+          this.drawCyberButton(495, 630, 142, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "⚡", canA);
+          this.drawCyberButton(645, 630, 142, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "🔥", canB);
         } else if (t.tier === 1) {
           const upCost = spec.upCost;
           const canUpgrade = this.gold >= upCost;
-          this.drawCyberButton(520, 636, 140, 62, `[U] ${this.t("upgrade")}`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g`, "⚡", canUpgrade);
+          this.drawCyberButton(500, 630, 285, 72, `[▲] TIER 2 GA OSHIRISH`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g • (+45% DPS & +20px RNG)`, "⚡", canUpgrade);
         } else {
-          this.drawCyberButton(520, 636, 140, 62, "MAX TIER 3", "#ffd600", "MAX SPECIALIZED", "★", false);
+          this.drawCyberButton(500, 630, 285, 72, "MAX TIER 3 (ELITE)", "#ffd600", "MAX TOWER SPECIALIZATION REACHED", "★", false);
         }
 
         // Sell button
         const refund = Math.floor(t.totalInvested * 0.70);
-        this.drawCyberButton(800, 636, 110, 62, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑", true);
+        this.drawCyberButton(795, 630, 115, 72, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑️", true);
 
         // Priority button
-        this.drawCyberButton(925, 636, 115, 62, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
+        this.drawCyberButton(920, 630, 120, 72, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
 
         // Close button
-        this.drawCyberButton(1055, 636, 45, 62, "✕", "#90a4ae", "YOPISH", "", false);
+        this.drawCyberButton(1050, 630, 52, 72, "✕", "#90a4ae", "YOPISH", "", false);
       } else {
         // 8 Tower Hotbar Slots: 7 Towers + Barricade Wall
         const hotbarItems = [
@@ -9564,24 +9677,74 @@
 
     renderMapSelect() {
       const ctx = this.ctx;
+      const t = this.uiTime || 0;
+
+      // 1. Deep Space Starmap Background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
-      bgGrad.addColorStop(0, "#050811");
-      bgGrad.addColorStop(1, "#03050a");
+      bgGrad.addColorStop(0, "#040713");
+      bgGrad.addColorStop(0.5, "#070d20");
+      bgGrad.addColorStop(1, "#03050b");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, this.width, this.height);
 
+      // Faint Starmap Grid
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= this.width; x += 45) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.height); ctx.stroke();
+      }
+      for (let y = 0; y <= this.height; y += 45) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
+      }
+
+      // 2. Animated Constellation Conduits connecting sectors
+      ctx.save();
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.22)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -t * 20;
+
+      for (let i = 0; i < MAPS.length - 1; i++) {
+        const c1 = i % 5, r1 = Math.floor(i / 5);
+        const x1 = 40 + c1 * 242 + 115;
+        const y1 = 75 + r1 * 245 + 115;
+
+        const c2 = (i + 1) % 5, r2 = Math.floor((i + 1) / 5);
+        const x2 = 40 + c2 * 242 + 115;
+        const y2 = 75 + r2 * 245 + 115;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // 3. Top Header Bar
+      ctx.fillStyle = "rgba(8, 14, 26, 0.94)";
+      ctx.fillRect(0, 0, this.width, 68);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, 0, this.width, 68);
+
+      this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
+
       ctx.textAlign = "left";
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 26px 'Segoe UI', monospace";
-      ctx.fillText(this.t("sectorSelect"), 170, 48);
+      ctx.font = "900 22px 'Segoe UI', monospace";
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 10;
+      ctx.fillText("🗺️ TAKTIK SEKTORLAR VA GALA-MUDOFAA", 170, 44);
+      ctx.shadowBlur = 0;
 
       // Total campaign stars display
       let totalStars = 0;
       for (const m of MAPS) totalStars += (this.saveData.stars[m.id] || 0);
       ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 15px monospace";
+      ctx.font = "bold 14px monospace";
       ctx.textAlign = "right";
-      ctx.fillText(`KAMPANIYA: ${totalStars} / 30 ★`, 1240, 45);
+      ctx.fillText(`KAMPANIYA: ${totalStars} / 30 ★`, 1240, 44);
 
       // Difficulty Selector Pill (CASUAL / NORMAL / HEROIC)
       const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
@@ -9607,8 +9770,7 @@
         ctx.fillText(d, dx + 52, 42);
       });
 
-      this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
-
+      // 4. 10 Sector Cards
       for (let i = 0; i < MAPS.length; i++) {
         const m = MAPS[i];
         const col = i % 5;
@@ -9630,39 +9792,98 @@
         ctx.closePath();
 
         const cardGrad = ctx.createLinearGradient(x, y, x, y + 230);
-        cardGrad.addColorStop(0, "rgba(16, 26, 44, 0.96)");
-        cardGrad.addColorStop(1, "rgba(8, 14, 24, 0.98)");
+        cardGrad.addColorStop(0, "rgba(14, 24, 42, 0.96)");
+        cardGrad.addColorStop(1, "rgba(6, 12, 22, 0.98)");
         ctx.fillStyle = cardGrad;
         ctx.fill();
 
         ctx.strokeStyle = isCompleted ? "#00e676" : "#00e5ff";
-        ctx.lineWidth = 1.3;
+        ctx.lineWidth = isCompleted ? 1.6 : 1.2;
+        ctx.shadowColor = isCompleted ? "rgba(0, 230, 118, 0.4)" : "rgba(0, 229, 255, 0.25)";
+        ctx.shadowBlur = 6;
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
+        // Left Status Strip
         ctx.fillStyle = isCompleted ? "#00e676" : "#00e5ff";
         ctx.fillRect(x, y + cut, 4, 30);
 
+        // Header: Sector Number & Name
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 13px 'Segoe UI', monospace";
         ctx.textAlign = "left";
         ctx.fillText(`0${i + 1}. ${m.name.toUpperCase()}`, x + 14, y + 24);
 
-        ctx.fillStyle = "#90a4ae";
-        ctx.font = "11px 'Segoe UI', monospace";
-        this.wrapText(m.desc, x + 14, y + 48, 202, 16);
+        // Status Pill Badge (SECURED vs HOSTILE)
+        ctx.fillStyle = isCompleted ? "rgba(0, 230, 118, 0.18)" : "rgba(255, 23, 68, 0.18)";
+        ctx.beginPath();
+        ctx.roundRect(x + 130, y + 10, 90, 18, 4);
+        ctx.fill();
+        ctx.strokeStyle = isCompleted ? "#00e676" : "#ff1744";
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
-        ctx.fillStyle = "#ffd600";
-        ctx.font = "bold 12px monospace";
-        const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
-        ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 14, y + 140);
+        ctx.fillStyle = isCompleted ? "#00e676" : "#ff5252";
+        ctx.font = "900 9px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(isCompleted ? "✔ SECURED" : "⚠ HOSTILE", x + 175, y + 22);
 
-        ctx.fillStyle = "#00e5ff";
-        ctx.font = "11px monospace";
+        // Mini Waypoint Lane Preview Box inside card
+        const prevX = x + 14;
+        const prevY = y + 36;
+        const prevW = 202;
+        const prevH = 46;
+        ctx.fillStyle = "rgba(4, 8, 16, 0.85)";
+        ctx.beginPath();
+        ctx.roundRect(prevX, prevY, prevW, prevH, 4);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Draw miniature lanes
+        if (m.waypoints && m.waypoints.length > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(prevX, prevY, prevW, prevH);
+          ctx.clip();
+          ctx.strokeStyle = isCompleted ? "rgba(0, 230, 118, 0.6)" : "rgba(0, 229, 255, 0.6)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          for (let pi = 0; pi < m.waypoints.length; pi++) {
+            const wp = m.waypoints[pi];
+            const px = prevX + 10 + (wp.x / 1280) * (prevW - 20);
+            const py = prevY + 6 + (wp.y / 704) * (prevH - 12);
+            if (pi === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Biome and Wave Telemetry
+        ctx.textAlign = "left";
         const biomeTag = (m.biome === 'lava') ? "🌋 LAVA" : (m.biome === 'cryo' ? "❄️ CRYO" : "⚡ CYBER");
         const biomeColor = (m.biome === 'lava') ? "#ff5722" : (m.biome === 'cryo' ? "#80deea" : "#00e5ff");
-        ctx.fillText(`WAVES: ${m.wave_count}`, x + 14, y + 160);
         ctx.fillStyle = biomeColor;
-        ctx.fillText(biomeTag, x + 105, y + 160);
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(biomeTag, x + 14, y + 100);
+
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "right";
+        ctx.fillText(`WAVES: ${m.wave_count}`, x + 216, y + 100);
+
+        // Description
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#b0bec5";
+        ctx.font = "10px 'Segoe UI', monospace";
+        this.wrapText(m.desc, x + 14, y + 116, 202, 14);
+
+        // 3-Star Campaign Rating
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "bold 13px monospace";
+        const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
+        ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 14, y + 162);
 
         this.drawCyberButton(x + 12, y + 176, 206, 42, "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
 
@@ -9918,65 +10139,299 @@
 
     renderVictoryModal() {
       const ctx = this.ctx;
-      ctx.fillStyle = "rgba(4, 7, 14, 0.94)";
+      const t = this.uiTime || 0;
+
+      // Darkened Atmospheric Backdrop with Emerald Radial Glow
+      ctx.fillStyle = "rgba(4, 8, 16, 0.95)";
       ctx.fillRect(0, 0, this.width, this.height);
 
+      const radG = ctx.createRadialGradient(640, 320, 50, 640, 320, 480);
+      radG.addColorStop(0, "rgba(0, 230, 118, 0.15)");
+      radG.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = radG;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      // Central Glassmorphic Dossier Frame
+      const mx = 240, my = 40, mw = 800, mh = 635, cut = 16;
       ctx.save();
-      ctx.shadowColor = "rgba(0, 230, 118, 0.8)";
-      ctx.shadowBlur = 24;
-      ctx.fillStyle = "#00e676";
-      ctx.font = "900 46px 'Segoe UI', monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("🏆 G'ALABA! SEKTOR HIMOYALANDI", 640, 210);
-      ctx.restore();
+      ctx.beginPath();
+      ctx.moveTo(mx + cut, my);
+      ctx.lineTo(mx + mw - cut, my);
+      ctx.lineTo(mx + mw, my + cut);
+      ctx.lineTo(mx + mw, my + mh - cut);
+      ctx.lineTo(mx + mw - cut, my + mh);
+      ctx.lineTo(mx + cut, my + mh);
+      ctx.lineTo(mx, my + mh - cut);
+      ctx.lineTo(mx, my + cut);
+      ctx.closePath();
+
+      const bgGrad = ctx.createLinearGradient(mx, my, mx, my + mh);
+      bgGrad.addColorStop(0, "rgba(12, 24, 38, 0.98)");
+      bgGrad.addColorStop(1, "rgba(6, 12, 20, 0.99)");
+      ctx.fillStyle = bgGrad;
+      ctx.fill();
+
+      ctx.strokeStyle = "#00e676";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "#00e676";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Animated Victory Hexagon Crest Medal at (640, 105)
+      ctx.save();
+      ctx.translate(640, 105);
+      const hexR = 32;
+      ctx.rotate(Math.sin(t * 1.5) * 0.08);
+
+      // Rotating particle rays
+      ctx.strokeStyle = "rgba(0, 230, 118, 0.4)";
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 8; i++) {
+        const ang = (t * 0.8) + (Math.PI * 2 / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang) * (hexR + 4), Math.sin(ang) * (hexR + 4));
+        ctx.lineTo(Math.cos(ang) * (hexR + 14), Math.sin(ang) * (hexR + 14));
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#0a2618";
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i;
+        const px = Math.cos(a) * hexR;
+        const py = Math.sin(a) * hexR;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
       ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 22px monospace";
+      ctx.font = "900 24px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText(this.t("missionSuccess"), 640, 265);
+      ctx.fillText("★", 0, 8);
+      ctx.restore();
 
-      ctx.fillStyle = "rgba(18, 30, 50, 0.9)";
-      ctx.fillRect(360, 295, 560, 42);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-      ctx.strokeRect(360, 295, 560, 42);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 14px monospace";
-      ctx.fillText(`TAKTIK BALL: ${this.score} PTS  |  MVP MINORA: ${this.analytics.mvpName.toUpperCase()}`, 640, 322);
+      // Victory Title
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 230, 118, 0.85)";
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = "#00e676";
+      ctx.font = "900 32px 'Segoe UI', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆 G'ALABA! SEKTOR TO'LIQ HIMOYALANDI", 640, 172);
+      ctx.restore();
 
+      ctx.fillStyle = "#cfd8dc";
+      ctx.font = "bold 13px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("OPERATSIYA MUVAFFAQIShIYATLI YAKUNLANDI • BAZA YADROSI XAVFSIZ", 640, 196);
+
+      // 4 Telemetry Pods (y: 215, h: 62)
+      const podW = 175;
+      const podH = 62;
+      const pods = [
+        { label: "⚔️ TO'LQINLAR", val: `${this.wave}/${this.maxWaves > 50 ? '∞' : this.maxWaves}`, col: "#00e5ff" },
+        { label: "💀 QATLIOM", val: `${this.analytics.totalKills} HOSTILES`, col: "#ff1744" },
+        { label: "⚡ DAROMAD", val: `+${this.analytics.totalGold}G`, col: "#ffd600" },
+        { label: "🏆 TAKTIK BALL", val: `${this.score} PTS`, col: "#00e676" }
+      ];
+
+      for (let i = 0; i < 4; i++) {
+        const px = mx + 38 + i * (podW + 12);
+        const py = 215;
+
+        ctx.fillStyle = "rgba(10, 18, 30, 0.95)";
+        ctx.beginPath();
+        ctx.roundRect(px, py, podW, podH, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(pods[i].label, px + podW / 2, py + 22);
+
+        ctx.fillStyle = pods[i].col;
+        ctx.font = "900 15px 'Segoe UI', monospace";
+        ctx.fillText(pods[i].val, px + podW / 2, py + 46);
+      }
+
+      // MVP Tower Spotlight Card (y: 295, h: 58)
+      ctx.fillStyle = "rgba(14, 26, 44, 0.92)";
+      ctx.beginPath();
+      ctx.roundRect(mx + 38, 292, mw - 76, 58, 6);
+      ctx.fill();
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 13px 'Segoe UI', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`🎖️ ENG SAMARALI QUROL (MVP): ${this.analytics.mvpName.toUpperCase()}`, mx + 55, 318);
+
+      ctx.fillStyle = "#b0bec5";
+      ctx.font = "11px monospace";
+      ctx.fillText(`Bu minora umumiy mudofaada hal qiluvchi rol o'ynadi va eng ko'p zarba berdi.`, mx + 55, 337);
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 20px monospace";
+      ctx.textAlign = "right";
+      const starsEarned = (this.saveData && this.saveData.stars && this.saveData.stars[MAPS[this.currentMapIndex].id]) || 3;
+      const starStr = "★".repeat(Math.min(3, Math.max(1, starsEarned)));
+      ctx.fillText(starStr, mx + mw - 55, 328);
+
+      // Action Buttons
       this.drawCyberButton(340, 410, 180, 52, this.t("playAgain"), "#00e676", "RETRY SECTOR", "▶", true);
       this.drawCyberButton(550, 410, 180, 52, "STATISTIKA", "#ffd600", "BATTLE REPORT", "📊", false);
       this.drawCyberButton(760, 410, 180, 52, this.t("mainMenu"), "#00e5ff", "COMMAND HQ", "←", false);
 
       this.drawCyberButton(340, 475, 600, 50, "♾️ CHEKSIZ REJIMDA DAVOM ETISH", "#e040fb", "KEEP TOWERS & FACE INFINITE HORDE", "⚡", true);
+      ctx.restore();
     }
 
     renderDefeatModal() {
       const ctx = this.ctx;
-      ctx.fillStyle = "rgba(4, 7, 14, 0.94)";
+      const t = this.uiTime || 0;
+      const isEndless = (this.gameMode === 'ENDLESS');
+
+      // Crimson Darkened Atmospheric Backdrop with Red Vignette
+      ctx.fillStyle = "rgba(10, 4, 8, 0.95)";
       ctx.fillRect(0, 0, this.width, this.height);
 
+      const radG = ctx.createRadialGradient(640, 320, 60, 640, 320, 520);
+      radG.addColorStop(0, isEndless ? "rgba(224, 64, 251, 0.15)" : "rgba(255, 23, 68, 0.20)");
+      radG.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = radG;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      // Central Frame: x: 240, y: 40, w: 800, h: 635
+      const mx = 240, my = 40, mw = 800, mh = 635, cut = 16;
       ctx.save();
-      const isEndless = (this.gameMode === 'ENDLESS');
-      ctx.shadowColor = isEndless ? "rgba(224, 64, 251, 0.85)" : "rgba(255, 23, 68, 0.85)";
-      ctx.shadowBlur = 24;
+      ctx.beginPath();
+      ctx.moveTo(mx + cut, my);
+      ctx.lineTo(mx + mw - cut, my);
+      ctx.lineTo(mx + mw, my + cut);
+      ctx.lineTo(mx + mw, my + mh - cut);
+      ctx.lineTo(mx + mw - cut, my + mh);
+      ctx.lineTo(mx + cut, my + mh);
+      ctx.lineTo(mx, my + mh - cut);
+      ctx.lineTo(mx, my + cut);
+      ctx.closePath();
+
+      const bgGrad = ctx.createLinearGradient(mx, my, mx, my + mh);
+      bgGrad.addColorStop(0, "rgba(26, 12, 18, 0.98)");
+      bgGrad.addColorStop(1, "rgba(12, 6, 10, 0.99)");
+      ctx.fillStyle = bgGrad;
+      ctx.fill();
+
+      ctx.strokeStyle = isEndless ? "#e040fb" : "#ff1744";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = isEndless ? "#e040fb" : "#ff1744";
+      ctx.shadowBlur = 14;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Caution Hazard Stripes Bar across Header
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(mx + 2, my + 2, mw - 4, 14);
+      ctx.clip();
+      ctx.fillStyle = "#1e080e";
+      ctx.fillRect(mx + 2, my + 2, mw - 4, 14);
+      const stripeOffset = (t * 25) % 30;
+      ctx.fillStyle = isEndless ? "rgba(224, 64, 251, 0.6)" : "rgba(255, 23, 68, 0.6)";
+      for (let sx = mx - 40 + stripeOffset; sx < mx + mw + 40; sx += 30) {
+        ctx.beginPath();
+        ctx.moveTo(sx, my + 2);
+        ctx.lineTo(sx + 15, my + 2);
+        ctx.lineTo(sx + 5, my + 16);
+        ctx.lineTo(sx - 10, my + 16);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Title Typography
+      ctx.save();
+      ctx.shadowColor = isEndless ? "rgba(224, 64, 251, 0.9)" : "rgba(255, 23, 68, 0.9)";
+      ctx.shadowBlur = 20;
       ctx.fillStyle = isEndless ? "#e040fb" : "#ff1744";
-      ctx.font = "900 44px 'Segoe UI', monospace";
+      ctx.font = "900 34px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText(isEndless ? "♾️ CHEKSIZ REJIM YAKUNLANDI" : "💀 SEKTOR VAYRON BO'LDI", 640, 210);
+      ctx.fillText(isEndless ? "♾️ CHEKSIZ REJIM YAKUNLANDI" : "💀 SEKTOR VAYRON BO'LDI", 640, 160);
       ctx.restore();
 
       ctx.fillStyle = "#b0bec5";
-      ctx.font = "bold 17px monospace";
+      ctx.font = "bold 13px monospace";
       ctx.textAlign = "center";
-      const record = localStorage.getItem('lg_endless_wave') || this.wave;
-      const descStr = isEndless
-        ? `Erishilgan to'lqin: Wave ${this.wave}  |  Shaxsiy rekord: Wave ${record}  |  Ball: ${this.score} PTS`
-        : `Dushmanlar ${this.wave}-to'lqinda bazani yorib o'tdi. To'plangan ball: ${this.score} PTS`;
-      ctx.fillText(descStr, 640, 270);
+      ctx.fillText("MUDOFAA CHIZIG'I BUZILDI • BAZA YADRO REAKTORI ZARARLANDI", 640, 188);
 
-      this.drawCyberButton(340, 410, 180, 52, this.t("retry"), isEndless ? "#e040fb" : "#ff1744", "RESTART", "🔄", true);
+      // 4 Telemetry Pods (y: 215, h: 62)
+      const podW = 175;
+      const podH = 62;
+      const record = localStorage.getItem('lg_endless_wave') || this.wave;
+      const pods = [
+        { label: "⚔️ YETIB KELINDI", val: `WAVE ${this.wave}`, col: "#ff1744" },
+        { label: "🏆 REKORD TO'LQIN", val: `WAVE ${record}`, col: "#ffd600" },
+        { label: "💀 QATLIOM", val: `${this.analytics.totalKills} TA`, col: "#00e5ff" },
+        { label: "⚡ BALL", val: `${this.score} PTS`, col: isEndless ? "#e040fb" : "#ff1744" }
+      ];
+
+      for (let i = 0; i < 4; i++) {
+        const px = mx + 38 + i * (podW + 12);
+        const py = 215;
+
+        ctx.fillStyle = "rgba(18, 10, 14, 0.95)";
+        ctx.beginPath();
+        ctx.roundRect(px, py, podW, podH, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 23, 68, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#90a4ae";
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(pods[i].label, px + podW / 2, py + 22);
+
+        ctx.fillStyle = pods[i].col;
+        ctx.font = "900 15px 'Segoe UI', monospace";
+        ctx.fillText(pods[i].val, px + podW / 2, py + 46);
+      }
+
+      // Tactical Debrief Intel Advice Card (y: 295, h: 60)
+      ctx.fillStyle = "rgba(20, 10, 16, 0.95)";
+      ctx.beginPath();
+      ctx.roundRect(mx + 38, 292, mw - 76, 60, 6);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 214, 0, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("📡 HQ TAKTIK RAZVODKA TAVSIYASI:", mx + 55, 316);
+
+      ctx.fillStyle = "#cfd8dc";
+      ctx.font = "11px monospace";
+      const advice = (this.wave >= 20) ?
+        "Titan Bosslarning qalin zirhini teshish uchun Railgun va Flame minoralari kombinatsiyasidan foydalaning!" :
+        "Tezkor dushmanlarni to'xtatish uchun Cryo sekinlatgichlari va Tesla elektr zanjirlarini erta quring.";
+      ctx.fillText(advice, mx + 55, 335);
+
+      // Action Buttons
+      this.drawCyberButton(340, 410, 180, 52, this.t("retry"), isEndless ? "#e040fb" : "#ff1744", "RESTART SECTOR", "🔄", true);
       this.drawCyberButton(550, 410, 180, 52, "STATISTIKA", "#ffd600", "BATTLE REPORT", "📊", false);
       this.drawCyberButton(760, 410, 180, 52, this.t("mainMenu"), "#00e5ff", "COMMAND HQ", "←", false);
+      ctx.restore();
     }
 
     // =========================================================================
@@ -10696,44 +11151,202 @@
         ctx.stroke();
       }
 
-      // 10. Tactical 3D HUD & Controls
-      this.renderMiniButton(20, 18, 175, 38, "← 2D STRATEGIYA", "#00e5ff");
+      // 10. Futuristic Sci-Fi Helmet Visor HUD Overlay
+      ctx.save();
+      const vColor = "rgba(0, 229, 255, 0.45)";
+      ctx.strokeStyle = vColor;
+      ctx.lineWidth = 2;
 
-      ctx.fillStyle = "#0c1527";
-      ctx.fillRect(160, 18, 960, 40);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      // 4 Visor Corner Brackets
+      const cLen = 45;
+      // Top-Left
+      ctx.beginPath();
+      ctx.moveTo(35 + cLen, 25); ctx.lineTo(35, 25); ctx.lineTo(35, 25 + cLen);
+      ctx.stroke();
+      // Top-Right
+      ctx.beginPath();
+      ctx.moveTo(1245 - cLen, 25); ctx.lineTo(1245, 25); ctx.lineTo(1245, 25 + cLen);
+      ctx.stroke();
+      // Bottom-Left
+      ctx.beginPath();
+      ctx.moveTo(35 + cLen, 695); ctx.lineTo(35, 695); ctx.lineTo(35, 695 - cLen);
+      ctx.stroke();
+      // Bottom-Right
+      ctx.beginPath();
+      ctx.moveTo(1245 - cLen, 695); ctx.lineTo(1245, 695); ctx.lineTo(1245, 695 - cLen);
+      ctx.stroke();
+
+      // Visor Peripheral Tick Marks
       ctx.lineWidth = 1;
-      ctx.strokeRect(160, 18, 960, 40);
+      for (let y = 140; y <= 580; y += 40) {
+        ctx.beginPath(); ctx.moveTo(35, y); ctx.lineTo(43, y); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(1245, y); ctx.lineTo(1237, y); ctx.stroke();
+      }
+
+      // 11. Top Center: 360° Tactical Compass Tape (x: 480..800, y: 16..46)
+      const compX = 480, compY = 16, compW = 320, compH = 30;
+      ctx.fillStyle = "rgba(6, 12, 24, 0.92)";
+      ctx.beginPath();
+      ctx.roundRect(compX, compY, compW, compH, 6);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Clip inside compass tape
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(compX + 2, compY + 2, compW - 4, compH - 4, 4);
+      ctx.clip();
+
+      const curYawDeg = ((p.yaw * 180 / Math.PI) % 360 + 360) % 360;
+      const degScale = compW / 120; // 120 degrees visible at once
+
+      const cardinals = [
+        { deg: 0, label: "N" }, { deg: 45, label: "NE" }, { deg: 90, label: "E" },
+        { deg: 135, label: "SE" }, { deg: 180, label: "S" }, { deg: 225, label: "SW" },
+        { deg: 270, label: "W" }, { deg: 315, label: "NW" }
+      ];
+
+      for (let d = -180; d <= 540; d += 15) {
+        let diff = d - curYawDeg;
+        while (diff < -180) diff += 360;
+        while (diff > 180) diff -= 360;
+        if (Math.abs(diff) <= 65) {
+          const tickX = compX + compW / 2 + diff * degScale;
+          const card = cardinals.find(c => Math.abs(c.deg - ((d % 360 + 360) % 360)) < 1);
+          if (card) {
+            ctx.fillStyle = (card.label === "N") ? "#ff1744" : "#00e5ff";
+            ctx.font = "900 11px monospace";
+            ctx.textAlign = "center";
+            ctx.fillText(card.label, tickX, compY + 18);
+          } else {
+            ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+            ctx.beginPath();
+            ctx.moveTo(tickX, compY + 18);
+            ctx.lineTo(tickX, compY + compH - 3);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Compass Blip: Base Core (0, 0, -35)
+      const coreAng = (Math.atan2(t.core.x - p.x, -(t.core.z - p.z)) * 180 / Math.PI + 360) % 360;
+      let coreDiff = coreAng - curYawDeg;
+      while (coreDiff < -180) coreDiff += 360;
+      while (coreDiff > 180) coreDiff -= 360;
+      if (Math.abs(coreDiff) <= 60) {
+        const blipX = compX + compW / 2 + coreDiff * degScale;
+        ctx.fillStyle = "#00e5ff";
+        ctx.beginPath();
+        ctx.arc(blipX, compY + 8, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Compass Blips: Active Enemies
+      for (const e of t.enemies) {
+        const eAng = (Math.atan2(e.x - p.x, -(e.z - p.z)) * 180 / Math.PI + 360) % 360;
+        let eDiff = eAng - curYawDeg;
+        while (eDiff < -180) eDiff += 360;
+        while (eDiff > 180) eDiff -= 360;
+        if (Math.abs(eDiff) <= 60) {
+          const blipX = compX + compW / 2 + eDiff * degScale;
+          ctx.fillStyle = e.isBoss ? "#ff1744" : "#ffd600";
+          ctx.beginPath();
+          ctx.arc(blipX, compY + 8, e.isBoss ? 4.5 : 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore(); // end compass clip
+
+      // Compass Center Marker
+      ctx.fillStyle = "#ffd600";
+      ctx.beginPath();
+      ctx.moveTo(compX + compW / 2, compY + compH - 2);
+      ctx.lineTo(compX + compW / 2 - 4, compY + compH + 4);
+      ctx.lineTo(compX + compW / 2 + 4, compY + compH + 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Top Status Bar
+      this.renderMiniButton(20, 16, 155, 34, "← 2D STRATEGIYA", "#00e5ff");
+
+      // Right Top Waves & Score Glass Pill
+      ctx.fillStyle = "rgba(8, 14, 26, 0.9)";
+      ctx.beginPath();
+      ctx.roundRect(830, 16, 415, 32, 6);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.stroke();
 
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 15px monospace";
+      ctx.font = "bold 12px monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`WAVE: ${t.wave}`, 180, 43);
-      ctx.fillText(`SCORE: ${t.score}`, 320, 43);
+      ctx.fillText(`WAVE: ${t.wave}`, 845, 36);
+      ctx.fillText(`PTS: ${t.score}`, 945, 36);
 
       ctx.fillStyle = "#cfd8dc";
-      ctx.fillText(`BASE CORE:`, 480, 43);
-      ctx.fillStyle = "#090d16";
-      ctx.fillRect(590, 28, 200, 18);
-      ctx.fillStyle = t.core.health > 150 ? "#00e676" : "#ff1744";
-      ctx.fillRect(590, 28, 200 * (t.core.health / t.core.maxHealth), 18);
-      ctx.strokeStyle = "#ffffff";
-      ctx.strokeRect(590, 28, 200, 18);
+      ctx.fillText(`CORE:`, 1045, 36);
+      const hpPct = Math.max(0, t.core.health / t.core.maxHealth);
+      ctx.fillStyle = "rgba(10, 20, 32, 0.9)";
+      ctx.fillRect(1100, 24, 130, 15);
+      ctx.fillStyle = hpPct > 0.4 ? "#00e676" : "#ff1744";
+      ctx.fillRect(1100, 24, 130 * hpPct, 15);
+      ctx.strokeStyle = "#455a64";
+      ctx.strokeRect(1100, 24, 130, 15);
 
-      ctx.fillStyle = "#0c1527";
-      ctx.fillRect(30, 640, 240, 60);
+      // Bottom-Left Pod: Mech Hull Health & Shield Integrity
+      ctx.fillStyle = "rgba(8, 14, 26, 0.94)";
+      ctx.beginPath();
+      ctx.roundRect(30, 582, 240, 52, 6);
+      ctx.fill();
       ctx.strokeStyle = "#00e5ff";
-      ctx.strokeRect(30, 640, 240, 60);
+      ctx.stroke();
+
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "left";
+      const modeTitle = (p.mode === 'SIEGE') ? "🚜 SIEGE TANK [ARMORED]" : "🤖 APEX-01 [BIPED ASSAULT]";
+      ctx.fillText(modeTitle, 42, 600);
+
+      // 10 Health Pips
+      const pips = 10;
+      const phpPct = p.health / p.maxHealth;
+      for (let pi = 0; pi < pips; pi++) {
+        const pipW = 18;
+        const pipX = 42 + pi * (pipW + 3);
+        ctx.fillStyle = (pi < Math.ceil(phpPct * pips)) ? (phpPct > 0.4 ? "#00e5ff" : "#ff1744") : "rgba(30, 50, 70, 0.4)";
+        ctx.fillRect(pipX, 608, pipW, 14);
+      }
+
+      // Bottom-Left Pod: Plasma Ammo Cells & Overheat
+      ctx.fillStyle = "rgba(8, 14, 26, 0.94)";
+      ctx.beginPath();
+      ctx.roundRect(30, 642, 240, 58, 6);
+      ctx.fill();
+      ctx.strokeStyle = p.isReloading ? "#ff1744" : "#ffd600";
+      ctx.stroke();
 
       ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 20px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText(`AMMO: ${p.ammo} / ${p.reserveAmmo}`, 45, 675);
+      ctx.font = "bold 13px monospace";
+      ctx.fillText(`⚡ AMMO: ${p.ammo}/${p.maxAmmo} (${p.reserveAmmo})`, 42, 662);
+
+      // 15 Ammo Bars
+      const ammoPips = 15;
+      const ammoPct = p.ammo / p.maxAmmo;
+      for (let ai = 0; ai < ammoPips; ai++) {
+        const apW = 12;
+        const apX = 42 + ai * (apW + 2);
+        ctx.fillStyle = (ai < Math.ceil(ammoPct * ammoPips)) ? "#ffd600" : "rgba(40, 45, 30, 0.4)";
+        ctx.fillRect(apX, 670, apW, 12);
+      }
       if (p.isReloading) {
         ctx.fillStyle = "#ff1744";
-        ctx.font = "bold 12px monospace";
-        ctx.fillText("RELOADING...", 175, 675);
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "right";
+        ctx.fillText("RELOADING...", 255, 662);
       }
+      ctx.restore(); // end visor save
 
       // Mobile Touch Action Sci-Fi Circular Buttons (Right side)
       this.render3DCircularButton(1200, 620, 48, "💥 OTISH", "FIRE", "#ff1744", false);
