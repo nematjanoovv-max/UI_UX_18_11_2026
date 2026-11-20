@@ -637,7 +637,18 @@
         this.renderer.setPixelRatio(pr);
         this.renderer.setSize(this.canvas.width, this.canvas.height, false);
 
+        if (THREE.ACESFilmicToneMapping) {
+          this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          this.renderer.toneMappingExposure = 1.25;
+        }
+        if (THREE.SRGBColorSpace) {
+          this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        }
+
         this.scene = new THREE.Scene();
+        if (typeof window !== 'undefined' && window.createStudioEnvironment) {
+          this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
+        }
         this.camera = new THREE.PerspectiveCamera(36, this.canvas.width / this.canvas.height, 0.1, 80);
         this.camera.position.set(5.5, 3.8, 8.5);
         this.camera.lookAt(0, 2.5, 0);
@@ -771,6 +782,9 @@
       if (this.mech && typeof this.mech.dispose === 'function') {
         this.mech.dispose();
         this.mech = null;
+      }
+      if (this.scene && this.scene.environment && typeof this.scene.environment.dispose === 'function') {
+        this.scene.environment.dispose();
       }
       if (this.renderer) {
         try {

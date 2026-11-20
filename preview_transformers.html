@@ -640,6 +640,17 @@
     ];
     let activePresetIdx = 0;
     let hemiLight, keyLight, rimLight1, rimLight2;
+    let currentEnvMap = null;
+
+    function updateStudioEnvironment(presetId) {
+      if (currentEnvMap && typeof currentEnvMap.dispose === 'function') {
+        currentEnvMap.dispose();
+      }
+      if (window.createStudioEnvironment) {
+        currentEnvMap = window.createStudioEnvironment(THREE, presetId);
+        if (scene) scene.environment = currentEnvMap;
+      }
+    }
 
     // Camera & Orbit Controls
     let yaw = 0.35, pitch = 0.18, zoom = 9.5;
@@ -658,9 +669,21 @@
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+      // Photorealistic Tone Mapping & Color Space
+      if (THREE.ACESFilmicToneMapping) {
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.25;
+      }
+      if (THREE.SRGBColorSpace) {
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+      }
+
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
       updateCameraPos();
+
+      // Procedural Studio Equirectangular IBL Environment Map
+      updateStudioEnvironment('CS2');
 
       // Lighting Setup
       hemiLight = new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.7);
@@ -669,6 +692,11 @@
       keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
       keyLight.position.set(6, 10, 7);
       keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 2048;
+      keyLight.shadow.mapSize.height = 2048;
+      keyLight.shadow.camera.near = 0.5;
+      keyLight.shadow.camera.far = 25;
+      keyLight.shadow.bias = -0.0001;
       scene.add(keyLight);
 
       rimLight1 = new THREE.PointLight(0x00e5ff, 12, 16);
@@ -679,7 +707,7 @@
       rimLight2.position.set(5, 3, -5);
       scene.add(rimLight2);
 
-      // Cyber Hologram Floor Turntable
+      // Cyber Hologram Floor Turntable with Contact AO Shadow
       buildTurntableFloor();
 
       // Load Initial Hero
@@ -696,38 +724,50 @@
       scene.add(group);
 
       // Floor Mirror Disk
-      const diskGeo = new THREE.CylinderGeometry(4.5, 4.6, 0.2, 48);
+      const diskGeo = new THREE.CylinderGeometry(4.6, 4.8, 0.2, 48);
       const diskMat = new THREE.MeshStandardMaterial({
         color: 0x080e1a,
-        metalness: 0.95,
-        roughness: 0.15
+        metalness: 0.96,
+        roughness: 0.12,
+        envMapIntensity: 1.4
       });
       const disk = new THREE.Mesh(diskGeo, diskMat);
       disk.position.y = -2.2;
       disk.receiveShadow = true;
       group.add(disk);
 
+      // Ground Contact Ambient Occlusion (AO) Decal Disk
+      const aoGeo = new THREE.CylinderGeometry(2.5, 2.6, 0.02, 32);
+      const aoMat = new THREE.MeshBasicMaterial({
+        color: 0x020408,
+        transparent: true,
+        opacity: 0.85
+      });
+      const aoDecal = new THREE.Mesh(aoGeo, aoMat);
+      aoDecal.position.y = -2.09;
+      group.add(aoDecal);
+
       // Outer Neon Ring
-      const ringGeo = new THREE.TorusGeometry(4.2, 0.05, 12, 64);
+      const ringGeo = new THREE.TorusGeometry(4.3, 0.05, 12, 64);
       const ringMat = new THREE.MeshStandardMaterial({
         color: 0x00e5ff,
         emissive: 0x00e5ff,
         emissiveIntensity: 2.5
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.y = -2.08;
+      ring.position.y = -2.07;
       ring.rotation.x = Math.PI / 2;
       group.add(ring);
 
       // Inner Amber Ring
-      const ringGeo2 = new THREE.TorusGeometry(3.2, 0.03, 12, 64);
+      const ringGeo2 = new THREE.TorusGeometry(3.3, 0.03, 12, 64);
       const ringMat2 = new THREE.MeshStandardMaterial({
         color: 0xfacc15,
         emissive: 0xfacc15,
         emissiveIntensity: 2.0
       });
       const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
-      ring2.position.y = -2.08;
+      ring2.position.y = -2.07;
       ring2.rotation.x = Math.PI / 2;
       group.add(ring2);
     }
@@ -846,6 +886,8 @@
 
       rimLight1.color.setHex(p.rim1);
       rimLight2.color.setHex(p.rim2);
+
+      updateStudioEnvironment(p.id);
 
       document.getElementById('btn-lighting').innerText = `💡 STUDIYA: ${p.name}`;
       showToast(`💡 YORUG'LIK: ${p.name}`);

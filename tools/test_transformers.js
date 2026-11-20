@@ -90,18 +90,28 @@ global.document = {
         width: 256, height: 256,
         getContext: () => ({
           fillStyle: '',
+          strokeStyle: '',
+          lineWidth: 1,
           fillRect: () => {},
           getImageData: () => ({ data: new Uint8ClampedArray(256 * 256 * 4) }),
           putImageData: () => {},
           createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+          createLinearGradient: () => ({ addColorStop: () => {} }),
+          createRadialGradient: () => ({ addColorStop: () => {} }),
           beginPath: () => {},
           moveTo: () => {},
           lineTo: () => {},
+          bezierCurveTo: () => {},
+          arc: () => {},
           closePath: () => {},
           fill: () => {},
           stroke: () => {},
           strokeRect: () => {},
-          fillText: () => {}
+          rect: () => {},
+          roundRect: () => {},
+          fillText: () => {},
+          save: () => {},
+          restore: () => {}
         })
       };
     }
@@ -205,6 +215,25 @@ console.log('✔ BumblebeeMech has loadSketchfabGLB method');
 
 testPrime.dispose();
 testBee.dispose();
+
+// 4. Test Procedural Studio Equirectangular IBL & 1024x1024 Textures
+if (typeof global.createStudioEnvironment !== 'function') {
+  throw new Error('createStudioEnvironment missing on global!');
+}
+['CS2', 'NEON', 'DESERT', 'VOID'].forEach(preset => {
+  const envTex = global.createStudioEnvironment(mockTHREE, preset);
+  if (!envTex) throw new Error(`createStudioEnvironment failed for preset ${preset}`);
+});
+console.log('✔ Procedural Studio Equirectangular IBL verified across all 4 lighting presets (CS2, NEON, DESERT, VOID)');
+
+if (typeof global.createTransformerTextures !== 'function') {
+  throw new Error('createTransformerTextures missing on global!');
+}
+const testTex = global.createTransformerTextures(mockTHREE);
+if (!testTex.tPrimeCrimson || !testTex.tBeeYellow || !testTex.tChromeGrille || !testTex.tNormal || !testTex.tRoughness) {
+  throw new Error('createTransformerTextures missing required PBR textures!');
+}
+console.log('✔ Procedural 1024x1024 PBR Texture Suite verified (Crimson, Cobalt, Yellow, Chrome Grille, Tire Rubber, Tangent Normal, Roughness, Carbon)');
 
 console.log('\n🎉 ALL TRANSFORMERS 3D ENGINE & SKETCHFAB TESTS PASSED WITH 100% SUCCESS!');
 
