@@ -1304,6 +1304,21 @@
       window.addEventListener('resize', () => this.resizeCanvas());
       window.addEventListener('orientationchange', () => setTimeout(() => this.resizeCanvas(), 150));
       document.addEventListener('fullscreenchange', () => setTimeout(() => this.resizeCanvas(), 150));
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (typeof audio !== "undefined" && audio) {
+            audio.stopBGM();
+            if (audio.ctx && audio.ctx.state === "running") audio.ctx.suspend().catch(() => {});
+          }
+        } else {
+          if (typeof audio !== "undefined" && audio) {
+            if (audio.ctx && audio.ctx.state === "suspended") audio.ctx.resume().catch(() => {});
+            if (!audio.bgmMuted && (this.state === "PLAYING" || this.state === "MENU")) {
+              audio.playBGMTrack(this.state === "MENU" ? "menu" : (this.currentBgmName || "cyber"));
+            }
+          }
+        }
+      });
       this.resizeCanvas();
     }
 
