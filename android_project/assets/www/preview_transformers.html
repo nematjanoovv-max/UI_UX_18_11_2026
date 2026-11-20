@@ -38,12 +38,29 @@
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    display: block;
+    display: none; /* Hidden by default in favor of Fotorealistik Sketchfab 3D */
     touch-action: none;
     cursor: grab;
+    z-index: 2;
   }
   #webgl-canvas:active {
     cursor: grabbing;
+  }
+
+  /* Fullscreen Fotorealistik Sketchfab Viewport */
+  #sketchfab-viewport {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    background: #020614;
+    display: block;
+  }
+  #sketchfab-viewport iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
   }
 
   /* Top Navigation & Status Bar */
@@ -56,7 +73,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    z-index: 20;
+    z-index: 30;
     pointer-events: none;
   }
   .nav-btn {
@@ -73,6 +90,54 @@
     align-items: center;
     gap: 6px;
     backdrop-filter: blur(12px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+  }
+  .nav-btn:hover, .nav-btn:active {
+    background: var(--cyan);
+    color: #030712;
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+
+  /* Central Engine Mode Switcher Bar */
+  #render-mode-bar {
+    display: inline-flex;
+    background: rgba(11, 19, 36, 0.95);
+    border: 1px solid var(--panel-border);
+    border-radius: 30px;
+    padding: 3px;
+    gap: 4px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    pointer-events: auto;
+  }
+  .mode-pill {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+  .mode-pill.active {
+    background: linear-gradient(135deg, #00e5ff 0%, #0284c7 100%);
+    color: #030712;
+    box-shadow: 0 0 16px var(--cyan-glow);
+  }
+  .dot-green {
+    width: 7px; height: 7px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+    display: inline-block;
+  }
     box-shadow: 0 4px 16px rgba(0,0,0,0.5);
     transition: all 0.2s ease;
   }
@@ -449,21 +514,32 @@
   <!-- Top Bar -->
   <div id="top-bar">
     <a href="index.html" class="nav-btn">⟵ O'YINGA QAYTISH</a>
-    <div class="title-pill">
-      <span class="dot"></span>
-      <span>TRANSFORMERS 3D ENGINE // PBR</span>
+
+    <!-- Primary Mode Switcher: Fotorealistik Sketchfab 3D vs Three.js Offlayn Rig -->
+    <div id="render-mode-bar">
+      <button class="mode-pill active" id="pill-sketchfab" onclick="setViewerMode('SKETCHFAB')">
+        <span class="dot-green"></span>
+        <span>🌐 FOTOREALISTIK 3D (SKETCHFAB)</span>
+      </button>
+      <button class="mode-pill" id="pill-threejs" onclick="setViewerMode('THREEJS')">
+        <span>🤖 OFFLAYN MECH (THREE.JS)</span>
+      </button>
     </div>
+
     <div class="fps-badge" id="fps-display">60 FPS</div>
   </div>
 
-  <!-- Hero Switcher -->
+  <!-- Dynamic Hero Switcher -->
   <div id="hero-switcher">
-    <button class="hero-tab active-optimus" id="tab-optimus" onclick="switchHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
-    <button class="hero-tab" id="tab-bee" onclick="switchHero('BUMBLEBEE')">🏎️ BUMBLEBEE</button>
-    <button class="hero-tab" id="tab-apex" onclick="switchHero('APEX')">🤖 APEX-01 MECH</button>
+    <!-- Rendered dynamically by updateHeroSwitcher() -->
   </div>
 
-  <!-- 3D Canvas -->
+  <!-- Fotorealistik Sketchfab 3D Fullscreen Viewport -->
+  <div id="sketchfab-viewport">
+    <iframe id="sf-main-iframe" src="https://sketchfab.com/models/c909f649f91f41cbb56e6eb7945dbb24/embed?autostart=1&internal=1&tracking=0&ui_infos=0&ui_snapshots=0&ui_stop=0&ui_watermark=0&ui_theme=dark" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen></iframe>
+  </div>
+
+  <!-- Three.js 3D Canvas -->
   <canvas id="webgl-canvas"></canvas>
 
   <!-- Lore Dossier -->
@@ -787,7 +863,212 @@
     }
 
     // =========================================================================
-    // 3. HERO LOADING & SWITCHING
+    // 3. SKETCHFAB FOTOREALISTIK 3D ENGINE & SWITCHER
+    // =========================================================================
+    const SKETCHFAB_MODELS = {
+      OPTIMUS: {
+        uid: 'c909f649f91f41cbb56e6eb7945dbb24',
+        name: 'Optimus Prime Leader',
+        title: 'OPTIMUS PRIME (AUTOBOT LEADER)',
+        downloadUrl: 'https://sketchfab.com/3d-models/none-c909f649f91f41cbb56e6eb7945dbb24',
+        dossier: {
+          faction: 'Avtobotlar (Oliy Yetakchi)',
+          altmode: 'Peterbilt 379 Semi-Truck',
+          weapon: 'Heavy Ion Blaster Rifle (950 DPS)',
+          melee: 'Energon Battle Axe (1400 DMG)',
+          armor: 'Cybertronian High-Poly Titanium (PBR)',
+          desc: 'Fotorealistik Sketchfab 3D kino modeli. Yuqori poligonli haqiqiy kino-detallari: ko\'krak ichidagi Matrix of Leadership, Peterbilt xrom radiator panjarasi, 2.8m tutun quvurlari va har bir murvatgacha ishlangan.'
+        }
+      },
+      BUMBLEBEE: {
+        uid: 'b5174857c65d4a5aacc2bfcb1948c880',
+        name: 'Transformers Bumblebee',
+        title: 'BUMBLEBEE (AUTOBOT SCOUT)',
+        downloadUrl: 'https://sketchfab.com/3d-models/none-b5174857c65d4a5aacc2bfcb1948c880',
+        dossier: {
+          faction: 'Avtobotlar (Tezkor Skaut)',
+          altmode: 'Chevrolet Camaro SS Sports Car',
+          weapon: 'Stinger Triple Gatling Cannon',
+          melee: 'Cyber-Blade Arm Cutter',
+          armor: 'Agile Carbon-Fiber Composite (PBR)',
+          desc: 'Creative Commons (CC-BY) litsenziyali fotorealistik Bumblebee modeli. Qanot eshiklar, aylana proyektor faralar, sariq-qora poyga chiziqlari va o\'t ochuvchi plazma to\'pi.'
+        }
+      },
+      PETERBILT: {
+        uid: '12faed17298947458cccee85b45a9695',
+        name: 'Peterbilt 379 (Optimus Truck)',
+        title: 'PETERBILT 379 (OPTIMUS TRUCK CAB)',
+        downloadUrl: 'https://sketchfab.com/3d-models/none-12faed17298947458cccee85b45a9695',
+        dossier: {
+          faction: 'Optimus Prime Transport Rejimi',
+          altmode: 'Klassik Amerika Og\'ir Tyagachi',
+          weapon: 'Ramming Heavy Front Bumper',
+          melee: 'Dual Axle Kinetic Impact (180 km/h)',
+          armor: 'Mirror Chrome & Candy Apple Red',
+          desc: 'Optimus Prime aylanadigan afsonaviy Peterbilt 379 og\'ir yuk mashinasi. 1024x1024 xrom panjara, egizak smokestack quvurlari, alanga naqshlari va 10 ta g\'ildirak.'
+        }
+      },
+      CAMARO: {
+        uid: '54454cddc885490f91c557851ec3f1db',
+        name: 'Bumblebee 1977 Camaro',
+        title: '1977 CAMARO (BUMBLEBEE SPORTCAR)',
+        downloadUrl: 'https://sketchfab.com/3d-models/none-54454cddc885490f91c557851ec3f1db',
+        dossier: {
+          faction: 'Bumblebee Transport Rejimi',
+          altmode: 'Chevrolet Camaro 1977 Z28',
+          weapon: 'High-RPM V8 Engine & Nitro Boost',
+          melee: 'High-Speed Kinetic Drift',
+          armor: 'Canary Yellow & Dual Matte Black Stripes',
+          desc: 'Bumblebee ning Yer sayyorasidagi ilk mashhur shakli — 1977 yilgi sariq Camaro sportkari. Qanotlar, radiator va 5 spitsali xrom g\'ildiraklar.'
+        }
+      },
+      OPTIMUS_G1: {
+        uid: 'ab589aad66994474b706c4bc5eeecb8a',
+        name: 'Optimus Prime G1 Classic',
+        title: 'OPTIMUS PRIME G1 (CLASSIC 1984)',
+        downloadUrl: 'https://sketchfab.com/3d-models/none-ab589aad66994474b706c4bc5eeecb8a',
+        dossier: {
+          faction: 'Avtobotlar (1984 G1 Animatsiya)',
+          altmode: 'Freightliner FL86 Cab-over',
+          weapon: 'G1 Ion Rifle Blaster',
+          melee: 'Energon Axe',
+          armor: 'Retro Cell-Shaded Cybertronian Alloy',
+          desc: 'Klassik 1984 yilgi Transformers animatsiyasidagi afsonaviy G1 Optimus Prime modeli.'
+        }
+      }
+    };
+
+    let currentViewerMode = 'SKETCHFAB'; // 'SKETCHFAB' | 'THREEJS'
+    let activeSfHero = 'OPTIMUS';
+
+    function setViewerMode(mode) {
+      currentViewerMode = mode;
+      const sfVp = document.getElementById('sketchfab-viewport');
+      const webglCanvas = document.getElementById('webgl-canvas');
+      const pillSf = document.getElementById('pill-sketchfab');
+      const pillThree = document.getElementById('pill-threejs');
+
+      if (mode === 'SKETCHFAB') {
+        sfVp.style.display = 'block';
+        webglCanvas.style.display = 'none';
+        pillSf.classList.add('active');
+        pillThree.classList.remove('active');
+        updateHeroSwitcherForSketchfab();
+        updateCommandDeckForSketchfab();
+        switchSfHero(activeSfHero || 'OPTIMUS');
+        showToast("🌐 FOTOREALISTIK 3D (SKETCHFAB) REJIMI");
+      } else {
+        sfVp.style.display = 'none';
+        webglCanvas.style.display = 'block';
+        pillThree.classList.add('active');
+        pillSf.classList.remove('active');
+        updateHeroSwitcherForThree();
+        updateCommandDeckForThree();
+        loadHero(currentHero || 'OPTIMUS');
+        showToast("🤖 THREE.JS OFFLAYN MECH REJIMI");
+      }
+    }
+
+    function updateHeroSwitcherForSketchfab() {
+      const switcher = document.getElementById('hero-switcher');
+      switcher.innerHTML = `
+        <button class="hero-tab active-optimus" id="tab-sf-optimus" onclick="switchSfHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
+        <button class="hero-tab" id="tab-sf-bee" onclick="switchSfHero('BUMBLEBEE')">🏎️ BUMBLEBEE</button>
+        <button class="hero-tab" id="tab-sf-peterbilt" onclick="switchSfHero('PETERBILT')">🚚 PETERBILT 379</button>
+        <button class="hero-tab" id="tab-sf-camaro" onclick="switchSfHero('CAMARO')">🏎️ CAMARO SS</button>
+        <button class="hero-tab" id="tab-sf-g1" onclick="switchSfHero('OPTIMUS_G1')">🤖 OPTIMUS G1</button>
+      `;
+    }
+
+    function updateHeroSwitcherForThree() {
+      const switcher = document.getElementById('hero-switcher');
+      switcher.innerHTML = `
+        <button class="hero-tab active-optimus" id="tab-optimus" onclick="switchHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
+        <button class="hero-tab" id="tab-bee" onclick="switchHero('BUMBLEBEE')">🏎️ BUMBLEBEE</button>
+        <button class="hero-tab" id="tab-apex" onclick="switchHero('APEX')">🤖 APEX-01 MECH</button>
+      `;
+    }
+
+    function updateCommandDeckForSketchfab() {
+      const deck = document.getElementById('command-deck');
+      const m = SKETCHFAB_MODELS[activeSfHero] || SKETCHFAB_MODELS.OPTIMUS;
+      deck.innerHTML = `
+        <a class="cmd-btn highlight" id="btn-sf-download" target="_blank" href="${m.downloadUrl}">⬇️ SKETCHFABDAN GLB YUKLASH</a>
+        <button class="cmd-btn" onclick="triggerFilePicker()">📥 O'ZINGIZNING GLB MODELINGIZNI YUKLASH</button>
+        <button class="cmd-btn" onclick="toggleDossier()">📖 DOSYE</button>
+        <button class="cmd-btn" id="btn-audio" onclick="toggleAudio()">🔊 OVOZ: ${audioEnabled ? 'YOQ' : 'O\'CH'}</button>
+        <button class="cmd-btn" onclick="toggleFullscreen()">⛶ TO'LIQ EKRAN</button>
+      `;
+    }
+
+    function updateCommandDeckForThree() {
+      const deck = document.getElementById('command-deck');
+      deck.innerHTML = `
+        <button class="cmd-btn highlight" id="btn-transform" onclick="triggerTransform()">🔄 TRANSFORMATSIYA</button>
+        <button class="cmd-btn" id="btn-fire" onclick="triggerFire()">💥 O'T OCHISH</button>
+        <button class="cmd-btn" id="btn-melee" onclick="triggerMelee()">⚔️ YAQIN JANG ZARBASI</button>
+        <button class="cmd-btn" id="btn-import-sketchfab" onclick="triggerFilePicker()">📥 SKETCHFAB (.GLB)</button>
+        <button class="cmd-btn" id="btn-lighting" onclick="cycleLighting()">💡 STUDIYA: CS2 HANGAR</button>
+        <button class="cmd-btn" id="btn-autorotate" onclick="toggleAutoRotate()">⟲ AVTO-AYLANISH: ${autoRotate ? 'YOQ' : 'O\'CH'}</button>
+        <button class="cmd-btn" id="btn-dossier" onclick="toggleDossier()">📖 DOSYE</button>
+        <button class="cmd-btn" id="btn-audio" onclick="toggleAudio()">🔊 OVOZ: ${audioEnabled ? 'YOQ' : 'O\'CH'}</button>
+      `;
+    }
+
+    function switchSfHero(heroKey) {
+      const m = SKETCHFAB_MODELS[heroKey];
+      if (!m) return;
+      activeSfHero = heroKey;
+
+      document.querySelectorAll('#hero-switcher .hero-tab').forEach(t => t.className = 'hero-tab');
+      let tabId = 'tab-sf-optimus';
+      if (heroKey === 'BUMBLEBEE') tabId = 'tab-sf-bee';
+      else if (heroKey === 'PETERBILT') tabId = 'tab-sf-peterbilt';
+      else if (heroKey === 'CAMARO') tabId = 'tab-sf-camaro';
+      else if (heroKey === 'OPTIMUS_G1') tabId = 'tab-sf-g1';
+
+      const btn = document.getElementById(tabId);
+      if (btn) {
+        if (heroKey.includes('OPTIMUS') || heroKey === 'PETERBILT') btn.classList.add('active-optimus');
+        else if (heroKey.includes('BEE') || heroKey === 'CAMARO') btn.classList.add('active-bee');
+        else btn.classList.add('active-apex');
+      }
+
+      const iframe = document.getElementById('sf-main-iframe');
+      if (iframe) {
+        iframe.src = `https://sketchfab.com/models/${m.uid}/embed?autostart=1&internal=1&tracking=0&ui_infos=0&ui_snapshots=0&ui_stop=0&ui_watermark=0&ui_theme=dark`;
+      }
+
+      const dlBtn = document.getElementById('btn-sf-download');
+      if (dlBtn) dlBtn.href = m.downloadUrl;
+
+      // Update Lore Dossier
+      document.getElementById('dossier-title').innerText = m.title;
+      document.getElementById('d-faction').innerText = m.dossier.faction;
+      document.getElementById('d-altmode').innerText = m.dossier.altmode;
+      document.getElementById('d-weapon').innerText = m.dossier.weapon;
+      document.getElementById('d-melee').innerText = m.dossier.melee;
+      document.getElementById('d-armor').innerText = m.dossier.armor;
+      document.getElementById('d-desc').innerText = m.dossier.desc;
+
+      if (audioEnabled) {
+        if (heroKey.includes('OPTIMUS') || heroKey === 'PETERBILT') playIonBlasterSFX();
+        else if (heroKey.includes('BEE') || heroKey === 'CAMARO') playPlasmaSFX();
+        else playEnergonSFX();
+      }
+      showToast(`🌐 FOTOREALISTIK 3D: ${m.title}`);
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // =========================================================================
+    // 4. THREE.JS HERO LOADING & SWITCHING (OFFLINE)
     // =========================================================================
     function loadHero(heroType) {
       if (currentMech) {
@@ -816,10 +1097,17 @@
     }
 
     function switchHero(type) {
-      document.querySelectorAll('.hero-tab').forEach(t => t.className = 'hero-tab');
-      if (type === 'OPTIMUS') document.getElementById('tab-optimus').classList.add('active-optimus');
-      else if (type === 'BUMBLEBEE') document.getElementById('tab-bee').classList.add('active-bee');
-      else if (type === 'APEX') document.getElementById('tab-apex').classList.add('active-apex');
+      document.querySelectorAll('#hero-switcher .hero-tab').forEach(t => t.className = 'hero-tab');
+      if (type === 'OPTIMUS') {
+        const el = document.getElementById('tab-optimus');
+        if (el) el.classList.add('active-optimus');
+      } else if (type === 'BUMBLEBEE') {
+        const el = document.getElementById('tab-bee');
+        if (el) el.classList.add('active-bee');
+      } else if (type === 'APEX') {
+        const el = document.getElementById('tab-apex');
+        if (el) el.classList.add('active-apex');
+      }
 
       loadHero(type);
       if (audioEnabled) {
@@ -1063,6 +1351,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       init3D();
       setupDragAndDrop();
+      setViewerMode('SKETCHFAB');
       animate();
     });
 
@@ -1081,6 +1370,7 @@
 
     function loadGLBFile(file) {
       showToast(`⏳ Sketchfab fayli yuklanmoqda: ${file.name}...`);
+      setViewerMode('THREEJS');
       const reader = new FileReader();
       reader.onload = (e) => {
         const buffer = e.target.result;
