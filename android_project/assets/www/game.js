@@ -1041,6 +1041,7 @@
       this.flyingCoins = [];
       this.upgradePillars = [];
       this.heroMenuAnim = { breathe: 0, coreGlow: 0, stanceTimer: 0 };
+      this.initProceduralPBRTextures();
 
       // Mobile Ergonomics & Dedicated Settings
       this.settings = {
@@ -6424,6 +6425,150 @@
       ctx.fillText(hpPct < 0.3 ? "CRITICAL" : "CORE", base.x, base.y + 4);
     }
 
+    initProceduralPBRTextures() {
+      if (this.pbrPatterns) return;
+      try {
+        let seed = 42891;
+        const rnd = () => {
+          seed = (seed * 9301 + 49297) % 233280;
+          return seed / 233280;
+        };
+
+        // 1. Brushed Titanium Armor Texture (64x64)
+        const titC = document.createElement('canvas'); titC.width = titC.height = 64;
+        const tCtx = titC.getContext('2d');
+        tCtx.fillStyle = '#1e293b'; tCtx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 70; i++) {
+          const y = rnd() * 64;
+          const len = 12 + rnd() * 52;
+          const x = rnd() * 64;
+          tCtx.fillStyle = rnd() > 0.5 ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.22)';
+          tCtx.fillRect(x, y, len, 1);
+        }
+        for (let s = 0; s < 12; s++) {
+          tCtx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+          tCtx.lineWidth = 0.8;
+          tCtx.beginPath();
+          const sx = rnd() * 64, sy = rnd() * 64;
+          tCtx.moveTo(sx, sy); tCtx.lineTo(sx + (rnd() - 0.5) * 14, sy + (rnd() - 0.5) * 6);
+          tCtx.stroke();
+        }
+
+        // 2. Carbon Fiber Twill Weave Pattern (16x16)
+        const carbC = document.createElement('canvas'); carbC.width = carbC.height = 16;
+        const cCtx = carbC.getContext('2d');
+        cCtx.fillStyle = '#0a0f1d'; cCtx.fillRect(0, 0, 16, 16);
+        cCtx.fillStyle = '#1e293b';
+        cCtx.fillRect(0, 0, 8, 8); cCtx.fillRect(8, 8, 8, 8);
+        cCtx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+        cCtx.fillRect(1, 1, 6, 2); cCtx.fillRect(9, 9, 6, 2);
+        cCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        cCtx.fillRect(0, 7, 8, 1); cCtx.fillRect(8, 15, 8, 1);
+
+        // 3. Hazard Warning Chevron Pattern (32x32)
+        const hazC = document.createElement('canvas'); hazC.width = hazC.height = 32;
+        const hCtx = hazC.getContext('2d');
+        hCtx.fillStyle = '#ffd600'; hCtx.fillRect(0, 0, 32, 32);
+        hCtx.fillStyle = '#090d16';
+        for (let i = -32; i < 64; i += 16) {
+          hCtx.beginPath();
+          hCtx.moveTo(i, 0); hCtx.lineTo(i + 8, 0);
+          hCtx.lineTo(i + 40, 32); hCtx.lineTo(i + 32, 32);
+          hCtx.closePath(); hCtx.fill();
+        }
+
+        // 4. Bio-Chitin Honeycomb Exoskeleton Pattern (32x32)
+        const bioC = document.createElement('canvas'); bioC.width = bioC.height = 32;
+        const bCtx = bioC.getContext('2d');
+        bCtx.fillStyle = '#2e1065'; bCtx.fillRect(0, 0, 32, 32);
+        bCtx.strokeStyle = '#e040fb'; bCtx.lineWidth = 1;
+        for (let bx = 0; bx <= 32; bx += 8) {
+          for (let by = 0; by <= 32; by += 8) {
+            bCtx.strokeRect(bx + 1, by + 1, 6, 6);
+          }
+        }
+
+        if (this.ctx && this.ctx.createPattern) {
+          this.pbrPatterns = {
+            brushedTitanium: this.ctx.createPattern(titC, 'repeat'),
+            carbonFiber: this.ctx.createPattern(carbC, 'repeat'),
+            hazardPlate: this.ctx.createPattern(hazC, 'repeat'),
+            bioChitin: this.ctx.createPattern(bioC, 'repeat')
+          };
+        }
+      } catch(e) {
+        this.pbrPatterns = null;
+      }
+    }
+
+    drawBevelPlate(ctx, x, y, w, h, pattern, borderColor = "#00e5ff", radius = 0) {
+      ctx.save();
+      ctx.fillStyle = pattern || "#1e293b";
+      if (radius > 0) {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, radius);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, y, w, h);
+      }
+      // Top-Left Specular Rim Light
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + w, y); ctx.lineTo(x, y); ctx.lineTo(x, y + h);
+      ctx.stroke();
+      // Bottom-Right Ambient Occlusion Shadow Rim
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.beginPath();
+      ctx.moveTo(x + w, y); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+      ctx.stroke();
+      // Outer Contour Border
+      if (borderColor) {
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1.2;
+        if (radius > 0) ctx.stroke(); else ctx.strokeRect(x, y, w, h);
+      }
+      ctx.restore();
+    }
+
+    drawRivet(ctx, x, y) {
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath(); ctx.arc(x + 0.5, y + 0.5, 1.4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#cbd5e1";
+      ctx.beginPath(); ctx.arc(x, y, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(x - 0.3, y - 0.3, 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    drawChromePiston(ctx, x, y, w, h) {
+      const grad = ctx.createLinearGradient(0, y, 0, y + h);
+      grad.addColorStop(0, "#cbd5e1");
+      grad.addColorStop(0.3, "#ffffff");
+      grad.addColorStop(0.7, "#64748b");
+      grad.addColorStop(1, "#334155");
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(x, y + h - 1.5, w, 1.5);
+    }
+
+    drawTemperedBarrel(ctx, x, y, w, h) {
+      const grad = ctx.createLinearGradient(0, y, 0, y + h);
+      grad.addColorStop(0, "#475569");
+      grad.addColorStop(0.5, "#1e293b");
+      grad.addColorStop(1, "#090d16");
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, w, h);
+      const blueGrad = ctx.createLinearGradient(x + w - 8, 0, x + w, 0);
+      blueGrad.addColorStop(0, "rgba(59, 130, 246, 0.45)");
+      blueGrad.addColorStop(0.5, "rgba(168, 85, 247, 0.55)");
+      blueGrad.addColorStop(1, "rgba(245, 158, 11, 0.65)");
+      ctx.fillStyle = blueGrad;
+      ctx.fillRect(x + w - 8, y, 8, h);
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(x + w - 1.5, y + 0.5, 1.5, h - 1);
+    }
+
     renderHero() {
       const h = this.hero;
       const ctx = this.ctx;
@@ -6490,6 +6635,11 @@
       const idleBreath = Math.sin(performance.now() * 0.003) * 0.8;
       const tNow = performance.now();
 
+      const pbr = this.pbrPatterns || {};
+      const titPat = pbr.brushedTitanium || "#1e293b";
+      const carbPat = pbr.carbonFiber || "#0f172a";
+      const hazPat = pbr.hazardPlate || "#ffd600";
+
       if (h.mode === 'SIEGE') {
         // --- SIEGE TANK: ARMORED CATERPILLAR TRACKS & DUAL 120MM ARTILLERY ---
         const trackCycle = walk * 10;
@@ -6553,30 +6703,11 @@
           ctx.fill();
         }
 
-        // Armored Fortress Hull Chassis (Multi-Stop Gunmetal Gradient)
-        const hullGrad = ctx.createLinearGradient(-16, -14, 20, 14);
-        hullGrad.addColorStop(0, "#475569");
-        hullGrad.addColorStop(0.4, "#1e293b");
-        hullGrad.addColorStop(1, "#0a0f1d");
-        ctx.fillStyle = hullGrad;
-        ctx.beginPath();
-        ctx.moveTo(-16 - recoil, -13);
-        ctx.lineTo(14 - recoil, -13);
-        ctx.lineTo(20 - recoil, -8);
-        ctx.lineTo(20 - recoil, 8);
-        ctx.lineTo(14 - recoil, 13);
-        ctx.lineTo(-16 - recoil, 13);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 2.2;
-        ctx.stroke();
-
-        // Reactive Armor ERA Bricks & Hazard Stripes
-        ctx.fillStyle = "#ffd600";
-        ctx.fillRect(-14 - recoil, -11, 4, 22);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(-8 - recoil, -11, 4, 22);
+        // Armored Fortress Hull Chassis (PBR Brushed Titanium & Bevels)
+        this.drawBevelPlate(ctx, -16 - recoil, -13, 36, 26, titPat, "#ffd600", 4);
+        this.drawBevelPlate(ctx, -14 - recoil, -10, 8, 20, hazPat, null, 2);
+        this.drawRivet(ctx, -14 - recoil, -11); this.drawRivet(ctx, 16 - recoil, -11);
+        this.drawRivet(ctx, -14 - recoil, 11); this.drawRivet(ctx, 16 - recoil, 11);
 
         // Dual Vertical Exhaust Smokestacks
         ctx.fillStyle = "#334155";
@@ -6657,52 +6788,26 @@
         const kneeFlexL = Math.max(0, -walkCos * 3);
         const kneeFlexR = Math.max(0, walkCos * 3);
 
-        // Left Leg Assembly (Thigh, Knee Actuator, Calf & Footplate)
+        // Left Leg Assembly (PBR Thigh, Chrome Hydraulic Piston & Articulated Footplate)
         ctx.save();
         ctx.translate(-4, -13);
-        // Thigh plate
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(strideL - 4, -3, 9, 6);
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(strideL - 4, -3, 9, 6);
-        // Hydraulic Piston Rod
-        ctx.fillStyle = "#cbd5e1";
-        ctx.fillRect(strideL - 2, -1.5, 6, 2.5);
-        // Knee Joint knuckle
+        this.drawBevelPlate(ctx, strideL - 4, -3, 10, 6.5, titPat, "#00e5ff", 2);
+        this.drawChromePiston(ctx, strideL - 2, -1.5, 6, 2.5);
         ctx.fillStyle = "#475569";
-        ctx.beginPath();
-        ctx.arc(strideL + 4, 0, 2.8, 0, Math.PI * 2);
-        ctx.fill();
-        // Lower Calf Strut & Footplate
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(strideL + 3, -2 - kneeFlexL, 6, 4.5);
-        // Steel Footplate with Ground Grip
+        ctx.beginPath(); ctx.arc(strideL + 4, 0, 2.8, 0, Math.PI * 2); ctx.fill();
+        this.drawBevelPlate(ctx, strideL + 3, -2 - kneeFlexL, 6, 4.5, carbPat, null, 1);
         ctx.fillStyle = "#0284c7";
         ctx.fillRect(strideL + 6, -3 - kneeFlexL, 3, 6);
         ctx.restore();
 
-        // Right Leg Assembly (Thigh, Knee Actuator, Calf & Footplate)
+        // Right Leg Assembly (PBR Thigh, Chrome Hydraulic Piston & Articulated Footplate)
         ctx.save();
         ctx.translate(-4, 13);
-        // Thigh plate
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(strideR - 4, -3, 9, 6);
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(strideR - 4, -3, 9, 6);
-        // Hydraulic Piston Rod
-        ctx.fillStyle = "#cbd5e1";
-        ctx.fillRect(strideR - 2, -1, 6, 2.5);
-        // Knee Joint knuckle
+        this.drawBevelPlate(ctx, strideR - 4, -3, 10, 6.5, titPat, "#00e5ff", 2);
+        this.drawChromePiston(ctx, strideR - 2, -1, 6, 2.5);
         ctx.fillStyle = "#475569";
-        ctx.beginPath();
-        ctx.arc(strideR + 4, 0, 2.8, 0, Math.PI * 2);
-        ctx.fill();
-        // Lower Calf Strut & Footplate
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(strideR + 3, -2.5 + kneeFlexR, 6, 4.5);
-        // Steel Footplate with Ground Grip
+        ctx.beginPath(); ctx.arc(strideR + 4, 0, 2.8, 0, Math.PI * 2); ctx.fill();
+        this.drawBevelPlate(ctx, strideR + 3, -2.5 + kneeFlexR, 6, 4.5, carbPat, null, 1);
         ctx.fillStyle = "#0284c7";
         ctx.fillRect(strideR + 6, -3 + kneeFlexR, 3, 6);
         ctx.restore();
@@ -6763,44 +6868,17 @@
         ctx.closePath();
         ctx.fill();
 
-        // 3. Heavy Titanium Torso Chassis with Torso Sway & Breathing
+        // 3. Heavy Titanium Torso Chassis with PBR Brushed Metal, Rivets & Bevels
         ctx.save();
         ctx.rotate(torsoSway);
 
-        const torsoGrad = ctx.createLinearGradient(-13, -13, 16, 13);
-        torsoGrad.addColorStop(0, "#475569");
-        torsoGrad.addColorStop(0.35, "#1e293b");
-        torsoGrad.addColorStop(1, "#090d16");
-        ctx.fillStyle = torsoGrad;
-        ctx.beginPath();
-        ctx.moveTo(-12, -12);
-        ctx.lineTo(10, -10);
-        ctx.lineTo(16, 0);
-        ctx.lineTo(10, 10);
-        ctx.lineTo(-12, 12);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 2.2;
-        ctx.stroke();
+        this.drawBevelPlate(ctx, -12, -12, 28, 24, titPat, "#00e5ff", 5);
+        this.drawRivet(ctx, -10, -10); this.drawRivet(ctx, 12, -8);
+        this.drawRivet(ctx, -10, 10); this.drawRivet(ctx, 12, 8);
 
-        // Specular Bevel Highlights & Armor Seams
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(-11, -11);
-        ctx.lineTo(9, -9);
-        ctx.lineTo(15, 0);
-        ctx.stroke();
-
-        // Tactical Shoulder Pauldrons with Unit Marking
-        ctx.fillStyle = "#334155";
-        ctx.fillRect(-7, -16, 8, 5);
-        ctx.fillRect(-7, 11, 8, 5);
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(-7, -16, 8, 5);
-        ctx.strokeRect(-7, 11, 8, 5);
+        // Tactical Carbon-Fiber Shoulder Pauldrons
+        this.drawBevelPlate(ctx, -7, -16, 8, 5, carbPat, "#00e5ff", 1);
+        this.drawBevelPlate(ctx, -7, 11, 8, 5, carbPat, "#00e5ff", 1);
 
         // Glowing Quantum Arc-Reactor Core
         const reactorGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 6);
@@ -7480,6 +7558,11 @@
     renderEnemies() {
       const ctx = this.ctx;
       const tNow = performance.now();
+      const pbr = this.pbrPatterns || {};
+      const titPat = pbr.brushedTitanium || "#1e293b";
+      const carbPat = pbr.carbonFiber || "#0f172a";
+      const hazPat = pbr.hazardPlate || "#ffd600";
+      const bioPat = pbr.bioChitin || "#2e1065";
 
       for (const e of this.enemies) {
         ctx.save();
