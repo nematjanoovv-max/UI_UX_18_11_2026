@@ -2214,7 +2214,9 @@
     }
 
     bakeMapLanes(map) {
-      this.bakedLanes = map.lanes.map(lane => {
+      const rawLanes = (map && map.lanes && map.lanes.length > 0) ? map.lanes : [[{ x: 64, y: 320 }, { x: 1216, y: 320 }]];
+      this.bakedLanes = rawLanes.map(rawLane => {
+        const lane = (rawLane && rawLane.length >= 2) ? rawLane : [{ x: 64, y: 320 }, { x: 1216, y: 320 }];
         let total = 0;
         const segments = [];
         for (let i = 0; i < lane.length - 1; i++) {
@@ -3661,9 +3663,24 @@
         // 1. Menu
         if (x >= 20 && x <= 115) { this.state = 'MENU'; if (this.apexSystem) this.apexSystem.show(); audio.playBGMTrack('menu'); return; }
         // 2. Test Play
-        if (x >= 120 && x <= 245) { this.startMission(0, 'CUSTOM'); return; }
+        if (x >= 120 && x <= 245) {
+          if (this.editorWaypoints.length < 2) {
+            this.addFloatingText("⚠️ KAMIDA 2 TA NUQTA KERAK (SPAWN VA CORE)!", 640, 200, "#ff1744", 22);
+            audio.sell();
+            this.vibrate([40, 30, 40]);
+            return;
+          }
+          this.startMission(0, 'CUSTOM');
+          return;
+        }
         // 3. Save
         if (x >= 250 && x <= 355) {
+          if (this.editorWaypoints.length < 2) {
+            this.addFloatingText("⚠️ KAMIDA 2 TA NUQTA BELGILANG!", 640, 200, "#ff1744", 22);
+            audio.sell();
+            this.vibrate([40, 30, 40]);
+            return;
+          }
           localStorage.setItem('lg_custom_map', JSON.stringify({
             waypoints: this.editorWaypoints,
             biome: this.editorBiome || 'cyber',
@@ -11137,7 +11154,7 @@
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`🎖️ ENG SAMARALI QUROL (MVP): ${this.analytics.mvpName.toUpperCase()}`, mx + 55, 318);
+      ctx.fillText(`🎖️ ENG SAMARALI QUROL (MVP): ${(this.analytics.mvpName || "CYBER HERO MECH").toUpperCase()}`, mx + 55, 318);
 
       ctx.fillStyle = "#b0bec5";
       ctx.font = "11px monospace";
