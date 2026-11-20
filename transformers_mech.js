@@ -2020,6 +2020,75 @@
       if (!loaderClass) return;
       const loader = new loaderClass();
 
+      const onModelSuccess = (gltf) => {
+        if (!gltf) return;
+        this.loaded = true;
+        this.body.visible = false;
+        const m = gltf.scene || (gltf.scenes && gltf.scenes[0]) || gltf;
+        this.externalMesh = m;
+
+        if (T.Box3 && T.Vector3) {
+          const box = new T.Box3().setFromObject(m);
+          const size = new T.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = (maxD > 0) ? (4.3 / maxD) : 1.0;
+          m.scale.set(scale, scale, scale);
+
+          const center = new T.Vector3();
+          box.getCenter(center);
+          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+        }
+
+        m.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.roughness = Math.min(child.material.roughness !== undefined ? child.material.roughness : 0.5, 0.42);
+              child.material.metalness = Math.max(child.material.metalness !== undefined ? child.material.metalness : 0.5, 0.85);
+              child.material.envMapIntensity = 1.4;
+            }
+          }
+        });
+
+        this.root.add(m);
+
+        if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
+          this.mixer = new T.AnimationMixer(m);
+          const action = this.mixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+        console.log('[MegatronMech] War for Cybertron 3D Model successfully loaded and attached!');
+      };
+
+      const tryAndroidBridge = () => {
+        try {
+          if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getMegatronModelBase64 === 'function') {
+            console.log('[MegatronMech] Invoking AndroidBridge.getMegatronModelBase64()...');
+            const b64 = window.AndroidBridge.getMegatronModelBase64();
+            if (b64 && b64.length > 1000) {
+              const binaryString = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+              const len = binaryString.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+              }
+              loader.parse(bytes.buffer, '', (gltf) => {
+                console.log('[MegatronMech] AndroidBridge base64 parsed successfully!');
+                onModelSuccess(gltf);
+              }, (err) => {
+                console.warn('[MegatronMech] AndroidBridge parse error:', err);
+              });
+              return true;
+            }
+          }
+        } catch (err) {
+          console.warn('[MegatronMech] AndroidBridge exception:', err);
+        }
+        return false;
+      };
+
       const candidateUrls = [
         'assets/models/megatron.glb',
         './assets/models/megatron.glb',
@@ -2028,47 +2097,16 @@
       ];
 
       const tryLoad = (idx) => {
-        if (idx >= candidateUrls.length) return;
+        if (idx >= candidateUrls.length) {
+          // If all network / relative paths failed, attempt direct Android bridge
+          tryAndroidBridge();
+          return;
+        }
         const url = candidateUrls[idx];
         loader.load(url, (gltf) => {
-          this.loaded = true;
-          this.body.visible = false;
-          const m = gltf.scene || gltf.scenes[0];
-          this.externalMesh = m;
-
-          if (T.Box3 && T.Vector3) {
-            const box = new T.Box3().setFromObject(m);
-            const size = new T.Vector3();
-            box.getSize(size);
-            const maxD = Math.max(size.x, size.y, size.z);
-            const scale = (maxD > 0) ? (4.3 / maxD) : 1.0;
-            m.scale.set(scale, scale, scale);
-
-            const center = new T.Vector3();
-            box.getCenter(center);
-            m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
-          }
-
-          m.traverse((child) => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-              if (child.material) {
-                child.material.roughness = Math.min(child.material.roughness !== undefined ? child.material.roughness : 0.5, 0.42);
-                child.material.metalness = Math.max(child.material.metalness !== undefined ? child.material.metalness : 0.5, 0.85);
-                child.material.envMapIntensity = 1.4;
-              }
-            }
-          });
-
-          this.root.add(m);
-
-          if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
-            this.mixer = new T.AnimationMixer(m);
-            const action = this.mixer.clipAction(gltf.animations[0]);
-            action.play();
-          }
-        }, undefined, () => {
+          onModelSuccess(gltf);
+        }, undefined, (err) => {
+          console.warn('[MegatronMech] Could not load from URL ' + url + ':', err);
           tryLoad(idx + 1);
         });
       };

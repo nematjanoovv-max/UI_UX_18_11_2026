@@ -17,7 +17,10 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import org.json.JSONArray;
 
 public class MainActivity extends Activity {
@@ -76,10 +79,10 @@ public class MainActivity extends Activity {
                 setImmersiveMode();
             }
 
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                if (request != null && request.getUrl() != null) {
-                    Uri uri = request.getUrl();
+            private WebResourceResponse handleIntercept(String urlStr) {
+                if (urlStr == null) return null;
+                try {
+                    Uri uri = Uri.parse(urlStr);
                     String path = uri.getPath();
                     if (path != null) {
                         String assetPath = null;
@@ -90,28 +93,52 @@ public class MainActivity extends Activity {
                             if (assetPath.equals("www/")) assetPath = "www/index.html";
                         }
                         if (assetPath != null) {
-                            try {
-                                InputStream is = getAssets().open(assetPath);
-                                String mime = "text/plain";
-                                if (assetPath.endsWith(".html")) mime = "text/html";
-                                else if (assetPath.endsWith(".js")) mime = "application/javascript";
-                                else if (assetPath.endsWith(".css")) mime = "text/css";
-                                else if (assetPath.endsWith(".json")) mime = "application/json";
-                                else if (assetPath.endsWith(".png")) mime = "image/png";
-                                else if (assetPath.endsWith(".svg")) mime = "image/svg+xml";
-                                else if (assetPath.endsWith(".mp3")) mime = "audio/mpeg";
-                                else if (assetPath.endsWith(".wav")) mime = "audio/wav";
-                                else if (assetPath.endsWith(".glb")) mime = "model/gltf-binary";
-                                else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
-                                else if (assetPath.endsWith(".webp")) mime = "image/webp";
-                                else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
-                                String encoding = (assetPath.endsWith(".html") || assetPath.endsWith(".js") || assetPath.endsWith(".css") || assetPath.endsWith(".json")) ? "UTF-8" : null;
-                                return new WebResourceResponse(mime, encoding, is);
-                            } catch (Exception e) {}
+                            InputStream is = getAssets().open(assetPath);
+                            String mime = "text/plain";
+                            if (assetPath.endsWith(".html")) mime = "text/html";
+                            else if (assetPath.endsWith(".js")) mime = "application/javascript";
+                            else if (assetPath.endsWith(".css")) mime = "text/css";
+                            else if (assetPath.endsWith(".json")) mime = "application/json";
+                            else if (assetPath.endsWith(".png")) mime = "image/png";
+                            else if (assetPath.endsWith(".svg")) mime = "image/svg+xml";
+                            else if (assetPath.endsWith(".mp3")) mime = "audio/mpeg";
+                            else if (assetPath.endsWith(".wav")) mime = "audio/wav";
+                            else if (assetPath.endsWith(".glb")) mime = "model/gltf-binary";
+                            else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
+                            else if (assetPath.endsWith(".webp")) mime = "image/webp";
+                            else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
+                            String encoding = (assetPath.endsWith(".html") || assetPath.endsWith(".js") || assetPath.endsWith(".css") || assetPath.endsWith(".json")) ? "UTF-8" : null;
+                            WebResourceResponse response = new WebResourceResponse(mime, encoding, is);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                Map<String, String> headers = new HashMap<>();
+                                headers.put("Access-Control-Allow-Origin", "*");
+                                headers.put("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+                                headers.put("Access-Control-Allow-Headers", "*");
+                                response.setResponseHeaders(headers);
+                            }
+                            return response;
                         }
                     }
+                } catch (Exception e) {
+                    android.util.Log.e("LastGridAsset", "Error opening asset from " + urlStr + ": " + e.getMessage());
+                }
+                return null;
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (request != null && request.getUrl() != null) {
+                    WebResourceResponse resp = handleIntercept(request.getUrl().toString());
+                    if (resp != null) return resp;
                 }
                 return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                WebResourceResponse resp = handleIntercept(url);
+                if (resp != null) return resp;
+                return super.shouldInterceptRequest(view, url);
             }
         });
 
@@ -233,7 +260,25 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getVersion() {
-            return "4.1.0-android-apk";
+            return "4.2.0-android-apk";
+        }
+
+        @JavascriptInterface
+        public String getMegatronModelBase64() {
+            try {
+                InputStream is = getAssets().open("www/assets/models/megatron.glb");
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                byte[] data = new byte[65536];
+                int nRead;
+                while ((nRead = is.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+                buffer.flush();
+                return android.util.Base64.encodeToString(buffer.toByteArray(), android.util.Base64.NO_WRAP);
+            } catch (Exception e) {
+                android.util.Log.e("LastGridBridge", "Error reading megatron.glb via bridge: " + e.getMessage());
+                return "";
+            }
         }
 
         @JavascriptInterface

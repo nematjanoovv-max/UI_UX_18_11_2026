@@ -1153,7 +1153,7 @@
       this.nextUid = 1;
       this.lastTimestamp = 0;
       this.playerName = localStorage.getItem('last_grid_player_name') || 'CyberCommander';
-      this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'OPTIMUS';
+      this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin_v42')) || 'MEGATRON';
       this.minimapExpanded = true;
       this.cinematicBanner = null;
       this.codexTab = 'TOWERS';
@@ -1307,7 +1307,7 @@
         this.apexSystem = new window.Apex01System();
         this.apexSystem.init(mechCanvas);
         if (!this.selectedMechSkin) {
-          this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'MEGATRON';
+          this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin_v42')) || 'MEGATRON';
         }
         if (this.selectedMechSkin && this.apexSystem.setSkin) {
           this.apexSystem.setSkin(this.selectedMechSkin);
@@ -1319,6 +1319,7 @@
     setMechSkin(skin) {
       this.selectedMechSkin = skin;
       if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('lg_mech_skin_v42', skin);
         localStorage.setItem('lg_mech_skin', skin);
       }
       if (this.apexSystem && this.apexSystem.setSkin) {

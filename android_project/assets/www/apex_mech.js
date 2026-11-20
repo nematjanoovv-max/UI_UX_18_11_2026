@@ -667,7 +667,7 @@
         rimPink.position.set(4, 2, -4);
         this.scene.add(rimPink);
 
-        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'MEGATRON';
+        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin_v42')) || 'MEGATRON';
         this.setSkin(savedSkin);
 
         this.bindEvents();
