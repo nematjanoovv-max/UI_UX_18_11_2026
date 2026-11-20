@@ -1156,6 +1156,29 @@
       this.cinematicBanner = null;
       this.codexTab = 'TOWERS';
       this.codexSelectedId = 'pulse';
+      this.codexSubTab = 'SPECS';
+      this.codexBranch = 'BASE';
+      this.codexYaw = 0.45;
+      this.codexPitch = 0.28;
+      this.codexZoom = 1.0;
+      this.codexAutoRotate = true;
+      this.codexRenderMode = 'SHADED';
+      this.codexDragging = false;
+      this.codexDragStart = { x: 0, y: 0 };
+      this.codexSimActive = false;
+      this.codexSimTimer = 0;
+      this.codexSimTargetType = 'STANDARD';
+      this.codexDummyHp = 1000;
+      this.codexDummyMaxHp = 1000;
+      this.codexDummyShield = 0;
+      this.codexDummyMaxShield = 0;
+      this.codexDummyFlash = 0;
+      this.codexRecoil = 0;
+      this.codexProjectiles = [];
+      this.codexParticles = [];
+      this.codexDmgTexts = [];
+      this.codexDmgHistory = [];
+      this.codexTotalDmg = 0;
       this.isDraggingSlider = null;
       this.combatFeed = [];
       this.heroKillStreak = 0;
@@ -1815,10 +1838,15 @@
         this.mousePos = this.getCanvasPos(e);
         if (this.mousePos) {
           this.buttonRipples.push({ x: this.mousePos.x, y: this.mousePos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
+          if (this.state === 'MANUAL' && this.mousePos.x >= 320 && this.mousePos.x <= 780 && this.mousePos.y >= 75 && this.mousePos.y <= 540) {
+            this.codexDragging = true;
+            this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
+          }
         }
       });
       window.addEventListener('mouseup', () => {
         this.isPointerDown = false;
+        this.codexDragging = false;
       });
 
       // Desktop Mouse Move
@@ -1827,6 +1855,14 @@
         this.updateHoverCell();
         if (this.showSettingsModal && this.isPointerDown && this.mousePos) {
           this.handleSettingsClick(this.mousePos.x, this.mousePos.y);
+        }
+        if (this.state === 'MANUAL' && this.isPointerDown && this.codexDragging && this.mousePos) {
+          const dx = this.mousePos.x - this.codexDragStart.x;
+          const dy = this.mousePos.y - this.codexDragStart.y;
+          this.codexYaw = (this.codexYaw || 0) + dx * 0.012;
+          this.codexPitch = Math.max(-0.6, Math.min(0.8, (this.codexPitch !== undefined ? this.codexPitch : 0.28) + dy * 0.012));
+          this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
+          this.codexAutoRotate = false;
         }
       });
 
@@ -1845,6 +1881,17 @@
         this.handleCanvasClick(pos.x, pos.y, true);
       });
 
+      this.canvas.addEventListener('wheel', (e) => {
+        if (this.state === 'MANUAL') {
+          const pos = this.getCanvasPos(e);
+          if (pos && pos.x >= 320 && pos.x <= 780 && pos.y >= 75 && pos.y <= 540) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.12 : 0.12;
+            this.codexZoom = Math.max(0.6, Math.min(2.0, (this.codexZoom || 1.0) + delta));
+          }
+        }
+      }, { passive: false });
+
       // MOBILE TOUCH GESTURES & SENSORS
       this.canvas.addEventListener('touchstart', (e) => {
         this.isTouchDevice = true;
@@ -1854,6 +1901,10 @@
         if (tPos) {
           this.mousePos = tPos;
           this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
+          if (this.state === 'MANUAL' && tPos.x >= 320 && tPos.x <= 780 && tPos.y >= 75 && tPos.y <= 540) {
+            this.codexDragging = true;
+            this.codexDragStart = { x: tPos.x, y: tPos.y };
+          }
         }
         if (this.state === 'TPS_3D' && this.tps3D) {
           const t = this.tps3D;
@@ -2005,6 +2056,15 @@
           return;
         }
 
+        if (this.state === 'MANUAL' && this.codexDragging && pos) {
+          const dx = pos.x - this.codexDragStart.x;
+          const dy = pos.y - this.codexDragStart.y;
+          this.codexYaw = (this.codexYaw || 0) + dx * 0.012;
+          this.codexPitch = Math.max(-0.6, Math.min(0.8, (this.codexPitch !== undefined ? this.codexPitch : 0.28) + dy * 0.012));
+          this.codexDragStart = { x: pos.x, y: pos.y };
+          this.codexAutoRotate = false;
+        }
+
         if (this.state === 'TPS_3D' && this.tps3D) {
           e.preventDefault();
           const t = this.tps3D;
@@ -2042,6 +2102,7 @@
 
       this.canvas.addEventListener('touchend', (e) => {
         this.isPointerDown = false;
+        this.codexDragging = false;
         e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
@@ -2596,6 +2657,7 @@
       }
 
       if (this.state === 'MANUAL') {
+        // Back to Menu
         if (x >= 20 && x <= 160 && y >= 10 && y <= 65) {
           this.state = 'MENU';
           if (this.apexSystem) this.apexSystem.show();
@@ -2603,16 +2665,16 @@
           return;
         }
 
-        // Tabs
+        // Main Category Tabs
         if (y >= 15 && y <= 55) {
-          if (x >= 440 && x <= 605) { this.codexTab = 'TOWERS'; this.codexSelectedId = 'pulse'; audio.click(); return; }
-          if (x >= 620 && x <= 795) { this.codexTab = 'ENEMIES'; this.codexSelectedId = 'grunt'; audio.click(); return; }
-          if (x >= 810 && x <= 1005) { this.codexTab = 'BOSSES'; this.codexSelectedId = 'juggernaut'; audio.click(); return; }
-          if (x >= 1020 && x <= 1205) { this.codexTab = 'MECH'; this.codexSelectedId = 'biped'; audio.click(); return; }
+          if (x >= 440 && x <= 605) { this.codexTab = 'TOWERS'; this.codexSelectedId = 'pulse'; this.codexBranch = 'BASE'; audio.click(); this.vibrate(12); return; }
+          if (x >= 620 && x <= 795) { this.codexTab = 'ENEMIES'; this.codexSelectedId = 'grunt'; audio.click(); this.vibrate(12); return; }
+          if (x >= 810 && x <= 1005) { this.codexTab = 'BOSSES'; this.codexSelectedId = 'juggernaut'; audio.click(); this.vibrate(12); return; }
+          if (x >= 1020 && x <= 1205) { this.codexTab = 'MECH'; this.codexSelectedId = 'biped'; this.codexBranch = 'BASE'; audio.click(); this.vibrate(12); return; }
         }
 
-        // Item List clicks
-        if (x >= 38 && x <= 312) {
+        // Left Item List clicks
+        if (x >= 32 && x <= 316) {
           const tab = this.codexTab || 'TOWERS';
           const counts = { TOWERS: 8, ENEMIES: 9, BOSSES: 6, MECH: 2 };
           const count = counts[tab] || 8;
@@ -2636,6 +2698,73 @@
             }
           }
         }
+
+        // Right Dossier Sub-Tabs (Specs, Evolution/Counter, Lore)
+        if (y >= 82 && y <= 118) {
+          if (x >= 790 && x <= 935) { this.codexSubTab = 'SPECS'; audio.click(); this.vibrate(12); return; }
+          if (x >= 940 && x <= 1095) { this.codexSubTab = 'BRANCHES'; audio.click(); this.vibrate(12); return; }
+          if (x >= 1100 && x <= 1250) { this.codexSubTab = 'LORE'; audio.click(); this.vibrate(12); return; }
+        }
+
+        // Branch Selection Toggles (Base, Branch A, Branch B)
+        if (y >= 122 && y <= 152) {
+          if (x >= 790 && x <= 935) { this.codexBranch = 'BASE'; audio.click(); this.vibrate(12); return; }
+          if (x >= 940 && x <= 1090) { this.codexBranch = 'BRANCH_A'; audio.click(); this.vibrate(12); return; }
+          if (x >= 1095 && x <= 1250) { this.codexBranch = 'BRANCH_B'; audio.click(); this.vibrate(12); return; }
+        }
+
+        // Turntable Control Buttons (Row 1)
+        if (y >= 544 && y <= 580) {
+          // [↺ AVTO]
+          if (x >= 330 && x <= 415) { this.codexAutoRotate = !this.codexAutoRotate; audio.click(); this.vibrate(12); return; }
+          // [◀]
+          if (x >= 420 && x <= 465) { this.codexYaw = (this.codexYaw || 0) - 0.35; audio.click(); return; }
+          // [▶]
+          if (x >= 470 && x <= 515) { this.codexYaw = (this.codexYaw || 0) + 0.35; audio.click(); return; }
+          // [+]
+          if (x >= 520 && x <= 565) { this.codexZoom = Math.min(1.8, (this.codexZoom || 1.0) + 0.15); audio.click(); return; }
+          // [-]
+          if (x >= 570 && x <= 615) { this.codexZoom = Math.max(0.6, (this.codexZoom || 1.0) - 0.15); audio.click(); return; }
+          // [REJIM: SOYA / SIM / RENTGEN]
+          if (x >= 620 && x <= 772) {
+            const modes = ['SHADED', 'WIREFRAME', 'XRAY'];
+            const curIdx = modes.indexOf(this.codexRenderMode || 'SHADED');
+            this.codexRenderMode = modes[(curIdx + 1) % modes.length];
+            audio.click();
+            this.vibrate(15);
+            return;
+          }
+        }
+
+        // Combat Simulator Controls (Row 2)
+        if (y >= 584 && y <= 624) {
+          // [💥 TEST ATISH (1x)]
+          if (x >= 330 && x <= 480) {
+            this.fireCodexSimShot();
+            this.vibrate(22);
+            return;
+          }
+          // [⚡ AVTO-ATISH: ON/OFF]
+          if (x >= 485 && x <= 635) {
+            this.codexSimActive = !this.codexSimActive;
+            audio.click();
+            this.vibrate(18);
+            return;
+          }
+          // [🎯 NISHON ALMASHTIRISH]
+          if (x >= 640 && x <= 772) {
+            const targets = ['STANDARD', 'ARMORED', 'SHIELDED'];
+            const tIdx = (targets.indexOf(this.codexSimTargetType || 'STANDARD') + 1) % targets.length;
+            this.codexSimTargetType = targets[tIdx];
+            if (this.codexSimTargetType === 'STANDARD') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 0; this.codexDummyMaxShield = 0; }
+            else if (this.codexSimTargetType === 'ARMORED') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 0; this.codexDummyMaxShield = 0; }
+            else if (this.codexSimTargetType === 'SHIELDED') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 500; this.codexDummyMaxShield = 500; }
+            audio.click();
+            this.vibrate(15);
+            return;
+          }
+        }
+
         return;
       }
 
@@ -4338,6 +4467,8 @@
           for (let i = 0; i < this.speed; i++) this.update(dt);
         } else if (this.state === 'TPS_3D') {
           this.update3DTPS(dt);
+        } else if (this.state === 'MANUAL') {
+          this.updateCodex(dt);
         }
         this.render();
         requestAnimationFrame(step);
@@ -10131,12 +10262,1151 @@
       this.drawCyberButton(x, y, w, h, text, color, "", "", isHigh);
     }
 
+getCodexDatabase() {
+      return {
+        TOWERS: [
+          {
+            id: "pulse", name: "Pulse Turret", icon: "⚡", role: "Rapid Energy Blaster", type: "ENERGY",
+            cost: "100g", hp: "N/A", dmg: "22", rate: "3.5/s", dps: "77 DPS", range: "140px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "200% (A'lo)", vsArmor: "60% (Zaif)", vsSwarm: "Yakka Nishon", vsBoss: "Yuqori DPS" },
+            desc: "Yuqori chastotali lazer impulslari beruvchi asosiy kiber-minora. Standart dushmanlar va energiya qalqonlariga qarshi yuqori samaradorlik ko'rsatadi.",
+            branchA: {
+              name: "Plasma Overcharge", cost: "180g", dmg: "34 (AoE)", rate: "3.5/s", dps: "119 DPS",
+              perk: "+55% DMG & 40px plazma chayqalishi",
+              desc: "Kondensatorlar magnit plazma sharlarini hosil qilib, dushmanga urilganda kichik maydonda portlaydi."
+            },
+            branchB: {
+              name: "Gatling Overdrive", cost: "160g", dmg: "22", rate: "6.5/s", dps: "143 DPS",
+              perk: "+85% O'q uzish tezligi",
+              desc: "Aylanuvchi 4-barrelli pulemyot klasteri. Dushmanlarni uzluksiz gipertovushli o'q yomg'iri ostida qoldiradi."
+            },
+            lore: {
+              origin: "Apex Cybernetics R&D Lab - Sector 7", blueprint: "ARC-PL-101 / MK-IV",
+              history: "2084-yilda Kiber-shahar himoyasi uchun yaratilgan ilk avtonom lazer minorasi. Millionslab kiber-bosqinchilarga qarshi janglarda sinalgan.",
+              advice: "Yo'l boshiga va burilish burchaklariga qo'yish tavsiya etiladi. Cryo minorasi bilan tandemda dps 2x oshadi."
+            },
+            col: "#00e5ff"
+          },
+          {
+            id: "mortar", name: "Heavy Mortar", icon: "💣", role: "Artillery Blast", type: "EXPLOSIVE",
+            cost: "150g", hp: "N/A", dmg: "85", rate: "0.7/s", dps: "60 DPS", range: "220px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "70% (Oddiy)", vsArmor: "140% (Kuchli)", vsSwarm: "100% AoE Portlash", vsBoss: "O'rta DPS" },
+            desc: "Katta radiusda maydoniy portlash (AoE) beruvchi og'ir artilleriya. Zirhli dushmanlar va katta to'dalar uchun ideal.",
+            branchA: {
+              name: "Cluster Munitions", cost: "210g", dmg: "85 + 4x25", rate: "0.7/s", dps: "129 DPS",
+              perk: "4 ta kassetali mikro-bomba",
+              desc: "Asosiy snaryad portlagach, atrofga 4 ta mayda kassetali bomba sachratib ikkilamchi portlash hosil qiladi."
+            },
+            branchB: {
+              name: "Napalm Fire", cost: "190g", dmg: "85 + 24/s", rate: "0.7/s", dps: "115 DPS",
+              perk: "4 soniya olov krateri",
+              desc: "Portlash markazida 4 soniya davomida yonuvchi napalm ko'lmak hosil qilib, o'tgan barcha dushmanlarni yoqadi."
+            },
+            lore: {
+              origin: "Titan Heavy Ordnance Foundry", blueprint: "MORT-HV-505 / TITAN",
+              history: "Zirhli kiber-tanklarni yo'q qilish uchun ishlab chiqilgan 200mm artilleriya batareyasi.",
+              advice: "Xaritaning markaziga yoki aylanma yo'llar kesishmasiga qo'ying. To'dalar to'planganda halokatli kuchga ega."
+            },
+            col: "#ff9100"
+          },
+          {
+            id: "cryo", name: "Cryo Emitter", icon: "❄️", role: "Frost Field Slow", type: "COLD",
+            cost: "120g", hp: "N/A", dmg: "14", rate: "2.0/s", dps: "28 DPS", range: "130px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "100% (Oddiy)", vsArmor: "100% (Oddiy)", vsSwarm: "Sekinlashtirish -60%", vsBoss: "Sekinlashtirish -35%" },
+            desc: "Dushmanlarni 60% gacha muzlatuvchi va sekinlashtiruvchi kriogen nurlar emitteri. Tezkor dushmanlarni to'xtatadi.",
+            branchA: {
+              name: "Deep Freeze", cost: "170g", dmg: "22", rate: "2.0/s", dps: "44 DPS",
+              perk: "1.5s To'liq qotirish (Stun)",
+              desc: "Muzlatish darajasi 100% ga yetganda dushman 1.5 soniyaga harakatdan to'liq to'xtaydi."
+            },
+            branchB: {
+              name: "Cryo Nova", cost: "185g", dmg: "38", rate: "1.2/s", dps: "45 DPS",
+              perk: "360° Aylana Muz To'lqini",
+              desc: "Har 2 soniyada minora atrofida 360 darajali muz to'lqini portlab, yaqin atrofdagi barcha nishonlarni muzlatadi."
+            },
+            lore: {
+              origin: "CryoTech Polar Systems", blueprint: "CRY-FRZ-009 / SUBZERO",
+              history: "Mutlaq nol haroratga yaqin suyuq azot oqimini nurlatuvchi kvant kristalli sovutgich tizimi.",
+              advice: "Har doim Mortar yoki Flame minoralaridan sal oldinroqqa joylashtiring, dushmanlar sekinlashganda ko'proq zarba oladi."
+            },
+            col: "#00f0ff"
+          },
+          {
+            id: "tesla", name: "Tesla Coil", icon: "⚡", role: "Chain Lightning", type: "ENERGY",
+            cost: "180g", hp: "N/A", dmg: "48", rate: "1.4/s", dps: "67 DPS", range: "150px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "180% (Yuqori)", vsArmor: "80% (O'rta)", vsSwarm: "Zanjirli x5 Nishon", vsBoss: "Doimiy Shok" },
+            desc: "Bir vaqtning o'zida 4-7 ta yaqin atrofdagi dushmanga zanjirsimon yuqori voltli elektr toki ulovchi qurol.",
+            branchA: {
+              name: "EMP Disruption", cost: "230g", dmg: "55", rate: "1.4/s", dps: "77 DPS",
+              perk: "1.2s EMP Shok Falaji",
+              desc: "Elektr zanjiri dushman qalqonlarini tezda eritadi va 1.2 soniyaga ularning maxsus qobiliyatlarini o'chiradi."
+            },
+            branchB: {
+              name: "Overload Burst", cost: "215g", dmg: "68", rate: "1.4/s", dps: "95 DPS",
+              perk: "Qo'shimcha zanjir x8",
+              desc: "Zanjir sakrash soni 8 tagacha oshadi va har bir sakrashda qo'shimcha energiya to'lqini chaqnaydi."
+            },
+            lore: {
+              origin: "Voltaic Energy Corporation", blueprint: "TSL-ARC-404 / VOLT",
+              history: "Yuqori voltli plazma generatorlari asosida ishlab chiqilgan afsonaviy mudofaa minorasi.",
+              advice: "Dushmanlar zich guruhlangan joylarda va qalqonli dushmanlar paydo bo'ladigan yo'laklarda juda samarali."
+            },
+            col: "#ffd600"
+          },
+          {
+            id: "flame", name: "Flame Thrower", icon: "🔥", role: "Conical Napalm Burn", type: "FIRE",
+            cost: "160g", hp: "N/A", dmg: "32", rate: "2.8/s", dps: "89 DPS", range: "135px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "80% (Oddiy)", vsArmor: "160% (Zirhni Eritadi)", vsSwarm: "Konus AoE Olov", vsBoss: "Uzluksiz DoT" },
+            desc: "Konus shaklidagi olov purkab, dushmanlarga 3 soniya uzluksiz yonish zarari (DoT) va zirh eritish beradi.",
+            branchA: {
+              name: "Napalm Puddle", cost: "195g", dmg: "38 + DoT", rate: "2.8/s", dps: "120 DPS",
+              perk: "Zaminni yoqib qoldirish",
+              desc: "Olov o'tgan yerda 3 soniya davomida yonuvchi termal qatlam qoladi va dushmanlarni kuydiradi."
+            },
+            branchB: {
+              name: "Armor Melt", cost: "220g", dmg: "32", rate: "2.8/s", dps: "90 DPS",
+              perk: "-70% Zirh eritish",
+              desc: "Har bir olov tegishi dushman zirhini 70% ga pasaytirib, boshqa minoralar zarbasini 2 barobar oshiradi."
+            },
+            lore: {
+              origin: "Inferno Thermal Works", blueprint: "FLM-NPL-777 / INFERNO",
+              history: "1500°C darajali sintetik napalm bilan kiber-organik xavflarni tozalovchi maxsus stansiya.",
+              advice: "Burilish nuqtalariga o'rnating, dushmanlar sekin o'tayotganda maksimal darajada yonish zarari oladi."
+            },
+            col: "#ff3d00"
+          },
+          {
+            id: "railgun", name: "Railgun Sniper", icon: "🎯", role: "Kinetic Piercer", type: "PIERCE",
+            cost: "240g", hp: "N/A", dmg: "210", rate: "0.5/s", dps: "105 DPS", range: "300px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "120% (Teshadi)", vsArmor: "200% (100% Zirh O'tadi)", vsSwarm: "Chiziqli Teshuvchi", vsBoss: "Kritik Zarba" },
+            desc: "Butun xarita bo'ylab barcha dushmanlarni to'g'ri chiziqda teshib o'tuvchi gipertovushli magnit to'p.",
+            branchA: {
+              name: "Hyper-Velocity", cost: "280g", dmg: "340", rate: "0.5/s", dps: "170 DPS",
+              perk: "Cheksiz nishonlarni teshish",
+              desc: "Magnit tezlanish 15 Max tezlikka yetadi va snaryad o'z yo'lidagi cheksiz sonli dushmanlarni teshadi."
+            },
+            branchB: {
+              name: "Shield Stripper", cost: "260g", dmg: "210", rate: "0.5/s", dps: "105 DPS",
+              perk: "100% Qalqon sindirish",
+              desc: "Qalqonli dushmanga tekkanida qalqonni 1 zarbada darhol butunlay sindirib tashlaydi."
+            },
+            lore: {
+              origin: "AeroSpace Rail Defense", blueprint: "RLG-SN-001 / MACH-15",
+              history: "Kosmik stansiyalar mudofaasidan olingan orbital magnit zambarak texnologiyasi.",
+              advice: "Uzun to'g'ri chiziqli yo'laklar oxiriga qo'ying, snaryad birvarakayiga butun to'dani teshadi."
+            },
+            col: "#ff007f"
+          },
+          {
+            id: "beacon", name: "Radar Beacon", icon: "📡", role: "Buff & Stealth Reveal", type: "SUPPORT",
+            cost: "200g", hp: "N/A", dmg: "0", rate: "Aura", dps: "Buff", range: "160px", armor: "N/A", speed: "Statik",
+            eff: { vsShield: "N/A", vsArmor: "N/A", vsSwarm: "Fosh qilish", vsBoss: "+35% Jamoaviy DMG" },
+            desc: "Yaqin atrofdagi barcha minoralarga +35% zarar qo'shuvchi va ko'rinmas (Phantom) dushmanlarni fosh qiluvchi radar.",
+            branchA: {
+              name: "Hyper Overclock", cost: "240g", dmg: "Buff", rate: "Aura", dps: "Buff",
+              perk: "+50% Minora tezligi",
+              desc: "Radiusi ichidagi minoralar o'q uzish tezligini +50% ga oshirib, overdrive rejimiga kiritadi."
+            },
+            branchB: {
+              name: "Sensor Jammer", cost: "220g", dmg: "Buff", rate: "Aura", dps: "Buff",
+              perk: "Dushmanlarni sarosimaga solish",
+              desc: "Radar to'lqini dushman tizimlarini chalkashtirib, ularning tezligini 30% ga pasaytiradi."
+            },
+            lore: {
+              origin: "Cyber Intelligence Node", blueprint: "RAD-BCN-999 / INTEL",
+              history: "Barcha mudofaa tarmoqlarini yagona sinxron jangovar kompyuterga birlashtiruvchi markaziy antenna.",
+              advice: "Eng ko'p minoralaringiz to'plangan markazga joylashtiring, barcha minoralar samaradorligi keskin ortadi."
+            },
+            col: "#76ff03"
+          },
+          {
+            id: "barricade", name: "Cyber Barricade", icon: "🛡️", role: "Defensive Barrier", type: "BARRIER",
+            cost: "40g", hp: "500 HP", dmg: "0", rate: "Statik", dps: "0 DPS", range: "0px", armor: "15 Armor", speed: "Statik",
+            eff: { vsShield: "Qaytarish", vsArmor: "Bloklash", vsSwarm: "Yo'lni burish", vsBoss: "Vaqtincha to'xtatish" },
+            desc: "Dushmanlar harakatini to'sib, ularni aylanma uzoq yo'lga buruvchi mustahkam kiber-to'siq.",
+            branchA: {
+              name: "Reinforced Plating", cost: "60g", dmg: "0", rate: "Statik", dps: "0",
+              perk: "1200 HP va 30 Armor",
+              desc: "Titan qotishmali qoplamalar bilan quvvatlantirilib, gigant boss zarbalariga uzoq vaqt dosh beradi."
+            },
+            branchB: {
+              name: "Shock Spikes", cost: "70g", dmg: "45 Retaliation", rate: "Statik", dps: "45 DPS",
+              perk: "Urilgan dushmanga 45 zarar",
+              desc: "To'siqqa tegingan har bir dushmanga 45 birlik yuqori voltli teskari elektr zarbasi beradi."
+            },
+            lore: {
+              origin: "Fortress Nanite Engineering", blueprint: "BAR-DEF-100 / WALL",
+              history: "Shaharning tor ko'chalarida dushman kolonnalarini labirintga haydash uchun barpo etilgan to'siq.",
+              advice: "Labirint hosil qilish uchun qatorma-qator qo'ying, dushmanlar sizning qurollaringiz ostida 3x ko'proq yuradi."
+            },
+            col: "#ffd600"
+          }
+        ],
+        ENEMIES: [
+          {
+            id: "grunt", name: "Cyber Grunt", icon: "◆", role: "Basic Infantry", type: "LIGHT",
+            bounty: "8g", hp: "75 HP", dmg: "Low", rate: "N/A", dps: "N/A", speed: "75 px/s", armor: "0", range: "Melee",
+            eff: { vsShield: "Zaif", vsArmor: "Zaif", vsSwarm: "To'da bo'ladi", vsBoss: "Piyoda" },
+            desc: "Standart kiber-piyoda dushman. Alohida xavfli emas, ammo katta to'dalar bo'lib bazani bosib olishga urinadi.",
+            lore: {
+              origin: "Rogue Drone Assembly - Sub-Grid", blueprint: "GRN-CYB-01",
+              history: "Standart kiber-piyoda robot. Kiber-bosqinning birinchi to'lqinida maydonga tushiriladi.",
+              advice: "Pulse Turret va Mortar yordamida osongina yo'q qilinadi."
+            },
+            col: "#00e5ff"
+          },
+          {
+            id: "sprinter", name: "Sprinter Drone", icon: "▲", role: "Fast Infiltrator", type: "FAST",
+            bounty: "10g", hp: "45 HP", dmg: "Low", rate: "N/A", dps: "N/A", speed: "135 px/s", armor: "0", range: "Melee",
+            eff: { vsShield: "Zaif", vsArmor: "Zaif", vsSwarm: "Tezkor", vsBoss: "Infiltrator" },
+            desc: "Juda yuqori harakat tezligiga ega engil dron. Mudofaa chizig'ini tezda yorib o'tishga intiladi.",
+            lore: {
+              origin: "Scout Recon Unit", blueprint: "SPT-DRN-02",
+              history: "Tezkor razvedka droni. Baza mudofaasining bo'shliqlarini qidiradi.",
+              advice: "Cryo Emitter yoki Tesla Coil bilan sekinlashtirish zarur, aks holda bazaga yetib boradi."
+            },
+            col: "#ffd600"
+          },
+          {
+            id: "brute", name: "Armored Brute", icon: "■", role: "Heavy Ground Breaker", type: "ARMORED",
+            bounty: "22g", hp: "280 HP", dmg: "High", rate: "N/A", dps: "N/A", speed: "45 px/s", armor: "8 Armor", range: "Melee",
+            eff: { vsShield: "O'rta", vsArmor: "Qalin Zirh", vsSwarm: "Yakka Tank", vsBoss: "Mini-Boss" },
+            desc: "Qalin titan zirh bilan qoplangan og'ir kiber-gladiator. Kinetik qurollarga qarshi yuqori chidamlilikka ega.",
+            lore: {
+              origin: "Siege Mech Division", blueprint: "BRT-HV-03",
+              history: "Mudofaa to'siqlarini buzib o'tish uchun maxsus yaratilgan og'ir piyoda tank.",
+              advice: "Railgun (Zirh teshuvchi) yoki Flame Thrower (Zirh erituvchi) bilan yo'q qiling."
+            },
+            col: "#ff007f"
+          },
+          {
+            id: "shieldbearer", name: "Shieldbearer", icon: "⬢", role: "Energy Shielded", type: "SHIELD",
+            bounty: "25g", hp: "160 HP", dmg: "Medium", rate: "N/A", dps: "N/A", speed: "60 px/s", armor: "120 Shield", range: "Support",
+            eff: { vsShield: "Kuchli Qalqon", vsArmor: "O'rta", vsSwarm: "Himoyachi", vsBoss: "Qalqon generatori" },
+            desc: "O'zini va yonidagi dushmanlarni energiya qalqoni bilan himoyalaydi. Qalqoni buzilmaguncha HP kamaymaydi.",
+            lore: {
+              origin: "Defensive Array Core", blueprint: "SHD-BR-04",
+              history: "Ittifoqchi dushmanlarni uzoq masofali qurollardan himoya qiluvchi harakatlanuvchi qalqon generatori.",
+              advice: "Tesla Coil (EMP) yoki Pulse Turret orqali energiya qalqonini bir zumda sindiring."
+            },
+            col: "#00b0ff"
+          },
+          {
+            id: "medic", name: "Nanite Medic", icon: "✚", role: "Field Healer", type: "HEALER",
+            bounty: "28g", hp: "140 HP", dmg: "None", rate: "Heal 25/s", dps: "Support", speed: "65 px/s", armor: "0", range: "120px",
+            eff: { vsShield: "Davolash", vsArmor: "Tuzatish", vsSwarm: "Guruhni tiklaydi", vsBoss: "Yordamchi" },
+            desc: "Yaqin atrofdagi dushmanlarni soniyasiga +25 HP bilan davolaydi. Kolonnada birinchi bo'lib yo'q qilinishi shart.",
+            lore: {
+              origin: "Bio-Nanite Lab", blueprint: "MED-NAN-05",
+              history: "Zararlangan kiber-mexanizmlarni jang maydonida qayta tiklovchi nanit droni.",
+              advice: "Railgun yoki Hero Mech orqali to'g'ridan-to'g'ri nishonga olib eng birinchi yo'q qiling."
+            },
+            col: "#00e676"
+          },
+          {
+            id: "splitter", name: "Splitter Organism", icon: "❖", role: "Dividing Menace", type: "LIGHT",
+            bounty: "18g", hp: "190 HP", dmg: "Medium", rate: "N/A", dps: "N/A", speed: "55 px/s", armor: "2 Armor", range: "Melee",
+            eff: { vsShield: "Oddiy", vsArmor: "Oddiy", vsSwarm: "2x Swarmling bo'linadi", vsBoss: "To'da" },
+            desc: "O'ldirilganda ikkita kichik va juda tezkor Swarmling dushmaniga bo'linadi. AoE qurollarga muhtoj.",
+            lore: {
+              origin: "Bio-Mechanical Mutagen", blueprint: "SPL-ORG-06",
+              history: "Kiber-virusli organik klon. Mag'lubiyat paytida bo'linish mexanizmini ishga tushiradi.",
+              advice: "Heavy Mortar yoki Flame Thrower yordamida bo'lingan paytidayoq ikkala bo'lagini yoqing."
+            },
+            col: "#ffab00"
+          },
+          {
+            id: "phantom", name: "Phantom Ghost", icon: "◌", role: "Phase Shifter", type: "FAST",
+            bounty: "30g", hp: "120 HP", dmg: "Medium", rate: "N/A", dps: "N/A", speed: "80 px/s", armor: "Phasing", range: "Melee",
+            eff: { vsShield: "Fazoviy", vsArmor: "Ko'rinmas", vsSwarm: "G'oyib bo'ladi", vsBoss: "Infiltrator" },
+            desc: "Har 4 soniyada fazoviy g'oyib bo'lib, oddiy minoralarning nishonidan chiqib ketadi. Radar Beacon kerak.",
+            lore: {
+              origin: "Quantum Rift Technology", blueprint: "PHT-GST-07",
+              history: "Giperfazo orqali o'lchamlararo sakrash imkoniyatiga ega kvant kiber-arvohi.",
+              advice: "Radar Beacon minorasini o'rnating, u Phantomning fazoviy niqobini darhol fosh qiladi."
+            },
+            col: "#b388ff"
+          },
+          {
+            id: "kamikaze_drone", name: "Kamikaze Drone", icon: "💥", role: "Suicide Flyer", type: "FLYER",
+            bounty: "15g", hp: "60 HP", dmg: "120 AoE", rate: "N/A", dps: "N/A", speed: "160 px/s", armor: "0", range: "Suicide",
+            eff: { vsShield: "Portlovchi", vsArmor: "Portlovchi", vsSwarm: "Havo hujumi", vsBoss: "Halokatli" },
+            desc: "Uchuvchi havo dushmani. Yer to'siqlarini chetlab o'tib, baza yoki minoralar tomon uchib kelib portlaydi.",
+            lore: {
+              origin: "Volatile Munition Pod", blueprint: "KMK-DRN-08",
+              history: "Yuqori quvvatli plazma portlovchisi bilan jihozlangan bir martalik qanotli bomba.",
+              advice: "Pulse Turret yoki Railgun yordamida uzoq masofada havodayoq urib tushiring."
+            },
+            col: "#ff1744"
+          },
+          {
+            id: "gunship", name: "Heavy Gunship", icon: "🚁", role: "Aerial Corvette", type: "FLYER",
+            bounty: "45g", hp: "480 HP", dmg: "Laser Salvo", rate: "1.5/s", dps: "Medium", speed: "50 px/s", armor: "6 Armor", range: "180px",
+            eff: { vsShield: "Havodan", vsArmor: "Zirhli Havo", vsSwarm: "Minoralarni o'qqa tutadi", vsBoss: "Mini-Titan" },
+            desc: "Havodan minoralarni o'qqa tutuvchi og'ir uchuvchi kiber-korvet. Zamin to'siqlaridan mutlaqo mustasno.",
+            lore: {
+              origin: "Sky-Fortress Fleet", blueprint: "GNS-COR-09",
+              history: "Kiber-legionning asosiy jangovar zarba beruvchi vertolyot korveti.",
+              advice: "Railgun va kuchaytirilgan Pulse Turretlar havodan kelayotgan korvetni tezda yo'q qiladi."
+            },
+            col: "#ff5252"
+          }
+        ],
+        BOSSES: [
+          {
+            id: "juggernaut", name: "Goliath Juggernaut", icon: "💀", role: "Wave 10 Titan", type: "TITAN",
+            bounty: "150g", hp: "6,000 HP", dmg: "Titan Slam", rate: "Heavy", dps: "Destructive", speed: "38 px/s", armor: "20 Armor", range: "Melee",
+            eff: { vsShield: "Super Og'ir", vsArmor: "20 Titan Zirh", vsSwarm: "Yer silkinishi", vsBoss: "Bosh Titan" },
+            desc: "10-to'lqin bosh titani. Qalin monolit po'lat zirhga ega. Railgun va Flame Thrower zarbalariga juda zaif.",
+            lore: {
+              origin: "Heavy Siege Forge Alpha", blueprint: "GLH-JUG-W10",
+              history: "Kiber-urushning ilk yirik devqomat titanlaridan biri. Shahar devorlarini qulatish uchun yasalgan.",
+              advice: "Flame Thrower bilan zirhini 70% ga eritib, Railgun va Mortar bilan konsentrlangan o't oching."
+            },
+            col: "#ff1744"
+          },
+          {
+            id: "overseer", name: "Cyber Overseer", icon: "👁️", role: "Wave 20 Titan", type: "TITAN",
+            bounty: "250g", hp: "9,000 HP", dmg: "Orbital Pulse", rate: "2.0/s", dps: "Energy Salvo", speed: "42 px/s", armor: "14 Armor", range: "220px",
+            eff: { vsShield: "Ko'z nuri", vsArmor: "Dron chiqaradi", vsSwarm: "Doimiy to'lqin", vsBoss: "Kvant Ko'z" },
+            desc: "20-to'lqin titani. Doimiy ravishda Sprinter dronlar armiyasini maydonga chiqaradi va qizil lazer to'lqinlari sochadi.",
+            lore: {
+              origin: "Sentient Nexus Singularity", blueprint: "OVR-EYE-W20",
+              history: "Kiber-tarmoqni boshqaruvchi markaziy sun'iy intellektning jangovar avatari.",
+              advice: "Tesla Coil orqali chiqqan dronlarni birvarakayiga yo'q qiling, Hero Mech bilan ulti urib yakunlang."
+            },
+            col: "#e040fb"
+          },
+          {
+            id: "hive_titan", name: "Hive Titan", icon: "👑", role: "Wave 30 Titan", type: "TITAN",
+            bounty: "500g", hp: "20,000 HP", dmg: "Venom Salvo", rate: "3 bosqich", dps: "Supreme", speed: "40 px/s", armor: "22 Armor", range: "200px",
+            eff: { vsShield: "Enrage +40%", vsArmor: "3 Bosqichli Jang", vsSwarm: "Biologik klonlar", vsBoss: "Final Bosqich" },
+            desc: "30-to'lqin bosh titani. 3 ta jangga bo'lingan faza va har faza oxirida enrage tezlanishiga ega bosh titan.",
+            lore: {
+              origin: "Broodmother Bio-Cyber Hive", blueprint: "HVE-TTN-W30",
+              history: "Kiber-organik laboratoriyalardan qochgan eng qudratli kiber-ona organizm.",
+              advice: "Barcha minoralarni Radar Beacon bilan kuchaytiring va Cryo orqali uning enrage tezligini to'xtating."
+            },
+            col: "#ffd600"
+          },
+          {
+            id: "void_titan", name: "Void Titan", icon: "🌀", role: "Singularity Colossus", type: "TITAN",
+            bounty: "320g", hp: "8,500 HP", dmg: "Black Hole Vortex", rate: "Special", dps: "Gravity", speed: "36 px/s", armor: "18 Armor", range: "250px",
+            eff: { vsShield: "Gravitatsiya", vsArmor: "Qora Tuynuk", vsSwarm: "O'ziga tortadi", vsBoss: "Fazoviy" },
+            desc: "Atrofidagi narsalarni tortib oluvchi gravitatsion qora tuynuk voronkasini yaratib minoralarni to'xtatadi.",
+            lore: {
+              origin: "Void Dimensional Rift", blueprint: "VOID-COL-00",
+              history: "Fazolararo darvoza buzilganda paydo bo'lgan o'lchamsiz qora energiya kolossi.",
+              advice: "Masofadan Railgun va Mortar bilan o'q yog'diring, markaziga yaqinlashish xavfli."
+            },
+            col: "#7c4dff"
+          },
+          {
+            id: "chrono_phantom", name: "Chrono Phantom", icon: "⌛", role: "Temporal Anomaly", type: "TITAN",
+            bounty: "300g", hp: "7,200 HP", dmg: "Time Warp", rate: "Phase", dps: "Distortion", speed: "46 px/s", armor: "12 Armor", range: "180px",
+            eff: { vsShield: "Vaqtni buzish", vsArmor: "Sekinlashtirish", vsSwarm: "Sakraydi", vsBoss: "Temporal" },
+            desc: "Minoralarning otish tezligini 50% ga pasaytiradi va har 4 soniyada 120 piksel oldinga sakrab o'tadi.",
+            lore: {
+              origin: "Chrono-Temporal Lab Beta", blueprint: "CHR-PHN-88",
+              history: "Vaqt oqimini buzish tajribasi natijasida yuzaga kelgan anomal temporal kiborg.",
+              advice: "Radar Beacon uning vaqt sakrashlarini fosh qiladi, EMP esa vaqt qobig'ini buzadi."
+            },
+            col: "#00e5ff"
+          },
+          {
+            id: "mecha_colossus", name: "Mecha Colossus", icon: "🤖", role: "Mobile Fortress", type: "TITAN",
+            bounty: "400g", hp: "11,000 HP", dmg: "Dual 150mm & Missiles", rate: "Barrage", dps: "Catastrophic", speed: "32 px/s", armor: "26 Armor", range: "240px",
+            eff: { vsShield: "Raketalar salvosi", vsArmor: "26 Super Zirh", vsSwarm: "Og'ir to'p", vsBoss: "Jangovar Dev" },
+            desc: "Qo'shaloq raketalar salvosi va 150mm to'p bilan minoralarga javob zarbasi beruvchi harbiy devqomat.",
+            lore: {
+              origin: "Apex Renegade Prototype Factory", blueprint: "MCH-COL-X1",
+              history: "Ittifoqchilar harbiy bazasini yo'q qilish uchun isyonchi robotlar tomonidan qurilgan super-mech.",
+              advice: "Uning 26 birlik super-zirhini faqat Flame Thrower (Armor Melt) va Railgun sindira oladi."
+            },
+            col: "#ff9100"
+          }
+        ],
+        MECH: [
+          {
+            id: "biped", name: "Apex-01 (Assault Biped)", icon: "🤖", role: "Field Commander Mech", type: "HERO_BIPED",
+            cost: "Commander", hp: "400 HP", dmg: "40 Kinetic", rate: "4.5/s", dps: "180 DPS", range: "175px", armor: "10 Armor", speed: "130 px/s",
+            eff: { vsShield: "120% (Tezkor)", vsArmor: "90% (Kinetic)", vsSwarm: "Dash va Gatling", vsBoss: "Cyber-Slash 400 DMG" },
+            desc: "Manyovrli yuruvchi qo'mondon roboti. 2 ta aylanuvchi lazer Gatling pulemyoti, kinetik tezlanish (Dash) va 400 zarbali Cyber-Slash ultisi bor.",
+            branchA: {
+              name: "Gatling Overheat", cost: "Upgrade", dmg: "52", rate: "5.5/s", dps: "286 DPS",
+              perk: "+45% Gatling o't kuchi",
+              desc: "Gatling pulemyotlari o'ta qizish rejimida ishlaydi va har 5-o'qda yondiruvchi plazma otadi."
+            },
+            branchB: {
+              name: "Vortex Blade", cost: "Upgrade", dmg: "600 Ulti", rate: "Dash x2", dps: "Burst DPS",
+              perk: "Cyber-Slash +50% Radius",
+              desc: "Qilich zarbasi butun xaritani qamrab oluvchi energiyali plazma to'lqinini hosil qiladi."
+            },
+            lore: {
+              origin: "Apex Cybernetics Flagship Project", blueprint: "APX-01 / COMMANDER",
+              history: "Insoniyatning eng so'nggi mudofaa tarmog'ini boshqarish uchun yaratilgan 5-avlod avtonom qo'mondon kiber-mechi.",
+              advice: "Xaritaning xavfli nuqtalariga tezda Dash orqali yetib boring va to'dalarni Cyber-Slash bilan yo'q qiling."
+            },
+            col: "#00e5ff"
+          },
+          {
+            id: "siege", name: "Apex-01 (Siege Tank)", icon: "🚜", role: "Heavy Dual Artillery", type: "HERO_SIEGE",
+            cost: "Commander", hp: "400 HP", dmg: "140 Explosive", rate: "1.2/s", dps: "168 DPS", range: "260px", armor: "25 Armor (Fortified)", speed: "90 px/s",
+            eff: { vsShield: "100% (Oddiy)", vsArmor: "180% (Zirhni yanchadi)", vsSwarm: "70px AoE Portlash", vsBoss: "Ulkan zarba" },
+            desc: "O'rnatiladigan og'ir tank rejimi. Qabul qiluvchi barcha zarbalarni 50% kamaytiradi (og'ir zirh) va 70px maydonda portlovchi qo'shaloq 120mm to'p otadi.",
+            branchA: {
+              name: "Heavy Artillery Battery", cost: "Upgrade", dmg: "220", rate: "1.2/s", dps: "264 DPS",
+              perk: "+60% Portlash radiusi",
+              desc: "120mm qo'shaloq to'plar snaryadlari butun dushman guruhini bir zumda kulga aylantiradi."
+            },
+            branchB: {
+              name: "Reactive Fortress", cost: "Upgrade", dmg: "140", rate: "1.2/s", dps: "168 DPS",
+              perk: "-70% Olingan zarar & EMP Spikes",
+              desc: "Qabul qilingan zarbalarni 70% ga kamaytiradi va urilgan dushmanlarga EMP kontr-zarbasi beradi."
+            },
+            lore: {
+              origin: "Apex Heavy Siege Engineering", blueprint: "APX-01 / SIEGE-PLATFORM",
+              history: "Qo'mondon mechining og'ir mudofaa rejimi. Xavfli sektorlarni bir o'zi ushlab turishga mo'ljallangan.",
+              advice: "Dushmanlar ko'p keladigan tor yo'llarda Siege rejimiga o'ting va to'xtovsiz maydoniy zarbalar bering."
+            },
+            col: "#ffd600"
+          }
+        ]
+      };
+    }
+
+    getCodexFireInterval() {
+      const db = this.getCodexDatabase();
+      const tab = this.codexTab || "TOWERS";
+      const list = db[tab] || db.TOWERS;
+      const item = list.find(i => i.id === this.codexSelectedId) || list[0];
+      const br = this.codexBranch || "BASE";
+      if (tab === "TOWERS") {
+        if (item.id === "pulse") return br === "BRANCH_B" ? 0.15 : 0.28;
+        if (item.id === "mortar") return 1.4;
+        if (item.id === "cryo") return 0.5;
+        if (item.id === "tesla") return 0.7;
+        if (item.id === "flame") return 0.35;
+        if (item.id === "railgun") return br === "BRANCH_A" ? 1.6 : 2.0;
+        if (item.id === "beacon") return 1.2;
+        if (item.id === "barricade") return 1.8;
+      }
+      if (tab === "MECH") {
+        if (item.id === "biped") return br === "BRANCH_A" ? 0.18 : 0.22;
+        if (item.id === "siege") return 0.95;
+      }
+      return 1.4;
+    }
+
+    fireCodexSimShot() {
+      const db = this.getCodexDatabase();
+      const tab = this.codexTab || "TOWERS";
+      const list = db[tab] || db.TOWERS;
+      const item = list.find(i => i.id === this.codexSelectedId) || list[0];
+      const br = this.codexBranch || "BASE";
+
+      const sx = 550;
+      const sy = 340;
+      const tx = 665;
+      const ty = 280;
+
+      this.codexRecoil = 1.0;
+
+      let pColor = item.col || "#00e5ff";
+      let pSpeed = 4.0;
+      let pArc = 0;
+      let pType = item.type || "ENERGY";
+      let dmgVal = 25;
+
+      if (tab === "TOWERS") {
+        if (item.id === "pulse") {
+          dmgVal = br === "BRANCH_A" ? 34 : 22;
+          pSpeed = 5.5;
+          pColor = br === "BRANCH_A" ? "#b388ff" : "#00e5ff";
+          audio.shootPulse();
+        } else if (item.id === "mortar") {
+          dmgVal = 85;
+          pSpeed = 1.6;
+          pArc = 90;
+          pColor = "#ff9100";
+          audio.shootMortar();
+        } else if (item.id === "cryo") {
+          dmgVal = 14;
+          pSpeed = 4.0;
+          pColor = "#00f0ff";
+          audio.shootCryo();
+        } else if (item.id === "tesla") {
+          dmgVal = br === "BRANCH_B" ? 68 : 48;
+          pSpeed = 8.0;
+          pColor = "#ffd600";
+          audio.shootTesla ? audio.shootTesla() : audio.shootPulse();
+        } else if (item.id === "flame") {
+          dmgVal = 32;
+          pSpeed = 3.5;
+          pColor = "#ff3d00";
+          audio.shootFlame ? audio.shootFlame() : audio.shootMortar();
+        } else if (item.id === "railgun") {
+          dmgVal = br === "BRANCH_A" ? 340 : 210;
+          pSpeed = 12.0;
+          pColor = br === "BRANCH_B" ? "#e040fb" : "#ff007f";
+          audio.shootRailgun();
+        } else if (item.id === "beacon") {
+          dmgVal = 0;
+          pSpeed = 2.5;
+          pColor = "#76ff03";
+          audio.modal();
+        } else if (item.id === "barricade") {
+          dmgVal = 45;
+          pSpeed = 5.0;
+          pColor = "#ffd600";
+          audio.hit();
+        }
+      } else if (tab === "MECH") {
+        if (item.id === "biped") {
+          dmgVal = br === "BRANCH_A" ? 52 : 40;
+          pSpeed = 6.0;
+          pColor = "#00e5ff";
+          audio.shootPulse();
+        } else {
+          dmgVal = br === "BRANCH_A" ? 220 : 140;
+          pSpeed = 3.0;
+          pArc = 45;
+          pColor = "#ffd600";
+          audio.artilleryBlast ? audio.artilleryBlast() : audio.shootMortar();
+        }
+      } else {
+        dmgVal = tab === "BOSSES" ? 120 : 35;
+        pSpeed = 3.2;
+        pColor = item.col || "#ff1744";
+        audio.hit();
+      }
+
+      this.codexProjectiles.push({
+        startX: sx,
+        startY: sy,
+        x: sx,
+        y: sy,
+        targetX: tx,
+        targetY: ty,
+        progress: 0,
+        speed: pSpeed,
+        arc: pArc,
+        color: pColor,
+        type: pType,
+        dmg: dmgVal,
+        itemId: item.id,
+        branch: br
+      });
+
+      for (let m = 0; m < 6; m++) {
+        this.codexParticles.push({
+          x: sx + (Math.random() - 0.5) * 8,
+          y: sy + (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 45,
+          vy: (Math.random() - 0.5) * 45,
+          r: 2 + Math.random() * 3,
+          color: pColor,
+          alpha: 1.0,
+          life: 0.18
+        });
+      }
+    }
+
+    onCodexProjectileHit(p) {
+      this.codexDummyFlash = 1.0;
+      const targetType = this.codexSimTargetType || "STANDARD";
+
+      let mult = 1.0;
+      let tag = "";
+      let txtCol = "#ffffff";
+
+      if (targetType === "SHIELDED" && this.codexDummyShield > 0) {
+        if (p.type === "ENERGY" || p.itemId === "tesla" || (p.branch === "BRANCH_A" && p.itemId === "pulse")) {
+          mult = 2.0;
+          tag = " ⚡ CRIT vs SHIELD (+100%)";
+          txtCol = "#00e5ff";
+        } else if (p.itemId === "railgun") {
+          mult = 1.5;
+          tag = " 🎯 SHIELD PIERCE";
+          txtCol = "#ff007f";
+        } else {
+          mult = 0.7;
+          tag = " 🛡️ SHIELD ABSORB (-30%)";
+          txtCol = "#90caf9";
+        }
+      } else if (targetType === "ARMORED") {
+        if (p.itemId === "railgun") {
+          mult = 1.35;
+          tag = " 🎯 100% ARMOR PIERCE!";
+          txtCol = "#ff007f";
+        } else if (p.itemId === "flame") {
+          mult = 1.5;
+          tag = " 🔥 ARMOR MELT (+50%)";
+          txtCol = "#ff3d00";
+        } else if (p.type === "EXPLOSIVE") {
+          mult = 1.2;
+          tag = " 💣 HEAVY CRUSH";
+          txtCol = "#ff9100";
+        } else {
+          mult = 0.6;
+          tag = " ■ ARMOR DEFLECT (-40%)";
+          txtCol = "#b0bec5";
+        }
+      }
+
+      if (p.itemId === "cryo") {
+        tag = " ❄️ MUZLATILDI (-60%)";
+        txtCol = "#00f0ff";
+      }
+
+      const finalDmg = Math.round(p.dmg * mult);
+
+      if (targetType === "SHIELDED" && this.codexDummyShield > 0) {
+        this.codexDummyShield = Math.max(0, this.codexDummyShield - finalDmg);
+      } else {
+        this.codexDummyHp = Math.max(0, this.codexDummyHp - finalDmg);
+      }
+
+      const now = Date.now();
+      this.codexDmgHistory.push({ t: now, dmg: finalDmg });
+      this.codexTotalDmg = (this.codexTotalDmg || 0) + finalDmg;
+
+      this.codexDmgTexts.push({
+        x: p.targetX + (Math.random() - 0.5) * 35,
+        y: p.targetY - 15 + (Math.random() - 0.5) * 15,
+        text: `-${finalDmg}${tag}`,
+        color: txtCol,
+        alpha: 1.0,
+        scale: mult > 1.2 ? 1.25 : 1.0
+      });
+
+      for (let s = 0; s < 14; s++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 30 + Math.random() * 80;
+        this.codexParticles.push({
+          x: p.targetX,
+          y: p.targetY,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          r: 2 + Math.random() * 3,
+          color: p.color,
+          alpha: 1.0,
+          life: 0.35 + Math.random() * 0.25
+        });
+      }
+    }
+
+    updateCodex(dt) {
+      if (this.codexAutoRotate) {
+        this.codexYaw = (this.codexYaw || 0) + dt * 0.75;
+      }
+      if (this.codexRecoil > 0) {
+        this.codexRecoil = Math.max(0, this.codexRecoil - dt * 4.5);
+      }
+      if (this.codexDummyFlash > 0) {
+        this.codexDummyFlash = Math.max(0, this.codexDummyFlash - dt * 4.0);
+      }
+
+      if (this.codexSimActive) {
+        this.codexSimTimer = (this.codexSimTimer || 0) + dt;
+        const interval = this.getCodexFireInterval();
+        if (this.codexSimTimer >= interval) {
+          this.codexSimTimer = 0;
+          this.fireCodexSimShot();
+        }
+      }
+
+      if (this.codexDummyHp <= 0) {
+        this.codexDummyHp = this.codexDummyMaxHp;
+        this.codexDummyShield = this.codexDummyMaxShield;
+        this.codexDummyFlash = 1.0;
+      }
+
+      if (this.codexProjectiles) {
+        for (let i = this.codexProjectiles.length - 1; i >= 0; i--) {
+          const p = this.codexProjectiles[i];
+          p.progress += dt * p.speed;
+          p.x = p.startX + (p.targetX - p.startX) * Math.min(1, p.progress);
+          p.y = p.startY + (p.targetY - p.startY) * Math.min(1, p.progress) - (p.arc ? Math.sin(p.progress * Math.PI) * p.arc : 0);
+
+          if (Math.random() < 0.6) {
+            this.codexParticles.push({
+              x: p.x + (Math.random() - 0.5) * 6,
+              y: p.y + (Math.random() - 0.5) * 6,
+              vx: (Math.random() - 0.5) * 15,
+              vy: (Math.random() - 0.5) * 15,
+              r: 2.5,
+              color: p.color,
+              alpha: 0.85,
+              life: 0.22
+            });
+          }
+
+          if (p.progress >= 1.0) {
+            this.onCodexProjectileHit(p);
+            this.codexProjectiles.splice(i, 1);
+          }
+        }
+      }
+
+      if (this.codexParticles) {
+        for (let i = this.codexParticles.length - 1; i >= 0; i--) {
+          const pt = this.codexParticles[i];
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+          pt.alpha -= dt / (pt.life || 0.35);
+          if (pt.alpha <= 0) this.codexParticles.splice(i, 1);
+        }
+      }
+
+      if (this.codexDmgTexts) {
+        for (let i = this.codexDmgTexts.length - 1; i >= 0; i--) {
+          const txt = this.codexDmgTexts[i];
+          txt.y -= dt * 32;
+          txt.alpha -= dt * 0.9;
+          if (txt.alpha <= 0) this.codexDmgTexts.splice(i, 1);
+        }
+      }
+
+      const now = Date.now();
+      if (this.codexDmgHistory) {
+        this.codexDmgHistory = this.codexDmgHistory.filter(h => now - h.t < 3000);
+      }
+    }
+
+    projectCodexPoint(x, y, z, yaw, pitch, scale, cx, cy) {
+      const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
+      const x1 = x * cyaw + z * syaw;
+      const z1 = -x * syaw + z * cyaw;
+
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const y2 = y * cp - z1 * sp;
+      const z2 = y * sp + z1 * cp;
+
+      const camDist = 420;
+      const fov = camDist / (camDist + z2);
+      return {
+        x: cx + x1 * scale * fov,
+        y: cy + y2 * scale * fov,
+        z: z2,
+        fov: fov
+      };
+    }
+
+    drawCodex3DPoly(ctx, pts3D, yaw, pitch, scale, cx, cy, fillCol, strokeCol, lineWidth = 1.2, mode = "SHADED") {
+      if (pts3D.length < 3) return;
+      const pts2D = pts3D.map(p => this.projectCodexPoint(p[0], p[1], p[2], yaw, pitch, scale, cx, cy));
+
+      const v1 = [pts3D[1][0] - pts3D[0][0], pts3D[1][1] - pts3D[0][1], pts3D[1][2] - pts3D[0][2]];
+      const v2 = [pts3D[2][0] - pts3D[0][0], pts3D[2][1] - pts3D[0][1], pts3D[2][2] - pts3D[0][2]];
+      const nx = v1[1] * v2[2] - v1[2] * v2[1];
+      const ny = v1[2] * v2[0] - v1[0] * v2[2];
+      const nz = v1[0] * v2[1] - v1[1] * v2[0];
+      const len = Math.hypot(nx, ny, nz) || 1;
+      const norm = [nx / len, ny / len, nz / len];
+
+      ctx.beginPath();
+      ctx.moveTo(pts2D[0].x, pts2D[0].y);
+      for (let i = 1; i < pts2D.length; i++) {
+        ctx.lineTo(pts2D[i].x, pts2D[i].y);
+      }
+      ctx.closePath();
+
+      if (mode === "WIREFRAME") {
+        ctx.strokeStyle = strokeCol || "#00e5ff";
+        ctx.lineWidth = lineWidth || 1.2;
+        ctx.stroke();
+        return;
+      }
+
+      if (mode === "XRAY") {
+        ctx.fillStyle = fillCol || "rgba(0, 229, 255, 0.18)";
+        ctx.fill();
+        ctx.strokeStyle = strokeCol || "rgba(0, 229, 255, 0.75)";
+        ctx.lineWidth = lineWidth || 1.0;
+        ctx.stroke();
+        return;
+      }
+
+      const lDot = Math.max(0, -norm[0] * 0.4 - norm[1] * 0.7 + norm[2] * 0.5);
+      const brightness = 0.35 + 0.65 * lDot;
+
+      ctx.fillStyle = fillCol;
+      ctx.fill();
+
+      if (brightness < 0.6) {
+        ctx.fillStyle = `rgba(0, 0, 0, ${(1.0 - brightness * 1.5) * 0.55})`;
+        ctx.fill();
+      } else if (brightness > 0.8) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${(brightness - 0.8) * 0.65})`;
+        ctx.fill();
+      }
+
+      if (strokeCol) {
+        ctx.strokeStyle = strokeCol;
+        ctx.lineWidth = lineWidth || 1.0;
+        ctx.stroke();
+      }
+    }
+
+    drawCodex3DBox(ctx, x, y, z, w, h, d, yaw, pitch, scale, cx, cy, fillCol, strokeCol, mode = "SHADED") {
+      const hw = w / 2, hh = h / 2, hd = d / 2;
+      const v = [
+        [x - hw, y - hh, z - hd], [x + hw, y - hh, z - hd], [x + hw, y + hh, z - hd], [x - hw, y + hh, z - hd],
+        [x - hw, y - hh, z + hd], [x + hw, y - hh, z + hd], [x + hw, y + hh, z + hd], [x - hw, y + hh, z + hd]
+      ];
+      const faces = [
+        [v[0], v[1], v[2], v[3]],
+        [v[5], v[4], v[7], v[6]],
+        [v[4], v[0], v[3], v[7]],
+        [v[1], v[5], v[6], v[2]],
+        [v[4], v[5], v[1], v[0]],
+        [v[3], v[2], v[6], v[7]]
+      ];
+      for (const f of faces) {
+        this.drawCodex3DPoly(ctx, f, yaw, pitch, scale, cx, cy, fillCol, strokeCol, 1.2, mode);
+      }
+    }
+
+    drawCodex3DCylinder(ctx, x, y, z, rTop, rBottom, height, segs, yaw, pitch, scale, cx, cy, fillCol, strokeCol, mode = "SHADED") {
+      const hh = height / 2;
+      const topPts = [], botPts = [];
+      for (let i = 0; i < segs; i++) {
+        const ang = (Math.PI * 2 / segs) * i;
+        topPts.push([x + Math.cos(ang) * rTop, y - hh, z + Math.sin(ang) * rTop]);
+        botPts.push([x + Math.cos(ang) * rBottom, y + hh, z + Math.sin(ang) * rBottom]);
+      }
+      for (let i = 0; i < segs; i++) {
+        const next = (i + 1) % segs;
+        this.drawCodex3DPoly(ctx, [topPts[i], topPts[next], botPts[next], botPts[i]], yaw, pitch, scale, cx, cy, fillCol, strokeCol, 1.0, mode);
+      }
+      this.drawCodex3DPoly(ctx, topPts, yaw, pitch, scale, cx, cy, fillCol, strokeCol, 1.2, mode);
+      this.drawCodex3DPoly(ctx, botPts, yaw, pitch, scale, cx, cy, fillCol, strokeCol, 1.2, mode);
+    }
+
+    drawCodex3DHexPrism(ctx, x, y, z, radius, height, yaw, pitch, scale, cx, cy, fillCol, strokeCol, mode = "SHADED") {
+      this.drawCodex3DCylinder(ctx, x, y, z, radius, radius, height, 6, yaw, pitch, scale, cx, cy, fillCol, strokeCol, mode);
+    }
+
+    drawCodex3DRing(ctx, x, y, z, radius, segs, yaw, pitch, scale, cx, cy, strokeCol, lineWidth = 1.5) {
+      const pts = [];
+      for (let i = 0; i < segs; i++) {
+        const ang = (Math.PI * 2 / segs) * i;
+        pts.push([x + Math.cos(ang) * radius, y, z + Math.sin(ang) * radius]);
+      }
+      const pts2D = pts.map(p => this.projectCodexPoint(p[0], p[1], p[2], yaw, pitch, scale, cx, cy));
+      ctx.beginPath();
+      ctx.moveTo(pts2D[0].x, pts2D[0].y);
+      for (let i = 1; i < pts2D.length; i++) ctx.lineTo(pts2D[i].x, pts2D[i].y);
+      ctx.closePath();
+      ctx.strokeStyle = strokeCol || "#00e5ff";
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+
+    drawCodex3DSphere(ctx, x, y, z, radius, yaw, pitch, scale, cx, cy, color, glow = true) {
+      const p = this.projectCodexPoint(x, y, z, yaw, pitch, scale, cx, cy);
+      const r2D = radius * scale * p.fov;
+      ctx.save();
+      if (glow) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 16;
+      }
+      const grad = ctx.createRadialGradient(p.x - r2D * 0.3, p.y - r2D * 0.3, r2D * 0.1, p.x, p.y, r2D);
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(0.4, color);
+      grad.addColorStop(1, "rgba(5, 10, 20, 0.8)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r2D, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    drawCodex3DUnit(ctx, item, tab, t, yaw, pitch, scale, cx, cy, mode, branch, recoil) {
+      const rec = (recoil || 0) * 12;
+
+      if (tab === "TOWERS") {
+        this.drawCodex3DHexPrism(ctx, 0, 36, 0, 38, 14, yaw, pitch, scale, cx, cy, "#1a233a", "#00e5ff", mode);
+        this.drawCodex3DHexPrism(ctx, 0, 24, 0, 32, 10, yaw, pitch, scale, cx, cy, "#111827", item.col || "#00e5ff", mode);
+        this.drawCodex3DCylinder(ctx, 0, 12, 0, 16, 18, 14, 8, yaw, pitch, scale, cx, cy, "#1e293b", "#334155", mode);
+
+        if (item.id === "pulse") {
+          this.drawCodex3DBox(ctx, 0, -2, -rec, 24, 16, 26, yaw, pitch, scale, cx, cy, "#1e293b", "#00e5ff", mode);
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DBox(ctx, -10, -4, 18 - rec, 4, 10, 24, yaw, pitch, scale, cx, cy, "#0f172a", "#b388ff", mode);
+            this.drawCodex3DBox(ctx, 10, -4, 18 - rec, 4, 10, 24, yaw, pitch, scale, cx, cy, "#0f172a", "#b388ff", mode);
+            this.drawCodex3DSphere(ctx, 0, -4, 18 - rec, 10 + Math.sin(t * 8) * 2, yaw, pitch, scale, cx, cy, "#b388ff", true);
+          } else if (branch === "BRANCH_B") {
+            const spin = t * 15;
+            for (let b = 0; b < 4; b++) {
+              const ang = spin + (Math.PI / 2) * b;
+              const bx = Math.cos(ang) * 8;
+              const by = -2 + Math.sin(ang) * 8;
+              this.drawCodex3DCylinder(ctx, bx, by, 20 - rec, 3, 3, 30, 6, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+            }
+            this.drawCodex3DCylinder(ctx, 0, -2, 20 - rec, 6, 6, 26, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          } else {
+            this.drawCodex3DCylinder(ctx, -7, -2, 18 - rec, 3.5, 3.5, 26, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+            this.drawCodex3DCylinder(ctx, 7, -2, 18 - rec, 3.5, 3.5, 26, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+            this.drawCodex3DRing(ctx, -7, -2, 31 - rec, 5, 8, yaw, pitch, scale, cx, cy, "#00e5ff", 2);
+            this.drawCodex3DRing(ctx, 7, -2, 31 - rec, 5, 8, yaw, pitch, scale, cx, cy, "#00e5ff", 2);
+          }
+        } else if (item.id === "mortar") {
+          for (let l = 0; l < 4; l++) {
+            const lang = (Math.PI / 2) * l + Math.PI / 4;
+            const lx = Math.cos(lang) * 36;
+            const lz = Math.sin(lang) * 36;
+            this.drawCodex3DBox(ctx, lx, 32, lz, 10, 8, 12, yaw, pitch, scale, cx, cy, "#0f172a", "#ff9100", mode);
+          }
+          this.drawCodex3DSphere(ctx, 0, 4, 0, 14, yaw, pitch, scale, cx, cy, "#334155", false);
+          this.drawCodex3DCylinder(ctx, 0, -12, 10 - rec, 12, 14, 34, 8, yaw, pitch, scale, cx, cy, "#1e293b", "#ff9100", mode);
+          this.drawCodex3DCylinder(ctx, 0, -28, 22 - rec, 15, 15, 8, 8, yaw, pitch, scale, cx, cy, "#ff9100", "#ffffff", mode);
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DBox(ctx, -18, -10, 8 - rec, 8, 14, 16, yaw, pitch, scale, cx, cy, "#ff1744", "#ffd600", mode);
+            this.drawCodex3DBox(ctx, 18, -10, 8 - rec, 8, 14, 16, yaw, pitch, scale, cx, cy, "#ff1744", "#ffd600", mode);
+          } else if (branch === "BRANCH_B") {
+            this.drawCodex3DCylinder(ctx, -14, 0, -12, 6, 6, 20, 6, yaw, pitch, scale, cx, cy, "#ff3d00", "#ff9100", mode);
+            this.drawCodex3DCylinder(ctx, 14, 0, -12, 6, 6, 20, 6, yaw, pitch, scale, cx, cy, "#ff3d00", "#ff9100", mode);
+          }
+        } else if (item.id === "cryo") {
+          this.drawCodex3DCylinder(ctx, 0, 2, 0, 8, 12, 16, 6, yaw, pitch, scale, cx, cy, "#0e7490", "#00f0ff", mode);
+          this.drawCodex3DCylinder(ctx, 0, -16, 8, 22, 6, 16, 8, yaw, pitch, scale, cx, cy, "rgba(0, 240, 255, 0.25)", "#00f0ff", mode);
+          this.drawCodex3DSphere(ctx, 0, -18, 10, 7, yaw, pitch, scale, cx, cy, "#e0f7fa", true);
+
+          for (let s = 0; s < 3; s++) {
+            const sang = t * 2.2 + (Math.PI * 2 / 3) * s;
+            const sx = Math.cos(sang) * 26;
+            const sz = 8 + Math.sin(sang) * 26;
+            this.drawCodex3DHexPrism(ctx, sx, -16, sz, 4, 8, yaw, pitch, scale, cx, cy, "#00f0ff", "#ffffff", mode);
+          }
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DCylinder(ctx, 0, -32, 14, 1, 9, 24, 4, yaw, pitch, scale, cx, cy, "#00f0ff", "#ffffff", mode);
+          } else if (branch === "BRANCH_B") {
+            this.drawCodex3DRing(ctx, 0, -8, 0, 32, 12, yaw, pitch, scale, cx, cy, "#00f0ff", 2.5);
+          }
+        } else if (item.id === "tesla") {
+          this.drawCodex3DCylinder(ctx, 0, 16, 0, 18, 20, 8, 8, yaw, pitch, scale, cx, cy, "#1e293b", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 0, 6, 0, 14, 16, 8, 8, yaw, pitch, scale, cx, cy, "#334155", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 0, -4, 0, 10, 12, 8, 8, yaw, pitch, scale, cx, cy, "#1e293b", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 0, -18, 0, 6, 6, 22, 6, yaw, pitch, scale, cx, cy, "#b45309", "#ffd600", mode);
+          this.drawCodex3DRing(ctx, 0, -28, 0, 24, 16, yaw, pitch, scale, cx, cy, "#ffd600", 4);
+          this.drawCodex3DRing(ctx, 0, -28, 0, 20, 12, yaw, pitch, scale, cx, cy, "#ffffff", 2);
+          this.drawCodex3DSphere(ctx, 0, -28, 0, 8, yaw, pitch, scale, cx, cy, "#ffd600", true);
+
+          const arcAng = t * 6;
+          const ax = Math.cos(arcAng) * 20;
+          const az = Math.sin(arcAng) * 20;
+          const midX = ax * 0.5 + (Math.random() - 0.5) * 8;
+          const midZ = az * 0.5 + (Math.random() - 0.5) * 8;
+          const p1 = this.projectCodexPoint(0, -28, 0, yaw, pitch, scale, cx, cy);
+          const p2 = this.projectCodexPoint(midX, -28 + (Math.random() - 0.5) * 6, midZ, yaw, pitch, scale, cx, cy);
+          const p3 = this.projectCodexPoint(ax, -28, az, yaw, pitch, scale, cx, cy);
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y);
+          ctx.stroke();
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DCylinder(ctx, -22, -6, 0, 4, 5, 24, 6, yaw, pitch, scale, cx, cy, "#ffd600", "#00e5ff", mode);
+            this.drawCodex3DCylinder(ctx, 22, -6, 0, 4, 5, 24, 6, yaw, pitch, scale, cx, cy, "#ffd600", "#00e5ff", mode);
+          } else if (branch === "BRANCH_B") {
+            for (let k = 0; k < 6; k++) {
+              const kang = (Math.PI / 3) * k;
+              const kx = Math.cos(kang) * 22;
+              const kz = Math.sin(kang) * 22;
+              this.drawCodex3DBox(ctx, kx, -36, kz, 3, 12, 3, yaw, pitch, scale, cx, cy, "#ffd600", "#ffffff", mode);
+            }
+          }
+        } else if (item.id === "flame") {
+          this.drawCodex3DBox(ctx, 0, 0, -rec, 24, 18, 22, yaw, pitch, scale, cx, cy, "#1c1917", "#ff3d00", mode);
+          this.drawCodex3DCylinder(ctx, -7, 0, 18 - rec, 5, 5, 22, 6, yaw, pitch, scale, cx, cy, "#44403c", "#ff3d00", mode);
+          this.drawCodex3DCylinder(ctx, 7, 0, 18 - rec, 5, 5, 22, 6, yaw, pitch, scale, cx, cy, "#44403c", "#ff3d00", mode);
+          this.drawCodex3DCylinder(ctx, -10, -4, -14, 6, 6, 24, 6, yaw, pitch, scale, cx, cy, "#ff3d00", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 10, -4, -14, 6, 6, 24, 6, yaw, pitch, scale, cx, cy, "#ff3d00", "#ffd600", mode);
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DCylinder(ctx, 0, -18, -12, 9, 9, 16, 6, yaw, pitch, scale, cx, cy, "#65a30d", "#ffd600", mode);
+          } else if (branch === "BRANCH_B") {
+            this.drawCodex3DRing(ctx, -7, 0, 22 - rec, 7, 8, yaw, pitch, scale, cx, cy, "#ffedd5", 2);
+            this.drawCodex3DRing(ctx, 7, 0, 22 - rec, 7, 8, yaw, pitch, scale, cx, cy, "#ffedd5", 2);
+          }
+        } else if (item.id === "railgun") {
+          this.drawCodex3DBox(ctx, 0, 4, 0, 22, 14, 28, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+          const rLen = branch === "BRANCH_A" ? 70 : 54;
+          this.drawCodex3DBox(ctx, -5, -4, 26 - rec, 3, 4, rLen, yaw, pitch, scale, cx, cy, "#0284c7", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, 5, -4, 26 - rec, 3, 4, rLen, yaw, pitch, scale, cx, cy, "#0284c7", "#ff007f", mode);
+          for (let c = 0; c < 5; c++) {
+            const cz = 6 + c * 10 - rec;
+            const isPulse = Math.floor(t * 8) % 5 === c;
+            this.drawCodex3DBox(ctx, 0, -4, cz, 18, 12, 4, yaw, pitch, scale, cx, cy, isPulse ? "#ff007f" : "#1e293b", "#00e5ff", mode);
+          }
+          if (branch === "BRANCH_B") {
+            this.drawCodex3DRing(ctx, 0, -4, 48 - rec, 12, 8, yaw, pitch, scale, cx, cy, "#e040fb", 2.5);
+          }
+        } else if (item.id === "beacon") {
+          this.drawCodex3DCylinder(ctx, 0, 2, 0, 8, 14, 20, 6, yaw, pitch, scale, cx, cy, "#1e293b", "#76ff03", mode);
+          this.drawCodex3DBox(ctx, 0, -22, 0, 6, 26, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#76ff03", mode);
+          const dishAng = t * 2.5;
+          const dx1 = Math.cos(dishAng) * 26;
+          const dz1 = Math.sin(dishAng) * 26;
+          this.drawCodex3DBox(ctx, dx1 * 0.4, -36, dz1 * 0.4, 28, 12, 4, yaw + dishAng, pitch, scale, cx, cy, "#166534", "#76ff03", mode);
+          this.drawCodex3DSphere(ctx, 0, -44, 0, 5, yaw, pitch, scale, cx, cy, "#76ff03", true);
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DRing(ctx, 0, -36, 0, 36, 12, yaw, pitch, scale, cx, cy, "#76ff03", 2);
+          } else if (branch === "BRANCH_B") {
+            for (let j = 0; j < 4; j++) {
+              const jang = (Math.PI / 2) * j;
+              this.drawCodex3DBox(ctx, Math.cos(jang) * 20, -26, Math.sin(jang) * 20, 3, 16, 3, yaw, pitch, scale, cx, cy, "#ffd600", "#76ff03", mode);
+            }
+          }
+        } else if (item.id === "barricade") {
+          this.drawCodex3DBox(ctx, -26, 8, 0, 14, 38, 16, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", mode);
+          this.drawCodex3DBox(ctx, 26, 8, 0, 14, 38, 16, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", mode);
+          this.drawCodex3DBox(ctx, 0, 8, 0, 42, 28, 6, yaw, pitch, scale, cx, cy, "rgba(255, 214, 0, 0.25)", "#ffd600", mode);
+
+          if (branch === "BRANCH_A") {
+            this.drawCodex3DBox(ctx, 0, 8, 5, 38, 22, 6, yaw, pitch, scale, cx, cy, "#334155", "#cbd5e1", mode);
+          } else if (branch === "BRANCH_B") {
+            for (let s = -16; s <= 16; s += 8) {
+              this.drawCodex3DCylinder(ctx, s, 8, 12, 1, 3, 14, 4, yaw, pitch, scale, cx, cy, "#ffd600", "#ffffff", mode);
+            }
+          }
+        }
+      } else if (tab === "ENEMIES") {
+        if (item.id === "grunt") {
+          this.drawCodex3DBox(ctx, 0, 0, 0, 18, 22, 12, yaw, pitch, scale, cx, cy, "#1e293b", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 0, -18, 0, 12, 12, 12, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 0, -18, 6, 10, 4, 3, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          this.drawCodex3DBox(ctx, 13, 0, 6, 5, 14, 5, yaw, pitch, scale, cx, cy, "#334155", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 13, 0, 16, 4, 4, 18, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, -6, 20, 0, 6, 18, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 6, 20, 0, 6, 18, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+        } else if (item.id === "sprinter") {
+          this.drawCodex3DBox(ctx, 0, 0, 0, 10, 8, 32, yaw, pitch, scale, cx, cy, "#1e293b", "#ffd600", mode);
+          const wPtsL = [[0, 0, -10], [-34, 0, 14], [-6, 0, 12]];
+          const wPtsR = [[0, 0, -10], [34, 0, 14], [6, 0, 12]];
+          this.drawCodex3DPoly(ctx, wPtsL, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", 1.2, mode);
+          this.drawCodex3DPoly(ctx, wPtsR, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", 1.2, mode);
+          this.drawCodex3DSphere(ctx, 0, 0, -18, 6 + Math.sin(t * 12) * 2, yaw, pitch, scale, cx, cy, "#ff9100", true);
+        } else if (item.id === "brute") {
+          this.drawCodex3DBox(ctx, 0, -4, 0, 32, 28, 22, yaw, pitch, scale, cx, cy, "#334155", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, -22, -10, 0, 16, 18, 18, yaw, pitch, scale, cx, cy, "#1e293b", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, 22, -10, 0, 16, 18, 18, yaw, pitch, scale, cx, cy, "#1e293b", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, 0, -22, 2, 14, 12, 14, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, -22, 12, 8, 12, 14, 14, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, 22, 12, 8, 12, 14, 14, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, -10, 24, 0, 10, 20, 12, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+          this.drawCodex3DBox(ctx, 10, 24, 0, 10, 20, 12, yaw, pitch, scale, cx, cy, "#0f172a", "#ff007f", mode);
+        } else if (item.id === "shieldbearer") {
+          this.drawCodex3DHexPrism(ctx, 0, 0, 0, 14, 18, yaw, pitch, scale, cx, cy, "#0f172a", "#00b0ff", mode);
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 8, yaw, pitch, scale, cx, cy, "#00b0ff", true);
+          for (let s = 0; s < 3; s++) {
+            const sang = t * 1.8 + (Math.PI * 2 / 3) * s;
+            const sx = Math.cos(sang) * 28;
+            const sz = Math.sin(sang) * 28;
+            this.drawCodex3DBox(ctx, sx, 0, sz, 4, 26, 16, yaw + sang, pitch, scale, cx, cy, "rgba(0, 176, 255, 0.35)", "#00e5ff", mode);
+          }
+        } else if (item.id === "medic") {
+          this.drawCodex3DBox(ctx, 0, 0, 0, 32, 8, 12, yaw, pitch, scale, cx, cy, "#0f172a", "#00e676", mode);
+          this.drawCodex3DBox(ctx, 0, 0, 0, 12, 8, 32, yaw, pitch, scale, cx, cy, "#0f172a", "#00e676", mode);
+          this.drawCodex3DSphere(ctx, 0, -8, 0, 7, yaw, pitch, scale, cx, cy, "#00e676", true);
+        } else if (item.id === "splitter") {
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 12, yaw, pitch, scale, cx, cy, "#ffab00", true);
+          for (let p = 0; p < 4; p++) {
+            const pang = (Math.PI / 2) * p + Math.sin(t * 3) * 0.2;
+            const px = Math.cos(pang) * 18;
+            const pz = Math.sin(pang) * 18;
+            this.drawCodex3DBox(ctx, px, 0, pz, 6, 24, 12, yaw + pang, pitch, scale, cx, cy, "#451a03", "#ffab00", mode);
+          }
+        } else if (item.id === "phantom") {
+          const tRot = t * 1.5;
+          this.drawCodex3DBox(ctx, 0, 0, 0, 22, 22, 22, yaw + tRot, pitch + tRot * 0.5, scale, cx, cy, "rgba(179, 136, 255, 0.2)", "#b388ff", "WIREFRAME");
+          this.drawCodex3DBox(ctx, 0, 0, 0, 38, 38, 38, yaw - tRot * 0.7, pitch, scale, cx, cy, "rgba(179, 136, 255, 0.15)", "#ffffff", "WIREFRAME");
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 6, yaw, pitch, scale, cx, cy, "#b388ff", true);
+        } else if (item.id === "kamikaze_drone") {
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 14, yaw, pitch, scale, cx, cy, "#ff1744", true);
+          const blink = Math.sin(t * 12) > 0 ? "#ffffff" : "#ff1744";
+          this.drawCodex3DSphere(ctx, 0, 0, 14, 4, yaw, pitch, scale, cx, cy, blink, false);
+          const rotA = t * 25;
+          this.drawCodex3DBox(ctx, 0, -18, 0, 36, 2, 4, yaw + rotA, pitch, scale, cx, cy, "#334155", "#ff1744", mode);
+        } else if (item.id === "gunship") {
+          this.drawCodex3DBox(ctx, 0, 0, 0, 20, 14, 42, yaw, pitch, scale, cx, cy, "#1e293b", "#ff5252", mode);
+          this.drawCodex3DBox(ctx, 0, -6, 12, 14, 8, 16, yaw, pitch, scale, cx, cy, "#0284c7", "#38bdf8", mode);
+          this.drawCodex3DCylinder(ctx, -26, 0, 0, 8, 8, 18, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#ff5252", mode);
+          this.drawCodex3DCylinder(ctx, 26, 0, 0, 8, 8, 18, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#ff5252", mode);
+          this.drawCodex3DBox(ctx, 0, 0, 0, 52, 4, 10, yaw, pitch, scale, cx, cy, "#334155", "#ff5252", mode);
+        }
+      } else if (tab === "BOSSES") {
+        if (item.id === "juggernaut") {
+          this.drawCodex3DBox(ctx, 0, 0, 0, 48, 38, 38, yaw, pitch, scale, cx, cy, "#1e293b", "#ff1744", mode);
+          this.drawCodex3DBox(ctx, 0, -26, 4, 28, 18, 26, yaw, pitch, scale, cx, cy, "#0f172a", "#ff1744", mode);
+          this.drawCodex3DCylinder(ctx, -14, -36, -8, 5, 5, 14, 6, yaw, pitch, scale, cx, cy, "#ff1744", "#ffffff", mode);
+          this.drawCodex3DCylinder(ctx, 14, -36, -8, 5, 5, 14, 6, yaw, pitch, scale, cx, cy, "#ff1744", "#ffffff", mode);
+          this.drawCodex3DBox(ctx, -34, 4, 12, 18, 22, 28, yaw, pitch, scale, cx, cy, "#0f172a", "#ff1744", mode);
+          this.drawCodex3DBox(ctx, 34, 4, 12, 18, 22, 28, yaw, pitch, scale, cx, cy, "#0f172a", "#ff1744", mode);
+        } else if (item.id === "overseer") {
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 24, yaw, pitch, scale, cx, cy, "#0f172a", true);
+          this.drawCodex3DSphere(ctx, 0, 0, 18, 10, yaw, pitch, scale, cx, cy, "#e040fb", true);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 44, 16, yaw + t * 2, pitch, scale, cx, cy, "#e040fb", 3);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 52, 16, yaw, pitch + t * 2, scale, cx, cy, "#ffd600", 2.5);
+        } else if (item.id === "hive_titan") {
+          this.drawCodex3DBox(ctx, 0, -6, 0, 42, 26, 34, yaw, pitch, scale, cx, cy, "#422006", "#ffd600", mode);
+          this.drawCodex3DSphere(ctx, 0, -2, -26, 22, yaw, pitch, scale, cx, cy, "rgba(255, 214, 0, 0.45)", true);
+          for (let l = 0; l < 6; l++) {
+            const side = l < 3 ? -1 : 1;
+            const lIdx = l % 3;
+            const lz = -16 + lIdx * 18;
+            this.drawCodex3DBox(ctx, side * 36, 12, lz, 22, 6, 6, yaw, pitch, scale, cx, cy, "#78350f", "#ffd600", mode);
+          }
+        } else if (item.id === "void_titan") {
+          this.drawCodex3DSphere(ctx, 0, 0, 0, 22, yaw, pitch, scale, cx, cy, "#000000", true);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 42, 16, yaw + t * 3, pitch + 0.4, scale, cx, cy, "#7c4dff", 4);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 54, 16, yaw - t * 2, pitch - 0.3, scale, cx, cy, "#c084fc", 2.5);
+        } else if (item.id === "chrono_phantom") {
+          this.drawCodex3DHexPrism(ctx, 0, 0, 0, 18, 36, yaw, pitch, scale, cx, cy, "rgba(0, 229, 255, 0.35)", "#00e5ff", mode);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 36, 12, yaw + t * 1.5, pitch, scale, cx, cy, "#00e5ff", 2);
+          this.drawCodex3DRing(ctx, 0, 0, 0, 46, 12, yaw - t * 1.2, pitch, scale, cx, cy, "#ffffff", 1.5);
+        } else if (item.id === "mecha_colossus") {
+          this.drawCodex3DBox(ctx, 0, -10, 0, 44, 34, 30, yaw, pitch, scale, cx, cy, "#1e293b", "#ff9100", mode);
+          this.drawCodex3DBox(ctx, 0, -32, 4, 18, 14, 18, yaw, pitch, scale, cx, cy, "#0f172a", "#ff9100", mode);
+          this.drawCodex3DBox(ctx, 32, -4, 18, 12, 14, 46, yaw, pitch, scale, cx, cy, "#0f172a", "#ff9100", mode);
+          this.drawCodex3DCylinder(ctx, -32, -4, 14, 10, 10, 36, 6, yaw, pitch, scale, cx, cy, "#334155", "#ffd600", mode);
+        }
+      } else if (tab === "MECH") {
+        if (item.id === "biped") {
+          this.drawCodex3DBox(ctx, 0, -4, 0, 28, 26, 20, yaw, pitch, scale, cx, cy, "#1e293b", "#00e5ff", mode);
+          this.drawCodex3DSphere(ctx, 0, -4, 10, 6, yaw, pitch, scale, cx, cy, "#00e5ff", true);
+          this.drawCodex3DBox(ctx, 0, -22, 2, 16, 12, 16, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 0, -22, 10, 12, 4, 3, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          this.drawCodex3DCylinder(ctx, -20, -2, 16 - rec, 4, 4, 28, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DCylinder(ctx, 20, -2, 16 - rec, 4, 4, 28, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DCylinder(ctx, -10, -10, -14, 4, 5, 16, 6, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          this.drawCodex3DCylinder(ctx, 10, -10, -14, 4, 5, 16, 6, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          this.drawCodex3DBox(ctx, -9, 22, 0, 8, 24, 10, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 9, 22, 0, 8, 24, 10, yaw, pitch, scale, cx, cy, "#0f172a", "#00e5ff", mode);
+        } else if (item.id === "siege") {
+          this.drawCodex3DBox(ctx, 0, 10, 0, 56, 16, 52, yaw, pitch, scale, cx, cy, "#1e293b", "#ffd600", mode);
+          this.drawCodex3DBox(ctx, -32, 14, 0, 14, 18, 58, yaw, pitch, scale, cx, cy, "#0f172a", "#64748b", mode);
+          this.drawCodex3DBox(ctx, 32, 14, 0, 14, 18, 58, yaw, pitch, scale, cx, cy, "#0f172a", "#64748b", mode);
+          this.drawCodex3DCylinder(ctx, 0, 0, 0, 18, 22, 12, 8, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, -7, -4, 22 - rec, 5, 5, 42, 6, yaw, pitch, scale, cx, cy, "#334155", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 7, -4, 22 - rec, 5, 5, 42, 6, yaw, pitch, scale, cx, cy, "#334155", "#ffd600", mode);
+        }
+      }
+    }
+
     renderFieldManual() {
       const ctx = this.ctx;
       const t = this.uiTime || 0;
 
       // 1. Deep space cyber grid background
-      ctx.fillStyle = "#050813";
+      ctx.fillStyle = "#040714";
       ctx.fillRect(0, 0, this.width, this.height);
 
       ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
@@ -10149,7 +11419,7 @@
       }
 
       // 2. Top Header Bar with Tabs
-      ctx.fillStyle = "rgba(10, 18, 32, 0.94)";
+      ctx.fillStyle = "rgba(10, 18, 34, 0.95)";
       ctx.fillRect(0, 0, this.width, 68);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
@@ -10160,51 +11430,19 @@
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 18px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("⚡ KIBER-KODEX // INTEL", 160, 40);
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 8;
+      ctx.fillText("⚡ KIBER-KODEX // 3D INTEL", 155, 40);
+      ctx.shadowBlur = 0;
 
-      const tab = this.codexTab || 'TOWERS';
-      this.drawCyberButton(440, 15, 165, 38, "⚡ MINORALAR", tab === 'TOWERS' ? "#00e5ff" : "#455a64", "TOWERS", "", tab === 'TOWERS');
-      this.drawCyberButton(620, 15, 175, 38, "👾 DUSHMANLAR", tab === 'ENEMIES' ? "#00e676" : "#455a64", "HOSTILES", "", tab === 'ENEMIES');
-      this.drawCyberButton(810, 15, 195, 38, "💀 GIGANT BOSSLAR", tab === 'BOSSES' ? "#ff1744" : "#455a64", "TITANS", "", tab === 'BOSSES');
-      this.drawCyberButton(1020, 15, 185, 38, "🤖 APEX-01 MECH", tab === 'MECH' ? "#ffd600" : "#455a64", "FIELD HERO", "", tab === 'MECH');
+      const tab = this.codexTab || "TOWERS";
+      this.drawCyberButton(440, 15, 165, 38, "⚡ MINORALAR", tab === "TOWERS" ? "#00e5ff" : "#455a64", "TOWERS", "", tab === "TOWERS");
+      this.drawCyberButton(620, 15, 175, 38, "👾 DUSHMANLAR", tab === "ENEMIES" ? "#00e676" : "#455a64", "HOSTILES", "", tab === "ENEMIES");
+      this.drawCyberButton(810, 15, 195, 38, "💀 GIGANT BOSSLAR", tab === "BOSSES" ? "#ff1744" : "#455a64", "TITANS", "", tab === "BOSSES");
+      this.drawCyberButton(1020, 15, 185, 38, "🤖 APEX-01 MECH", tab === "MECH" ? "#ffd600" : "#455a64", "FIELD HERO", "", tab === "MECH");
 
-      // 3. Codex Database
-      const codexData = {
-        TOWERS: [
-          { id: 'pulse', name: 'Pulse Turret', icon: '⚡', role: 'Rapid Energy Blaster', type: 'ENERGY', cost: '100g', hp: 'N/A', dmg: '22 (High DPS)', rate: '3.5/s', range: '140px', armor: 'N/A', desc: "Yuqori chastotali lazer zarbalari beruvchi asosiy kiber-minora. Standart va tezkor dushmanlarga qarshi juda samarali.", branchA: "Plasma Overcharge (+55% DMG, Plazma portlashi)", branchB: "Gatling Overdrive (+85% O'q tezligi, 2x dps)", col: "#00e5ff" },
-          { id: 'mortar', name: 'Heavy Mortar', icon: '💣', role: 'Artillery Blast', type: 'EXPLOSIVE', cost: '150g', hp: 'N/A', dmg: '85 (AoE Splash)', rate: '0.7/s', range: '220px', armor: 'N/A', desc: "Katta radiusda maydoniy portlash (AoE) beruvchi og'ir artilleriya. Zirhli dushmanlar va to'dalar uchun ideal.", branchA: "Cluster Munitions (4 ta qo'shimcha kassetali bomba)", branchB: "Napalm Fire (4 soniya davom etuvchi olov krateri)", col: "#ff9100" },
-          { id: 'cryo', name: 'Cryo Emitter', icon: '❄️', role: 'Frost Field Slow', type: 'COLD', cost: '120g', hp: 'N/A', dmg: '14 (Slow 60%)', rate: '2.0/s', range: '130px', armor: 'N/A', desc: "Dushmanlarni 60% gacha muzlatuvchi va sekinlashtiruvchi kriogen nurlar emitteri. Tezkor dushmanlarni to'xtatadi.", branchA: "Deep Freeze (1.5 soniyaga to'liq muzlatish)", branchB: "Cryo Nova (360° to'lqinli muz portlashi)", col: "#00f0ff" },
-          { id: 'tesla', name: 'Tesla Coil', icon: '⚡', role: 'Chain Lightning', type: 'ENERGY', cost: '180g', hp: 'N/A', dmg: '48 (Chain x4)', rate: '1.4/s', range: '150px', armor: 'N/A', desc: "Bir vaqtning o'zida 4-7 ta yaqin atrofdagi dushmanga zanjirsimon elektr toki ulovchi qurol.", branchA: "EMP Disruption (1.2 soniya falaj qiluvchi shok)", branchB: "Overload Burst (Har zarbada qo'shimcha to'lqin)", col: "#ffd600" },
-          { id: 'flame', name: 'Flame Thrower', icon: '🔥', role: 'Conical Napalm Burn', type: 'FIRE', cost: '160g', hp: 'N/A', dmg: '32 (Burn DoT)', rate: '2.8/s', range: '135px', armor: 'N/A', desc: "Konus shaklidagi olov purkab, dushmanlarga 3 soniya uzluksiz yonish zarari (DoT) beradi.", branchA: "Napalm Puddle (Zaminni yoqib qoldirish)", branchB: "Armor Melt (Zirhni 70% eritib yuborish)", col: "#ff3d00" },
-          { id: 'railgun', name: 'Railgun Sniper', icon: '🎯', role: 'Kinetic Piercer', type: 'PIERCE', cost: '240g', hp: 'N/A', dmg: '210 (Pierce)', rate: '0.5/s', range: '300px', armor: 'N/A', desc: "Butun xarita bo'ylab dushmanlarni teshib o'tuvchi gipertovushli magnit to'p.", branchA: "Hyper-Velocity (Cheksiz nishonlarni teshib o'tish)", branchB: "Shield Stripper (100% qalqonlarni sindirish)", col: "#ff007f" },
-          { id: 'beacon', name: 'Radar Beacon', icon: '📡', role: 'Buff & Stealth Reveal', type: 'SUPPORT', cost: '200g', hp: 'N/A', dmg: '0 (Buff +35%)', rate: 'Aura', range: '160px', armor: 'N/A', desc: "Yaqin atrofdagi minoralarga +35% zarar beruvchi va ko'rinmas dushmanlarni fosh qiluvchi radar.", branchA: "Hyper Overclock (+50% minora tezligi)", branchB: "Sensor Jammer (Dushmanlarni sarosimaga solish)", col: "#76ff03" },
-          { id: 'barricade', name: 'Cyber Barricade', icon: '🛡️', role: 'Defensive Barrier', type: 'BARRIER', cost: '40g', hp: '500 HP', dmg: '0', rate: 'Static', range: '0px', armor: '15 Armor', desc: "Dushmanlar harakatini to'sib, ularni aylanma yo'lga buruvchi mustahkam himoya to'sig'i.", branchA: "Reinforced Plating (1200 HP)", branchB: "Shock Spikes (Urilgan dushmanga 40 zarar)", col: "#ffd600" }
-        ],
-        ENEMIES: [
-          { id: 'grunt', name: 'Cyber Grunt', icon: '◆', role: 'Basic Infantry', hp: '75 HP', dmg: 'Low', speed: '75 px/s', armor: '0', bounty: '8g', desc: "Standart kiber-piyoda dushman. Kuchli emas, ammo to'da bo'lib hujum qiladi.", col: "#00e5ff" },
-          { id: 'sprinter', name: 'Sprinter Drone', icon: '▲', role: 'Fast Infiltrator', hp: '45 HP', dmg: 'Low', speed: '135 px/s', armor: '0', bounty: '10g', desc: "Juda yuqori tezlikka ega engil dron. Cryo yoki Tesla bilan sekinlashtirish zarur.", col: "#ffd600" },
-          { id: 'brute', name: 'Armored Brute', icon: '■', role: 'Heavy Ground Breaker', hp: '280 HP', dmg: 'High', speed: '45 px/s', armor: '8 Armor', bounty: '22g', desc: "Qalin zirh bilan qoplangan og'ir robot. Railgun va Mortar zarbalariga zaif.", col: "#ff007f" },
-          { id: 'shieldbearer', name: 'Shieldbearer', icon: '⬢', role: 'Energy Shielded', hp: '160 HP', dmg: 'Medium', speed: '60 px/s', armor: '120 Shield', bounty: '25g', desc: "O'zini va ittifoqchilarini energiya qalqoni bilan himoya qiladi. EMP orqali qalqoni buziladi.", col: "#00b0ff" },
-          { id: 'medic', name: 'Nanite Medic', icon: '✚', role: 'Field Healer', hp: '140 HP', dmg: 'Heal 25/s', speed: '65 px/s', armor: '0', bounty: '28g', desc: "Yaqin atrofdagi dushmanlarni soniyasiga +25 HP bilan davolaydi. Birinchi bo'lib yo'q qilinishi kerak.", col: "#00e676" },
-          { id: 'splitter', name: 'Splitter Organism', icon: '❖', role: 'Dividing Menace', hp: '190 HP', dmg: 'Medium', speed: '55 px/s', armor: '2 Armor', bounty: '18g', desc: "O'ldirilganda ikkita kichik tezkor Swarmlingga bo'linadi.", col: "#ffab00" },
-          { id: 'phantom', name: 'Phantom Ghost', icon: '◌', role: 'Phase Shifter', hp: '120 HP', dmg: 'Medium', speed: '80 px/s', armor: 'Phasing', bounty: '30g', desc: "Har 4 soniyada fazoviy g'oyib bo'ladi. Radar Beacon orqali ko'rinadigan qilinadi.", col: "#b388ff" },
-          { id: 'kamikaze_drone', name: 'Kamikaze Drone', icon: '💥', role: 'Suicide Flyer', hp: '60 HP', dmg: '120 AoE', speed: '160 px/s', armor: '0', bounty: '15g', desc: "Uchuvchi havo dushmani. Baza yoki qahramon tomon uchib kelib portlaydi.", col: "#ff1744" },
-          { id: 'gunship', name: 'Heavy Gunship', icon: '🚁', role: 'Aerial Corvette', hp: '480 HP', dmg: 'Laser Salvo', speed: '50 px/s', armor: '6 Armor', bounty: '45g', desc: "Havodan minoralarni o'qqa tutuvchi og'ir uchuvchi kiber-korvet.", col: "#ff5252" }
-        ],
-        BOSSES: [
-          { id: 'juggernaut', name: 'Goliath Juggernaut', icon: '💀', role: 'Wave 10 Titan', hp: '6,000 HP', armor: '20 Armor', speed: '38 px/s', bounty: '150g', desc: "Super og'ir toshdek mustahkam titan. Zirhni teshuvchi Railgun va Flame minoralariga zaif.", col: "#ff1744" },
-          { id: 'overseer', name: 'Cyber Overseer', icon: '👁️', role: 'Wave 20 Titan', hp: '9,000 HP', armor: '14 Armor', speed: '42 px/s', bounty: '250g', desc: "Doimiy ravishda Sprinter dronlarni maydonga chiqaradi va energiya to'lqinlari sochadi.", col: "#e040fb" },
-          { id: 'hive_titan', name: 'Hive Titan', icon: '👑', role: 'Wave 30 Titan', hp: '20,000 HP', armor: '22 Armor', speed: '40 px/s', bounty: '500g', desc: "3 ta jangga bo'lingan faza va enrage paytida +40% tezlanishga ega bosh titan.", col: "#ffd600" },
-          { id: 'void_titan', name: 'Void Titan', icon: '🌀', role: 'Singularity Colossus', hp: '8,500 HP', armor: '18 Armor', speed: '36 px/s', bounty: '320g', desc: "Atrofidagi narsalarni tortib oluvchi qora tuynuk gravitatsion voronkasini yaratadi.", col: "#7c4dff" },
-          { id: 'chrono_phantom', name: 'Chrono Phantom', icon: '⌛', role: 'Temporal Anomaly', hp: '7,200 HP', armor: '12 Armor', speed: '46 px/s', bounty: '300g', desc: "Minoralarni 50% vaqt to'lqini bilan sekinlashtiradi va 4 soniyada 120px oldinga sakraydi.", col: "#00e5ff" },
-          { id: 'mecha_colossus', name: 'Mecha Colossus', icon: '🤖', role: 'Mobile Fortress', hp: '11,000 HP', armor: '26 Armor', speed: '32 px/s', bounty: '400g', desc: "Qo'shaloq raketalar salvosi va 120mm to'p bilan minoralarga javob zarbasi beruvchi devqomat.", col: "#ff9100" }
-        ],
-        MECH: [
-          { id: 'biped', name: 'Apex-01 (Assault Biped)', icon: '🤖', role: 'Field Commander Mech', hp: '400 HP', speed: '130 px/s', dmg: '40 Kinetic', ultDmg: '400 Cyber-Slash', desc: "Manyovrli yuruvchi robot. 2 ta aylanuvchi lazer Gatling pulemyoti, kinetik tezlanish (Dash) va 400 zarbali Cyber-Slash ultisi bor.", col: "#00e5ff" },
-          { id: 'siege', name: 'Apex-01 (Siege Tank)', icon: '🚜', role: 'Heavy Dual Artillery', hp: '400 HP', speed: '90 px/s', dmg: '140 Explosive', splash: '70px AoE', desc: "O'rnatiladigan og'ir tank. Qabul qiluvchi zarbalarni 50% kamaytiradi (og'ir zirh) va 70px maydonda portlovchi qo'shaloq 120mm artilleriya otadi.", col: "#ffd600" }
-        ]
-      };
-
+      // 3. Codex Database & Active Item
+      const codexData = this.getCodexDatabase();
       const list = codexData[tab] || codexData.TOWERS;
       let activeItem = list.find(i => i.id === this.codexSelectedId);
       if (!activeItem) {
@@ -10212,209 +11450,426 @@
         this.codexSelectedId = activeItem.id;
       }
 
-      // 4. Left List Column (x: 30, y: 78, w: 290, h: 625)
+      // 4. Left List Column (x: 25, y: 76, w: 290, h: 630)
       ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
-      ctx.fillRect(30, 78, 290, 625);
+      ctx.fillRect(25, 76, 290, 630);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(30, 78, 290, 625);
+      ctx.strokeRect(25, 76, 290, 630);
 
       const itemH = Math.min(68, Math.floor(590 / list.length));
       for (let i = 0; i < list.length; i++) {
         const item = list[i];
-        const iy = 88 + i * (itemH + 4);
+        const iy = 86 + i * (itemH + 4);
         const isSel = (item.id === activeItem.id);
-
-        this.drawCyberButton(38, iy, 274, itemH, `${item.icon} ${item.name}`, isSel ? (item.col || "#00e5ff") : "#455a64", item.role, "", isSel);
+        this.drawCyberButton(32, iy, 276, itemH, `${item.icon} ${item.name}`, isSel ? (item.col || "#00e5ff") : "#455a64", item.role, "", isSel);
       }
 
-      // 5. Right Holographic Bay (x: 335, y: 78, w: 915, h: 625)
+      // 5. Central Holographic Bay (x: 325, y: 76, w: 450, h: 630)
       ctx.fillStyle = "rgba(8, 14, 26, 0.95)";
-      ctx.fillRect(335, 78, 915, 625);
+      ctx.fillRect(325, 76, 450, 630);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(335, 78, 915, 625);
+      ctx.strokeRect(325, 76, 450, 630);
 
-      // Left Sub-bay: 3D Turntable Hologram Pedestal (x: 350, y: 90, w: 400, h: 600)
       const px = 550;
-      const py = 390;
+      const py = 350;
+      const scale = 2.4 * (this.codexZoom || 1.0);
+      const yaw = this.codexYaw || 0.45;
+      const pitch = (this.codexPitch !== undefined ? this.codexPitch : 0.28);
+      const mode = this.codexRenderMode || "SHADED";
+      const branch = this.codexBranch || "BASE";
 
-      // Holographic Turntable Base
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
+      // Holographic Turntable Base & Animated Scanner Rings
+      ctx.save();
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.ellipse(px, py + 120, 140, 45, 0, 0, Math.PI * 2);
+      ctx.ellipse(px, py + 120, 140, 48, 0, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.strokeStyle = activeItem.col || "#00e5ff";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.ellipse(px, py + 120, 110, 35, 0, 0, Math.PI * 2);
+      ctx.ellipse(px, py + 120, 110, 38, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Rotating Scanner Rings
       const ringAng = t * 1.5;
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
       ctx.lineWidth = 1.2;
       ctx.setLineDash([8, 12]);
       ctx.beginPath();
-      ctx.ellipse(px, py + 120, 160, 52, ringAng, 0, Math.PI * 2);
+      ctx.ellipse(px, py + 120, 155, 52, ringAng, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Vertical Laser Scanner Line
-      const scanY = py - 80 + Math.sin(t * 3) * 110;
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      const scanY = py - 70 + Math.sin(t * 3) * 105;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(px - 100, scanY);
-      ctx.lineTo(px + 100, scanY);
+      ctx.moveTo(px - 110, scanY);
+      ctx.lineTo(px + 110, scanY);
       ctx.stroke();
 
-      // Procedural Live Visual Model in Hologram Center
-      ctx.save();
-      ctx.translate(px, py + 30);
-      const rotAng = t * 1.2;
+      this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
 
-      if (tab === 'TOWERS') {
-        // Tower Base Hexagon
-        ctx.fillStyle = "#1e293b";
-        ctx.strokeStyle = activeItem.col || "#00e5ff";
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        for (let a = 0; a < 6; a++) {
-          const ang = (Math.PI / 3) * a;
-          const hx = Math.cos(ang) * 45;
-          const hy = Math.sin(ang) * 45;
-          if (a === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
+      if (this.codexProjectiles) {
+        for (const p of this.codexProjectiles) {
+          ctx.save();
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.arc ? 5 : 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
         }
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Rotating Turret Barrels
-        ctx.rotate(rotAng);
-        ctx.fillStyle = activeItem.col || "#00e5ff";
-        ctx.fillRect(-8, -48, 16, 48);
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(0, 0, 20, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (tab === 'BOSSES') {
-        // Giant Boss Hologram
-        ctx.fillStyle = activeItem.col || "#ff1744";
-        ctx.shadowColor = activeItem.col || "#ff1744";
-        ctx.shadowBlur = 18;
-        ctx.beginPath();
-        ctx.arc(0, 0, 55, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.rotate(rotAng);
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-45, -45, 90, 90);
-      } else if (tab === 'MECH') {
-        // Apex-01 Mech Chassis
-        ctx.fillStyle = activeItem.col || "#00e5ff";
-        ctx.shadowColor = activeItem.col || "#00e5ff";
-        ctx.shadowBlur = 15;
-        ctx.fillRect(-35, -45, 70, 75);
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(-20, -25, 40, 10);
-        ctx.fillStyle = "#455a64";
-        ctx.fillRect(-45, -20, 10, 45);
-        ctx.fillRect(35, -20, 10, 45);
-      } else {
-        // Enemy Hologram
-        ctx.fillStyle = activeItem.col || "#00e676";
-        ctx.shadowColor = activeItem.col || "#00e676";
-        ctx.shadowBlur = 14;
-        ctx.beginPath();
-        ctx.arc(0, 0, 40, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
-        ctx.stroke();
       }
+
+      if (this.codexParticles) {
+        for (const pt of this.codexParticles) {
+          ctx.fillStyle = pt.color;
+          ctx.globalAlpha = Math.max(0, pt.alpha);
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+      }
+
+      // Target Dummy
+      const dx = 665, dy = 280;
+      const targetType = this.codexSimTargetType || "STANDARD";
+      const dFlash = this.codexDummyFlash || 0;
+
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(dx, dy + 45, 45, 16, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.fillStyle = dFlash > 0.1 ? "#ffffff" : (targetType === "SHIELDED" ? "#0284c7" : (targetType === "ARMORED" ? "#475569" : "#1e293b"));
+      ctx.strokeStyle = targetType === "SHIELDED" ? "#00e5ff" : (targetType === "ARMORED" ? "#cbd5e1" : "#ffd600");
+      ctx.lineWidth = 1.5;
+      if (dFlash > 0.1) {
+        ctx.shadowColor = "#ffffff";
+        ctx.shadowBlur = 15;
+      }
+      ctx.beginPath();
+      ctx.arc(dx, dy - 18, 12, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      ctx.fillRect(dx - 14, dy - 6, 28, 32);
+      ctx.strokeRect(dx - 14, dy - 6, 28, 32);
       ctx.restore();
 
-      // Telemetry Label below pedestal
-      ctx.fillStyle = "#78909c";
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("HOLO-FEED // 360° TURNTABLE // ACTIVE", px, py + 185);
-
-      // Right Sub-bay: Tactical Dossier & Specs (x: 770, y: 90, w: 460, h: 600)
-      const tx = 770;
-      ctx.textAlign = "left";
-      ctx.fillStyle = activeItem.col || "#00e5ff";
-      ctx.font = "900 24px 'Segoe UI', monospace";
-      ctx.shadowColor = activeItem.col || "#00e5ff";
-      ctx.shadowBlur = 10;
-      ctx.fillText(activeItem.name.toUpperCase(), tx, 125);
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = "#b0bec5";
-      ctx.font = "bold 13px monospace";
-      ctx.fillText(`KLASSIFIKATSIYA: ${activeItem.role.toUpperCase()}`, tx, 150);
-
-      // Spec Meters Grid
-      const specs = [
-        { label: "XARAJAT / NARXI", val: activeItem.cost || activeItem.bounty || 'N/A' },
-        { label: "HAYOTIY KUCH (HP)", val: activeItem.hp || 'N/A' },
-        { label: "ZARBA / DPS", val: activeItem.dmg || activeItem.ultDmg || 'N/A' },
-        { label: "HUJUM RADIUSI", val: activeItem.range || 'N/A' },
-        { label: "HARAKAT TEZLIGI", val: activeItem.speed || activeItem.rate || 'N/A' },
-        { label: "ZIRH / RESISTANCE", val: activeItem.armor || '0' }
-      ];
-
-      for (let s = 0; s < specs.length; s++) {
-        const sy = 185 + s * 48;
-        ctx.fillStyle = "rgba(16, 28, 48, 0.85)";
-        ctx.fillRect(tx, sy, 450, 40);
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-        ctx.strokeRect(tx, sy, 450, 40);
-
-        ctx.fillStyle = "#90a4ae";
-        ctx.font = "bold 11px monospace";
-        ctx.fillText(specs[s].label, tx + 14, sy + 25);
-
-        ctx.fillStyle = "#ffd600";
-        ctx.font = "bold 13px monospace";
-        ctx.textAlign = "right";
-        ctx.fillText(specs[s].val, tx + 436, sy + 25);
-        ctx.textAlign = "left";
+      if (targetType === "SHIELDED") {
+        const sPct = Math.max(0, (this.codexDummyShield || 0) / (this.codexDummyMaxShield || 500));
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(dx - 35, dy - 42, 70, 6);
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(dx - 35, dy - 42, 70 * sPct, 6);
+        ctx.strokeStyle = "#00b0ff";
+        ctx.strokeRect(dx - 35, dy - 42, 70, 6);
       }
 
-      // Branch Perks or Description Box
-      const boxY = 490;
-      ctx.fillStyle = "rgba(14, 24, 42, 0.95)";
-      ctx.fillRect(tx, boxY, 450, 185);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
-      ctx.strokeRect(tx, boxY, 450, 185);
+      const hpPct = Math.max(0, (this.codexDummyHp || 0) / (this.codexDummyMaxHp || 1000));
+      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.fillRect(dx - 35, dy - 34, 70, 6);
+      ctx.fillStyle = hpPct > 0.3 ? "#00e676" : "#ff1744";
+      ctx.fillRect(dx - 35, dy - 34, 70 * hpPct, 6);
+      ctx.strokeStyle = "#374151";
+      ctx.strokeRect(dx - 35, dy - 34, 70, 6);
 
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`TARGET: ${targetType}`, dx, dy + 62);
+
+      if (this.codexDmgTexts) {
+        for (const txt of this.codexDmgTexts) {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, txt.alpha);
+          ctx.fillStyle = txt.color;
+          ctx.font = `900 ${Math.round(12 * (txt.scale || 1.0))}px 'Segoe UI', monospace`;
+          ctx.shadowColor = txt.color;
+          ctx.shadowBlur = 6;
+          ctx.textAlign = "center";
+          ctx.fillText(txt.text, txt.x, txt.y);
+          ctx.restore();
+        }
+      }
+
+      ctx.restore();
+
+      // Row 1: Turntable Controls (y: 546)
+      const autoCol = this.codexAutoRotate ? "#00e5ff" : "#455a64";
+      this.drawCyberButton(330, 546, 85, 34, "↺ AVTO", autoCol, "", "", this.codexAutoRotate);
+      this.drawCyberButton(420, 546, 45, 34, "◀", "#00e5ff", "", "");
+      this.drawCyberButton(470, 546, 45, 34, "▶", "#00e5ff", "", "");
+      this.drawCyberButton(520, 546, 45, 34, "+", "#ffd600", "", "");
+      this.drawCyberButton(570, 546, 45, 34, "-", "#ffd600", "", "");
+      this.drawCyberButton(620, 546, 150, 34, `REJIM: ${mode}`, "#00e676", "", "");
+
+      // Row 2: Combat Simulator Controls (y: 586)
+      this.drawCyberButton(330, 586, 150, 36, "💥 TEST ATISH", "#ff1744", "1x Shot", "", true);
+      const simCol = this.codexSimActive ? "#00e676" : "#455a64";
+      this.drawCyberButton(485, 586, 150, 36, `⚡ AVTO: ${this.codexSimActive ? 'YOQIQ' : 'OCHIQ'}`, simCol, "Simulatsiya", "", this.codexSimActive);
+      this.drawCyberButton(640, 586, 130, 36, `🎯 ${targetType}`, "#ffd600", "Target", "");
+
+      // Row 3: Real-time DPS & Telemetry Bar (x: 330, y: 628, w: 440, h: 70)
+      ctx.fillStyle = "rgba(14, 24, 42, 0.95)";
+      ctx.fillRect(330, 628, 440, 70);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+      ctx.strokeRect(330, 628, 440, 70);
+
+      let rollingDmg = 0;
+      if (this.codexDmgHistory && this.codexDmgHistory.length > 0) {
+        for (const h of this.codexDmgHistory) rollingDmg += h.dmg;
+      }
+      const rollingDPS = (rollingDmg / 3.0).toFixed(1);
+
+      ctx.textAlign = "left";
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
-      ctx.fillText("TACTICAL INTEL & BLUEPRINT:", tx + 14, boxY + 26);
+      ctx.fillText(`⚡ REAL-TIME DPS: ${rollingDPS} DMG/S`, 342, 650);
 
-      ctx.fillStyle = "#cfd8dc";
-      ctx.font = "11px monospace";
-      this.wrapText(activeItem.desc, tx + 14, boxY + 50, 422, 16);
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(`🎯 NISHON HP: ${this.codexDummyHp}/${this.codexDummyMaxHp} ${targetType === "SHIELDED" ? `| QALQON: ${this.codexDummyShield}/${this.codexDummyMaxShield}` : ""}`, 342, 670);
 
-      if (activeItem.branchA) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px monospace";
+      ctx.fillText(`TELEMETRIYA: YAW ${(yaw * 57.3).toFixed(0)}° | PITCH ${(pitch * 57.3).toFixed(0)}° | ZOOM ${(this.codexZoom || 1.0).toFixed(1)}x`, 342, 688);
+
+      // 6. Right Tactical Dossier Bay (x: 785, y: 76, w: 470, h: 630)
+      ctx.fillStyle = "rgba(8, 14, 26, 0.95)";
+      ctx.fillRect(785, 76, 470, 630);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(785, 76, 470, 630);
+
+      const subTab = this.codexSubTab || "SPECS";
+      this.drawCyberButton(790, 84, 145, 34, "📊 XARAKTERISTIKA", subTab === "SPECS" ? "#00e5ff" : "#455a64", "", "", subTab === "SPECS");
+      const subTitle2 = (tab === "TOWERS" || tab === "MECH") ? "🧬 EVOLYUTSIYA" : "🛡️ COUNTER TAKTIKA";
+      this.drawCyberButton(940, 84, 155, 34, subTitle2, subTab === "BRANCHES" ? "#00e676" : "#455a64", "", "", subTab === "BRANCHES");
+      this.drawCyberButton(1100, 84, 150, 34, "📜 KODEX LORE", subTab === "LORE" ? "#ffd600" : "#455a64", "", "", subTab === "LORE");
+
+      if (tab === "TOWERS" || tab === "MECH") {
+        const b = this.codexBranch || "BASE";
+        this.drawCyberButton(790, 122, 145, 30, "ASOSIY MODEL", b === "BASE" ? "#00e5ff" : "#334155", "", "", b === "BASE");
+        this.drawCyberButton(940, 122, 155, 30, `A: ${(activeItem.branchA ? activeItem.branchA.name.split(" ")[0] : "TARMOQ A")}`, b === "BRANCH_A" ? "#00e676" : "#334155", "", "", b === "BRANCH_A");
+        this.drawCyberButton(1100, 122, 150, 30, `B: ${(activeItem.branchB ? activeItem.branchB.name.split(" ")[0] : "TARMOQ B")}`, b === "BRANCH_B" ? "#ffd600" : "#334155", "", "", b === "BRANCH_B");
+      }
+
+      const tx = 795;
+      const contentY = (tab === "TOWERS" || tab === "MECH") ? 160 : 126;
+
+      if (subTab === "SPECS") {
+        ctx.textAlign = "left";
+        ctx.fillStyle = activeItem.col || "#00e5ff";
+        ctx.font = "900 22px 'Segoe UI', monospace";
+        ctx.shadowColor = activeItem.col || "#00e5ff";
+        ctx.shadowBlur = 8;
+        ctx.fillText(activeItem.name.toUpperCase(), tx, contentY + 22);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "bold 12px monospace";
+        ctx.fillText(`KLASSIFIKATSIYA: ${activeItem.role.toUpperCase()} // ${activeItem.type}`, tx, contentY + 42);
+
+        let curDmg = activeItem.dmg;
+        let curRate = activeItem.rate;
+        let curDps = activeItem.dps;
+        if (branch === "BRANCH_A" && activeItem.branchA) {
+          curDmg = activeItem.branchA.dmg;
+          curRate = activeItem.branchA.rate;
+          curDps = activeItem.branchA.dps;
+        } else if (branch === "BRANCH_B" && activeItem.branchB) {
+          curDmg = activeItem.branchB.dmg;
+          curRate = activeItem.branchB.rate;
+          curDps = activeItem.branchB.dps;
+        }
+
+        const specs = [
+          { label: "XARAJAT / MUKOFOT", val: activeItem.cost || activeItem.bounty || "N/A", pct: 0.65, col: "#ffd600" },
+          { label: "HAYOTIY KUCH (HP)", val: activeItem.hp || "N/A", pct: 0.75, col: "#00e676" },
+          { label: "ZARBA / DPS", val: `${curDmg} (${curDps})`, pct: 0.85, col: "#ff1744" },
+          { label: "HUJUM RADIUSI", val: activeItem.range || "N/A", pct: 0.70, col: "#00e5ff" },
+          { label: "OTISH / HARAKAT TEZLIGI", val: curRate || activeItem.speed || "N/A", pct: 0.80, col: "#e040fb" },
+          { label: "ZIRH / RESISTANCE", val: activeItem.armor || "0", pct: 0.50, col: "#38bdf8" }
+        ];
+
+        for (let s = 0; s < specs.length; s++) {
+          const sy = contentY + 54 + s * 42;
+          ctx.fillStyle = "rgba(16, 28, 48, 0.85)";
+          ctx.fillRect(tx, sy, 450, 36);
+          ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+          ctx.strokeRect(tx, sy, 450, 36);
+
+          ctx.fillStyle = specs[s].col;
+          ctx.globalAlpha = 0.2;
+          ctx.fillRect(tx, sy, 450 * specs[s].pct, 36);
+          ctx.globalAlpha = 1.0;
+
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "bold 11px monospace";
+          ctx.fillText(specs[s].label, tx + 12, sy + 22);
+
+          ctx.fillStyle = specs[s].col;
+          ctx.font = "bold 13px monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(specs[s].val, tx + 438, sy + 22);
+          ctx.textAlign = "left";
+        }
+
+        const matY = contentY + 316;
+        ctx.fillStyle = "rgba(14, 24, 42, 0.95)";
+        ctx.fillRect(tx, matY, 450, 180);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+        ctx.strokeRect(tx, matY, 450, 180);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 12px monospace";
+        ctx.fillText("JANG SAMARADORLIGI MATRITSASI (EFFECTIVENESS):", tx + 14, matY + 24);
+
+        const eff = activeItem.eff || { vsShield: "100%", vsArmor: "100%", vsSwarm: "100%", vsBoss: "100%" };
+        const rows = [
+          { name: "⚡ vs ENERGIYA QALQONI:", val: eff.vsShield, col: "#00e5ff" },
+          { name: "■ vs OG'IR TITAN ZIRHI:", val: eff.vsArmor, col: "#ff007f" },
+          { name: "❖ vs KATTA TO'DALAR:", val: eff.vsSwarm, col: "#ffd600" },
+          { name: "💀 vs GIGANT BOSSLAR:", val: eff.vsBoss, col: "#ff1744" }
+        ];
+
+        for (let r = 0; r < rows.length; r++) {
+          const ry = matY + 48 + r * 30;
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "11px monospace";
+          ctx.fillText(rows[r].name, tx + 14, ry);
+
+          ctx.fillStyle = rows[r].col;
+          ctx.font = "bold 11px monospace";
+          ctx.textAlign = "right";
+          ctx.fillText(rows[r].val, tx + 436, ry);
+          ctx.textAlign = "left";
+        }
+      } else if (subTab === "BRANCHES") {
+        ctx.textAlign = "left";
+        if (tab === "TOWERS" || tab === "MECH") {
+          ctx.fillStyle = "rgba(16, 32, 24, 0.9)";
+          ctx.fillRect(tx, contentY + 10, 450, 190);
+          ctx.strokeStyle = "#00e676";
+          ctx.strokeRect(tx, contentY + 10, 450, 190);
+
+          ctx.fillStyle = "#00e676";
+          ctx.font = "900 15px 'Segoe UI', monospace";
+          ctx.fillText(`[TARMOQ A] ${activeItem.branchA ? activeItem.branchA.name : "TARMOQ A"}`, tx + 14, contentY + 36);
+
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "bold 12px monospace";
+          ctx.fillText(`QIYMATI: ${activeItem.branchA ? activeItem.branchA.cost : "N/A"} | DPS: ${activeItem.branchA ? activeItem.branchA.dps : "N/A"}`, tx + 14, contentY + 60);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 12px monospace";
+          ctx.fillText(`PERK: ${activeItem.branchA ? activeItem.branchA.perk : "Maxsus qobiliyat"}`, tx + 14, contentY + 84);
+
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "11px monospace";
+          this.wrapText(activeItem.branchA ? activeItem.branchA.desc : activeItem.desc, tx + 14, contentY + 110, 420, 18);
+
+          ctx.fillStyle = "rgba(32, 24, 16, 0.9)";
+          ctx.fillRect(tx, contentY + 215, 450, 190);
+          ctx.strokeStyle = "#ffd600";
+          ctx.strokeRect(tx, contentY + 215, 450, 190);
+
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "900 15px 'Segoe UI', monospace";
+          ctx.fillText(`[TARMOQ B] ${activeItem.branchB ? activeItem.branchB.name : "TARMOQ B"}`, tx + 14, contentY + 241);
+
+          ctx.fillStyle = "#00e5ff";
+          ctx.font = "bold 12px monospace";
+          ctx.fillText(`QIYMATI: ${activeItem.branchB ? activeItem.branchB.cost : "N/A"} | DPS: ${activeItem.branchB ? activeItem.branchB.dps : "N/A"}`, tx + 14, contentY + 265);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 12px monospace";
+          ctx.fillText(`PERK: ${activeItem.branchB ? activeItem.branchB.perk : "Maxsus qobiliyat"}`, tx + 14, contentY + 289);
+
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "11px monospace";
+          this.wrapText(activeItem.branchB ? activeItem.branchB.desc : activeItem.desc, tx + 14, contentY + 315, 420, 18);
+        } else {
+          ctx.fillStyle = "rgba(16, 28, 48, 0.9)";
+          ctx.fillRect(tx, contentY + 10, 450, 420);
+          ctx.strokeStyle = "rgba(255, 23, 68, 0.5)";
+          ctx.strokeRect(tx, contentY + 10, 450, 420);
+
+          ctx.fillStyle = "#ff1744";
+          ctx.font = "900 16px 'Segoe UI', monospace";
+          ctx.fillText("🛡️ TAKTIK QARSHI CHORA (COUNTER TACTICS):", tx + 14, contentY + 40);
+
+          ctx.fillStyle = "#ffd600";
+          ctx.font = "bold 13px monospace";
+          ctx.fillText("ENG SAMARALI MINORA:", tx + 14, contentY + 75);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "12px monospace";
+          this.wrapText(activeItem.lore ? activeItem.lore.advice : activeItem.desc, tx + 14, contentY + 105, 420, 20);
+
+          ctx.fillStyle = "#00e5ff";
+          ctx.font = "bold 13px monospace";
+          ctx.fillText("TAVSIYA ETILGAN TANDEM:", tx + 14, contentY + 210);
+
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "12px monospace";
+          ctx.fillText("• Cryo Emitter + Railgun (Sekinlashtirish va teshish)", tx + 14, contentY + 235);
+          ctx.fillText("• Tesla Coil (EMP) + Flame Thrower (Zirh eritish)", tx + 14, contentY + 260);
+          ctx.fillText("• Apex-01 Hero Mech (Cyber-Slash ultimatum)", tx + 14, contentY + 285);
+        }
+      } else if (subTab === "LORE") {
+        ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(12, 20, 36, 0.95)";
+        ctx.fillRect(tx, contentY + 10, 450, 440);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+        ctx.strokeRect(tx, contentY + 10, 450, 440);
+
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "900 15px 'Segoe UI', monospace";
+        ctx.fillText("HARBIY ARXIV VA TARIQAT // LORE INTEL:", tx + 14, contentY + 40);
+
+        const lore = activeItem.lore || {
+          origin: "Apex Classified Lab",
+          blueprint: "ARCH-DEF-001",
+          history: activeItem.desc,
+          advice: "Front chizig'ida ehtiyotkorlik bilan foydalaning."
+        };
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText("LABORATORIYA / ISHLAB CHIQARUVCHI:", tx + 14, contentY + 75);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "11px monospace";
+        ctx.fillText(lore.origin, tx + 14, contentY + 95);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText("CHIZMA SERIYA RAQAMI (BLUEPRINT ID):", tx + 14, contentY + 125);
+        ctx.fillStyle = "#ffd600";
+        ctx.font = "11px monospace";
+        ctx.fillText(lore.blueprint, tx + 14, contentY + 145);
+
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "bold 11px monospace";
+        ctx.fillText("JANG MAYDONI TARIXI:", tx + 14, contentY + 175);
+        ctx.fillStyle = "#cbd5e1";
+        ctx.font = "11px monospace";
+        this.wrapText(lore.history, tx + 14, contentY + 200, 420, 18);
+
         ctx.fillStyle = "#00e676";
         ctx.font = "bold 11px monospace";
-        ctx.fillText(`[A] ${activeItem.branchA}`, tx + 14, boxY + 120);
-        ctx.fillStyle = "#ffd600";
-        ctx.fillText(`[B] ${activeItem.branchB}`, tx + 14, boxY + 146);
+        ctx.fillText("QO'MDON MASLAHATI:", tx + 14, contentY + 320);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "11px monospace";
+        this.wrapText(lore.advice, tx + 14, contentY + 342, 420, 18);
       }
     }
 
