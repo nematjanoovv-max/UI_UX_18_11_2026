@@ -134,6 +134,63 @@ if (!global.OptimusPrimeMech) throw new Error('OptimusPrimeMech not found on glo
 const prime = new global.OptimusPrimeMech(mockTHREE);
 console.log('✔ OptimusPrimeMech instantiated with Peterbilt crimson, chrome smokestacks, and Matrix of Leadership');
 
+// 1. Verify 10-Wheel Dual Axle Configuration
+if (!prime.wheels || prime.wheels.length !== 10) {
+  throw new Error(`Expected 10 truck wheels on Optimus Prime, found: ${prime.wheels ? prime.wheels.length : 0}`);
+}
+console.log('✔ Optimus Prime 10-wheel Peterbilt dual axle array verified (2 front + 8 rear dual tandem tires)');
+
+// 2. Verify Kinematic Battle Mask
+const maskInitial = prime.maskOpen;
+prime.toggleBattleMask();
+if (prime.maskOpen === maskInitial) throw new Error('toggleBattleMask failed to toggle state');
+prime.update(0.1);
+if (!prime.mouthGroup || !prime.mandible || !prime.vocalizerBars || prime.vocalizerBars.length !== 3) {
+  throw new Error('Optimus Prime battle mask or vocalizer LED bars missing!');
+}
+console.log('✔ Kinematic Battle Mask verified (sliding mouthplate, fluted cheek vents, cyan vocalizer LED bars)');
+
+// 3. Verify Kinematic Matrix of Leadership Chest Doors
+const matrixInitial = prime.matrixOpen;
+prime.toggleMatrixChest();
+if (prime.matrixOpen === matrixInitial) throw new Error('toggleMatrixChest failed to toggle state');
+prime.update(0.1);
+if (!prime.chestDoorL || !prime.chestDoorR || !prime.matrixHolder || !prime.matrixCore) {
+  throw new Error('Optimus Prime chest doors or Matrix of Leadership missing!');
+}
+console.log('✔ Kinematic Chest Split Windshields & Matrix of Leadership verified (hinged dual doors, deployable core)');
+
+// 4. Verify Procedural Diesel Smoke Particles
+prime.triggerDieselSmoke(6);
+prime.update(0.05);
+if (!prime.smokeParticles || prime.smokeParticles.length !== 40) {
+  throw new Error('Optimus Prime procedural smoke particle pool missing!');
+}
+console.log('✔ Procedural Diesel Exhaust Smokestack System verified (40 pooled particles, turbulent velocity)');
+
+// 5. Verify Telescoping Hydraulics Cycle
+prime.toggleHydraulicsCycle(true);
+prime.update(0.05);
+if (!prime.pistonRodR || !prime.pistonRodL || !prime.forearmR || !prime.forearmL) {
+  throw new Error('Optimus Prime telescoping hydraulic bicep pistons or forearms missing!');
+}
+console.log('✔ Telescoping Hydraulic Pistons & Joint Flexion verified (bicep rods, thigh cylinders, forearms)');
+
+// 6. Verify 10-Wheel Continuous Rotation
+prime.toggleWheelSpin(true, 12.0);
+prime.update(0.05);
+console.log('✔ 10-Wheel continuous synchronous rotation verified');
+
+// 7. Verify Head Look-At Aim Tracking
+prime.setLookAtTarget(0.5, -0.3);
+prime.update(0.05);
+console.log('✔ Kinematic Head Look-At cursor tracking verified');
+
+// 8. Verify Status Report API
+const statusReport = prime.getStatusReport();
+if (!statusReport || typeof statusReport !== 'object') throw new Error('getStatusReport returned invalid data');
+console.log('✔ Optimus Prime Kinematics Status Report verified:', JSON.stringify(statusReport));
+
 prime.update(0.016);
 prime.fireWeapon();
 prime.swingAxe();

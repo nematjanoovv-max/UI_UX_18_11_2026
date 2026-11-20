@@ -678,6 +678,23 @@
       this.externalMesh = null;
       this.mixer = null;
 
+      // Kinematic Mechanical Articulation States
+      this.maskOpen = false;         // false = Combat Mask Locked, true = Mouthplate Retracted (Speaking)
+      this.maskProgress = 0.0;       // 0 = Locked, 1 = Retracted
+      this.matrixOpen = false;       // false = Windshields Closed, true = Chest Doors Swung Open
+      this.matrixProgress = 0.0;     // 0 = Closed, 1 = Fully Deployed
+      this.hydraulicsCycle = false;  // Continuous hydraulic joint flexion
+      this.wheelsSpinning = false;   // Continuous 10-wheel truck tire rotation
+      this.wheelSpeed = 0.0;         // Wheel rotation speed in rad/s
+      this.wheels = [];              // Array holding all 10 Peterbilt wheels
+      this.headTracking = true;      // Head tracks mouse cursor/view
+      this.targetLookYaw = 0.0;
+      this.targetLookPitch = 0.0;
+      this.lookYaw = 0.0;
+      this.lookPitch = 0.0;
+      this.smokeParticles = [];
+      this.smokeTimer = 0;
+
       this.buildModel();
       this.checkLocalSketchfabAsset();
     }
@@ -740,6 +757,15 @@
         this.put(tank, cy(0.08, 0.08, 0.08, 8), M.matrixGold, 0, 0.36, 0.2);
       });
 
+      // 2 Front Peterbilt Steerable Wheels (Tires #1 and #2 of 10)
+      this.wheels = [];
+      [-1.25, 1.25].forEach(s => {
+        const frontWheel = this.put(this.pelvis, cy(0.44, 0.44, 0.24, 18), M.tireRubber, s, -0.22, 0.5, 0, 0, Math.PI / 2);
+        this.put(frontWheel, cy(0.25, 0.25, 0.26, 16), M.chrome, 0, 0, 0);
+        this.put(frontWheel, cy(0.08, 0.08, 0.28, 8), M.steel, 0, 0, 0); // Axle cap
+        this.wheels.push(frontWheel);
+      });
+
       // --- Torso & Peterbilt 379 Truck Cab ---
       this.torso = new T.Group();
       this.torso.position.set(0, 0.45, 0);
@@ -748,17 +774,25 @@
       // Red Peterbilt Cab Shell with flame graphics
       this.put(this.torso, box(2.45, 1.85, 1.65), M.crimson, 0, 1.0, 0);
 
-      // Front Dual Split Windshields (Left & Right)
-      [-0.58, 0.58].forEach(s => {
-        // Clear Blue Automotive Glass
-        this.put(this.torso, box(0.88, 0.78, 0.12), M.truckGlass, s, 1.25, 0.85);
-        // Black rubber weatherstripping seal
-        this.put(this.torso, box(0.92, 0.82, 0.04), M.darkChassis, s, 1.25, 0.81);
-        // Windshield wiper blade
-        this.put(this.torso, box(0.04, 0.55, 0.03), M.darkChassis, s - 0.1, 1.15, 0.92, 0, 0, -0.25);
-      });
+      // --- ARTICULATED CHEST SPLIT WINDSHIELD DOORS (Left & Right) ---
+      // Left Windshield Door (outer hinge at x: -1.02)
+      this.chestDoorL = new T.Group();
+      this.chestDoorL.position.set(-1.02, 1.25, 0.85);
+      this.torso.add(this.chestDoorL);
+      this.put(this.chestDoorL, box(0.88, 0.78, 0.12), M.truckGlass, 0.44, 0, 0);
+      this.put(this.chestDoorL, box(0.92, 0.82, 0.04), M.darkChassis, 0.44, 0, -0.04);
+      this.put(this.chestDoorL, box(0.04, 0.55, 0.03), M.darkChassis, 0.34, -0.1, 0.07, 0, 0, -0.25);
+
+      // Right Windshield Door (outer hinge at x: 1.02)
+      this.chestDoorR = new T.Group();
+      this.chestDoorR.position.set(1.02, 1.25, 0.85);
+      this.torso.add(this.chestDoorR);
+      this.put(this.chestDoorR, box(0.88, 0.78, 0.12), M.truckGlass, -0.44, 0, 0);
+      this.put(this.chestDoorR, box(0.92, 0.82, 0.04), M.darkChassis, -0.44, 0, -0.04);
+      this.put(this.chestDoorR, box(0.04, 0.55, 0.03), M.darkChassis, -0.34, -0.1, 0.07, 0, 0, -0.25);
+
       // Chrome Center Windshield Dividing Pillar
-      this.put(this.torso, box(0.12, 0.85, 0.14), M.chrome, 0, 1.25, 0.86);
+      this.centerPillar = this.put(this.torso, box(0.12, 0.85, 0.14), M.chrome, 0, 1.25, 0.86);
 
       // Overhead Chrome Sun Visor angled above windshield
       this.put(this.torso, box(2.35, 0.14, 0.45), M.chrome, 0, 1.76, 0.82, -0.35, 0, 0);
@@ -768,18 +802,28 @@
         this.put(this.torso, box(0.14, 0.08, 0.16), M.markerAmber, i * 0.42, 1.98, 0.76);
       }
 
-      // Interior Legendary Matrix of Leadership inside chest
+      // --- INTERIOR LEGENDARY MATRIX OF LEADERSHIP (Deployable) ---
       this.matrixHolder = new T.Group();
       this.matrixHolder.position.set(0, 1.25, 0.35);
       this.torso.add(this.matrixHolder);
+
       // Gold ornate filigree casing & handles
-      this.put(this.matrixHolder, tor(0.28, 0.05, 16), M.matrixGold, 0, 0, 0);
-      this.put(this.matrixHolder, box(0.72, 0.1, 0.1), M.matrixGold, 0, 0, 0);
-      [-0.35, 0.35].forEach(s => {
-        this.put(this.matrixHolder, cy(0.04, 0.04, 0.28, 8), M.matrixGold, s, 0, 0, 0, 0, Math.PI / 2);
+      this.put(this.matrixHolder, tor(0.3, 0.05, 16), M.matrixGold, 0, 0, 0);
+      this.put(this.matrixHolder, box(0.78, 0.1, 0.1), M.matrixGold, 0, 0, 0);
+      [-0.38, 0.38].forEach(s => {
+        this.put(this.matrixHolder, cy(0.045, 0.045, 0.3, 8), M.matrixGold, s, 0, 0, 0, 0, Math.PI / 2);
       });
+      // Multi-faceted outer crystal frame
+      this.put(this.matrixHolder, box(0.32, 0.32, 0.32), M.truckGlass, 0, 0, 0, 0.78, 0.78, 0);
       // Glowing Crystal Energon Core
-      this.matrixCore = this.put(this.matrixHolder, sph(0.14), M.matrixCore, 0, 0, 0);
+      this.matrixCore = this.put(this.matrixHolder, sph(0.15), M.matrixCore, 0, 0, 0);
+
+      // Dynamic Matrix Point Light
+      if (T.PointLight) {
+        this.matrixLight = new T.PointLight(0x00e5ff, 0.3, 6.0);
+        this.matrixLight.position.set(0, 0, 0.1);
+        this.matrixHolder.add(this.matrixLight);
+      }
 
       // Peterbilt 3D Vertical Fluted Radiator Grille
       this.grille = this.put(this.torso, box(1.3, 0.9, 0.16), M.grille, 0, 0.48, 0.88);
@@ -814,7 +858,38 @@
         this.stacks.push(stack);
       });
 
-      // --- Optimus Prime Helmet & Head ---
+      // --- PROCEDURAL DIESEL EXHAUST SMOKE SYSTEM ---
+      this.smokeGroup = new T.Group();
+      this.root.add(this.smokeGroup);
+
+      const smokeGeo = new T.RingGeometry(0.05, 0.24, 10);
+      const smokeMat = new T.MeshBasicMaterial({
+        color: 0x334155,
+        transparent: true,
+        opacity: 0.0,
+        depthWrite: false,
+        side: 2
+      });
+
+      this.smokeParticles = [];
+      for (let i = 0; i < 40; i++) {
+        const mesh = new T.Mesh(smokeGeo, smokeMat.clone());
+        mesh.visible = false;
+        this.smokeGroup.add(mesh);
+        this.smokeParticles.push({
+          mesh,
+          x: 0, y: 0, z: 0,
+          vx: 0, vy: 0, vz: 0,
+          scale: 0.2,
+          growth: 1.2,
+          life: 0,
+          maxLife: 1.0,
+          initialAlpha: 0.5,
+          active: false
+        });
+      }
+
+      // --- ARTICULATED OPTIMUS PRIME HELMET & HEAD (Look-At & Battle Mask) ---
       this.head = new T.Group();
       this.head.position.set(0, 2.1, 0.22);
       this.torso.add(this.head);
@@ -833,20 +908,38 @@
         this.put(this.head, cy(0.055, 0.02, 0.15, 8), M.chrome, s, 0.85, 0); // Antenna tip
       });
 
-      // Glowing Blue Optics & Battle Mask
+      // Glowing Blue Optics
       this.put(this.head, box(0.52, 0.12, 0.09), M.opticsBlue, 0, 0.34, 0.4);
       // Concentric pupil aperture rings
       [-0.14, 0.14].forEach(s => {
         this.put(this.head, tor(0.045, 0.015, 12), M.opticsBlue, s, 0.34, 0.45);
       });
-      // Sculpted Silver Battle Mouthplate with Cheek Vents and Chin Cleft
-      this.mouthplate = this.put(this.head, box(0.58, 0.32, 0.2), M.chrome, 0, 0.12, 0.38);
-      // Fluted cheek vents
-      [-0.2, 0.2].forEach(s => {
-        this.put(this.head, box(0.04, 0.2, 0.08), M.darkChassis, s, 0.12, 0.48);
+
+      // --- ARTICULATED VOCALIZER & SLIDING BATTLE MASK ---
+      // Inner Cybertronian Speaking Mandible / Vocalizer (revealed when mask retracts)
+      this.mandible = new T.Group();
+      this.mandible.position.set(0, 0.12, 0.34);
+      this.head.add(this.mandible);
+      this.put(this.mandible, box(0.48, 0.26, 0.08), M.darkChassis, 0, 0, 0);
+      // Cyan speaking LED bars (vocalizer pulses during voice/communication)
+      this.vocalizerBars = [];
+      [-0.06, 0.0, 0.06].forEach((yOffset, idx) => {
+        const bar = this.put(this.mandible, box(0.36 - idx * 0.06, 0.025, 0.02), M.opticsBlue, 0, yOffset, 0.05);
+        this.vocalizerBars.push(bar);
       });
 
-      // --- Shoulders & Arms ---
+      // Retractable Silver Combat Faceplate (Slides down in conversational mode, up in combat)
+      this.mouthGroup = new T.Group();
+      this.mouthGroup.position.set(0, 0.12, 0.38);
+      this.head.add(this.mouthGroup);
+      this.mouthplate = this.put(this.mouthGroup, box(0.58, 0.32, 0.2), M.chrome, 0, 0, 0);
+      // Chin cleft plate
+      this.put(this.mouthGroup, box(0.42, 0.12, 0.12), M.chrome, 0, -0.18, 0.04, -0.3, 0, 0);
+      // Articulated cheek vents
+      this.cheekVentL = this.put(this.mouthGroup, box(0.04, 0.22, 0.08), M.darkChassis, -0.22, 0, 0.1);
+      this.cheekVentR = this.put(this.mouthGroup, box(0.04, 0.22, 0.08), M.darkChassis, 0.22, 0, 0.1);
+
+      // --- SHOULDERS & ARMS (Telescoping Bicep Hydraulics & Forearm Pivot) ---
       // Right Arm: Peterbilt Red Pauldron + Heavy Ion Blaster
       this.armR = new T.Group();
       this.armR.position.set(1.55, 1.65, 0);
@@ -854,14 +947,22 @@
 
       this.put(this.armR, box(0.95, 0.9, 0.95), M.crimson, 0, 0, 0); // Shoulder block
       this.put(this.armR, cy(0.24, 0.24, 0.75, 12), M.steel, 0, -0.68, 0); // Bicep
-      this.put(this.armR, cy(0.065, 0.065, 0.85, 8), M.chrome, 0.28, -0.68, -0.22); // Hydraulic piston
-      this.put(this.armR, box(0.74, 1.25, 0.74), M.cobalt, 0, -1.35, 0.1); // Forearm
-      this.put(this.armR, box(0.45, 0.45, 0.45), M.steel, 0, -2.0, 0.1); // Fist hand
+
+      // Telescoping Bicep Hydraulic Cylinder
+      this.pistonSleeveR = this.put(this.armR, cy(0.075, 0.075, 0.45, 8), M.steel, 0.28, -0.5, -0.22);
+      this.pistonRodR = this.put(this.armR, cy(0.045, 0.045, 0.55, 8), M.chrome, 0.28, -0.75, -0.22);
+
+      // Articulated Forearm Group
+      this.forearmR = new T.Group();
+      this.forearmR.position.set(0, -1.0, 0.1);
+      this.armR.add(this.forearmR);
+      this.put(this.forearmR, box(0.74, 1.25, 0.74), M.cobalt, 0, -0.35, 0);
+      this.put(this.forearmR, box(0.45, 0.45, 0.45), M.steel, 0, -1.0, 0); // Fist hand
 
       // Heavy Ion Blaster Rifle
       this.ionBlaster = new T.Group();
-      this.ionBlaster.position.set(0, -2.0, 0.5);
-      this.armR.add(this.ionBlaster);
+      this.ionBlaster.position.set(0, -1.0, 0.4);
+      this.forearmR.add(this.ionBlaster);
 
       // Ribbed receiver body
       this.put(this.ionBlaster, box(0.38, 0.5, 2.5), M.ionBlaster, 0, 0, 0.6);
@@ -881,14 +982,22 @@
 
       this.put(this.armL, box(0.95, 0.9, 0.95), M.crimson, 0, 0, 0);
       this.put(this.armL, cy(0.24, 0.24, 0.75, 12), M.steel, 0, -0.68, 0);
-      this.put(this.armL, cy(0.065, 0.065, 0.85, 8), M.chrome, -0.28, -0.68, -0.22);
-      this.put(this.armL, box(0.74, 1.25, 0.74), M.cobalt, 0, -1.35, 0.1);
-      this.put(this.armL, box(0.45, 0.45, 0.45), M.steel, 0, -2.0, 0.1);
+
+      // Telescoping Bicep Hydraulic Cylinder
+      this.pistonSleeveL = this.put(this.armL, cy(0.075, 0.075, 0.45, 8), M.steel, -0.28, -0.5, -0.22);
+      this.pistonRodL = this.put(this.armL, cy(0.045, 0.045, 0.55, 8), M.chrome, -0.28, -0.75, -0.22);
+
+      // Articulated Forearm Group
+      this.forearmL = new T.Group();
+      this.forearmL.position.set(0, -1.0, 0.1);
+      this.armL.add(this.forearmL);
+      this.put(this.forearmL, box(0.74, 1.25, 0.74), M.cobalt, 0, -0.35, 0);
+      this.put(this.forearmL, box(0.45, 0.45, 0.45), M.steel, 0, -1.0, 0);
 
       // Deployable Energon Battle Axe (Glowing Translucent Orange Plasma)
       this.energonAxe = new T.Group();
-      this.energonAxe.position.set(0, -2.05, 0.45);
-      this.armL.add(this.energonAxe);
+      this.energonAxe.position.set(0, -1.05, 0.35);
+      this.forearmL.add(this.energonAxe);
 
       // Handle shaft
       this.put(this.energonAxe, cy(0.06, 0.06, 1.6, 8), M.chrome, 0, 0, 0);
@@ -896,7 +1005,7 @@
       this.axeBlade = this.put(this.energonAxe, box(0.12, 1.9, 1.1), M.energonAxe, 0, 0.3, 0.6, 0.28, 0, 0);
       this.put(this.energonAxe, sph(0.18), M.matrixGold, 0, 0.3, 0.1); // Axe energy core
 
-      // --- Legs & Truck Wheels (Dual Rear Double-Tires!) ---
+      // --- LEGS & 8 REAR DUAL DOUBLE-TIRES (Tires #3 through #10) ---
       const makeLeg = (side) => {
         const hip = new T.Group();
         hip.position.set(side * 0.72, 0, 0);
@@ -904,7 +1013,9 @@
 
         // Blue Thigh & Chrome Hydraulics
         this.put(hip, box(0.72, 1.25, 0.76), M.cobalt, 0, -0.65, 0);
-        this.put(hip, cy(0.08, 0.08, 0.95, 8), M.chrome, side * 0.28, -0.65, -0.34);
+        const thighPiston = this.put(hip, cy(0.08, 0.08, 0.95, 8), M.chrome, side * 0.28, -0.65, -0.34);
+        if (side === 1) this.pistonThighR = thighPiston;
+        else this.pistonThighL = thighPiston;
 
         // Articulated Knee Joint & Armor Guard
         const shin = new T.Group();
@@ -914,12 +1025,15 @@
         this.put(shin, box(0.6, 0.48, 0.35), M.steel, 0, 0.12, 0.44); // Knee guard
         this.put(shin, box(0.88, 1.7, 0.98), M.cobalt, 0, -0.75, 0);
 
-        // Heavy Truck Wheels on Outer Shins (Dual Rear Double-Tires: 2 wheels per side = 4 tires total!)
+        // 4 Truck Wheels per Calf (Dual Rear Tandem Double-Tires: 4 tires per leg = 8 tires total!)
         [-0.42, 0.42].forEach(z => {
-          const wheel = this.put(shin, cy(0.44, 0.44, 0.36, 18), M.tireRubber, side * 0.62, -0.75, z, 0, 0, Math.PI / 2);
-          // 10-Lug Peterbilt Chrome Hubcap
-          this.put(wheel, cy(0.25, 0.25, 0.38, 16), M.chrome, 0, 0, 0);
-          this.put(wheel, cy(0.08, 0.08, 0.42, 8), M.steel, 0, 0, 0); // Axle cap
+          [side * 0.52, side * 0.72].forEach(x => {
+            const wheel = this.put(shin, cy(0.44, 0.44, 0.18, 18), M.tireRubber, x, -0.75, z, 0, 0, Math.PI / 2);
+            // 10-Lug Peterbilt Chrome Hubcap
+            this.put(wheel, cy(0.25, 0.25, 0.19, 16), M.chrome, 0, 0, 0);
+            this.put(wheel, cy(0.08, 0.08, 0.22, 8), M.steel, 0, 0, 0); // Axle cap
+            this.wheels.push(wheel);
+          });
         });
 
         // Articulated Stabilizer Boots with Rubber Treads
@@ -941,32 +1055,133 @@
       const breath = Math.sin(this.time * 2.8) * 0.03;
       if (this.torso) this.torso.position.y = 0.45 + breath;
 
-      // Matrix core pulsation
-      if (this.matrixCore) {
-        const p = 1.0 + Math.sin(this.time * 4.5) * 0.2;
-        this.matrixCore.scale.set(p, p, p);
+      // 1. KINEMATIC LOOK-AT HEAD TRACKING
+      if (this.head && this.headTracking && this.mode === 'ROBOT') {
+        this.lookYaw += (this.targetLookYaw - this.lookYaw) * Math.min(1.0, dt * 6.0);
+        this.lookPitch += (this.targetLookPitch - this.lookPitch) * Math.min(1.0, dt * 6.0);
+        this.head.rotation.y = this.lookYaw;
+        this.head.rotation.x = this.lookPitch;
       }
 
-      // Smokestack subtle heat shimmer
-      if (this.stacks) {
-        for (let i = 0; i < this.stacks.length; i++) {
-          this.stacks[i].rotation.z = Math.sin(this.time * 3 + i) * 0.02;
+      // 2. KINEMATIC BATTLE MASK & VOCALIZER SLIDE
+      const targetMask = this.maskOpen ? 1.0 : 0.0;
+      if (Math.abs(this.maskProgress - targetMask) > 0.005) {
+        this.maskProgress += (targetMask - this.maskProgress) * Math.min(1.0, dt * 7.0);
+        if (this.mouthGroup) {
+          // Silver mouthplate slides down along chin rail in conversational mode
+          this.mouthGroup.position.y = 0.12 - this.maskProgress * 0.22;
+          this.mouthGroup.position.z = 0.38 - this.maskProgress * 0.04;
+        }
+        if (this.cheekVentL) this.cheekVentL.rotation.y = -this.maskProgress * 0.35;
+        if (this.cheekVentR) this.cheekVentR.rotation.y = this.maskProgress * 0.35;
+      }
+      // Audio bars pulse when mask is open
+      if (this.maskProgress > 0.2 && this.vocalizerBars) {
+        const pulse = Math.sin(this.time * 16.0) * 0.4 + 0.6;
+        for (let i = 0; i < this.vocalizerBars.length; i++) {
+          this.vocalizerBars[i].scale.x = 0.5 + pulse * 0.5;
         }
       }
 
-      // Smooth Recoil Recovery
+      // 3. KINEMATIC MATRIX OF LEADERSHIP & CHEST DOORS
+      const targetMatrix = this.matrixOpen ? 1.0 : 0.0;
+      if (Math.abs(this.matrixProgress - targetMatrix) > 0.005) {
+        this.matrixProgress += (targetMatrix - this.matrixProgress) * Math.min(1.0, dt * 5.0);
+        if (this.chestDoorL) this.chestDoorL.rotation.y = -this.matrixProgress * (Math.PI * 0.48);
+        if (this.chestDoorR) this.chestDoorR.rotation.y = this.matrixProgress * (Math.PI * 0.48);
+        if (this.matrixHolder) {
+          this.matrixHolder.position.z = 0.35 + this.matrixProgress * 0.63;
+          this.matrixHolder.position.y = 1.25 + this.matrixProgress * 0.08;
+        }
+      }
+      // Matrix core dynamic rotation & pulsing illumination
+      if (this.matrixCore) {
+        this.matrixCore.rotation.y += dt * (1.5 + this.matrixProgress * 3.5);
+        this.matrixCore.rotation.z += dt * (1.0 + this.matrixProgress * 2.2);
+        const p = 1.0 + Math.sin(this.time * 4.5) * 0.18 + this.matrixProgress * 0.35;
+        this.matrixCore.scale.set(p, p, p);
+      }
+      if (this.matrixLight) {
+        this.matrixLight.intensity = (0.3 + this.matrixProgress * 3.8) * (1.0 + Math.sin(this.time * 8.0) * 0.22);
+      }
+
+      // 4. PROCEDURAL DIESEL SMOKE EMISSION & IDLE RUMBLE
+      this.smokeTimer += dt;
+      if (this.smokeTimer > 0.18) {
+        this.smokeTimer = 0;
+        this.emitExhaustPuff(0, 0.3);
+        this.emitExhaustPuff(1, 0.3);
+      }
+      if (this.smokeParticles) {
+        for (let i = 0; i < this.smokeParticles.length; i++) {
+          const sp = this.smokeParticles[i];
+          if (!sp.active) continue;
+          sp.life += dt;
+          if (sp.life >= sp.maxLife) {
+            sp.active = false;
+            sp.mesh.visible = false;
+            continue;
+          }
+          sp.x += sp.vx * dt;
+          sp.y += sp.vy * dt;
+          sp.z += sp.vz * dt;
+          sp.scale += sp.growth * dt;
+          const alpha = Math.max(0, sp.initialAlpha * (1.0 - sp.life / sp.maxLife));
+          sp.mesh.position.set(sp.x, sp.y, sp.z);
+          sp.mesh.scale.set(sp.scale, sp.scale, sp.scale);
+          sp.mesh.rotation.z += dt * 1.5;
+          if (sp.mesh.material) sp.mesh.material.opacity = alpha;
+        }
+      }
+
+      // Smokestack subtle engine vibration
+      if (this.stacks) {
+        for (let i = 0; i < this.stacks.length; i++) {
+          this.stacks[i].rotation.z = Math.sin(this.time * 6 + i) * 0.015;
+        }
+      }
+
+      // 5. TELESCOPING HYDRAULIC PISTONS & JOINT FLEXION
+      if (this.hydraulicsCycle && this.mode === 'ROBOT') {
+        const hTime = this.time * 2.5;
+        const armFlex = Math.sin(hTime) * 0.45 + 0.15;
+        const legFlex = Math.cos(hTime) * 0.28;
+
+        if (this.forearmR) this.forearmR.rotation.x = armFlex;
+        if (this.forearmL) this.forearmL.rotation.x = armFlex;
+
+        // Bicep hydraulic rods dynamically slide out
+        if (this.pistonRodR) this.pistonRodR.scale.y = 1.0 + armFlex * 0.65;
+        if (this.pistonRodL) this.pistonRodL.scale.y = 1.0 + armFlex * 0.65;
+
+        // Thigh & knee flexion
+        if (this.legR && this.legL) {
+          this.legR.hip.rotation.x = legFlex;
+          this.legL.hip.rotation.x = -legFlex;
+          this.legR.shin.rotation.x = Math.max(0, -legFlex * 1.3);
+          this.legL.shin.rotation.x = Math.max(0, legFlex * 1.3);
+        }
+        if (this.pistonThighR) this.pistonThighR.scale.y = 1.0 + Math.abs(legFlex) * 0.4;
+        if (this.pistonThighL) this.pistonThighL.scale.y = 1.0 + Math.abs(legFlex) * 0.4;
+      }
+
+      // 6. 10-WHEEL DUAL AXLE ROTATION
+      if (this.wheelsSpinning || this.mode === 'VEHICLE') {
+        const spd = this.mode === 'VEHICLE' ? 14.0 : this.wheelSpeed;
+        this.spinWheels(spd, dt);
+      }
+
+      // 7. WEAPON RECOIL & MELEE SWING
       if (this.recoil > 0) {
         this.recoil = Math.max(0, this.recoil - dt * 4.0);
-        if (this.ionBlaster) this.ionBlaster.position.z = 0.5 - this.recoil * 0.45;
+        if (this.ionBlaster) this.ionBlaster.position.z = 0.4 - this.recoil * 0.45;
         if (this.blasterMuzzle) {
-          const s = 1.0 + this.recoil * 1.5;
+          const s = 1.0 + this.recoil * 1.6;
           this.blasterMuzzle.scale.set(s, s, s);
         }
       }
-
-      // Energon Axe Battle Glow Pulse & Swing
       if (this.axeBlade) {
-        const glow = 1.0 + Math.sin(this.time * 6.0) * 0.2;
+        const glow = 1.0 + Math.sin(this.time * 6.0) * 0.22;
         this.axeBlade.scale.set(1, glow, glow);
       }
       if (this.axeSwing > 0) {
@@ -974,20 +1189,125 @@
         if (this.armL) this.armL.rotation.x = Math.sin(this.axeSwing * Math.PI) * 1.8;
       }
 
-      // Animation mixer update (Sketchfab animated models)
+      // 8. ANIMATION MIXER & INERTIA
       if (this.mixer) this.mixer.update(dt);
-
-      // Inertia drag rotation
       this.yaw += this.yawVel;
       this.yawVel *= 0.90;
       this.root.rotation.y = this.yaw;
 
-      // Transformation Morph Animation
+      // 9. 5-PHASE TRANSFORMATION MORPH
       const targetTrans = (this.mode === 'VEHICLE') ? 1.0 : 0.0;
       if (Math.abs(this.transProgress - targetTrans) > 0.01) {
         this.transProgress += (targetTrans - this.transProgress) * Math.min(1.0, dt * 5.0);
         this.applyTransformation(this.transProgress);
       }
+    }
+
+    emitExhaustPuff(stackIdx = 0, intensity = 0.5) {
+      if (!this.smokeParticles) return;
+      const p = this.smokeParticles.find(part => !part.active);
+      if (!p) return;
+      const sx = stackIdx === 0 ? -1.28 : 1.28;
+      const torsoY = this.torso ? this.torso.position.y : 0.45;
+      p.x = sx;
+      p.y = torsoY + 3.45;
+      p.z = -0.63;
+      p.vx = (Math.random() - 0.5) * 0.25;
+      p.vy = (1.8 + Math.random() * 2.2) * intensity;
+      p.vz = -0.35 - Math.random() * 0.45;
+      p.scale = 0.18 + Math.random() * 0.12;
+      p.growth = 0.9 + Math.random() * 0.8;
+      p.life = 0;
+      p.maxLife = 0.8 + Math.random() * 0.5;
+      p.initialAlpha = Math.min(0.75, 0.3 + intensity * 0.4);
+      p.active = true;
+      p.mesh.visible = true;
+      p.mesh.position.set(p.x, p.y, p.z);
+    }
+
+    triggerDieselSmoke(burstCount = 14) {
+      for (let i = 0; i < burstCount; i++) {
+        setTimeout(() => {
+          this.emitExhaustPuff(i % 2, 1.4);
+        }, i * 25);
+      }
+    }
+
+    toggleBattleMask(state) {
+      this.maskOpen = (state !== undefined) ? !!state : !this.maskOpen;
+      return this.maskOpen;
+    }
+
+    toggleMatrixChest(state) {
+      this.matrixOpen = (state !== undefined) ? !!state : !this.matrixOpen;
+      return this.matrixOpen;
+    }
+
+    toggleHydraulicsCycle(state) {
+      this.hydraulicsCycle = (state !== undefined) ? !!state : !this.hydraulicsCycle;
+      if (!this.hydraulicsCycle) {
+        if (this.forearmR) this.forearmR.rotation.x = 0;
+        if (this.forearmL) this.forearmL.rotation.x = 0;
+        if (this.legR) { this.legR.hip.rotation.x = 0; this.legR.shin.rotation.x = 0; }
+        if (this.legL) { this.legL.hip.rotation.x = 0; this.legL.shin.rotation.x = 0; }
+        if (this.pistonRodR) this.pistonRodR.scale.y = 1.0;
+        if (this.pistonRodL) this.pistonRodL.scale.y = 1.0;
+      }
+      return this.hydraulicsCycle;
+    }
+
+    setHydraulicsCycle(state) {
+      return this.toggleHydraulicsCycle(state);
+    }
+
+    toggleWheelSpin(state, speed = 10.0) {
+      this.wheelsSpinning = (state !== undefined) ? !!state : !this.wheelsSpinning;
+      if (this.wheelsSpinning && speed) this.wheelSpeed = speed;
+      return this.wheelsSpinning;
+    }
+
+    setWheelSpeed(speed) {
+      this.wheelSpeed = Number(speed) || 0;
+      this.wheelsSpinning = (this.wheelSpeed > 0);
+    }
+
+    spinWheels(speed = 8.0, dt = 0.016) {
+      if (this.wheels && this.wheels.length > 0) {
+        for (let i = 0; i < this.wheels.length; i++) {
+          this.wheels[i].rotation.y += speed * dt;
+        }
+      }
+    }
+
+    setLookAtTarget(targetX, targetY) {
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      this.targetLookYaw = clamp(-targetX * 0.65, -0.65, 0.65);
+      this.targetLookPitch = clamp(-targetY * 0.35, -0.35, 0.35);
+    }
+
+    toggleHeadTracking(state) {
+      this.headTracking = (state !== undefined) ? !!state : !this.headTracking;
+      if (!this.headTracking) {
+        this.targetLookYaw = 0;
+        this.targetLookPitch = 0;
+        if (this.head) {
+          this.head.rotation.y = 0;
+          this.head.rotation.x = 0;
+        }
+      }
+      return this.headTracking;
+    }
+
+    getStatusReport() {
+      return {
+        mode: this.mode,
+        maskOpen: this.maskOpen,
+        matrixOpen: this.matrixOpen,
+        hydraulicsActive: this.hydraulicsCycle,
+        wheelsSpinning: this.wheelsSpinning,
+        wheelSpeed: this.wheelSpeed,
+        headTracking: this.headTracking
+      };
     }
 
     loadSketchfabGLB(bufferOrUrl, onDone, onErr) {
@@ -1093,6 +1413,13 @@
     }
 
     dispose() {
+      if (this.smokeParticles) {
+        this.smokeParticles.forEach(p => {
+          if (p.mesh && p.mesh.geometry) try { p.mesh.geometry.dispose(); } catch(e) {}
+          if (p.mesh && p.mesh.material) try { p.mesh.material.dispose(); } catch(e) {}
+        });
+        this.smokeParticles = [];
+      }
       if (this.root && this.root.traverse) {
         this.root.traverse(obj => {
           if (obj.geometry) {
@@ -1592,6 +1919,13 @@
     }
 
     dispose() {
+      if (this.smokeParticles) {
+        this.smokeParticles.forEach(p => {
+          if (p.mesh && p.mesh.geometry) try { p.mesh.geometry.dispose(); } catch(e) {}
+          if (p.mesh && p.mesh.material) try { p.mesh.material.dispose(); } catch(e) {}
+        });
+        this.smokeParticles = [];
+      }
       if (this.root && this.root.traverse) {
         this.root.traverse(obj => {
           if (obj.geometry) {

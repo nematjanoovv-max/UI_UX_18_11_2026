@@ -722,6 +722,46 @@
       }
     }
 
+    toggleBattleMask(state) {
+      if (this.mech && typeof this.mech.toggleBattleMask === 'function') {
+        return this.mech.toggleBattleMask(state);
+      }
+      return false;
+    }
+
+    toggleMatrixChest(state) {
+      if (this.mech && typeof this.mech.toggleMatrixChest === 'function') {
+        return this.mech.toggleMatrixChest(state);
+      }
+      return false;
+    }
+
+    triggerDieselSmoke(burstCount) {
+      if (this.mech && typeof this.mech.triggerDieselSmoke === 'function') {
+        return this.mech.triggerDieselSmoke(burstCount);
+      }
+    }
+
+    toggleHydraulicsCycle(state) {
+      if (this.mech && typeof this.mech.toggleHydraulicsCycle === 'function') {
+        return this.mech.toggleHydraulicsCycle(state);
+      }
+      return false;
+    }
+
+    toggleWheelSpin(state, speed) {
+      if (this.mech && typeof this.mech.toggleWheelSpin === 'function') {
+        return this.mech.toggleWheelSpin(state, speed);
+      }
+      return false;
+    }
+
+    setLookAtTarget(x, y) {
+      if (this.mech && typeof this.mech.setLookAtTarget === 'function') {
+        return this.mech.setLookAtTarget(x, y);
+      }
+    }
+
     bindEvents() {
       let down = null;
       this.canvas.addEventListener('pointerdown', (e) => {

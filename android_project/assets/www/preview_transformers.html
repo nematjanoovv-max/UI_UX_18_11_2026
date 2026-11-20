@@ -335,6 +335,91 @@
     padding-top: 6px;
   }
 
+  /* Optimus Kinematics Mechanical Control Panel */
+  #optimus-kinematics-deck {
+    position: absolute;
+    top: 76px;
+    right: max(14px, env(safe-area-inset-right));
+    width: 290px;
+    max-width: 90vw;
+    background: rgba(8, 15, 28, 0.94);
+    border: 1px solid rgba(0, 229, 255, 0.35);
+    border-radius: 12px;
+    padding: 12px 14px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.75);
+    z-index: 25;
+    transition: all 0.3s ease;
+  }
+  #optimus-kinematics-deck.collapsed {
+    transform: translateX(calc(100% + 20px));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ok-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .ok-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ok-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ok-btn {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    color: #e2e8f0;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+  }
+  .ok-btn:hover {
+    background: rgba(0, 229, 255, 0.2);
+    border-color: var(--cyan);
+    color: #ffffff;
+    transform: translateX(-2px);
+  }
+  .ok-btn.active {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.35) 0%, rgba(30, 58, 138, 0.35) 100%);
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  }
+  .ok-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  .ok-badge.on {
+    background: #10b981;
+    color: #022c22;
+  }
+  .ok-badge.off {
+    background: #475569;
+    color: #cbd5e1;
+  }
+
   /* Notification Toast */
   #toast {
     position: absolute;
@@ -560,8 +645,55 @@
     </div>
   </div>
 
+  <!-- Dedicated Optimus Prime Kinematics & Mechanics Deck -->
+  <div id="optimus-kinematics-deck">
+    <div class="ok-header">
+      <div class="ok-title">⚙️ OPTIMUS PRIME KINEMATIKASI</div>
+      <button class="close-btn" onclick="toggleKinematicsDeck()">✕</button>
+    </div>
+    <div class="ok-grid">
+      <button class="ok-btn" id="btn-kin-mask" onclick="toggleBattleMaskAction()">
+        <span>🎭 Jangovar Niqob (Yuz)</span>
+        <span class="ok-badge off" id="badge-kin-mask">Yopiq</span>
+      </button>
+      <button class="ok-btn" id="btn-kin-matrix" onclick="toggleMatrixChestAction()">
+        <span>✨ Matrix of Leadership</span>
+        <span class="ok-badge off" id="badge-kin-matrix">Yopiq</span>
+      </button>
+      <button class="ok-btn" id="btn-kin-smoke" onclick="triggerSmokeAction()">
+        <span>💨 Dizel Tutun (Mo'rilar)</span>
+        <span class="ok-badge on">Gaz berish</span>
+      </button>
+      <button class="ok-btn" id="btn-kin-hydraulics" onclick="toggleHydraulicsAction()">
+        <span>⚙️ Gidravlika Sikli (Pistonlar)</span>
+        <span class="ok-badge off" id="badge-kin-hydraulics">Kuting</span>
+      </button>
+      <button class="ok-btn" id="btn-kin-wheels" onclick="toggleWheelsAction()">
+        <span>🔄 10 G'ildirak Aylanishi</span>
+        <span class="ok-badge off" id="badge-kin-wheels">0 RPM</span>
+      </button>
+      <button class="ok-btn active" id="btn-kin-head" onclick="toggleHeadTrackingAction()">
+        <span>👁️ Sichqonchaga Qarash</span>
+        <span class="ok-badge on" id="badge-kin-head">Yoqilgan</span>
+      </button>
+      <button class="ok-btn" onclick="triggerFire()">
+        <span>💥 Ion Blaster O'q Otish</span>
+        <span class="ok-badge on">Zarba</span>
+      </button>
+      <button class="ok-btn" onclick="triggerMelee()">
+        <span>⚔️ Energon Bolta Kesishi</span>
+        <span class="ok-badge on">Qirqish</span>
+      </button>
+      <button class="ok-btn active" onclick="triggerTransform()">
+        <span>🚛 5 Bosqichli Transformatsiya</span>
+        <span class="ok-badge on" id="badge-kin-mode">Robot</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Floating Command Deck -->
   <div id="command-deck">
+    <button class="cmd-btn highlight" id="btn-kinematics-deck" onclick="toggleKinematicsDeck()">⚙️ DETALLAR BOSHQARUVI</button>
     <button class="cmd-btn highlight" id="btn-transform" onclick="triggerTransform()">🔄 TRANSFORMATSIYA</button>
     <button class="cmd-btn" id="btn-fire" onclick="triggerFire()">💥 O'T OCHISH</button>
     <button class="cmd-btn" id="btn-melee" onclick="triggerMelee()">⚔️ YAQIN JANG ZARBASI</button>
@@ -696,6 +828,103 @@
       gain.connect(ctx.destination);
       osc.start(t);
       osc.stop(t + 0.41);
+    }
+
+    function playHydraulicSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      // Servo whine
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(320, t);
+      osc.frequency.exponentialRampToValueAtTime(140, t + 0.22);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.23);
+
+      // Pneumatic pressure hiss
+      const bufferSize = Math.floor(ctx.sampleRate * 0.2);
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.setValueAtTime(1200, t);
+      noiseFilter.Q.setValueAtTime(1.5, t);
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.22, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      whiteNoise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      whiteNoise.start(t);
+      whiteNoise.stop(t + 0.21);
+    }
+
+    function playDieselRevSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      // Heavy diesel engine rumble
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(65, t);
+      osc.frequency.exponentialRampToValueAtTime(150, t + 0.25);
+      osc.frequency.exponentialRampToValueAtTime(70, t + 0.55);
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.56);
+
+      // Turbo spool whistle
+      const turbo = ctx.createOscillator();
+      const turboGain = ctx.createGain();
+      turbo.type = 'sine';
+      turbo.frequency.setValueAtTime(1400, t + 0.1);
+      turbo.frequency.exponentialRampToValueAtTime(2800, t + 0.4);
+      turboGain.gain.setValueAtTime(0.09, t + 0.1);
+      turboGain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      turbo.connect(turboGain);
+      turboGain.connect(ctx.destination);
+      turbo.start(t + 0.1);
+      turbo.stop(t + 0.46);
+    }
+
+    function playMatrixSurgeSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      // Harmonic celestial resonance
+      const freqs = [330, 440, 554, 660, 880];
+      freqs.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.05);
+        osc.frequency.exponentialRampToValueAtTime(f * 1.5, t + i * 0.05 + 0.6);
+        gain.gain.setValueAtTime(0.12, t + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.05 + 0.65);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.05);
+        osc.stop(t + i * 0.05 + 0.66);
+      });
     }
 
     // =========================================================================
@@ -953,6 +1182,8 @@
         webglCanvas.style.display = 'none';
         pillSf.classList.add('active');
         pillThree.classList.remove('active');
+        const kinDeck = document.getElementById('optimus-kinematics-deck');
+        if (kinDeck) kinDeck.classList.add('collapsed');
         updateHeroSwitcherForSketchfab();
         updateCommandDeckForSketchfab();
         switchSfHero(activeSfHero || 'OPTIMUS');
@@ -965,6 +1196,8 @@
         updateHeroSwitcherForThree();
         updateCommandDeckForThree();
         loadHero(currentHero || 'OPTIMUS');
+        const kinDeck = document.getElementById('optimus-kinematics-deck');
+        if (kinDeck && (!currentHero || currentHero === 'OPTIMUS')) kinDeck.classList.remove('collapsed');
         showToast("🤖 THREE.JS OFFLAYN MECH REJIMI");
       }
     }
@@ -1004,6 +1237,7 @@
     function updateCommandDeckForThree() {
       const deck = document.getElementById('command-deck');
       deck.innerHTML = `
+        <button class="cmd-btn highlight" id="btn-kinematics-deck" onclick="toggleKinematicsDeck()">⚙️ DETALLAR BOSHQARUVI</button>
         <button class="cmd-btn highlight" id="btn-transform" onclick="triggerTransform()">🔄 TRANSFORMATSIYA</button>
         <button class="cmd-btn" id="btn-fire" onclick="triggerFire()">💥 O'T OCHISH</button>
         <button class="cmd-btn" id="btn-melee" onclick="triggerMelee()">⚔️ YAQIN JANG ZARBASI</button>
@@ -1093,6 +1327,11 @@
       if (currentMech) {
         scene.add(currentMech.root);
       }
+      const kinDeck = document.getElementById('optimus-kinematics-deck');
+      if (kinDeck) {
+        if (heroType === 'OPTIMUS') kinDeck.classList.remove('collapsed');
+        else kinDeck.classList.add('collapsed');
+      }
       updateDossierContent(heroType);
     }
 
@@ -1118,14 +1357,106 @@
     }
 
     // =========================================================================
-    // 4. INTERACTION CONTROLS
+    // 4. INTERACTION & KINEMATICS CONTROLS
     // =========================================================================
+    function toggleKinematicsDeck() {
+      const deck = document.getElementById('optimus-kinematics-deck');
+      if (deck) deck.classList.toggle('collapsed');
+    }
+
+    function toggleBattleMaskAction() {
+      if (!currentMech || typeof currentMech.toggleBattleMask !== 'function') return;
+      const isOpen = currentMech.toggleBattleMask();
+      playHydraulicSFX();
+      const badge = document.getElementById('badge-kin-mask');
+      const btn = document.getElementById('btn-kin-mask');
+      if (badge) {
+        badge.innerText = isOpen ? "Ochiq (Muloqot)" : "Jangovar";
+        badge.className = isOpen ? "ok-badge on" : "ok-badge off";
+      }
+      if (btn) btn.classList.toggle('active', isOpen);
+      showToast(isOpen ? "🗣️ Yuz niqobi ochildi (Muloqot/So'zlashuv rejimi)" : "🛡️ Jangovar niqob yopildi (Jang rejimi)");
+    }
+
+    function toggleMatrixChestAction() {
+      if (!currentMech || typeof currentMech.toggleMatrixChest !== 'function') return;
+      const isOpen = currentMech.toggleMatrixChest();
+      if (isOpen) playMatrixSurgeSFX();
+      else playHydraulicSFX();
+      const badge = document.getElementById('badge-kin-matrix');
+      const btn = document.getElementById('btn-kin-matrix');
+      if (badge) {
+        badge.innerText = isOpen ? "Matrix Ochiq" : "Yopiq";
+        badge.className = isOpen ? "ok-badge on" : "ok-badge off";
+      }
+      if (btn) btn.classList.toggle('active', isOpen);
+      showToast(isOpen ? "✨ Matrix of Leadership ko'rsatildi (Ko'krak oynalari ochildi)!" : "🚛 Ko'krak oynalari yopildi");
+    }
+
+    function triggerSmokeAction() {
+      if (!currentMech || typeof currentMech.triggerDieselSmoke !== 'function') return;
+      currentMech.triggerDieselSmoke(16);
+      playDieselRevSFX();
+      showToast("💨 2.8m xrom mo'rilardan kuchli dizel tutun otildi!");
+    }
+
+    function toggleHydraulicsAction() {
+      if (!currentMech || typeof currentMech.toggleHydraulicsCycle !== 'function') return;
+      const isActive = currentMech.toggleHydraulicsCycle();
+      playHydraulicSFX();
+      const badge = document.getElementById('badge-kin-hydraulics');
+      const btn = document.getElementById('btn-kin-hydraulics');
+      if (badge) {
+        badge.innerText = isActive ? "Faol (42 Bar)" : "Kuting";
+        badge.className = isActive ? "ok-badge on" : "ok-badge off";
+      }
+      if (btn) btn.classList.toggle('active', isActive);
+      showToast(isActive ? "⚙️ Gidravlika silindrlari va bo'g'inlar harakatlanmoqda" : "⏸️ Gidravlika to'xtatildi");
+    }
+
+    function toggleWheelsAction() {
+      if (!currentMech || typeof currentMech.toggleWheelSpin !== 'function') return;
+      const isSpinning = currentMech.toggleWheelSpin();
+      playDieselRevSFX();
+      const badge = document.getElementById('badge-kin-wheels');
+      const btn = document.getElementById('btn-kin-wheels');
+      if (badge) {
+        badge.innerText = isSpinning ? "120 RPM" : "0 RPM";
+        badge.className = isSpinning ? "ok-badge on" : "ok-badge off";
+      }
+      if (btn) btn.classList.toggle('active', isSpinning);
+      showToast(isSpinning ? "🔄 10 ta Peterbilt g'ildiraklari aylanmoqda" : "⏸️ G'ildiraklar to'xtatildi");
+    }
+
+    function toggleHeadTrackingAction() {
+      if (!currentMech || typeof currentMech.toggleHeadTracking !== 'function') return;
+      const isTracking = currentMech.toggleHeadTracking();
+      const badge = document.getElementById('badge-kin-head');
+      const btn = document.getElementById('btn-kin-head');
+      if (badge) {
+        badge.innerText = isTracking ? "Yoqilgan" : "O'chirilgan";
+        badge.className = isTracking ? "ok-badge on" : "ok-badge off";
+      }
+      if (btn) btn.classList.toggle('active', isTracking);
+      showToast(isTracking ? "👁️ Bosh sichqoncha va ko'rinishga qaraydi" : "⏸️ Bosh qarashi markazlashtirildi");
+    }
+
     function triggerTransform() {
+      if (viewerMode === 'SKETCHFAB') {
+        const nextSfHero = (activeSfHero === 'OPTIMUS') ? 'PETERBILT' : (activeSfHero === 'PETERBILT' ? 'OPTIMUS' : (activeSfHero === 'BUMBLEBEE' ? 'CAMARO' : 'BUMBLEBEE'));
+        switchSfHero(nextSfHero);
+        playTransformSFX();
+        showToast(`🔄 TRANSFORMATSIYA: ${nextSfHero}`);
+        return;
+      }
+
       if (!currentMech) return;
       if (typeof currentMech.toggleTransform === 'function') {
         const mode = currentMech.toggleTransform();
         playTransformSFX();
-        showToast(mode === 'VEHICLE' ? "🚚 TRANSPORT (VEHICLE) REJIMI" : "🤖 JANGOVAR ROBOT REJIMI");
+        const badgeMode = document.getElementById('badge-kin-mode');
+        if (badgeMode) badgeMode.innerText = (mode === 'VEHICLE') ? "Peterbilt Truck" : "Robot";
+        showToast(mode === 'VEHICLE' ? "🚚 TRANSPORT (PETERBILT 379) REJIMI" : "🤖 JANGOVAR ROBOT REJIMI");
       } else {
         showToast("ℹ️ APEX-01 faqat jangovar robot rejimida ishlaydi");
       }
@@ -1272,6 +1603,15 @@
 
       canvas.addEventListener('pointerup', () => { isDragging = false; });
       canvas.addEventListener('pointercancel', () => { isDragging = false; });
+
+      // Head Look-At Aim Tracking (Pointer / Cursor)
+      window.addEventListener('pointermove', (e) => {
+        const nx = (e.clientX / window.innerWidth) * 2 - 1;
+        const ny = (e.clientY / window.innerHeight) * 2 - 1;
+        if (currentMech && typeof currentMech.setLookAtTarget === 'function') {
+          currentMech.setLookAtTarget(nx, ny);
+        }
+      });
 
       // Wheel Zoom
       canvas.addEventListener('wheel', (e) => {
