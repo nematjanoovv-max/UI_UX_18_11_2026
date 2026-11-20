@@ -4873,6 +4873,33 @@
           e.x = pt.x;
           e.y = pt.y;
           e.angle = pt.angle;
+
+          // Footstep dust puffs & ground footprints
+          if (!isBlocked && Math.random() < (e.isBoss ? 0.35 : 0.08)) {
+            this.particles.push({
+              x: e.x + (Math.random() * 6 - 3),
+              y: e.y + (Math.random() * 6 - 3),
+              vx: -Math.cos(e.angle) * 12 + (Math.random() * 6 - 3),
+              vy: -Math.sin(e.angle) * 12 + (Math.random() * 6 - 3),
+              color: "rgba(100, 116, 139, 0.3)", size: e.isBoss ? 4.5 : 2.5, growth: 5, life: 0.35, maxLife: 0.35
+            });
+            if (e.isBoss || e.type === 'brute') {
+              this.spawnFootprint(e.x, e.y, e.angle, true);
+            }
+          }
+
+          // Heavy Diesel & Plasma Exhaust Smoke Puffs
+          if (['brute', 'juggernaut'].includes(e.type) && Math.random() < 0.25) {
+            const backX = e.x - Math.cos(e.angle) * 14;
+            const backY = e.y - Math.sin(e.angle) * 14;
+            this.particles.push({
+              x: backX + (Math.random() * 6 - 3),
+              y: backY + (Math.random() * 6 - 3),
+              vx: -Math.cos(e.angle) * 20 + (Math.random() * 8 - 4),
+              vy: -Math.sin(e.angle) * 20 - 15,
+              color: "rgba(30, 41, 59, 0.55)", size: 3.5, growth: 8, life: 0.45, maxLife: 0.45
+            });
+          }
         }
 
         if (e.progress >= lane.totalLength) {
@@ -5571,7 +5598,7 @@
       }
       this.lastHeroKillTime = now;
 
-      this.spawnDeathParticles(enemy.x, enemy.y, enemy.color);
+      this.spawnDeathParticles(enemy.x, enemy.y, enemy.color, enemy.isBoss);
       this.enemies = this.enemies.filter(item => item !== enemy);
     }
 
@@ -5661,18 +5688,63 @@
       }
     }
 
-    spawnDeathParticles(x, y, color) {
-      for (let i = 0; i < 12; i++) {
+    spawnDeathParticles(x, y, color, isBoss = false) {
+      // 1. Ground Blast Scorch Decal (Kuygan Iz)
+      this.spawnScorchMark(x, y, isBoss ? 48 : 24);
+
+      // 2. Metallic Shrapnel & Armor Debris Chunks (Gibs)
+      const chunkCount = isBoss ? 32 : 14;
+      for (let i = 0; i < chunkCount; i++) {
         const ang = Math.random() * Math.PI * 2;
-        const spd = 40 + Math.random() * 90;
+        const spd = 60 + Math.random() * (isBoss ? 180 : 120);
+        const size = isBoss ? (3.5 + Math.random() * 4) : (2.0 + Math.random() * 2.5);
         this.particles.push({
           x: x, y: y,
           vx: Math.cos(ang) * spd,
           vy: Math.sin(ang) * spd,
-          color: color,
-          size: 3 + Math.random() * 3,
-          life: 0.5, maxLife: 0.5
+          color: (i % 3 === 0) ? "#475569" : ((i % 3 === 1) ? "#1e293b" : (color || "#ffd600")),
+          size: size,
+          life: 0.8 + Math.random() * 0.4,
+          maxLife: 1.2
         });
+      }
+
+      // 3. Volumetric Fire & Smoke Puffs
+      const smokeCount = isBoss ? 16 : 8;
+      for (let s = 0; s < smokeCount; s++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 15 + Math.random() * 40;
+        this.particles.push({
+          x: x + (Math.random() - 0.5) * 12,
+          y: y + (Math.random() - 0.5) * 12,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          color: (s % 2 === 0) ? "rgba(30, 41, 59, 0.6)" : "rgba(71, 85, 105, 0.45)",
+          size: 4 + Math.random() * 3,
+          growth: 10 + Math.random() * 12,
+          life: 0.6 + Math.random() * 0.4,
+          maxLife: 1.0
+        });
+      }
+
+      // 4. Incandescent Spark Embers
+      for (let e = 0; e < (isBoss ? 20 : 8); e++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 80 + Math.random() * 160;
+        this.particles.push({
+          x: x, y: y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          color: (e % 2 === 0) ? "#ffd600" : "#ff3d00",
+          size: 1.8,
+          life: 0.35 + Math.random() * 0.25,
+          maxLife: 0.6
+        });
+      }
+
+      // 5. Boss Shockwave
+      if (isBoss) {
+        this.spawnShockwave(x, y, 140, "#ff1744");
       }
     }
 
