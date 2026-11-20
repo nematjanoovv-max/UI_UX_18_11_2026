@@ -175,8 +175,17 @@
       this.axeSwing = 0;
       this.yaw = 0;
       this.yawVel = 0;
+      this.externalMesh = null;
+      this.mixer = null;
 
       this.buildModel();
+      this.checkLocalSketchfabAsset();
+    }
+
+    checkLocalSketchfabAsset() {
+      if (typeof window !== 'undefined' && window.location && window.location.href && this.THREE && this.THREE.GLTFLoader) {
+        this.loadSketchfabGLB('assets/characters/transformers/optimus_prime.glb');
+      }
     }
 
     put(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
@@ -380,6 +389,9 @@
         if (this.armR) this.armR.rotation.x = Math.sin(this.axeSwing * Math.PI) * 1.8;
       }
 
+      // Animation mixer update (Sketchfab animated models)
+      if (this.mixer) this.mixer.update(dt);
+
       // Inertia drag rotation
       this.yaw += this.yawVel;
       this.yawVel *= 0.90;
@@ -390,6 +402,63 @@
       if (Math.abs(this.transProgress - targetTrans) > 0.01) {
         this.transProgress += (targetTrans - this.transProgress) * Math.min(1.0, dt * 5.0);
         this.applyTransformation(this.transProgress);
+      }
+    }
+
+    loadSketchfabGLB(bufferOrUrl, onDone, onErr) {
+      const T = this.THREE;
+      if (!T || !T.GLTFLoader) {
+        if (onErr) onErr(new Error("GLTFLoader mavjud emas"));
+        return;
+      }
+      const loader = new T.GLTFLoader();
+      const processGltf = (gltf) => {
+        if (this.externalMesh) {
+          this.root.remove(this.externalMesh);
+          this.externalMesh = null;
+        }
+        const m = gltf.scene || gltf.scenes[0];
+        this.externalMesh = m;
+        this.body.visible = false;
+
+        if (T.Box3 && T.Vector3) {
+          const box = new T.Box3().setFromObject(m);
+          const size = new T.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = (maxD > 0) ? (4.2 / maxD) : 1.0;
+          m.scale.set(scale, scale, scale);
+
+          const center = new T.Vector3();
+          box.getCenter(center);
+          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+        }
+
+        m.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.45);
+            }
+          }
+        });
+
+        this.root.add(m);
+
+        if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
+          this.mixer = new T.AnimationMixer(m);
+          const action = this.mixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+
+        if (onDone) onDone(gltf);
+      };
+
+      if (typeof bufferOrUrl === 'string') {
+        loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+      } else {
+        loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
       }
     }
 
@@ -493,8 +562,17 @@
       this.bladeSlash = 0;
       this.yaw = 0;
       this.yawVel = 0;
+      this.externalMesh = null;
+      this.mixer = null;
 
       this.buildModel();
+      this.checkLocalSketchfabAsset();
+    }
+
+    checkLocalSketchfabAsset() {
+      if (typeof window !== 'undefined' && window.location && window.location.href && this.THREE && this.THREE.GLTFLoader) {
+        this.loadSketchfabGLB('assets/characters/transformers/bumblebee.glb');
+      }
     }
 
     put(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
@@ -663,6 +741,9 @@
         if (this.armR) this.armR.rotation.x = Math.sin(this.bladeSlash * Math.PI) * 1.6;
       }
 
+      // Animation mixer update (Sketchfab animated models)
+      if (this.mixer) this.mixer.update(dt);
+
       // Inertia drag rotation
       this.yaw += this.yawVel;
       this.yawVel *= 0.90;
@@ -673,6 +754,63 @@
       if (Math.abs(this.transProgress - targetTrans) > 0.01) {
         this.transProgress += (targetTrans - this.transProgress) * Math.min(1.0, dt * 5.5);
         this.applyTransformation(this.transProgress);
+      }
+    }
+
+    loadSketchfabGLB(bufferOrUrl, onDone, onErr) {
+      const T = this.THREE;
+      if (!T || !T.GLTFLoader) {
+        if (onErr) onErr(new Error("GLTFLoader mavjud emas"));
+        return;
+      }
+      const loader = new T.GLTFLoader();
+      const processGltf = (gltf) => {
+        if (this.externalMesh) {
+          this.root.remove(this.externalMesh);
+          this.externalMesh = null;
+        }
+        const m = gltf.scene || gltf.scenes[0];
+        this.externalMesh = m;
+        this.body.visible = false;
+
+        if (T.Box3 && T.Vector3) {
+          const box = new T.Box3().setFromObject(m);
+          const size = new T.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = (maxD > 0) ? (3.8 / maxD) : 1.0;
+          m.scale.set(scale, scale, scale);
+
+          const center = new T.Vector3();
+          box.getCenter(center);
+          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+        }
+
+        m.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.45);
+            }
+          }
+        });
+
+        this.root.add(m);
+
+        if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
+          this.mixer = new T.AnimationMixer(m);
+          const action = this.mixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+
+        if (onDone) onDone(gltf);
+      };
+
+      if (typeof bufferOrUrl === 'string') {
+        loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+      } else {
+        loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
       }
     }
 

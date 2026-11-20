@@ -1,73 +1,26 @@
-import {
-	AnimationClip,
-	Bone,
-	Box3,
-	BufferAttribute,
-	BufferGeometry,
-	ClampToEdgeWrapping,
-	Color,
-	ColorManagement,
-	DirectionalLight,
-	DoubleSide,
-	FileLoader,
-	FrontSide,
-	Group,
-	ImageBitmapLoader,
-	InstancedMesh,
-	InterleavedBuffer,
-	InterleavedBufferAttribute,
-	Interpolant,
-	InterpolateDiscrete,
-	InterpolateLinear,
-	Line,
-	LineBasicMaterial,
-	LineLoop,
-	LineSegments,
-	LinearFilter,
-	LinearMipmapLinearFilter,
-	LinearMipmapNearestFilter,
-	LinearSRGBColorSpace,
-	Loader,
-	LoaderUtils,
-	Material,
-	MathUtils,
-	Matrix4,
-	Mesh,
-	MeshBasicMaterial,
-	MeshPhysicalMaterial,
-	MeshStandardMaterial,
-	MirroredRepeatWrapping,
-	NearestFilter,
-	NearestMipmapLinearFilter,
-	NearestMipmapNearestFilter,
-	NumberKeyframeTrack,
-	Object3D,
-	OrthographicCamera,
-	PerspectiveCamera,
-	PointLight,
-	Points,
-	PointsMaterial,
-	PropertyBinding,
-	Quaternion,
-	QuaternionKeyframeTrack,
-	RepeatWrapping,
-	Skeleton,
-	SkinnedMesh,
-	Sphere,
-	SpotLight,
-	Texture,
-	TextureLoader,
-	TriangleFanDrawMode,
-	TriangleStripDrawMode,
-	Vector2,
-	Vector3,
-	VectorKeyframeTrack,
-	SRGBColorSpace,
-	InstancedBufferAttribute
-} from './three.module.js';
-import { toTrianglesDrawMode } from '../utils/BufferGeometryUtils.js';
+// Standalone UMD GLTFLoader for Three.js
+(function() {
+  const T = (typeof THREE !== 'undefined') ? THREE : ((typeof window !== 'undefined') ? window.THREE : {});
+  const {
+    AnimationClip, Bone, Box3, BufferAttribute, BufferGeometry, ClampToEdgeWrapping,
+    Color, ColorManagement, DirectionalLight, DoubleSide, FileLoader, FrontSide,
+    Group, ImageBitmapLoader, InstancedMesh, InterleavedBuffer, InterleavedBufferAttribute,
+    Interpolant, InterpolateDiscrete, InterpolateLinear, Line, LineBasicMaterial,
+    LineLoop, LineSegments, LinearFilter, LinearMipmapLinearFilter, LinearMipmapNearestFilter,
+    LinearSRGBColorSpace, Loader, LoaderUtils, Material, MathUtils, Matrix4, Mesh,
+    MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, MirroredRepeatWrapping,
+    NearestFilter, NearestMipmapLinearFilter, NearestMipmapNearestFilter, NumberKeyframeTrack,
+    Object3D, OrthographicCamera, PerspectiveCamera, PointLight, Points, PointsMaterial,
+    PropertyBinding, Quaternion, QuaternionKeyframeTrack, RepeatWrapping, Skeleton,
+    SkinnedMesh, Sphere, SpotLight, Texture, TextureLoader, TriangleFanDrawMode,
+    TriangleStripDrawMode, Vector2, Vector3, VectorKeyframeTrack, SRGBColorSpace,
+    InstancedBufferAttribute
+  } = T;
 
-class GLTFLoader extends Loader {
+  const BaseLoader = T.Loader || class DummyLoader { constructor(manager) { this.manager = manager; } };
+
+  function toTrianglesDrawMode(geometry, drawMode) { return geometry; }
+class GLTFLoader extends BaseLoader {
 
 	constructor( manager ) {
 
@@ -4660,4 +4613,8 @@ function addPrimitiveAttributes( geometry, primitiveDef, parser ) {
 
 }
 
-export { GLTFLoader };
+
+  if (typeof THREE !== 'undefined') { THREE.GLTFLoader = GLTFLoader; }
+  if (typeof window !== 'undefined') { window.GLTFLoader = GLTFLoader; }
+  if (typeof module !== 'undefined' && module.exports) { module.exports = { GLTFLoader }; }
+})();

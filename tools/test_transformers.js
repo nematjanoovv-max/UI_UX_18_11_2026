@@ -109,6 +109,8 @@ global.document = {
   }
 };
 global.window = global;
+const realTHREE = require('../libs/three.min.js');
+Object.assign(mockTHREE, realTHREE);
 global.THREE = mockTHREE;
 
 // 1. Load transformers_mech.js
@@ -178,5 +180,32 @@ console.log('✔ Apex01System switched skin to APEX-01:', sys.mech instanceof gl
 
 sys.dispose();
 console.log('✔ Apex01System clean disposal verified');
+
+// 3. Test Sketchfab GLTF Loading pipeline
+const gltfLoaderCode = fs.readFileSync(path.join(__dirname, '../libs/GLTFLoader.js'), 'utf8');
+eval(gltfLoaderCode);
+console.log('✔ libs/GLTFLoader.js evaluated successfully');
+
+if (typeof global.GLTFLoader !== 'function' && typeof mockTHREE.GLTFLoader !== 'function') {
+  throw new Error('GLTFLoader not found!');
+}
+console.log('✔ GLTFLoader is ready for Sketchfab 3D models');
+
+const testPrime = new global.OptimusPrimeMech(mockTHREE);
+if (typeof testPrime.loadSketchfabGLB !== 'function') {
+  throw new Error('loadSketchfabGLB method missing on OptimusPrimeMech!');
+}
+console.log('✔ OptimusPrimeMech has loadSketchfabGLB method');
+
+const testBee = new global.BumblebeeMech(mockTHREE);
+if (typeof testBee.loadSketchfabGLB !== 'function') {
+  throw new Error('loadSketchfabGLB method missing on BumblebeeMech!');
+}
+console.log('✔ BumblebeeMech has loadSketchfabGLB method');
+
+testPrime.dispose();
+testBee.dispose();
+
+console.log('\n🎉 ALL TRANSFORMERS 3D ENGINE & SKETCHFAB TESTS PASSED WITH 100% SUCCESS!');
 
 console.log('\n🎉 ALL TRANSFORMERS 3D ENGINE TESTS PASSED WITH 100% SUCCESS!');

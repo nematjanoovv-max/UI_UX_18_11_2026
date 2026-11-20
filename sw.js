@@ -1,6 +1,6 @@
 // Tower Defense: Last Grid - Service Worker for Offline PWA
 // Bumped cache revision to force automatic purge of old assets
-const CACHE_NAME = 'last-grid-cache-v4.1.0-rev8';
+const CACHE_NAME = 'last-grid-cache-v4.1.0-rev9';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,7 +12,8 @@ const ASSETS_TO_CACHE = [
   './codex_3d_engine.js',
   './manifest.json',
   './icon.svg',
-  './libs/three.min.js'
+  './libs/three.min.js',
+  './libs/GLTFLoader.js'
 ];
 
 self.addEventListener('install', (event) => {

@@ -293,9 +293,158 @@
     transform: translateX(-50%) translateY(0);
     opacity: 1;
   }
+
+  /* Drag and Drop Zone */
+  #drop-zone {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #drop-zone.active {
+    display: flex;
+  }
+  .drop-box {
+    border: 2px dashed var(--cyan);
+    background: rgba(11, 19, 36, 0.9);
+    padding: 40px 60px;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    box-shadow: 0 0 30px var(--cyan-glow);
+  }
+
+  /* Sketchfab Online Modal */
+  #sketchfab-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(2, 6, 14, 0.94);
+    backdrop-filter: blur(16px);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  #sketchfab-modal.open {
+    display: flex;
+  }
+  .sf-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  .sf-modal-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sf-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .sf-tab {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .sf-tab.active, .sf-tab:hover {
+    background: var(--cyan);
+    color: #030712;
+    box-shadow: 0 0 12px var(--cyan-glow);
+  }
+  .sf-iframe-wrapper {
+    flex: 1;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: #000;
+  }
+  .sf-iframe-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .sf-footer-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .sf-download-link {
+    background: #10b981;
+    color: #030712;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .sf-download-link:hover {
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+  }
 </style>
 </head>
 <body>
+
+  <!-- Hidden File Input for Sketchfab .glb / .gltf -->
+  <input type="file" id="sketchfab-file-input" accept=".glb,.gltf" style="display:none" onchange="handleFileSelect(event)">
+
+  <!-- Drop Zone Overlay -->
+  <div id="drop-zone">
+    <div class="drop-box">
+      📥 SKETCHFAB 3D (.GLB / .GLTF) FAYLINI SHU YERGA TASHLANG
+    </div>
+  </div>
+
+  <!-- Sketchfab Online 3D Modal -->
+  <div id="sketchfab-modal">
+    <div class="sf-modal-header">
+      <div class="sf-modal-title">
+        <span>🌐</span> SKETCHFAB OFFICIAL 3D EMBED VIEWER
+      </div>
+      <button class="nav-btn" onclick="closeSketchfabModal()">✕ YOPISH</button>
+    </div>
+    <div class="sf-tabs">
+      <button class="sf-tab active" onclick="selectSketchfab('c909f649f91f41cbb56e6eb7945dbb24', 'Optimus Prime Leader', 'https://sketchfab.com/3d-models/none-c909f649f91f41cbb56e6eb7945dbb24', this)">🚛 OPTIMUS PRIME</button>
+      <button class="sf-tab" onclick="selectSketchfab('b5174857c65d4a5aacc2bfcb1948c880', 'Transformers Bumblebee (CC-BY)', 'https://sketchfab.com/3d-models/none-b5174857c65d4a5aacc2bfcb1948c880', this)">🏎️ BUMBLEBEE (CC-BY)</button>
+      <button class="sf-tab" onclick="selectSketchfab('12faed17298947458cccee85b45a9695', 'Peterbilt 379 (Optimus Truck)', 'https://sketchfab.com/3d-models/none-12faed17298947458cccee85b45a9695', this)">🚚 PETERBILT 379 (TRUCK)</button>
+      <button class="sf-tab" onclick="selectSketchfab('54454cddc885490f91c557851ec3f1db', 'Bumblebee 1977 Camaro', 'https://sketchfab.com/3d-models/none-54454cddc885490f91c557851ec3f1db', this)">🏎️ CAMARO 1977 (BEE)</button>
+      <button class="sf-tab" onclick="selectSketchfab('ab589aad66994474b706c4bc5eeecb8a', 'Optimus Prime G1', 'https://sketchfab.com/3d-models/none-ab589aad66994474b706c4bc5eeecb8a', this)">🤖 OPTIMUS PRIME G1</button>
+    </div>
+    <div class="sf-iframe-wrapper">
+      <iframe id="sketchfab-iframe" src="https://sketchfab.com/models/c909f649f91f41cbb56e6eb7945dbb24/embed?autostart=1&internal=1&tracking=0&ui_infos=0&ui_snapshots=1&ui_stop=0" allow="autoplay; fullscreen; xr-spatial-tracking" execution-while-out-of-viewport execution-while-not-rendered web-share allowfullscreen></iframe>
+    </div>
+    <div class="sf-footer-bar">
+      <span id="sf-model-info">Model: Optimus Prime Leader // Format: GLTF/GLB</span>
+      <a href="https://sketchfab.com/3d-models/none-c909f649f91f41cbb56e6eb7945dbb24" target="_blank" class="sf-download-link" id="sf-download-btn">⬇️ SKETCHFABDAN YUKLAB OLISH (GLB)</a>
+    </div>
+  </div>
 
   <!-- Top Bar -->
   <div id="top-bar">
@@ -340,6 +489,8 @@
     <button class="cmd-btn highlight" id="btn-transform" onclick="triggerTransform()">🔄 TRANSFORMATSIYA</button>
     <button class="cmd-btn" id="btn-fire" onclick="triggerFire()">💥 O'T OCHISH</button>
     <button class="cmd-btn" id="btn-melee" onclick="triggerMelee()">⚔️ YAQIN JANG ZARBASI</button>
+    <button class="cmd-btn" id="btn-import-sketchfab" onclick="triggerFilePicker()">📥 SKETCHFAB (.GLB)</button>
+    <button class="cmd-btn" id="btn-online-sketchfab" onclick="openSketchfabModal()">🌐 SKETCHFAB 3D ONLAYN</button>
     <button class="cmd-btn" id="btn-lighting" onclick="cycleLighting()">💡 STUDIYA: CS2 HANGAR</button>
     <button class="cmd-btn" id="btn-autorotate" onclick="toggleAutoRotate()">⟲ AVTO-AYLANISH: YOQ</button>
     <button class="cmd-btn" id="btn-dossier" onclick="toggleDossier()">📖 DOSYE</button>
@@ -351,6 +502,7 @@
 
   <!-- Three.js Runtime & Models -->
   <script src="libs/three.min.js"></script>
+  <script src="libs/GLTFLoader.js"></script>
   <script src="transformers_mech.js"></script>
   <script src="apex_mech.js"></script>
 
@@ -868,8 +1020,95 @@
     // Start Engine
     window.addEventListener('DOMContentLoaded', () => {
       init3D();
+      setupDragAndDrop();
       animate();
     });
+
+    // =========================================================================
+    // 8. SKETCHFAB 3D IMPORT & ONLINE EMBED
+    // =========================================================================
+    function triggerFilePicker() {
+      const input = document.getElementById('sketchfab-file-input');
+      if (input) input.click();
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (file) loadGLBFile(file);
+    }
+
+    function loadGLBFile(file) {
+      showToast(`⏳ Sketchfab fayli yuklanmoqda: ${file.name}...`);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const buffer = e.target.result;
+        if (currentMech && currentMech.loadSketchfabGLB) {
+          currentMech.loadSketchfabGLB(buffer, (gltf) => {
+            showToast(`✔ SKETCHFAB 3D MODELI O'RNATILDI! (${file.name})`);
+            playTransformSFX();
+            document.getElementById('dossier-title').innerText = file.name.toUpperCase().replace(/\.(glb|gltf)/i, '');
+            document.getElementById('d-desc').innerText = `Ushbu fotorealistik model Sketchfab 3D platformasidan yuklandi. To'liq PBR metallik nurlanish va animatsiyalar bilan Three.js da ishga tushirildi.`;
+          }, (err) => {
+            showToast(`❌ Xatolik: ${err.message || 'Modelni yuklab bo\'lmadi'}`);
+          });
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById('drop-zone');
+      let dragCounter = 0;
+
+      window.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragCounter++;
+        if (dropZone) dropZone.classList.add('active');
+      });
+
+      window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragCounter--;
+        if (dragCounter <= 0 && dropZone) {
+          dropZone.classList.remove('active');
+          dragCounter = 0;
+        }
+      });
+
+      window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragCounter = 0;
+        if (dropZone) dropZone.classList.remove('active');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          loadGLBFile(e.dataTransfer.files[0]);
+        }
+      });
+    }
+
+    function openSketchfabModal() {
+      const m = document.getElementById('sketchfab-modal');
+      if (m) m.classList.add('open');
+    }
+
+    function closeSketchfabModal() {
+      const m = document.getElementById('sketchfab-modal');
+      if (m) m.classList.remove('open');
+    }
+
+    function selectSketchfab(uid, name, url, btn) {
+      document.querySelectorAll('.sf-tab').forEach(t => t.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const iframe = document.getElementById('sketchfab-iframe');
+      if (iframe) {
+        iframe.src = `https://sketchfab.com/models/${uid}/embed?autostart=1&internal=1&tracking=0&ui_infos=0&ui_snapshots=1&ui_stop=0`;
+      }
+      document.getElementById('sf-model-info').innerText = `Model: ${name} // UID: ${uid.substring(0, 8)}... // Format: GLTF/GLB`;
+      document.getElementById('sf-download-btn').href = url;
+    }
   </script>
 </body>
 </html>
