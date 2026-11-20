@@ -650,8 +650,8 @@
           this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
         }
         this.camera = new THREE.PerspectiveCamera(36, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(5.5, 3.8, 8.5);
-        this.camera.lookAt(0, 2.5, 0);
+        this.camera.position.set(2.0, 1.4, 7.6);
+        this.camera.lookAt(0, 0.35, 0);
 
         // Cyber Lighting
         this.scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.6));
@@ -764,12 +764,33 @@
 
     bindEvents() {
       let down = null;
+      this.pointerActive = false;
+
+      this.canvas.addEventListener('pointerenter', () => { this.pointerActive = true; });
+      this.canvas.addEventListener('pointerleave', () => {
+        this.pointerActive = false;
+        if (this.mech && typeof this.mech.setLookAtTarget === 'function') {
+          this.mech.setLookAtTarget(0, 0);
+        }
+      });
+
       this.canvas.addEventListener('pointerdown', (e) => {
+        this.pointerActive = true;
         down = { x: e.clientX, lx: e.clientX, moved: false };
         try { this.canvas.setPointerCapture(e.pointerId); } catch(err) {}
       });
 
       this.canvas.addEventListener('pointermove', (e) => {
+        // Look-At Head Tracking
+        const rect = this.canvas.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+          if (this.mech && typeof this.mech.setLookAtTarget === 'function') {
+            this.mech.setLookAtTarget(nx, ny);
+          }
+        }
+
         if (!down) return;
         if (Math.abs(e.clientX - down.x) > 6) down.moved = true;
         if (down.moved && this.mech) {
@@ -779,6 +800,7 @@
       });
 
       this.canvas.addEventListener('pointerup', (e) => {
+        this.pointerActive = false;
         if (down && !down.moved && this.mech) {
           if (typeof this.mech.hit === 'function') this.mech.hit();
           const name = (this.currentSkin === 'OPTIMUS') ? "OPTIMUS PRIME" : (this.currentSkin === 'BUMBLEBEE' ? "BUMBLEBEE" : "APEX-01");
@@ -796,7 +818,7 @@
         down = null;
       });
 
-      this.canvas.addEventListener('pointercancel', () => { down = null; });
+      this.canvas.addEventListener('pointercancel', () => { down = null; this.pointerActive = false; });
     }
 
     show() {
@@ -847,7 +869,13 @@
       const dt = Math.min((now - this.lastTime) / 1000, 0.05);
       this.lastTime = now;
 
-      if (this.mech) this.mech.update(dt);
+      if (this.mech) {
+        // Slow idle turntable rotation when hands are off
+        if (!this.pointerActive && Math.abs(this.mech.yawVel) < 0.002) {
+          this.mech.yaw += dt * 0.32;
+        }
+        this.mech.update(dt);
+      }
       if (this.renderer && this.scene && this.camera) {
         this.renderer.render(this.scene, this.camera);
       }

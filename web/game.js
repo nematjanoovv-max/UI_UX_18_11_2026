@@ -1368,6 +1368,33 @@
       }
     }
 
+    toggleMechBattleMask() {
+      if (this.apexSystem && this.apexSystem.toggleBattleMask) {
+        const isOpen = this.apexSystem.toggleBattleMask();
+        if (window.audio) { audio.click(); audio.playSample('bullet_reflect', 0.8); }
+        this.vibrate([20, 15, 30]);
+        this.addFloatingText(isOpen ? "🗣️ YUZ NIQOBI: MULOQOT" : "🛡️ JANGOVAR NIQOB YOPILDI", 235, 270, "#00e5ff", 16);
+      }
+    }
+
+    toggleMechMatrixChest() {
+      if (this.apexSystem && this.apexSystem.toggleMatrixChest) {
+        const isOpen = this.apexSystem.toggleMatrixChest();
+        if (window.audio) { audio.heroDash(); audio.playSample('pulse_fire', 0.9); }
+        this.vibrate([30, 20, 50]);
+        this.addFloatingText(isOpen ? "✨ MATRIX OF LEADERSHIP OCHILDI!" : "🚛 KO'KRAK OYNALARI YOPILDI", 235, 270, "#ffd600", 16);
+      }
+    }
+
+    triggerMechSmoke() {
+      if (this.apexSystem && this.apexSystem.triggerDieselSmoke) {
+        this.apexSystem.triggerDieselSmoke(14);
+        if (window.audio) { audio.mortarFire(); audio.playSample('mortar_fire', 0.7); }
+        this.vibrate([35, 25, 45]);
+        this.addFloatingText("💨 2.8M MO'RILARDAN DIZEL TUTUN OTILDI!", 235, 270, "#90a4ae", 16);
+      }
+    }
+
     syncMechCanvasPosition() {
       const mechCanvas = document.getElementById('mech-hangar-canvas');
       if (!mechCanvas || !this.canvas) return;
@@ -1913,6 +1940,11 @@
       this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
+        if (this.state === 'MENU' && this.apexSystem && this.apexSystem.setLookAtTarget && this.mousePos) {
+          const nx = (this.mousePos.x - 235) / 400;
+          const ny = (this.mousePos.y - 316) / 300;
+          this.apexSystem.setLookAtTarget(nx, ny);
+        }
         if (this.showSettingsModal && this.isPointerDown && this.mousePos) {
           this.handleSettingsClick(this.mousePos.x, this.mousePos.y);
         }
@@ -2589,11 +2621,17 @@
             if (x >= 168 && x <= 292) { this.setMechSkin('OPTIMUS'); return; }
             if (x >= 294 && x <= 422) { this.setMechSkin('BUMBLEBEE'); return; }
           }
-          // 2. Action Deck Buttons (Row at y: 474 to 506)
-          if (y >= 474 && y <= 506) {
+          // 2. Action Deck Buttons (Row 1 at y: 474 to 502)
+          if (y >= 474 && y <= 502) {
             if (x >= 48 && x <= 166) { this.toggleMechTransform(); return; }
             if (x >= 168 && x <= 292) { this.triggerMechAction(); return; }
             if (x >= 294 && x <= 422) { window.open('preview_transformers.html', '_blank'); return; }
+          }
+          // 3. Kinematic Action Deck Buttons (Row 2 at y: 504 to 534)
+          if (y >= 504 && y <= 534) {
+            if (x >= 48 && x <= 166) { this.toggleMechBattleMask(); return; }
+            if (x >= 168 && x <= 292) { this.toggleMechMatrixChest(); return; }
+            if (x >= 294 && x <= 422) { this.triggerMechSmoke(); return; }
           }
           // Default Hangar Click: Trigger Action
           this.triggerMechAction();
@@ -10784,42 +10822,47 @@
       ctx.ellipse(px, py + 95, 85, 26, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Action Deck Buttons below 3D Canvas
-      this.renderMiniButton(hx + 10, hy + 386, 115, 28, "🔄 REJIM", "#00ff88");
-      this.renderMiniButton(hx + 130, hy + 386, 120, 28, "💥 ZARB", "#ff3355");
-      this.renderMiniButton(hx + 255, hy + 386, 125, 28, "🔍 3D KODEX", "#00e5ff");
+      // Action Deck Buttons below 3D Canvas (Row 1: Modes & Combat)
+      this.renderMiniButton(hx + 10, hy + 386, 115, 26, "🔄 REJIM", "#00ff88");
+      this.renderMiniButton(hx + 130, hy + 386, 120, 26, "💥 ZARB", "#ff3355");
+      this.renderMiniButton(hx + 255, hy + 386, 125, 26, "🔍 3D KODEX", "#00e5ff");
+
+      // Kinematic Mechanical Action Buttons (Row 2: Mask, Matrix & Smoke)
+      this.renderMiniButton(hx + 10, hy + 416, 115, 26, "🎭 NIQOB", "#38bdf8");
+      this.renderMiniButton(hx + 130, hy + 416, 120, 26, "✨ MATRIX", "#ffd600");
+      this.renderMiniButton(hx + 255, hy + 416, 125, 26, "💨 TUTUN", "#94a3b8");
 
       // Hero Dossier Stats at Hangar Bottom
       ctx.fillStyle = "rgba(10, 18, 32, 0.88)";
-      ctx.fillRect(hx + 12, hy + 422, hw - 24, 158);
+      ctx.fillRect(hx + 12, hy + 448, hw - 24, 132);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-      ctx.strokeRect(hx + 12, hy + 422, hw - 24, 158);
+      ctx.strokeRect(hx + 12, hy + 448, hw - 24, 132);
 
       ctx.fillStyle = "#cfd8dc";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
 
       if (activeSkin === 'OPTIMUS') {
-        ctx.fillText("⚔️ ASOSIY QUROL: Heavy Ion Blaster (950 DPS)", hx + 22, hy + 448);
-        ctx.fillText("⚡ ULT: Energon Battle Axe & Matrix Surge", hx + 22, hy + 474);
-        ctx.fillText("🚀 TRANSFORMATSIYA: Peterbilt Semi-Truck", hx + 22, hy + 500);
-        ctx.fillText("🛡️ ZIRH: Cybertronian Heavy Titanium Alloy", hx + 22, hy + 526);
+        ctx.fillText("⚔️ ASOSIY QUROL: Heavy Ion Blaster (950 DPS)", hx + 22, hy + 470);
+        ctx.fillText("⚡ ULT: Energon Battle Axe & Matrix Surge", hx + 22, hy + 492);
+        ctx.fillText("🚀 REJIM: Peterbilt Semi-Truck (180 km/h)", hx + 22, hy + 514);
+        ctx.fillText("🛡️ ZIRH: Cybertronian Heavy Titanium Alloy", hx + 22, hy + 536);
         ctx.fillStyle = "#ff3355";
-        ctx.fillText("✔ Avtobotlar sardori to'liq jangovar shay!", hx + 22, hy + 554);
+        ctx.fillText("✔ 3D Jonli Kinematika & Dizel Pistonlar Faol!", hx + 22, hy + 560);
       } else if (activeSkin === 'BUMBLEBEE') {
-        ctx.fillText("⚔️ ASOSIY QUROL: Stinger Plasma Cannon (820 DPS)", hx + 22, hy + 448);
-        ctx.fillText("⚡ ULT: Cyber-Blade Dash & Plasma Overdrive", hx + 22, hy + 474);
-        ctx.fillText("🚀 TRANSFORMATSIYA: Camaro SS Sports Car", hx + 22, hy + 500);
-        ctx.fillText("🛡️ ZIRH: Agile Stealth Nanite Alloy (Lvl 4)", hx + 22, hy + 526);
+        ctx.fillText("⚔️ ASOSIY QUROL: Stinger Plasma Cannon (820 DPS)", hx + 22, hy + 470);
+        ctx.fillText("⚡ ULT: Cyber-Blade Dash & Plasma Overdrive", hx + 22, hy + 492);
+        ctx.fillText("🚀 REJIM: Camaro SS Sports Car (320 km/h)", hx + 22, hy + 514);
+        ctx.fillText("🛡️ ZIRH: Agile Stealth Nanite Alloy (Lvl 4)", hx + 22, hy + 536);
         ctx.fillStyle = "#ffd600";
-        ctx.fillText("✔ Chaqqon skaut razvedka va hujumga shay!", hx + 22, hy + 554);
+        ctx.fillText("✔ Chaqqon skaut razvedka va hujumga shay!", hx + 22, hy + 560);
       } else {
-        ctx.fillText("⚔️ ASOSIY QUROL: Dual Kinetic Tracer (720 DPS)", hx + 22, hy + 448);
-        ctx.fillText("⚡ ULT: Orbital Titan Death Beam (1200 DMG)", hx + 22, hy + 474);
-        ctx.fillText("🚀 HARAKAT: Reaktiv Kinetik Dash & Thrusters", hx + 22, hy + 500);
-        ctx.fillText("🛡️ ZIRH: Nanite Composite (Level 5)", hx + 22, hy + 526);
+        ctx.fillText("⚔️ ASOSIY QUROL: Dual Kinetic Tracer (720 DPS)", hx + 22, hy + 470);
+        ctx.fillText("⚡ ULT: Orbital Titan Death Beam (1200 DMG)", hx + 22, hy + 492);
+        ctx.fillText("🚀 HARAKAT: Reaktiv Kinetik Dash & Thrusters", hx + 22, hy + 514);
+        ctx.fillText("🛡️ ZIRH: Nanite Composite (Level 5)", hx + 22, hy + 536);
         ctx.fillStyle = "#00e676";
-        ctx.fillText("✔ Qahramon jangda to'liq faol va boshqaruvda!", hx + 22, hy + 554);
+        ctx.fillText("✔ Qahramon jangda to'liq faol va boshqaruvda!", hx + 22, hy + 560);
       }
 
       ctx.restore();
