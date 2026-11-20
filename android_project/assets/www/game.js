@@ -2452,8 +2452,16 @@
         // Primary Action 2: Cheksiz Omon Qolish (x: 855 to 1240, y: 88 to 183)
         if (x >= 855 && x <= 1240 && y >= 88 && y <= 183) { this.startMission(9, 'ENDLESS'); return; }
 
-        // Secondary Action: Sektorlar Xaritasi (Full width, x: 455 to 1240, y: 195 to 267)
-        if (x >= 455 && x <= 1240 && y >= 195 && y <= 267) { this.state = 'MAP_SELECT'; return; }
+        // Secondary Action Row 2 (y: 195 to 267)
+        // Left: Sektorlar Xaritasi (x: 455 to 835)
+        if (x >= 455 && x <= 835 && y >= 195 && y <= 267) { this.state = 'MAP_SELECT'; return; }
+        // Right: Ensiklopediya (x: 855 to 1240)
+        if (x >= 855 && x <= 1240 && y >= 195 && y <= 267) {
+          this.state = 'MANUAL';
+          if (this.apexSystem) this.apexSystem.hide();
+          audio.click();
+          return;
+        }
 
         // Quick Ops Row 3 (y: 278 to 340)
         if (y >= 278 && y <= 340) {
@@ -8895,9 +8903,16 @@
       const titleY = hasSub ? by + bh * 0.42 : by + bh * 0.5 + 4;
 
       ctx.fillStyle = (isHighlighted || isHovered) ? "#ffffff" : color;
-      ctx.font = "bold 13px 'Segoe UI', monospace";
+      let fontSize = 13;
+      ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
       ctx.textAlign = "center";
       const fullTitle = icon ? `${icon} ${text}` : text;
+      const textW = ctx.measureText(fullTitle).width;
+      const maxW = bw - 14;
+      if (textW > maxW) {
+        fontSize = Math.max(9, Math.floor(fontSize * (maxW / textW)));
+        ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
+      }
       ctx.fillText(fullTitle, bx + bw / 2, titleY);
 
       if (hasSub) {
@@ -10049,8 +10064,11 @@
       const record = localStorage.getItem('lg_endless_wave') || "0";
       this.drawCyberButton(855, 88, 385, 95, this.t("endless"), "#e040fb", `CHEKSIZ TO'LQINLAR • ENG YAXSHI: W${record}`, "⚡", true);
 
-      // Secondary Action Card: SEKTORLAR XARITASI (Full-width balanced layout, x: 455, y: 195, w: 785, h: 72)
-      this.drawCyberButton(455, 195, 785, 72, this.t("sectorSelect"), "#00e5ff", "10 TA STRATEGIK SEKTOR VA BIOM TANLASH", "🗺️", true);
+      // Secondary Action Cards Row 2 (Balanced 2-card layout, y: 195, h: 72)
+      // Left: Sektorlar Xaritasi
+      this.drawCyberButton(455, 195, 380, 72, this.t("sectorSelect"), "#00e5ff", "10 TA STRATEGIK SEKTOR VA BIOM", "🗺️", true);
+      // Right: Ensiklopedya (Kiber-Kodex)
+      this.drawCyberButton(855, 195, 385, 72, this.t("fieldManual"), "#ffd600", "MINORALAR, DUSHMANLAR VA BOSSLAR BAZASI", "📖", true);
 
       // Quick Ops Grid (Row 3: 3 balanced buttons across 785px, y: 278)
       this.drawCyberButton(455, 278, 250, 62, this.t("bossRush"), "#ff1744", "TITANLAR DUELI", "💀", false);
