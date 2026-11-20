@@ -423,6 +423,28 @@
         osc.stop(this.ctx.currentTime + duration);
       } catch (e) {}
     }
+    playNoise(duration, gainVal = 0.08) {
+      if (this.sfxMuted || !this.ctx) return;
+      try {
+        const sampleRate = this.ctx.sampleRate || 44100;
+        const bufferSize = Math.max(1, Math.floor(sampleRate * duration));
+        const buffer = this.ctx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(3200, this.ctx.currentTime);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+      } catch (e) {}
+    }
     playSnare(duration, gainVal) {
       try {
         const bufferSize = this.ctx.sampleRate * duration;
@@ -646,6 +668,7 @@
   }
 
   const audio = new SoundSynth();
+  window.audio = audio;
 
   // --- MAP DEFINITIONS ---
   // --- 10 CAMPAIGN MAPS: TACTICAL DESTRUCTIBLE BARRICADES ---
@@ -1825,37 +1848,68 @@
             const tx = (touch.clientX - rect.left) * (1280 / rect.width);
             const ty = (touch.clientY - rect.top) * (720 / rect.height);
 
-            if (tx < 160 && ty < 70) {
-              this.state = 'MENU'; audio.playBGMTrack('menu');
+            // Back to Menu or 2D Strategy
+            if (tx < 180 && ty < 65) {
+              this.state = (this.waveActive || this.wave > 1) ? 'PLAYING' : 'MENU';
+              if (this.state === 'MENU') audio.playBGMTrack('menu');
               audio.sell();
               return;
             }
-            if (Math.hypot(tx - 1200, ty - 620) <= 52) {
+
+            // 1. Fire (Large Primary)
+            if (Math.hypot(tx - 1200, ty - 625) <= 54) {
               if (t.isBuilding) this.place3DTower(); else this.shoot3DTPS();
               this.vibrate(22);
               return;
             }
-            if (Math.hypot(tx - 1080, ty - 640) <= 40) {
-              t.player.isAiming = !t.player.isAiming;
+            // 2. Reload
+            if (Math.hypot(tx - 1200, ty - 505) <= 42) {
+              this.reload3DTPS();
+              this.vibrate(15);
               return;
             }
-            if (Math.hypot(tx - 1200, ty - 500) <= 40) {
+            // 3. Aim
+            if (Math.hypot(tx - 1080, ty - 630) <= 42) {
+              t.player.isAiming = !t.player.isAiming;
+              this.vibrate(15);
+              return;
+            }
+            // 4. Build Turret
+            if (Math.hypot(tx - 1080, ty - 515) <= 42) {
               t.isBuilding = !t.isBuilding;
               audio.upgrade();
+              this.vibrate(18);
               return;
             }
-            if (Math.hypot(tx - 1080, ty - 540) <= 35) {
-              this.reload3DTPS();
+            // 5. Mech Mode (Robot / Tank)
+            if (tx >= 835 && tx <= 945 && ty >= 620 && ty <= 675) {
+              this.toggle3DMechMode();
+              this.vibrate(25);
+              return;
+            }
+            // 6. EMP Shockwave
+            if (tx >= 835 && tx <= 945 && ty >= 550 && ty <= 605) {
+              this.fire3DEMP();
+              this.vibrate(30);
+              return;
+            }
+            // 7. Missile Salvo
+            if (tx >= 955 && tx <= 1065 && ty >= 550 && ty <= 605) {
+              this.fire3DMissiles();
+              this.vibrate(30);
               return;
             }
 
+            // Movement Joystick vs Look Swipe
             if (tx < 500 && t.touch.moveId === null) {
               t.touch.moveId = touch.identifier;
               t.touch.moveStart = { x: tx, y: ty };
               t.touch.moveVec = { x: 0, y: 0 };
             } else if (tx >= 500 && t.touch.lookId === null) {
-              t.touch.lookId = touch.identifier;
-              t.touch.lookLast = { x: tx, y: ty };
+              if (!(tx >= 830 && ty >= 480)) {
+                t.touch.lookId = touch.identifier;
+                t.touch.lookLast = { x: tx, y: ty };
+              }
             }
           }
           return;
@@ -2322,41 +2376,46 @@
           audio.sell();
           return;
         }
-        // Mode toggle button
-        if (x >= 955 && x <= 1060 && y >= 610 && y <= 665) {
+        // Mode toggle button [835..945, 620..675]
+        if (x >= 835 && x <= 945 && y >= 620 && y <= 675) {
           this.toggle3DMechMode();
           return;
         }
-        // EMP button
-        if (x >= 955 && x <= 1060 && y >= 550 && y <= 605) {
+        // EMP button [835..945, 550..605]
+        if (x >= 835 && x <= 945 && y >= 550 && y <= 605) {
           this.fire3DEMP();
           return;
         }
-        // Missile button
-        if (x >= 1065 && x <= 1170 && y >= 550 && y <= 605) {
+        // Missile button [955..1065, 550..605]
+        if (x >= 955 && x <= 1065 && y >= 550 && y <= 605) {
           this.fire3DMissiles();
           return;
         }
-        if (Math.hypot(x - 1200, y - 620) <= 52) {
+        // Fire button (1200, 625, r=48)
+        if (Math.hypot(x - 1200, y - 625) <= 54) {
           if (this.tps3D.isBuilding) this.place3DTower();
           else this.shoot3DTPS();
           this.vibrate(22);
           return;
         }
-        if (Math.hypot(x - 1080, y - 640) <= 40) {
+        // Reload button (1200, 505, r=36)
+        if (Math.hypot(x - 1200, y - 505) <= 42) {
+          this.reload3DTPS();
+          return;
+        }
+        // Aim button (1080, 630, r=36)
+        if (Math.hypot(x - 1080, y - 630) <= 42) {
           this.tps3D.player.isAiming = !this.tps3D.player.isAiming;
           return;
         }
-        if (Math.hypot(x - 1200, y - 500) <= 40) {
+        // Build button (1080, 515, r=36)
+        if (Math.hypot(x - 1080, y - 515) <= 42) {
           this.tps3D.isBuilding = !this.tps3D.isBuilding;
           audio.upgrade();
           return;
         }
-        if (Math.hypot(x - 1080, y - 540) <= 35) {
-          this.reload3DTPS();
-          return;
-        }
-        if (x > 350) {
+        // Fallback tap to shoot if clicked in right upper gameplay area (not UI)
+        if (x > 350 && !(x >= 830 && y >= 480)) {
           if (this.tps3D.isBuilding) this.place3DTower();
           else this.shoot3DTPS();
           return;
@@ -4132,6 +4191,10 @@
       }
       this.spawnTimer = 0;
       this.addFloatingText(`${this.t("wave")} ${waveNum}!`, 640, 150, "#00e5ff", 28);
+      if (this.gameMode === 'ENDLESS' && waveNum > 20) {
+        const ovMult = (1 + (waveNum - 20) * 0.04).toFixed(2);
+        this.addCombatFeed("OVERDRIVE", `DEFENSE OVERDRIVE x${ovMult} DMG ACTIVE!`, "#00e5ff", "⚡");
+      }
 
       // Trigger Cinematic Wave Alert Banner
       const bossGroup = groups.find(g => ENEMY_DEFS[g.type] && ENEMY_DEFS[g.type].isBoss);
@@ -4174,8 +4237,8 @@
 
       if (this.hasAugment("bounty_hunter")) spdMult *= 1.10;
       if (this.gameMode === 'ENDLESS' && this.wave > 20) {
-        // Soft curve after wave 20
-        hpMult *= Math.pow(1.12, 19) * Math.pow(1.05, this.wave - 20);
+        // Balanced scaling curve: 1.12 for first 20 waves, then steady 1.04 afterwards
+        hpMult *= Math.pow(1.12, 19) * Math.pow(1.04, this.wave - 20);
       } else if (this.gameMode === 'CAMPAIGN' && this.wave > 1) {
         hpMult *= Math.pow(1.12, this.wave - 1);
       }
@@ -4183,7 +4246,8 @@
       if (map.modifier === 'fast_lane') spdMult = 1.15;
       if (map.modifier === 'armored') armorMult = 1.20;
 
-      let bounty = Math.round((def.bounty || 4) + 0.6 * this.wave);
+      // Higher bounty rewards in endless mode to sustain defenses
+      let bounty = Math.round((def.bounty || 4) + (this.gameMode === 'ENDLESS' ? 1.4 : 0.6) * this.wave);
       if (map.modifier === 'scarce') bounty = Math.floor(bounty * 0.8);
       if (this.hasAugment("bounty_hunter")) bounty = Math.floor(bounty * 1.30);
 
@@ -4691,6 +4755,7 @@
 
       // 3. Towers Combat
       const overclockMult = (this.skills.overclock.activeTime > 0) ? 1.6 : 1.0;
+      const endlessOverdrive = (this.gameMode === 'ENDLESS' && this.wave > 20) ? (1 + (this.wave - 20) * 0.04) : 1.0;
       for (const t of this.towers) {
         if (t.type === 'beacon') continue;
         const def = TOWER_DEFS[t.type];
@@ -4698,7 +4763,7 @@
         const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
         const effRange = currentSpec.range * (t.buffRange || 1.0) * mapFog;
         const effRate = currentSpec.rate * (t.buffRate || 1.0) * overclockMult;
-        const effDmg = currentSpec.dmg * (t.buffDmg || 1.0);
+        const effDmg = Math.round(currentSpec.dmg * (t.buffDmg || 1.0) * endlessOverdrive);
 
         t.cooldown -= dt;
         if (t.laserTimer > 0) t.laserTimer -= dt;
@@ -5244,6 +5309,11 @@
     applyDamage(enemy, rawDmg, dmgType, tower, category = 'pulse') {
       let finalDmg = rawDmg;
 
+      // Endless Overdrive bonus for Hero attacks and Super Skills
+      if (this.gameMode === 'ENDLESS' && this.wave > 20 && (category === 'hero' || category === 'skills')) {
+        finalDmg *= (1 + (this.wave - 20) * 0.04);
+      }
+
       // Augment perks
       if (this.hasAugment("titan_slayer") && (enemy.isBoss || enemy.type === 'brute')) finalDmg *= 1.45;
       if (this.hasAugment("shatter_frost") && enemy.slowTimer > 0) finalDmg *= 1.80;
@@ -5575,7 +5645,22 @@
         if (this.state === 'MENU' && !this.showSettingsModal) this.apexSystem.show();
         else this.apexSystem.hide();
       }
-      if (this.state === 'MENU') this.renderMainMenu();
+      if (this.state === 'MENU') {
+        this.renderMainMenu();
+        if (typeof audio !== 'undefined' && audio.ctx && audio.ctx.state === 'suspended') {
+          this.ctx.fillStyle = "rgba(10, 20, 36, 0.92)";
+          this.ctx.beginPath();
+          this.ctx.roundRect(420, 10, 440, 30, 6);
+          this.ctx.fill();
+          this.ctx.strokeStyle = "#ffd600";
+          this.ctx.lineWidth = 1.2;
+          this.ctx.stroke();
+          this.ctx.fillStyle = "#ffd600";
+          this.ctx.font = "bold 11px monospace";
+          this.ctx.textAlign = "center";
+          this.ctx.fillText("🔊 OVOZNI YOQISH UCHUN EKRANGA TEGING (TAP TO UNMUTE)", 640, 29);
+        }
+      }
       else if (this.state === 'MAP_SELECT') this.renderMapSelect();
       else if (this.state === 'LEADERBOARD') this.renderLeaderboardModal();
       else if (this.state === 'ACHIEVEMENTS') this.renderAchievementsModal();
@@ -11764,12 +11849,14 @@
       const t = this.tps3D;
       const p = t.player;
 
-      // 1. Cyber Skybox & Atmosphere
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, 720);
-      skyGrad.addColorStop(0, "#030712");
-      skyGrad.addColorStop(0.5, "#0b1329");
-      skyGrad.addColorStop(1, "#111827");
-      ctx.fillStyle = skyGrad;
+      // 1. Cyber Skybox & Atmosphere (Cached to eliminate GC pause)
+      if (!this._tpsSkyGrad) {
+        this._tpsSkyGrad = ctx.createLinearGradient(0, 0, 0, 720);
+        this._tpsSkyGrad.addColorStop(0, "#030712");
+        this._tpsSkyGrad.addColorStop(0.5, "#0b1329");
+        this._tpsSkyGrad.addColorStop(1, "#111827");
+      }
+      ctx.fillStyle = this._tpsSkyGrad;
       ctx.fillRect(0, 0, this.width, this.height);
 
       const camDist = p.isAiming ? 2.0 : 3.8;
@@ -11859,8 +11946,10 @@
         }
       }
 
-      // 5. 3D Enemies (Sorted back to front)
-      const renderList = [];
+      // 5. 3D Enemies (Sorted back to front - Zero GC allocation)
+      if (!this._tpsRenderList) this._tpsRenderList = [];
+      this._tpsRenderList.length = 0;
+      const renderList = this._tpsRenderList;
       for (const e of t.enemies) {
         const ep = this.project3DPoint(e.x, 0, e.z, camX, camY, camZ, p.yaw, p.pitch);
         if (ep) renderList.push({ type: 'enemy', e: e, proj: ep, z: ep.z });
@@ -11878,14 +11967,12 @@
         ctx.ellipse(ep.x, ep.y, ew * 0.9, ew * 0.45, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        const eGrad = ctx.createLinearGradient(ep.x - ew / 2, ep.y - eh, ep.x + ew / 2, ep.y);
-        eGrad.addColorStop(0, "#475569");
-        eGrad.addColorStop(0.5, e.color);
-        eGrad.addColorStop(1, "#0f172a");
-        ctx.fillStyle = eGrad;
+        ctx.fillStyle = e.color;
         ctx.beginPath();
         ctx.roundRect(ep.x - ew / 2, ep.y - eh, ew, eh, [ew * 0.3]);
         ctx.fill();
+        ctx.fillStyle = "rgba(15, 23, 42, 0.45)";
+        ctx.fillRect(ep.x - ew / 2, ep.y - eh * 0.35, ew, eh * 0.35);
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -11922,14 +12009,12 @@
         ctx.ellipse(pp.x, pp.y, pw * 0.8, pw * 0.4, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        const mechGrad = ctx.createLinearGradient(pp.x - pw / 2, pp.y - ph, pp.x + pw / 2, pp.y);
-        mechGrad.addColorStop(0, "#334155");
-        mechGrad.addColorStop(0.5, "#1e293b");
-        mechGrad.addColorStop(1, "#090d16");
-        ctx.fillStyle = mechGrad;
+        ctx.fillStyle = (p.mode === 'SIEGE') ? "#1e293b" : "#0f172a";
         ctx.beginPath();
         ctx.roundRect(pp.x - pw * 0.4, pp.y - ph * 0.9, pw * 0.8, ph * 0.65, [pw * 0.2]);
         ctx.fill();
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(pp.x - pw * 0.35, pp.y - ph * 0.85, pw * 0.7, ph * 0.25);
         ctx.strokeStyle = "#00e5ff";
         ctx.lineWidth = 1.5;
         ctx.stroke();
@@ -12228,18 +12313,18 @@
       }
       ctx.restore(); // end visor save
 
-      // Mobile Touch Action Sci-Fi Circular Buttons (Right side)
-      this.render3DCircularButton(1200, 620, 48, "💥 OTISH", "FIRE", "#ff1744", false);
-      this.render3DCircularButton(1080, 640, 36, "🎯 DURBIN", "AIM", "#00e5ff", p.isAiming);
-      this.render3DCircularButton(1200, 500, 36, "🏗️ QURISH", "BUILD", "#00e676", t.isBuilding);
-      this.render3DCircularButton(1080, 540, 30, "🔄 O'Q", "RELOAD", "#ffd600", p.isReloading);
+      // Mobile Touch Action Sci-Fi Circular Buttons (Right side - Non-overlapping ergonomic layout)
+      this.render3DCircularButton(1200, 625, 48, "💥 OTISH", "FIRE", "#ff1744", false);
+      this.render3DCircularButton(1200, 505, 36, "🔄 O'Q", "RELOAD", "#ffd600", p.isReloading);
+      this.render3DCircularButton(1080, 630, 36, "🎯 DURBIN", "AIM", "#00e5ff", p.isAiming);
+      this.render3DCircularButton(1080, 515, 36, "🏗️ QURISH", "BUILD", "#00e676", t.isBuilding);
 
       // Mech Mode & Super Skill Action Buttons
       const modeLabel = (p.mode === 'SIEGE') ? "🚜 TANK" : "🤖 ROBOT";
       const modeCol = (p.mode === 'SIEGE') ? "#ffd600" : "#00e5ff";
-      this.renderMiniButton(960, 615, 95, 45, modeLabel, modeCol);
-      this.renderMiniButton(960, 555, 95, 45, p.empCd > 0 ? `EMP ${Math.ceil(p.empCd)}s` : "⚡ EMP", "#00e5ff");
-      this.renderMiniButton(1070, 555, 95, 45, p.missileCd > 0 ? `MSL ${Math.ceil(p.missileCd)}s` : "🚀 RAKETA", "#ffd600");
+      this.renderMiniButton(840, 625, 105, 48, modeLabel, modeCol);
+      this.renderMiniButton(840, 555, 105, 48, p.empCd > 0 ? `EMP ${Math.ceil(p.empCd)}s` : "⚡ EMP", "#00e5ff");
+      this.renderMiniButton(960, 555, 105, 48, p.missileCd > 0 ? `MSL ${Math.ceil(p.missileCd)}s` : "🚀 RAKETA", "#ffd600");
 
       if (t.touch.moveId !== null) {
         ctx.fillStyle = "rgba(0, 229, 255, 0.2)";
@@ -12266,6 +12351,34 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
+
+    // Global Cross-Platform WebAudio Silent Buffer Unlocker (iOS Safari / Mobile Chrome / Android WebView)
+    const unlockAudioPipeline = () => {
+      if (typeof audio !== 'undefined' && audio) {
+        if (!audio.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) audio.ctx = new AudioCtx();
+        }
+        if (audio.ctx && audio.ctx.state === 'suspended') {
+          audio.ctx.resume().catch(() => {});
+        }
+        if (audio.ctx) {
+          try {
+            const buffer = audio.ctx.createBuffer(1, 1, 22050);
+            const source = audio.ctx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audio.ctx.destination);
+            source.start(0);
+          } catch(e) {}
+        }
+        if (!audio.bgmPlaying && !audio.bgmMuted) {
+          audio.startBGM();
+        }
+      }
+    };
+    ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, unlockAudioPipeline, { passive: true });
+    });
   });
 
 })();

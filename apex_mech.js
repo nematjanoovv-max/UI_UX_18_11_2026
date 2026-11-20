@@ -576,6 +576,30 @@
       this.yawVel *= 0.90;
       this.root.rotation.y = this.yaw;
     }
+
+    dispose() {
+      if (this.root && this.root.traverse) {
+        this.root.traverse(obj => {
+          if (obj.geometry) {
+            try { obj.geometry.dispose(); } catch(e) {}
+          }
+          if (obj.material) {
+            try {
+              if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+              else obj.material.dispose();
+            } catch(e) {}
+          }
+        });
+      }
+      if (this.M) {
+        Object.values(this.M).forEach(m => {
+          try {
+            if (m.map) m.map.dispose();
+            m.dispose();
+          } catch(e) {}
+        });
+      }
+    }
   }
 
   // --- High-Performance System Renderer ---
@@ -596,12 +620,18 @@
       this.canvas = canvasEl;
 
       try {
-        const pr = Math.min(window.devicePixelRatio || 1, 2.0);
+        const isLowEnd = (typeof navigator !== 'undefined') && (
+          (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+          (window.innerWidth < 768) ||
+          (navigator.deviceMemory && navigator.deviceMemory <= 3)
+        );
+        const pr = isLowEnd ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
         this.renderer = new THREE.WebGLRenderer({
           canvas: this.canvas,
-          antialias: true,
+          antialias: !isLowEnd,
           alpha: true,
-          powerPreference: 'high-performance'
+          powerPreference: isLowEnd ? 'low-power' : 'high-performance',
+          precision: isLowEnd ? 'mediump' : 'highp'
         });
         this.renderer.setPixelRatio(pr);
         this.renderer.setSize(this.canvas.width, this.canvas.height, false);
@@ -688,6 +718,27 @@
         cancelAnimationFrame(this.animId);
         this.animId = null;
       }
+    }
+
+    dispose() {
+      this.hide();
+      if (this.mech && typeof this.mech.dispose === 'function') {
+        this.mech.dispose();
+        this.mech = null;
+      }
+      if (this.renderer) {
+        try {
+          this.renderer.dispose();
+          const gl = this.renderer.getContext();
+          if (gl && typeof gl.getExtension === 'function') {
+            const loseContext = gl.getExtension('WEBGL_lose_context');
+            if (loseContext) loseContext.loseContext();
+          }
+        } catch(e) {}
+        this.renderer = null;
+      }
+      this.scene = null;
+      this.camera = null;
     }
 
     loop() {
