@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Transformers 3D Studio — Optimus Prime & Bumblebee PBR Showcase</title>
+<style>
+  :root {
+    --bg-dark: #030712;
+    --panel-bg: rgba(11, 19, 36, 0.92);
+    --panel-border: rgba(0, 229, 255, 0.35);
+    --cyan: #00e5ff;
+    --cyan-glow: rgba(0, 229, 255, 0.45);
+    --gold: #facc15;
+    --gold-glow: rgba(250, 204, 21, 0.45);
+    --red: #ef4444;
+    --red-glow: rgba(239, 68, 68, 0.45);
+    --green: #10b981;
+    --text: #f8fafc;
+    --text-dim: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+  
+  html, body {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 35%, #0f172a 0%, #060a14 65%, #020408 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    color: var(--text);
+  }
+  #webgl-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+  }
+  #webgl-canvas:active {
+    cursor: grabbing;
+  }
+
+  /* Top Navigation & Status Bar */
+  #top-bar {
+    position: absolute;
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .nav-btn {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--panel-border);
+    color: var(--cyan);
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+  }
+  .nav-btn:hover, .nav-btn:active {
+    background: var(--cyan);
+    color: #030712;
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+  .title-pill {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #cbd5e1;
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .title-pill .dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+  }
+  .fps-badge {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: monospace;
+    color: #00e5ff;
+  }
+
+  /* Hero Switcher Bar */
+  #hero-switcher {
+    position: absolute;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    background: rgba(11, 19, 36, 0.9);
+    border: 1px solid var(--panel-border);
+    border-radius: 30px;
+    padding: 4px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    z-index: 20;
+    gap: 4px;
+    max-width: 95vw;
+    overflow-x: auto;
+  }
+  .hero-tab {
+    padding: 7px 16px;
+    border-radius: 24px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+  }
+  .hero-tab.active-optimus {
+    background: linear-gradient(135deg, #b91c1c 0%, #1e3a8a 100%);
+    color: #ffffff;
+    box-shadow: 0 0 14px var(--red-glow);
+  }
+  .hero-tab.active-bee {
+    background: linear-gradient(135deg, #eab308 0%, #111827 100%);
+    color: #ffffff;
+    box-shadow: 0 0 14px var(--gold-glow);
+  }
+  .hero-tab.active-apex {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+
+  /* Floating Bottom Command Deck */
+  #command-deck {
+    position: absolute;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(8, 15, 28, 0.92);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.75);
+    z-index: 20;
+    max-width: 96vw;
+  }
+  .cmd-btn {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    color: #f1f5f9;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+  .cmd-btn:hover, .cmd-btn:active {
+    background: rgba(0, 229, 255, 0.2);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    transform: translateY(-2px);
+  }
+  .cmd-btn.highlight {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%);
+    border-color: #00ff88;
+    color: #00ff88;
+  }
+  .cmd-btn.highlight:hover {
+    background: #00ff88;
+    color: #030712;
+    box-shadow: 0 0 14px rgba(0, 255, 136, 0.5);
+  }
+
+  /* Collapsible Lore & Tech Dossier */
+  #dossier-card {
+    position: absolute;
+    bottom: 84px;
+    left: max(14px, env(safe-area-inset-left));
+    width: 320px;
+    max-width: 90vw;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 14px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+    z-index: 20;
+    transition: all 0.3s ease;
+  }
+  #dossier-card.collapsed {
+    transform: translateY(calc(100% + 20px));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .dossier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 6px;
+  }
+  .dossier-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+  }
+  .dossier-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+  .dossier-stat .k { color: var(--text-dim); }
+  .dossier-stat .v { font-weight: 700; color: #f1f5f9; }
+  .dossier-desc {
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #94a3b8;
+    margin-top: 8px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    padding-top: 6px;
+  }
+
+  /* Notification Toast */
+  #toast {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid var(--cyan);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 18px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px var(--cyan-glow);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  #toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <a href="index.html" class="nav-btn">⟵ O'YINGA QAYTISH</a>
+    <div class="title-pill">
+      <span class="dot"></span>
+      <span>TRANSFORMERS 3D ENGINE // PBR</span>
+    </div>
+    <div class="fps-badge" id="fps-display">60 FPS</div>
+  </div>
+
+  <!-- Hero Switcher -->
+  <div id="hero-switcher">
+    <button class="hero-tab active-optimus" id="tab-optimus" onclick="switchHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
+    <button class="hero-tab" id="tab-bee" onclick="switchHero('BUMBLEBEE')">🏎️ BUMBLEBEE</button>
+    <button class="hero-tab" id="tab-apex" onclick="switchHero('APEX')">🤖 APEX-01 MECH</button>
+  </div>
+
+  <!-- 3D Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Lore Dossier -->
+  <div id="dossier-card">
+    <div class="dossier-header">
+      <div class="dossier-title" id="dossier-title">OPTIMUS PRIME</div>
+      <button class="close-btn" onclick="toggleDossier()">✕</button>
+    </div>
+    <div id="dossier-body">
+      <div class="dossier-stat"><span class="k">Fraksiya:</span><span class="v" id="d-faction">Avtobotlar (Yetakchi)</span></div>
+      <div class="dossier-stat"><span class="k">Muqobil Rejim:</span><span class="v" id="d-altmode">Peterbilt 379 Semi-Truck</span></div>
+      <div class="dossier-stat"><span class="k">Asosiy Qurol:</span><span class="v" id="d-weapon">Heavy Ion Blaster Rifle</span></div>
+      <div class="dossier-stat"><span class="k">Yaqin Zarb:</span><span class="v" id="d-melee">Energon Battle Axe</span></div>
+      <div class="dossier-stat"><span class="k">Zirh Texnologiyasi:</span><span class="v" id="d-armor">Cybertronian Heavy Titanium</span></div>
+      <div class="dossier-desc" id="d-desc">
+        Kiberfron yetakchisi. Ezgulik va erkinlik himoyachisi. Og'ir yuk mashinasiga bir zumda aylanib 180 km/h tezlikda dushman safiga yorib kiradi.
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Command Deck -->
+  <div id="command-deck">
+    <button class="cmd-btn highlight" id="btn-transform" onclick="triggerTransform()">🔄 TRANSFORMATSIYA</button>
+    <button class="cmd-btn" id="btn-fire" onclick="triggerFire()">💥 O'T OCHISH</button>
+    <button class="cmd-btn" id="btn-melee" onclick="triggerMelee()">⚔️ YAQIN JANG ZARBASI</button>
+    <button class="cmd-btn" id="btn-lighting" onclick="cycleLighting()">💡 STUDIYA: CS2 HANGAR</button>
+    <button class="cmd-btn" id="btn-autorotate" onclick="toggleAutoRotate()">⟲ AVTO-AYLANISH: YOQ</button>
+    <button class="cmd-btn" id="btn-dossier" onclick="toggleDossier()">📖 DOSYE</button>
+    <button class="cmd-btn" id="btn-audio" onclick="toggleAudio()">🔊 OVOZ: YOQ</button>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast">Xabar</div>
+
+  <!-- Three.js Runtime & Models -->
+  <script src="libs/three.min.js"></script>
+  <script src="transformers_mech.js"></script>
+  <script src="apex_mech.js"></script>
+
+  <script>
+    'use strict';
+
+    // =========================================================================
+    // 1. PROCEDURAL SOUND ENGINE (Offline Web Audio API)
+    // =========================================================================
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function playTransformSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      // Iconic 5-step servo pitch shift
+      const freqs = [180, 260, 390, 520, 680];
+      freqs.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = (i % 2 === 0) ? 'sawtooth' : 'triangle';
+        osc.frequency.setValueAtTime(f, t + i * 0.08);
+        osc.frequency.exponentialRampToValueAtTime(f * 1.4, t + i * 0.08 + 0.1);
+        gain.gain.setValueAtTime(0.15, t + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.08);
+        osc.stop(t + i * 0.08 + 0.13);
+      });
+
+      // Low mechanical hydraulic thud
+      const thud = ctx.createOscillator();
+      const thudGain = ctx.createGain();
+      thud.type = 'sine';
+      thud.frequency.setValueAtTime(90, t);
+      thud.frequency.exponentialRampToValueAtTime(30, t + 0.45);
+      thudGain.gain.setValueAtTime(0.35, t);
+      thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      thud.connect(thudGain);
+      thudGain.connect(ctx.destination);
+      thud.start(t);
+      thud.stop(t + 0.46);
+    }
+
+    function playIonBlasterSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, t);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.28);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.31);
+    }
+
+    function playPlasmaSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      for (let i = 0; i < 3; i++) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200 + i * 200, t + i * 0.06);
+        osc.frequency.exponentialRampToValueAtTime(300, t + i * 0.06 + 0.08);
+        gain.gain.setValueAtTime(0.12, t + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t + i * 0.06);
+        osc.stop(t + i * 0.06 + 0.09);
+      }
+    }
+
+    function playEnergonSFX() {
+      if (!audioEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(240, t);
+      osc.frequency.exponentialRampToValueAtTime(900, t + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.41);
+    }
+
+    // =========================================================================
+    // 2. THREE.JS 3D SCENE & ENGINE
+    // =========================================================================
+    const canvas = document.getElementById('webgl-canvas');
+    let renderer, scene, camera;
+    let currentMech = null;
+    let currentHero = 'OPTIMUS'; // 'OPTIMUS' | 'BUMBLEBEE' | 'APEX'
+    let autoRotate = true;
+
+    // Lighting Presets
+    const LIGHTING_PRESETS = [
+      { id: 'CS2', name: 'CS2 HANGAR', hemi: 0x7fb8ff, ground: 0x070e1e, hemiInt: 0.7, key: 0xffffff, keyInt: 2.0, rim1: 0x00e5ff, rim2: 0xff007f },
+      { id: 'NEON', name: 'NEON KIBERPANK', hemi: 0x00e5ff, ground: 0xff007f, hemiInt: 0.9, key: 0x00ffff, keyInt: 2.4, rim1: 0xff00ff, rim2: 0x00e5ff },
+      { id: 'DESERT', name: 'CHO\'L POLIGONI', hemi: 0xffedd5, ground: 0x78350f, hemiInt: 0.65, key: 0xffedd5, keyInt: 2.2, rim1: 0xf97316, rim2: 0xfacc15 },
+      { id: 'VOID', name: 'GIGANT VOID', hemi: 0x38bdf8, ground: 0x020617, hemiInt: 0.45, key: 0xe0f2fe, keyInt: 1.6, rim1: 0x38bdf8, rim2: 0x818cf8 }
+    ];
+    let activePresetIdx = 0;
+    let hemiLight, keyLight, rimLight1, rimLight2;
+
+    // Camera & Orbit Controls
+    let yaw = 0.35, pitch = 0.18, zoom = 9.5;
+    let isDragging = false, lastPointer = { x: 0, y: 0 };
+    let initialPinchDist = null;
+
+    function init3D() {
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: 'high-performance'
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+      updateCameraPos();
+
+      // Lighting Setup
+      hemiLight = new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.7);
+      scene.add(hemiLight);
+
+      keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+      keyLight.position.set(6, 10, 7);
+      keyLight.castShadow = true;
+      scene.add(keyLight);
+
+      rimLight1 = new THREE.PointLight(0x00e5ff, 12, 16);
+      rimLight1.position.set(-5, 4, -4);
+      scene.add(rimLight1);
+
+      rimLight2 = new THREE.PointLight(0xff007f, 10, 16);
+      rimLight2.position.set(5, 3, -5);
+      scene.add(rimLight2);
+
+      // Cyber Hologram Floor Turntable
+      buildTurntableFloor();
+
+      // Load Initial Hero
+      loadHero('OPTIMUS');
+
+      // Bind input events
+      bindInputEvents();
+
+      window.addEventListener('resize', onResize);
+    }
+
+    function buildTurntableFloor() {
+      const group = new THREE.Group();
+      scene.add(group);
+
+      // Floor Mirror Disk
+      const diskGeo = new THREE.CylinderGeometry(4.5, 4.6, 0.2, 48);
+      const diskMat = new THREE.MeshStandardMaterial({
+        color: 0x080e1a,
+        metalness: 0.95,
+        roughness: 0.15
+      });
+      const disk = new THREE.Mesh(diskGeo, diskMat);
+      disk.position.y = -2.2;
+      disk.receiveShadow = true;
+      group.add(disk);
+
+      // Outer Neon Ring
+      const ringGeo = new THREE.TorusGeometry(4.2, 0.05, 12, 64);
+      const ringMat = new THREE.MeshStandardMaterial({
+        color: 0x00e5ff,
+        emissive: 0x00e5ff,
+        emissiveIntensity: 2.5
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.position.y = -2.08;
+      ring.rotation.x = Math.PI / 2;
+      group.add(ring);
+
+      // Inner Amber Ring
+      const ringGeo2 = new THREE.TorusGeometry(3.2, 0.03, 12, 64);
+      const ringMat2 = new THREE.MeshStandardMaterial({
+        color: 0xfacc15,
+        emissive: 0xfacc15,
+        emissiveIntensity: 2.0
+      });
+      const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
+      ring2.position.y = -2.08;
+      ring2.rotation.x = Math.PI / 2;
+      group.add(ring2);
+    }
+
+    function updateCameraPos() {
+      const cx = zoom * Math.sin(yaw) * Math.cos(pitch);
+      const cy = 1.6 + zoom * Math.sin(pitch);
+      const cz = zoom * Math.cos(yaw) * Math.cos(pitch);
+      camera.position.set(cx, cy, cz);
+      camera.lookAt(0, 1.4, 0);
+    }
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // =========================================================================
+    // 3. HERO LOADING & SWITCHING
+    // =========================================================================
+    function loadHero(heroType) {
+      if (currentMech) {
+        if (typeof currentMech.dispose === 'function') currentMech.dispose();
+        scene.remove(currentMech.root);
+        currentMech = null;
+      }
+
+      currentHero = heroType;
+
+      if (heroType === 'OPTIMUS' && window.OptimusPrimeMech) {
+        currentMech = new window.OptimusPrimeMech(THREE);
+        showToast("🚛 OPTIMUS PRIME YUKLANDI");
+      } else if (heroType === 'BUMBLEBEE' && window.BumblebeeMech) {
+        currentMech = new window.BumblebeeMech(THREE);
+        showToast("🏎️ BUMBLEBEE YUKLANDI");
+      } else if (window.Apex01Mech) {
+        currentMech = new window.Apex01Mech(THREE);
+        showToast("🤖 APEX-01 MECH YUKLANDI");
+      }
+
+      if (currentMech) {
+        scene.add(currentMech.root);
+      }
+      updateDossierContent(heroType);
+    }
+
+    function switchHero(type) {
+      document.querySelectorAll('.hero-tab').forEach(t => t.className = 'hero-tab');
+      if (type === 'OPTIMUS') document.getElementById('tab-optimus').classList.add('active-optimus');
+      else if (type === 'BUMBLEBEE') document.getElementById('tab-bee').classList.add('active-bee');
+      else if (type === 'APEX') document.getElementById('tab-apex').classList.add('active-apex');
+
+      loadHero(type);
+      if (audioEnabled) {
+        if (type === 'OPTIMUS') playIonBlasterSFX();
+        else if (type === 'BUMBLEBEE') playPlasmaSFX();
+        else playEnergonSFX();
+      }
+    }
+
+    // =========================================================================
+    // 4. INTERACTION CONTROLS
+    // =========================================================================
+    function triggerTransform() {
+      if (!currentMech) return;
+      if (typeof currentMech.toggleTransform === 'function') {
+        const mode = currentMech.toggleTransform();
+        playTransformSFX();
+        showToast(mode === 'VEHICLE' ? "🚚 TRANSPORT (VEHICLE) REJIMI" : "🤖 JANGOVAR ROBOT REJIMI");
+      } else {
+        showToast("ℹ️ APEX-01 faqat jangovar robot rejimida ishlaydi");
+      }
+    }
+
+    function triggerFire() {
+      if (!currentMech) return;
+      if (typeof currentMech.fireWeapon === 'function') {
+        currentMech.fireWeapon();
+      } else if (typeof currentMech.shoot === 'function') {
+        currentMech.shoot();
+      }
+      if (currentHero === 'OPTIMUS') playIonBlasterSFX();
+      else if (currentHero === 'BUMBLEBEE') playPlasmaSFX();
+      else playIonBlasterSFX();
+      showToast("💥 O'T OCHILDI!");
+    }
+
+    function triggerMelee() {
+      if (!currentMech) return;
+      if (typeof currentMech.swingAxe === 'function') {
+        currentMech.swingAxe();
+        playEnergonSFX();
+        showToast("⚔️ ENERGON BOLTA ZARBASI!");
+      } else if (typeof currentMech.swingBlade === 'function') {
+        currentMech.swingBlade();
+        playEnergonSFX();
+        showToast("⚡ CYBER-BLADE TIG' ZARBASI!");
+      } else if (typeof currentMech.hit === 'function') {
+        currentMech.hit();
+        playEnergonSFX();
+        showToast("⚔️ MECHA TITAN ZARBASI!");
+      }
+    }
+
+    function cycleLighting() {
+      activePresetIdx = (activePresetIdx + 1) % LIGHTING_PRESETS.length;
+      const p = LIGHTING_PRESETS[activePresetIdx];
+
+      hemiLight.color.setHex(p.hemi);
+      hemiLight.groundColor.setHex(p.ground);
+      hemiLight.intensity = p.hemiInt;
+
+      keyLight.color.setHex(p.key);
+      keyLight.intensity = p.keyInt;
+
+      rimLight1.color.setHex(p.rim1);
+      rimLight2.color.setHex(p.rim2);
+
+      document.getElementById('btn-lighting').innerText = `💡 STUDIYA: ${p.name}`;
+      showToast(`💡 YORUG'LIK: ${p.name}`);
+    }
+
+    function toggleAutoRotate() {
+      autoRotate = !autoRotate;
+      document.getElementById('btn-autorotate').innerText = `⟲ AVTO-AYLANISH: ${autoRotate ? 'YOQ' : 'O\'CH'}`;
+      showToast(autoRotate ? "⟲ 360° Avto-aylanish yoqildi" : "⏸️ Avto-aylanish to'xtatildi");
+    }
+
+    function toggleDossier() {
+      const card = document.getElementById('dossier-card');
+      card.classList.toggle('collapsed');
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('btn-audio').innerText = `🔊 OVOZ: ${audioEnabled ? 'YOQ' : 'O\'CH'}`;
+      showToast(audioEnabled ? "🔊 Ovoz effektlari yoqildi" : "🔇 Ovoz o'chirildi");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // =========================================================================
+    // 5. DOSSIER DATA IN UZBEK
+    // =========================================================================
+    const DOSSIERS = {
+      OPTIMUS: {
+        title: "OPTIMUS PRIME (AUTOBOT LEADER)",
+        faction: "Avtobotlar (Oliy Yetakchi)",
+        altmode: "Peterbilt 379 Semi-Truck (Heavy Cab)",
+        weapon: "Heavy Ion Blaster Rifle (950 DPS)",
+        melee: "Energon Battle Axe (1400 DMG)",
+        armor: "Cybertronian Heavy Titanium Alloy",
+        desc: "Kiberfron yetakchisi. Ezgulik va erkinlik himoyachisi. Ko'kragida Matrix of Leadership porlaydi. Bir zumda og'ir yuk mashinasiga aylanib 180 km/h tezlikda dushmanni yanchib o'tadi."
+      },
+      BUMBLEBEE: {
+        title: "BUMBLEBEE (AUTOBOT SCOUT)",
+        faction: "Avtobotlar (Razvedkachi)",
+        altmode: "Chevrolet Camaro SS Sports Car",
+        weapon: "Stinger Triple Plasma Cannon (820 DPS)",
+        melee: "Cyber-Blade Arm Cutter (900 DMG)",
+        armor: "Agile Stealth Nanite Composite",
+        desc: "Chaqqon va jasur skaut. Qanot eshiklari va sariq-qora poyga chiziqlari bilan mashhur. Sportkar rejimiga o'tib 320 km/h tezlikda harakatlana oladi."
+      },
+      APEX: {
+        title: "APEX-01 (CYBERNETIC MECH)",
+        faction: "Insoniyat Mudofaa Kiber-Korpus",
+        altmode: "Kinetik Giper-Dash Thrusters",
+        weapon: "Dual Kinetic Tracer & Missile Pod",
+        melee: "Hydraulic Titan Power Fist",
+        armor: "Nanite Reinforced Carbon (Lvl 5)",
+        desc: "Kiber-bosqinchilarga qarshi yaratilgan avtonom mudofaa roboti. Orbital Titan Death Beam bilan dushman kolonnasini yo'q qiladi."
+      }
+    };
+
+    function updateDossierContent(hero) {
+      const d = DOSSIERS[hero] || DOSSIERS.OPTIMUS;
+      document.getElementById('dossier-title').innerText = d.title;
+      document.getElementById('d-faction').innerText = d.faction;
+      document.getElementById('d-altmode').innerText = d.altmode;
+      document.getElementById('d-weapon').innerText = d.weapon;
+      document.getElementById('d-melee').innerText = d.melee;
+      document.getElementById('d-armor').innerText = d.armor;
+      document.getElementById('d-desc').innerText = d.desc;
+    }
+
+    // =========================================================================
+    // 6. POINTER & TOUCH ORBIT CONTROLS
+    // =========================================================================
+    function bindInputEvents() {
+      canvas.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        lastPointer = { x: e.clientX, y: e.clientY };
+        try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastPointer.x;
+        const dy = e.clientY - lastPointer.y;
+        lastPointer = { x: e.clientX, y: e.clientY };
+
+        yaw -= dx * 0.008;
+        pitch = Math.max(-0.25, Math.min(1.15, pitch + dy * 0.008));
+        updateCameraPos();
+      });
+
+      canvas.addEventListener('pointerup', () => { isDragging = false; });
+      canvas.addEventListener('pointercancel', () => { isDragging = false; });
+
+      // Wheel Zoom
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        zoom = Math.max(4.5, Math.min(16.0, zoom + e.deltaY * 0.008));
+        updateCameraPos();
+      }, { passive: false });
+
+      // Pinch to Zoom on Touch
+      canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          initialPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && initialPinchDist) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const delta = (initialPinchDist - dist) * 0.02;
+          initialPinchDist = dist;
+          zoom = Math.max(4.5, Math.min(16.0, zoom + delta));
+          updateCameraPos();
+        }
+      });
+
+      canvas.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) initialPinchDist = null;
+      });
+    }
+
+    // =========================================================================
+    // 7. ANIMATION RENDER LOOP & FPS MONITOR
+    // =========================================================================
+    let lastTime = performance.now();
+    let frameCount = 0, lastFpsUpdate = performance.now();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      // Auto Rotate Turntable
+      if (autoRotate && !isDragging) {
+        yaw += dt * 0.35;
+        updateCameraPos();
+      }
+
+      // Update Active Mech Kinematics
+      if (currentMech && typeof currentMech.update === 'function') {
+        currentMech.update(dt);
+      }
+
+      // Render
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+      }
+
+      // FPS Counter
+      frameCount++;
+      if (now - lastFpsUpdate >= 1000) {
+        const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdate));
+        document.getElementById('fps-display').innerText = `${fps} FPS`;
+        frameCount = 0;
+        lastFpsUpdate = now;
+      }
+    }
+
+    // Start Engine
+    window.addEventListener('DOMContentLoaded', () => {
+      init3D();
+      animate();
+    });
+  </script>
+</body>
+</html>

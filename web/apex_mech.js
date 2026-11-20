@@ -618,6 +618,7 @@
     init(canvasEl) {
       if (!canvasEl || typeof THREE === 'undefined') return false;
       this.canvas = canvasEl;
+      this.THREE = THREE;
 
       try {
         const isLowEnd = (typeof navigator !== 'undefined') && (
@@ -655,14 +656,58 @@
         rimPink.position.set(4, 2, -4);
         this.scene.add(rimPink);
 
-        this.mech = new Apex01Mech(THREE);
-        this.scene.add(this.mech.root);
+        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'OPTIMUS';
+        this.setSkin(savedSkin);
 
         this.bindEvents();
         return true;
       } catch (e) {
         console.warn("WebGL initialization failed:", e);
         return false;
+      }
+    }
+
+    setSkin(skinName) {
+      if (this.currentSkin === skinName && this.mech) return;
+      if (this.mech) {
+        if (typeof this.mech.dispose === 'function') this.mech.dispose();
+        if (this.scene) this.scene.remove(this.mech.root);
+      }
+      this.currentSkin = skinName;
+      const T = this.THREE || (typeof THREE !== 'undefined' ? THREE : (typeof window !== 'undefined' ? window.THREE : null));
+      if (!T) return;
+      if (skinName === 'OPTIMUS' && window.OptimusPrimeMech) {
+        this.mech = new window.OptimusPrimeMech(T);
+      } else if (skinName === 'BUMBLEBEE' && window.BumblebeeMech) {
+        this.mech = new window.BumblebeeMech(T);
+      } else {
+        this.mech = new Apex01Mech(T);
+      }
+      if (this.scene) this.scene.add(this.mech.root);
+    }
+
+    toggleTransform() {
+      if (this.mech && typeof this.mech.toggleTransform === 'function') {
+        return this.mech.toggleTransform();
+      }
+      return null;
+    }
+
+    fireWeapon() {
+      if (this.mech && typeof this.mech.fireWeapon === 'function') {
+        this.mech.fireWeapon();
+      } else if (this.mech && typeof this.mech.shoot === 'function') {
+        this.mech.shoot();
+      }
+    }
+
+    swingAxe() {
+      if (this.mech && typeof this.mech.swingAxe === 'function') {
+        this.mech.swingAxe();
+      } else if (this.mech && typeof this.mech.swingBlade === 'function') {
+        this.mech.swingBlade();
+      } else if (this.mech && typeof this.mech.hit === 'function') {
+        this.mech.hit();
       }
     }
 
@@ -684,7 +729,8 @@
 
       this.canvas.addEventListener('pointerup', (e) => {
         if (down && !down.moved && this.mech) {
-          this.mech.hit();
+          if (typeof this.mech.hit === 'function') this.mech.hit();
+          const name = (this.currentSkin === 'OPTIMUS') ? "OPTIMUS PRIME" : (this.currentSkin === 'BUMBLEBEE' ? "BUMBLEBEE" : "APEX-01");
           if (window.audio) {
             try {
               window.audio.heroSlash();
@@ -693,7 +739,7 @@
           }
           if (window.lastGridEngine) {
             window.lastGridEngine.vibrate([25, 20, 45]);
-            window.lastGridEngine.addFloatingText("⚡ APEX-01 ONLINE (-95 HP)", 235, 280, "#00e5ff", 16);
+            window.lastGridEngine.addFloatingText(`⚡ ${name} ONLINE!`, 235, 280, "#00e5ff", 16);
           }
         }
         down = null;

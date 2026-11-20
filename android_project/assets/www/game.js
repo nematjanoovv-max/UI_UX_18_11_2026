@@ -1153,6 +1153,7 @@
       this.nextUid = 1;
       this.lastTimestamp = 0;
       this.playerName = localStorage.getItem('last_grid_player_name') || 'CyberCommander';
+      this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'OPTIMUS';
       this.minimapExpanded = true;
       this.cinematicBanner = null;
       this.codexTab = 'TOWERS';
@@ -1305,7 +1306,65 @@
       if (mechCanvas && window.Apex01System) {
         this.apexSystem = new window.Apex01System();
         this.apexSystem.init(mechCanvas);
+        if (this.selectedMechSkin && this.apexSystem.setSkin) {
+          this.apexSystem.setSkin(this.selectedMechSkin);
+        }
         this.syncMechCanvasPosition();
+      }
+    }
+
+    setMechSkin(skin) {
+      this.selectedMechSkin = skin;
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('lg_mech_skin', skin);
+      }
+      if (this.apexSystem && this.apexSystem.setSkin) {
+        this.apexSystem.setSkin(skin);
+      }
+      if (window.audio) {
+        audio.click();
+        if (skin === 'OPTIMUS') audio.playSample('mortar_fire', 0.8);
+        else if (skin === 'BUMBLEBEE') audio.playSample('pulse_fire', 0.9);
+        else audio.playSample('hero_dash', 0.8);
+      }
+      const label = (skin === 'OPTIMUS') ? "OPTIMUS PRIME (AUTOBOT)" : (skin === 'BUMBLEBEE' ? "BUMBLEBEE (SCOUT)" : "APEX-01 (CYBER-MECH)");
+      this.vibrate([25, 20, 35]);
+      this.addFloatingText(`⚡ ${label} TANLANDI!`, 235, 260, skin === 'OPTIMUS' ? '#ff3355' : (skin === 'BUMBLEBEE' ? '#ffd600' : '#00e5ff'), 16);
+    }
+
+    toggleMechTransform() {
+      if (this.apexSystem && this.apexSystem.toggleTransform) {
+        const mode = this.apexSystem.toggleTransform();
+        if (window.audio) {
+          audio.heroDash();
+          audio.playSample('rocket_fire', 0.7);
+        }
+        this.vibrate([40, 30, 60]);
+        const modeText = (mode === 'VEHICLE') ? "🚚 TRANSPORT REJIMI (VEHICLE)" : "🤖 JANGOVAR ROBOT REJIMI";
+        this.addFloatingText(modeText, 235, 280, "#00ff88", 16);
+      } else {
+        this.addFloatingText("ℹ️ Ushbu model faqat robot rejimida ishlaydi", 235, 280, "#90a4ae", 14);
+      }
+    }
+
+    triggerMechAction() {
+      if (this.apexSystem) {
+        if (this.selectedMechSkin === 'OPTIMUS') {
+          this.apexSystem.swingAxe();
+          this.apexSystem.fireWeapon();
+          if (window.audio) { audio.mortarFire(); audio.heroSlash(); }
+          this.addFloatingText("💥 ION BLASTER & ENERGON AXE!", 235, 270, "#ff3355", 16);
+        } else if (this.selectedMechSkin === 'BUMBLEBEE') {
+          this.apexSystem.fireWeapon();
+          this.apexSystem.swingAxe();
+          if (window.audio) { audio.pulseFire(); audio.heroSlash(); }
+          this.addFloatingText("⚡ STINGER PLASMA CANNON!", 235, 270, "#ffd600", 16);
+        } else {
+          this.apexSystem.fireWeapon();
+          if (window.audio) { audio.heroSlash(); audio.heroDash(); }
+          this.addFloatingText("⚡ DUAL KINETIC TRACER!", 235, 270, "#00e5ff", 16);
+        }
+        this.vibrate([35, 20, 45]);
       }
     }
 
@@ -1317,11 +1376,11 @@
       const scaleX = rect.width / 1280;
       const scaleY = rect.height / 720;
 
-      // Hangar slot in 1280x720: x: 50, y: 155, w: 370, h: 325
+      // Hangar slot in 1280x720: x: 50, y: 162, w: 370, h: 308
       mechCanvas.style.left = `${rect.left + 50 * scaleX}px`;
-      mechCanvas.style.top = `${rect.top + 155 * scaleY}px`;
+      mechCanvas.style.top = `${rect.top + 162 * scaleY}px`;
       mechCanvas.style.width = `${Math.floor(370 * scaleX)}px`;
-      mechCanvas.style.height = `${Math.floor(325 * scaleY)}px`;
+      mechCanvas.style.height = `${Math.floor(308 * scaleY)}px`;
     }
 
     setupCanvasScaling() {
@@ -2522,11 +2581,22 @@
         return;
       }
       if (this.state === 'MENU') {
-        // Left Hero Hangar Tap (Trigger Hero Sound effect without navigating away)
+        // Left Hero Hangar Skin Switcher & Action Deck:
         if (x >= 40 && x <= 430 && y >= 88 && y <= 678) {
-          audio.heroSlash();
-          this.vibrate([30, 20, 50]);
-          this.addFloatingText("⚡ APEX-01 SYSTEM ONLINE!", 235, 300, "#00e5ff", 18);
+          // 1. Skin Selector Buttons (Row at y: 130 to 160)
+          if (y >= 130 && y <= 162) {
+            if (x >= 48 && x <= 166) { this.setMechSkin('APEX'); return; }
+            if (x >= 168 && x <= 292) { this.setMechSkin('OPTIMUS'); return; }
+            if (x >= 294 && x <= 422) { this.setMechSkin('BUMBLEBEE'); return; }
+          }
+          // 2. Action Deck Buttons (Row at y: 474 to 506)
+          if (y >= 474 && y <= 506) {
+            if (x >= 48 && x <= 166) { this.toggleMechTransform(); return; }
+            if (x >= 168 && x <= 292) { this.triggerMechAction(); return; }
+            if (x >= 294 && x <= 422) { window.open('preview_transformers.html', '_blank'); return; }
+          }
+          // Default Hangar Click: Trigger Action
+          this.triggerMechAction();
           return;
         }
 
@@ -6754,9 +6824,10 @@
       const tNow = performance.now();
 
       const pbr = this.pbrPatterns || {};
-      const titPat = pbr.brushedTitanium || "#1e293b";
-      const carbPat = pbr.carbonFiber || "#0f172a";
-      const hazPat = pbr.hazardPlate || "#ffd600";
+      const activeSkin = this.selectedMechSkin || 'OPTIMUS';
+      const titPat = (activeSkin === 'OPTIMUS') ? "#b91c1c" : ((activeSkin === 'BUMBLEBEE') ? "#eab308" : (pbr.brushedTitanium || "#1e293b"));
+      const carbPat = (activeSkin === 'OPTIMUS') ? "#1d4ed8" : ((activeSkin === 'BUMBLEBEE') ? "#0f172a" : (pbr.carbonFiber || "#0f172a"));
+      const hazPat = (activeSkin === 'OPTIMUS') ? "#00e5ff" : ((activeSkin === 'BUMBLEBEE') ? "#facc15" : (pbr.hazardPlate || "#ffd600"));
 
       if (h.mode === 'SIEGE') {
         // --- SIEGE TANK: ARMORED CATERPILLAR TRACKS & DUAL 120MM ARTILLERY ---
@@ -6998,12 +7069,22 @@
         this.drawBevelPlate(ctx, -7, -16, 8, 5, carbPat, "#00e5ff", 1);
         this.drawBevelPlate(ctx, -7, 11, 8, 5, carbPat, "#00e5ff", 1);
 
-        // Glowing Quantum Arc-Reactor Core
+        // Glowing Quantum Arc-Reactor / Matrix of Leadership Core
         const reactorGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 6);
         reactorGrad.addColorStop(0, "#ffffff");
-        reactorGrad.addColorStop(0.35, "#00e5ff");
-        reactorGrad.addColorStop(0.8, "#0091ea");
-        reactorGrad.addColorStop(1, "rgba(0, 145, 234, 0)");
+        if (activeSkin === 'OPTIMUS') {
+          reactorGrad.addColorStop(0.35, "#ffd700");
+          reactorGrad.addColorStop(0.8, "#f59e0b");
+          reactorGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+        } else if (activeSkin === 'BUMBLEBEE') {
+          reactorGrad.addColorStop(0.35, "#00e5ff");
+          reactorGrad.addColorStop(0.8, "#0284c7");
+          reactorGrad.addColorStop(1, "rgba(2, 132, 199, 0)");
+        } else {
+          reactorGrad.addColorStop(0.35, "#00e5ff");
+          reactorGrad.addColorStop(0.8, "#0091ea");
+          reactorGrad.addColorStop(1, "rgba(0, 145, 234, 0)");
+        }
         ctx.fillStyle = reactorGrad;
         ctx.beginPath();
         ctx.arc(0, 0, 5.5 + idleBreath * 0.5, 0, Math.PI * 2);
@@ -10668,15 +10749,26 @@
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      // Hangar Header
-      ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 14px 'Segoe UI', monospace";
+      // Hangar Header & Dynamic Skin Title
+      const activeSkin = this.selectedMechSkin || 'OPTIMUS';
+      const skinTitles = {
+        OPTIMUS: "🚛 OPTIMUS PRIME (AUTOBOT)",
+        BUMBLEBEE: "🏎️ BUMBLEBEE (SCOUT)",
+        APEX: "🛡️ JANGOVAR MECH: APEX-01"
+      };
+      ctx.fillStyle = activeSkin === 'OPTIMUS' ? "#ef4444" : (activeSkin === 'BUMBLEBEE' ? "#facc15" : "#00e5ff");
+      ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("🛡️ JANGOVAR MECH: APEX-01", hx + 20, hy + 32);
+      ctx.fillText(skinTitles[activeSkin] || skinTitles.OPTIMUS, hx + 16, hy + 24);
 
       ctx.fillStyle = "#00e676";
-      ctx.font = "11px monospace";
-      ctx.fillText("STATUS: TAYYOR (COMBAT READY)", hx + 20, hy + 50);
+      ctx.font = "10px monospace";
+      ctx.fillText("STATUS: TAYYOR // 3D PBR FAOL", hx + 16, hy + 38);
+
+      // Skin Selector Row at y: 132 to 158 (hy + 44 to hy + 70)
+      this.renderMiniButton(hx + 10, hy + 44, 115, 26, "🤖 APEX-01", activeSkin === 'APEX' ? "#00e5ff" : "rgba(0, 229, 255, 0.4)");
+      this.renderMiniButton(hx + 130, hy + 44, 120, 26, "🚛 OPTIMUS", activeSkin === 'OPTIMUS' ? "#ff3355" : "rgba(255, 51, 85, 0.4)");
+      this.renderMiniButton(hx + 255, hy + 44, 125, 26, "🏎️ BUMBLEBEE", activeSkin === 'BUMBLEBEE' ? "#ffd600" : "rgba(255, 214, 0, 0.4)");
 
       // Rotating Hologram Base Plate on Floor
       const px = hx + hw / 2;
@@ -10692,72 +10784,43 @@
       ctx.ellipse(px, py + 95, 85, 26, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Animated 3D Mech Torso & Chassis
-      const breathe = Math.sin(time * 3) * 4;
-      const my = py + breathe;
+      // Action Deck Buttons below 3D Canvas
+      this.renderMiniButton(hx + 10, hy + 386, 115, 28, "🔄 REJIM", "#00ff88");
+      this.renderMiniButton(hx + 130, hy + 386, 120, 28, "💥 ZARB", "#ff3355");
+      this.renderMiniButton(hx + 255, hy + 386, 125, 28, "🔍 3D KODEX", "#00e5ff");
 
-      // Legs / Hydraulics
-      ctx.strokeStyle = "#37474f";
-      ctx.lineWidth = 8;
-      ctx.beginPath();
-      ctx.moveTo(px - 35, my + 30); ctx.lineTo(px - 50, py + 85);
-      ctx.moveTo(px + 35, my + 30); ctx.lineTo(px + 50, py + 85);
-      ctx.stroke();
-
-      // Foot Pads
-      ctx.fillStyle = "#263238";
-      ctx.fillRect(px - 65, py + 82, 30, 10);
-      ctx.fillRect(px + 35, py + 82, 30, 10);
-
-      // Heavy Torso
-      ctx.fillStyle = "#1e3a5f";
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(px - 45, my - 40);
-      ctx.lineTo(px + 45, my - 40);
-      ctx.lineTo(px + 35, my + 35);
-      ctx.lineTo(px - 35, my + 35);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Pulsing Plasmatic Core Reactor
-      const corePulse = (Math.sin(time * 5) + 1) * 0.5;
-      ctx.shadowColor = "#00e5ff";
-      ctx.shadowBlur = 15 + corePulse * 10;
-      ctx.fillStyle = corePulse > 0.5 ? "#ffffff" : "#00e5ff";
-      ctx.beginPath();
-      ctx.arc(px, my - 5, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      // Shoulder Armor & Heavy Missile Pods
-      ctx.fillStyle = "#ff007f";
-      ctx.fillRect(px - 72, my - 50, 24, 30);
-      ctx.fillRect(px + 48, my - 50, 24, 30);
-
-      // Head Visor (Glowing Cyan)
-      ctx.fillStyle = "#00e5ff";
-      ctx.fillRect(px - 18, my - 62, 36, 12);
-
-      // Hero Dossier Stats at Hangar Bottom (Clean layout without overlapping buttons)
-      ctx.fillStyle = "rgba(10, 18, 32, 0.85)";
-      ctx.fillRect(hx + 15, hy + 415, hw - 30, 160);
+      // Hero Dossier Stats at Hangar Bottom
+      ctx.fillStyle = "rgba(10, 18, 32, 0.88)";
+      ctx.fillRect(hx + 12, hy + 422, hw - 24, 158);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-      ctx.strokeRect(hx + 15, hy + 415, hw - 30, 160);
+      ctx.strokeRect(hx + 12, hy + 422, hw - 24, 158);
 
       ctx.fillStyle = "#cfd8dc";
-      ctx.font = "bold 12px monospace";
+      ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("⚔️ ASOSIY QUROL: Dual Kinetic Tracer", hx + 28, hy + 445);
-      ctx.fillText("⚡ ULT: Orbital Titan Death Beam", hx + 28, hy + 472);
-      ctx.fillText("🚀 HARAKAT: Reaktiv Kinetik Dash", hx + 28, hy + 499);
-      ctx.fillText("🛡️ ZIRH: Nanite Composite (Level 5)", hx + 28, hy + 526);
 
-      ctx.fillStyle = "#00e676";
-      ctx.font = "bold 12px monospace";
-      ctx.fillText("✔ Qahramon jangda to'liq faol va boshqaruvda!", hx + 28, hy + 555);
+      if (activeSkin === 'OPTIMUS') {
+        ctx.fillText("⚔️ ASOSIY QUROL: Heavy Ion Blaster (950 DPS)", hx + 22, hy + 448);
+        ctx.fillText("⚡ ULT: Energon Battle Axe & Matrix Surge", hx + 22, hy + 474);
+        ctx.fillText("🚀 TRANSFORMATSIYA: Peterbilt Semi-Truck", hx + 22, hy + 500);
+        ctx.fillText("🛡️ ZIRH: Cybertronian Heavy Titanium Alloy", hx + 22, hy + 526);
+        ctx.fillStyle = "#ff3355";
+        ctx.fillText("✔ Avtobotlar sardori to'liq jangovar shay!", hx + 22, hy + 554);
+      } else if (activeSkin === 'BUMBLEBEE') {
+        ctx.fillText("⚔️ ASOSIY QUROL: Stinger Plasma Cannon (820 DPS)", hx + 22, hy + 448);
+        ctx.fillText("⚡ ULT: Cyber-Blade Dash & Plasma Overdrive", hx + 22, hy + 474);
+        ctx.fillText("🚀 TRANSFORMATSIYA: Camaro SS Sports Car", hx + 22, hy + 500);
+        ctx.fillText("🛡️ ZIRH: Agile Stealth Nanite Alloy (Lvl 4)", hx + 22, hy + 526);
+        ctx.fillStyle = "#ffd600";
+        ctx.fillText("✔ Chaqqon skaut razvedka va hujumga shay!", hx + 22, hy + 554);
+      } else {
+        ctx.fillText("⚔️ ASOSIY QUROL: Dual Kinetic Tracer (720 DPS)", hx + 22, hy + 448);
+        ctx.fillText("⚡ ULT: Orbital Titan Death Beam (1200 DMG)", hx + 22, hy + 474);
+        ctx.fillText("🚀 HARAKAT: Reaktiv Kinetik Dash & Thrusters", hx + 22, hy + 500);
+        ctx.fillText("🛡️ ZIRH: Nanite Composite (Level 5)", hx + 22, hy + 526);
+        ctx.fillStyle = "#00e676";
+        ctx.fillText("✔ Qahramon jangda to'liq faol va boshqaruvda!", hx + 22, hy + 554);
+      }
 
       ctx.restore();
 
