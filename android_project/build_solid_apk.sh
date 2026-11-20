@@ -12,6 +12,7 @@ cp "$ROOT_DIR/index.html" "$DIR/assets/www/"
 cp "$ROOT_DIR/preview_character.html" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/game.js" "$DIR/assets/www/"
 cp "$ROOT_DIR/apex_mech.js" "$DIR/assets/www/" 2>/dev/null || true
+cp "$ROOT_DIR/codex_3d_engine.js" "$DIR/assets/www/" 2>/dev/null || true
 cp -r "$ROOT_DIR/libs" "$DIR/assets/www/" 2>/dev/null || true
 cp -r "$ROOT_DIR/data" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/manifest.json" "$DIR/assets/www/"

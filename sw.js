@@ -1,12 +1,13 @@
 // Tower Defense: Last Grid - Service Worker for Offline PWA
 // Bumped cache revision to force automatic purge of old assets
-const CACHE_NAME = 'last-grid-cache-v4.1.0-rev5';
+const CACHE_NAME = 'last-grid-cache-v4.1.0-rev6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './preview_character.html',
   './game.js',
   './apex_mech.js',
+  './codex_3d_engine.js',
   './manifest.json',
   './icon.svg',
   './libs/three.min.js'

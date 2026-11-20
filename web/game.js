@@ -8790,6 +8790,487 @@
       this.ctx.strokeRect(gx * 64 + 2, gy * 64 + 2, 60, 60);
     }
 
+    renderTacticalDragVector() {
+      if (!this.tacticalDragVector || !this.tacticalDragVector.active) return;
+      const v = this.tacticalDragVector;
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.strokeStyle = v.color || "#00e5ff";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(v.sx, v.sy);
+      ctx.lineTo(v.ex, v.ey);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = v.color || "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(v.ex, v.ey, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    renderRadialBuildWheel() {
+      if (!this.radialBuildCell) return;
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const rc = this.radialBuildCell;
+
+      rc.anim = Math.min(1.0, (rc.anim || 0) + 0.14);
+      const scale = rc.anim;
+
+      // 1. Highlight selected cell
+      ctx.save();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2.5;
+      ctx.fillStyle = "rgba(0, 229, 255, 0.22)";
+      ctx.fillRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
+      ctx.strokeRect(rc.gx * 64 + 2, rc.gy * 64 + 2, 60, 60);
+
+      // Center close button at (rc.px, rc.py)
+      ctx.fillStyle = "rgba(255, 23, 68, 0.85)";
+      ctx.beginPath();
+      ctx.arc(rc.px, rc.py, 16 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("✕", rc.px, rc.py + 4);
+
+      // Rotating dashed calibration ring
+      const R = 84 * scale;
+      const rot = t * 1.5;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 8]);
+      ctx.beginPath();
+      ctx.arc(rc.px, rc.py, R, rot, rot + Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const options = [
+        { key: 'pulse', icon: "⚡", label: "PULSE" },
+        { key: 'mortar', icon: "💣", label: "MORTAR" },
+        { key: 'cryo', icon: "❄️", label: "CRYO" },
+        { key: 'tesla', icon: "⚡", label: "TESLA" },
+        { key: 'flame', icon: "🔥", label: "FLAME" },
+        { key: 'railgun', icon: "🎯", label: "RAILGUN" },
+        { key: 'beacon', icon: "📡", label: "BEACON" },
+        { key: 'barricade', icon: "🛡️", label: "TO'SIQ" }
+      ];
+
+      for (let i = 0; i < 8; i++) {
+        const opt = options[i];
+        const def = (opt.key === 'barricade') ? { cost: 40, color: "#ffd600" } : TOWER_DEFS[opt.key];
+        const canAfford = this.gold >= def.cost;
+        const ang = -Math.PI / 2 + (Math.PI * 2 / 8) * i;
+        const bx = rc.px + Math.cos(ang) * R;
+        const by = rc.py + Math.sin(ang) * R;
+        const br = 24 * scale;
+
+        // Connecting spoke
+        ctx.strokeStyle = canAfford ? "rgba(0, 229, 255, 0.4)" : "rgba(100, 116, 139, 0.25)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(rc.px + Math.cos(ang) * 18, rc.py + Math.sin(ang) * 18);
+        ctx.lineTo(bx - Math.cos(ang) * br, by - Math.sin(ang) * br);
+        ctx.stroke();
+
+        // Orb glassmorphic fill
+        const grad = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, 0, bx, by, br);
+        if (canAfford) {
+          grad.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+          grad.addColorStop(0.3, "rgba(20, 36, 62, 0.95)");
+          grad.addColorStop(1, "rgba(8, 14, 26, 0.98)");
+        } else {
+          grad.addColorStop(0, "rgba(255, 255, 255, 0.12)");
+          grad.addColorStop(0.4, "rgba(15, 20, 28, 0.92)");
+          grad.addColorStop(1, "rgba(5, 8, 14, 0.98)");
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = canAfford ? def.color : "#455a64";
+        ctx.lineWidth = canAfford ? 2.0 : 1.2;
+        ctx.shadowColor = canAfford ? def.color : "transparent";
+        ctx.shadowBlur = canAfford ? 8 : 0;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Icon & Cost Text
+        ctx.textAlign = "center";
+        ctx.fillStyle = canAfford ? def.color : "#78909c";
+        ctx.font = "bold 13px 'Segoe UI', monospace";
+        ctx.fillText(opt.icon, bx, by - 2);
+
+        ctx.fillStyle = canAfford ? "#ffffff" : "#607d8b";
+        ctx.font = "bold 9px monospace";
+        ctx.fillText(`${def.cost}g`, bx, by + 12);
+      }
+
+      ctx.restore();
+    }
+
+    renderMinimapHUD() {
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const rx = 1118;
+      const ry = 62;
+      const rw = 148;
+      const rh = 100;
+      const cut = 8;
+
+      ctx.save();
+
+      // Collapsed pill badge if minimized
+      if (!this.minimapExpanded) {
+        this.renderMiniButton(rx + rw - 85, ry, 85, 28, "📡 RADAR", "#00e5ff");
+        ctx.restore();
+        return;
+      }
+
+      // Frosted Glassmorphism Radar Panel Frame
+      ctx.beginPath();
+      ctx.moveTo(rx + cut, ry);
+      ctx.lineTo(rx + rw - cut, ry);
+      ctx.lineTo(rx + rw, ry + cut);
+      ctx.lineTo(rx + rw, ry + rh - cut);
+      ctx.lineTo(rx + rw - cut, ry + rh);
+      ctx.lineTo(rx + cut, ry + rh);
+      ctx.lineTo(rx, ry + rh - cut);
+      ctx.lineTo(rx, ry + cut);
+      ctx.closePath();
+
+      const bgGrad = ctx.createLinearGradient(rx, ry, rx, ry + rh);
+      bgGrad.addColorStop(0, "rgba(10, 20, 36, 0.94)");
+      bgGrad.addColorStop(1, "rgba(4, 8, 16, 0.98)");
+      ctx.fillStyle = bgGrad;
+      ctx.fill();
+
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 1.4;
+      ctx.shadowColor = "#00e5ff";
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Header Bar: "RADAR // FEED" + rec dot + minimize toggle
+      ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
+      ctx.fillRect(rx + 1, ry + 1, rw - 2, 18);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
+      ctx.strokeRect(rx + 1, ry + 1, rw - 2, 18);
+
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("📡 RADAR // FEED", rx + 8, ry + 13);
+
+      const recBlink = Math.sin(t * 5) > 0;
+      ctx.fillStyle = recBlink ? "#00e676" : "#ff1744";
+      ctx.beginPath();
+      ctx.arc(rx + rw - 28, ry + 10, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#78909c";
+      ctx.font = "bold 9px monospace";
+      ctx.fillText("▾", rx + rw - 14, ry + 13);
+
+      // Inner Display Area: maps 1280 x 704 to inner display
+      const ix = rx + 6;
+      const iy = ry + 22;
+      const iw = rw - 12;
+      const ih = rh - 26;
+      const sx = iw / 1280;
+      const sy = ih / 704;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(ix, iy, iw, ih);
+      ctx.clip();
+
+      // Faint cyber grid inside radar screen
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.08)";
+      ctx.lineWidth = 1;
+      for (let gx = ix; gx <= ix + iw; gx += 16) {
+        ctx.beginPath(); ctx.moveTo(gx, iy); ctx.lineTo(gx, iy + ih); ctx.stroke();
+      }
+      for (let gy = iy; gy <= iy + ih; gy += 14) {
+        ctx.beginPath(); ctx.moveTo(ix, gy); ctx.lineTo(ix + iw, gy); ctx.stroke();
+      }
+
+      // Draw map lanes in glowing faint cyan
+      if (this.bakedLanes) {
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+        ctx.lineWidth = 1.5;
+        for (const lane of this.bakedLanes) {
+          if (!lane || lane.length === 0 || !lane[0]) continue;
+          ctx.beginPath();
+          ctx.moveTo(ix + lane[0].x * sx, iy + lane[0].y * sy);
+          for (let p = 1; p < lane.length; p++) {
+            if (lane[p]) ctx.lineTo(ix + lane[p].x * sx, iy + lane[p].y * sy);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Draw Towers as colored dots
+      for (const tow of this.towers) {
+        const def = TOWER_DEFS[tow.type];
+        ctx.fillStyle = def ? def.color : "#00e5ff";
+        ctx.fillRect(ix + tow.x * sx - 1.5, iy + tow.y * sy - 1.5, 3, 3);
+      }
+
+      // Draw Core Base as glowing cyan diamond
+      const map = (this.gameMode === 'CUSTOM') ? (this.customMap || { basePos: { x: 19, y: 5 } }) : MAPS[this.currentMapIndex];
+      const coreX = (map.basePos ? map.basePos.x * 64 + 32 : 1248) * sx;
+      const coreY = (map.basePos ? map.basePos.y * 64 + 32 : 352) * sy;
+      ctx.fillStyle = "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(ix + coreX, iy + coreY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Field Hero Mech as amber blip
+      if (this.hero) {
+        const hx = ix + this.hero.x * sx;
+        const hy = iy + this.hero.y * sy;
+        ctx.fillStyle = "#ffd600";
+        ctx.beginPath();
+        ctx.arc(hx, hy, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Enemies as glowing red dots (Bosses as pulsing yellow/red diamond)
+      for (const e of this.enemies) {
+        const ex = ix + e.x * sx;
+        const ey = iy + e.y * sy;
+        if (e.isBoss) {
+          ctx.fillStyle = "#ff1744";
+          ctx.strokeStyle = "#ffd600";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(ex, ey, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = e.type === 'swarmling' ? "#ffab00" : (e.type === 'brute' ? "#ff007f" : "#ff5252");
+          ctx.fillRect(ex - 1, ey - 1, 2.5, 2.5);
+        }
+      }
+
+      // Rotating Radar Phosphor Sweep
+      const sweepAng = (t * 2.8) % (Math.PI * 2);
+      const sweepLen = Math.hypot(iw, ih);
+      const sweepX = ix + iw * 0.5 + Math.cos(sweepAng) * sweepLen;
+      const sweepY = iy + ih * 0.5 + Math.sin(sweepAng) * sweepLen;
+
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.75)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(ix + iw * 0.5, iy + ih * 0.5);
+      ctx.lineTo(sweepX, sweepY);
+      ctx.stroke();
+
+      ctx.restore(); // end clip
+      ctx.restore(); // end save
+    }
+
+    renderCinematicBanner() {
+      if (!this.cinematicBanner || this.cinematicBanner.timer <= 0) return;
+      const b = this.cinematicBanner;
+      const ctx = this.ctx;
+      const t = this.uiTime || 0;
+      const progress = b.timer / b.duration; // 1 down to 0
+
+      let alpha = 1.0;
+      if (progress > 0.85) alpha = (1.0 - progress) / 0.15;
+      else if (progress < 0.2) alpha = progress / 0.2;
+      alpha = Math.max(0, Math.min(1, alpha));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      // Red vignette on screen edges if Boss
+      if (b.isBoss) {
+        const pulse = Math.sin(t * 8) * 0.5 + 0.5;
+        const vigGrad = ctx.createRadialGradient(640, 360, 300, 640, 360, 720);
+        vigGrad.addColorStop(0, "rgba(255, 0, 0, 0)");
+        vigGrad.addColorStop(1, `rgba(255, 23, 68, ${0.25 + pulse * 0.2})`);
+        ctx.fillStyle = vigGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+      }
+
+      // Center Banner Background (y: 205 to 300)
+      const by = 205;
+      const bh = 95;
+      const bgGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+      bgGrad.addColorStop(0, "rgba(8, 14, 25, 0.94)");
+      bgGrad.addColorStop(0.5, b.isBoss ? "rgba(45, 10, 20, 0.96)" : "rgba(12, 28, 48, 0.96)");
+      bgGrad.addColorStop(1, "rgba(4, 7, 14, 0.98)");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, by, this.width, bh);
+
+      // Top and Bottom Glowing Neon Hazard Borders
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(0, by);
+      ctx.lineTo(this.width, by);
+      ctx.moveTo(0, by + bh);
+      ctx.lineTo(this.width, by + bh);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Animated Chevron Hazard Stripes along borders
+      ctx.fillStyle = b.color;
+      const offset = (t * 80) % 40;
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.45;
+      for (let x = -40 + offset; x < this.width + 40; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, by);
+        ctx.lineTo(x + 15, by);
+        ctx.lineTo(x + 5, by + 8);
+        ctx.lineTo(x - 10, by + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(x, by + bh - 8);
+        ctx.lineTo(x + 15, by + bh - 8);
+        ctx.lineTo(x + 5, by + bh);
+        ctx.lineTo(x - 10, by + bh);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Title Typography
+      ctx.textAlign = "center";
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 16;
+      ctx.fillStyle = b.isBoss ? "#ff1744" : "#ffffff";
+      ctx.font = "900 28px 'Segoe UI', monospace";
+      ctx.fillText(b.title, 640, by + 42);
+
+      // Subtitle
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = b.isBoss ? "#ffd600" : "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText(b.subtitle, 640, by + 72);
+
+      ctx.restore();
+    }
+
+    renderMobileFloatingButtons() {
+      const ctx = this.ctx;
+
+      // 1. Floating Hero Ult Thumb Action Button (Bottom Right)
+      const isUltReady = this.hero.currentUltCd <= 0;
+      const ux = 1210;
+      const uy = 540;
+      const ur = 36;
+
+      ctx.save();
+      ctx.fillStyle = isUltReady ? "#1c355e" : "#131a29";
+      ctx.beginPath();
+      ctx.arc(ux, uy, ur, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = isUltReady ? "#ffd600" : "#455a64";
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      if (isUltReady) {
+        ctx.strokeStyle = "rgba(255, 214, 0, 0.4)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(ux, uy, ur + 4, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        // Cooldown sweep arc
+        const pct = this.hero.currentUltCd / this.hero.ultCd;
+        ctx.fillStyle = "rgba(255, 23, 68, 0.35)";
+        ctx.beginPath();
+        ctx.moveTo(ux, uy);
+        ctx.arc(ux, uy, ur, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = isUltReady ? "#ffd600" : "#90a4ae";
+      ctx.font = "bold 13px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡ ULT", ux, uy + 4);
+      if (!isUltReady) {
+        ctx.fillStyle = "#ff1744";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`${Math.ceil(this.hero.currentUltCd)}s`, ux, uy + 17);
+      }
+      ctx.restore();
+
+      // 2. Floating Wave / Speed Thumb Action Button (Bottom Right, above Ult)
+      const wx = 1210;
+      const wy = 450;
+      const wr = 30;
+
+      ctx.save();
+      ctx.fillStyle = this.waveActive ? "#162b47" : "#00e5ff";
+      ctx.beginPath();
+      ctx.arc(wx, wy, wr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#00e5ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = this.waveActive ? "#00e5ff" : "#05070d";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      if (!this.waveActive) {
+        ctx.fillText("▶ START", wx, wy + 4);
+      } else {
+        ctx.fillText(`${this.speed}x SPD`, wx, wy + 4);
+      }
+      ctx.restore();
+    }
+
+
+    addCombatFeed(tag, text, col = "#00e5ff", icon = "⚡") {
+      if (!this.combatFeed) this.combatFeed = [];
+      this.combatFeed.unshift({ tag, text, col, icon, time: 4.5, alpha: 1.0 });
+      if (this.combatFeed.length > 5) this.combatFeed.pop();
+    }
+
+    renderCombatFeed() {
+      if (!this.combatFeed || this.combatFeed.length === 0) return;
+      const ctx = this.ctx;
+      const startX = 20, startY = 625;
+      for (let i = 0; i < this.combatFeed.length; i++) {
+        const item = this.combatFeed[i];
+        if (item.time <= 0) continue;
+        const alpha = Math.min(1.0, item.time / 0.8);
+        const y = startY - i * 22;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "rgba(10, 16, 28, 0.75)";
+        ctx.fillRect(startX, y - 14, 280, 20);
+        ctx.strokeStyle = item.col || "#00e5ff";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(startX, y - 14, 280, 20);
+
+        ctx.fillStyle = item.col || "#00e5ff";
+        ctx.font = "bold 11px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(item.icon + " [" + item.tag + "] " + item.text, startX + 6, y);
+        ctx.restore();
+      }
+    }
+
     renderTopHUD() {
       const ctx = this.ctx;
       // Frosted Glassmorphism Top Bar
@@ -9203,7 +9684,7 @@
         beamGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.25)");
         beamGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
         ctx.fillStyle = beamGrad;
-        ctx.fillRect(bx, sweepY || by, bw, bh);
+        ctx.fillRect(bx, by, bw, bh);
       }
 
       ctx.restore(); // end clip
@@ -10946,6 +11427,15 @@ getCodexDatabase() {
     }
 
     updateCodex(dt) {
+      if (!this.codex3DEngine && typeof window !== 'undefined' && window.Codex3DEngine) {
+        this.codex3DEngine = new window.Codex3DEngine();
+        this.codex3DEngine.init();
+      }
+      if (this.codex3DEngine && this.codex3DEngine.active) {
+        this.codex3DEngine.loadUnit(this.codexSelectedId, this.codexTab, this.codexBranch, this.codexRenderMode);
+        this.codex3DEngine.update(dt, this.codexYaw || 0.45, this.codexPitch !== undefined ? this.codexPitch : 0.28, this.codexZoom || 1.0, this.codexRecoil || 0);
+      }
+
       if (this.codexAutoRotate) {
         this.codexYaw = (this.codexYaw || 0) + dt * 0.75;
       }
@@ -11662,7 +12152,11 @@ getCodexDatabase() {
       ctx.lineTo(px + 110, scanY);
       ctx.stroke();
 
-      this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
+      if (this.codex3DEngine && this.codex3DEngine.active && this.codex3DEngine.canvas) {
+        ctx.drawImage(this.codex3DEngine.canvas, 335, 105, 430, 430);
+      } else {
+        this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
+      }
 
       if (this.codexProjectiles) {
         for (const p of this.codexProjectiles) {

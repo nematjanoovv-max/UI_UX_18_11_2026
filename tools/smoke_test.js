@@ -18,10 +18,12 @@ global.document = {
   getElementById: (id) => ({
     id: id,
     getContext: () => ({
-      clearRect: () => {}, fillRect: () => {}, strokeRect: () => {},
+      clearRect: () => {}, fillRect: () => {}, strokeRect: () => {}, rect: () => {},
       beginPath: () => {}, closePath: () => {}, moveTo: () => {}, lineTo: () => {},
       arc: () => {}, ellipse: () => {}, fill: () => {}, stroke: () => {},
       save: () => {}, restore: () => {}, translate: () => {}, rotate: () => {}, scale: () => {},
+      setTransform: () => {}, resetTransform: () => {}, drawImage: () => {},
+      createPattern: () => ({ setTransform: () => {} }),
       measureText: () => ({ width: 60 }), fillText: () => {}, strokeText: () => {},
       createRadialGradient: () => ({ addColorStop: () => {} }),
       createLinearGradient: () => ({ addColorStop: () => {} }),
@@ -55,10 +57,11 @@ global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 console.log("=== STARTING QA AUTOMATED SMOKE TEST SUITE ===");
 
-// 1. Load Three.js & Apex Mech
+// 1. Load Three.js & Apex Mech & Codex 3D Engine
 require('../libs/three.min.js');
 eval(fs.readFileSync(path.join(__dirname, '../apex_mech.js'), 'utf8'));
-console.log("✓ Loaded local Three.js and APEX-01 System");
+eval(fs.readFileSync(path.join(__dirname, '../codex_3d_engine.js'), 'utf8'));
+console.log("✓ Loaded local Three.js, APEX-01 System, and Codex 3D Engine");
 
 // 2. Load Game Engine
 eval(fs.readFileSync(path.join(__dirname, '../game.js'), 'utf8'));
