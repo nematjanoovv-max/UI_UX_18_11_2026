@@ -1306,6 +1306,9 @@
       if (mechCanvas && window.Apex01System) {
         this.apexSystem = new window.Apex01System();
         this.apexSystem.init(mechCanvas);
+        if (!this.selectedMechSkin) {
+          this.selectedMechSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'MEGATRON';
+        }
         if (this.selectedMechSkin && this.apexSystem.setSkin) {
           this.apexSystem.setSkin(this.selectedMechSkin);
         }
@@ -1323,13 +1326,15 @@
       }
       if (window.audio) {
         audio.click();
-        if (skin === 'OPTIMUS') audio.playSample('mortar_fire', 0.8);
+        if (skin === 'MEGATRON') audio.playSample('boss_spawn', 1.0);
+        else if (skin === 'OPTIMUS') audio.playSample('mortar_fire', 0.8);
         else if (skin === 'BUMBLEBEE') audio.playSample('pulse_fire', 0.9);
         else audio.playSample('hero_dash', 0.8);
       }
-      const label = (skin === 'OPTIMUS') ? "OPTIMUS PRIME (AUTOBOT)" : (skin === 'BUMBLEBEE' ? "BUMBLEBEE (SCOUT)" : "APEX-01 (CYBER-MECH)");
+      const label = (skin === 'MEGATRON') ? "MEGATRON (DECEPTICON)" : ((skin === 'OPTIMUS') ? "OPTIMUS PRIME (AUTOBOT)" : (skin === 'BUMBLEBEE' ? "BUMBLEBEE (SCOUT)" : "APEX-01 (CYBER-MECH)"));
+      const color = (skin === 'MEGATRON') ? '#c084fc' : ((skin === 'OPTIMUS') ? '#ff3355' : (skin === 'BUMBLEBEE' ? '#ffd600' : '#00e5ff'));
       this.vibrate([25, 20, 35]);
-      this.addFloatingText(`⚡ ${label} TANLANDI!`, 235, 260, skin === 'OPTIMUS' ? '#ff3355' : (skin === 'BUMBLEBEE' ? '#ffd600' : '#00e5ff'), 16);
+      this.addFloatingText(`⚡ ${label} TANLANDI!`, 235, 260, color, 16);
     }
 
     toggleMechTransform() {
@@ -2657,9 +2662,10 @@
         if (x >= 40 && x <= 430 && y >= 88 && y <= 678) {
           // 1. Skin Selector Buttons (Row at y: 130 to 160)
           if (y >= 130 && y <= 162) {
-            if (x >= 48 && x <= 166) { this.setMechSkin('APEX'); return; }
-            if (x >= 168 && x <= 292) { this.setMechSkin('OPTIMUS'); return; }
-            if (x >= 294 && x <= 422) { this.setMechSkin('BUMBLEBEE'); return; }
+            if (x >= 46 && x <= 138) { this.setMechSkin('APEX'); return; }
+            if (x >= 140 && x <= 232) { this.setMechSkin('OPTIMUS'); return; }
+            if (x >= 234 && x <= 324) { this.setMechSkin('BUMBLEBEE'); return; }
+            if (x >= 326 && x <= 428) { this.setMechSkin('MEGATRON'); return; }
           }
           // 2. Action Deck Buttons (Row 1 at y: 474 to 502)
           if (y >= 474 && y <= 502) {
@@ -10829,25 +10835,27 @@
       ctx.stroke();
 
       // Hangar Header & Dynamic Skin Title
-      const activeSkin = this.selectedMechSkin || 'OPTIMUS';
+      const activeSkin = this.selectedMechSkin || 'MEGATRON';
       const skinTitles = {
+        MEGATRON: "💀 MEGATRON (WAR FOR CYBERTRON)",
         OPTIMUS: "🚛 OPTIMUS PRIME (AUTOBOT)",
         BUMBLEBEE: "🏎️ BUMBLEBEE (SCOUT)",
         APEX: "🛡️ JANGOVAR MECH: APEX-01"
       };
-      ctx.fillStyle = activeSkin === 'OPTIMUS' ? "#ef4444" : (activeSkin === 'BUMBLEBEE' ? "#facc15" : "#00e5ff");
+      ctx.fillStyle = activeSkin === 'MEGATRON' ? "#c084fc" : (activeSkin === 'OPTIMUS' ? "#ef4444" : (activeSkin === 'BUMBLEBEE' ? "#facc15" : "#00e5ff"));
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(skinTitles[activeSkin] || skinTitles.OPTIMUS, hx + 16, hy + 24);
+      ctx.fillText(skinTitles[activeSkin] || skinTitles.MEGATRON, hx + 16, hy + 24);
 
       ctx.fillStyle = "#00e676";
       ctx.font = "10px monospace";
       ctx.fillText("STATUS: TAYYOR // 3D PBR FAOL", hx + 16, hy + 38);
 
       // Skin Selector Row at y: 132 to 158 (hy + 44 to hy + 70)
-      this.renderMiniButton(hx + 10, hy + 44, 115, 26, "🤖 APEX-01", activeSkin === 'APEX' ? "#00e5ff" : "rgba(0, 229, 255, 0.4)");
-      this.renderMiniButton(hx + 130, hy + 44, 120, 26, "🚛 OPTIMUS", activeSkin === 'OPTIMUS' ? "#ff3355" : "rgba(255, 51, 85, 0.4)");
-      this.renderMiniButton(hx + 255, hy + 44, 125, 26, "🏎️ BUMBLEBEE", activeSkin === 'BUMBLEBEE' ? "#ffd600" : "rgba(255, 214, 0, 0.4)");
+      this.renderMiniButton(hx + 8, hy + 44, 88, 26, "🤖 APEX", activeSkin === 'APEX' ? "#00e5ff" : "rgba(0, 229, 255, 0.4)");
+      this.renderMiniButton(hx + 100, hy + 44, 90, 26, "🚛 OPTIMUS", activeSkin === 'OPTIMUS' ? "#ff3355" : "rgba(255, 51, 85, 0.4)");
+      this.renderMiniButton(hx + 194, hy + 44, 88, 26, "🏎️ BEE", activeSkin === 'BUMBLEBEE' ? "#ffd600" : "rgba(255, 214, 0, 0.4)");
+      this.renderMiniButton(hx + 286, hy + 44, 96, 26, "💀 MEGATRON", activeSkin === 'MEGATRON' ? "#c084fc" : "rgba(192, 132, 252, 0.4)");
 
       // Clean Cyber Frame Accents
       ctx.strokeStyle = "rgba(0, 229, 255, 0.2)";
@@ -10877,7 +10885,14 @@
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "left";
 
-      if (activeSkin === 'OPTIMUS') {
+      if (activeSkin === 'MEGATRON') {
+        ctx.fillText("⚔️ ASOSIY QUROL: Arm Fusion Cannon (1450 DPS)", hx + 22, hy + 470);
+        ctx.fillText("⚡ ULT: Dark Energon Orbital Annihilation", hx + 22, hy + 492);
+        ctx.fillText("🚀 REJIM: Cybertronian Heavy Siege Tank", hx + 22, hy + 514);
+        ctx.fillText("🛡️ ZIRH: High-Tensile War-Damaged Dark Steel", hx + 22, hy + 536);
+        ctx.fillStyle = "#c084fc";
+        ctx.fillText("✔ Haqiqiy War for Cybertron 3D PBR Modeli Faol!", hx + 22, hy + 560);
+      } else if (activeSkin === 'OPTIMUS') {
         ctx.fillText("⚔️ ASOSIY QUROL: Heavy Ion Blaster (950 DPS)", hx + 22, hy + 470);
         ctx.fillText("⚡ ULT: Energon Battle Axe & Matrix Surge", hx + 22, hy + 492);
         ctx.fillText("🚀 REJIM: Peterbilt Semi-Truck (180 km/h)", hx + 22, hy + 514);

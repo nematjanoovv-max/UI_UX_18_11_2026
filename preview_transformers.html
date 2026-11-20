@@ -214,6 +214,12 @@
     color: #ffffff;
     box-shadow: 0 0 14px var(--red-glow);
   }
+  .hero-tab.active-megatron {
+    background: linear-gradient(135deg, #581c87 0%, #0f172a 100%);
+    color: #e9d5ff;
+    border-color: #a855f7;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.65);
+  }
   .hero-tab.active-bee {
     background: linear-gradient(135deg, #eab308 0%, #111827 100%);
     color: #ffffff;
@@ -1016,7 +1022,7 @@
       buildTurntableFloor();
 
       // Load Initial Hero
-      loadHero('OPTIMUS');
+      loadHero('MEGATRON');
 
       // Bind input events
       bindInputEvents();
@@ -1216,7 +1222,8 @@
     function updateHeroSwitcherForThree() {
       const switcher = document.getElementById('hero-switcher');
       switcher.innerHTML = `
-        <button class="hero-tab active-optimus" id="tab-optimus" onclick="switchHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
+        <button class="hero-tab active-megatron" id="tab-megatron" onclick="switchHero('MEGATRON')">💀 MEGATRON (WFC 3D)</button>
+        <button class="hero-tab" id="tab-optimus" onclick="switchHero('OPTIMUS')">🚛 OPTIMUS PRIME</button>
         <button class="hero-tab" id="tab-bee" onclick="switchHero('BUMBLEBEE')">🏎️ BUMBLEBEE</button>
         <button class="hero-tab" id="tab-apex" onclick="switchHero('APEX')">🤖 APEX-01 MECH</button>
       `;
@@ -1313,7 +1320,10 @@
 
       currentHero = heroType;
 
-      if (heroType === 'OPTIMUS' && window.OptimusPrimeMech) {
+      if (heroType === 'MEGATRON' && window.MegatronMech) {
+        currentMech = new window.MegatronMech(THREE);
+        showToast("💀 MEGATRON (WAR FOR CYBERTRON 3D) YUKLANDI");
+      } else if (heroType === 'OPTIMUS' && window.OptimusPrimeMech) {
         currentMech = new window.OptimusPrimeMech(THREE);
         showToast("🚛 OPTIMUS PRIME YUKLANDI");
       } else if (heroType === 'BUMBLEBEE' && window.BumblebeeMech) {
@@ -1337,7 +1347,10 @@
 
     function switchHero(type) {
       document.querySelectorAll('#hero-switcher .hero-tab').forEach(t => t.className = 'hero-tab');
-      if (type === 'OPTIMUS') {
+      if (type === 'MEGATRON') {
+        const el = document.getElementById('tab-megatron');
+        if (el) el.classList.add('active-megatron');
+      } else if (type === 'OPTIMUS') {
         const el = document.getElementById('tab-optimus');
         if (el) el.classList.add('active-optimus');
       } else if (type === 'BUMBLEBEE') {
@@ -1350,7 +1363,8 @@
 
       loadHero(type);
       if (audioEnabled) {
-        if (type === 'OPTIMUS') playIonBlasterSFX();
+        if (type === 'MEGATRON') playDieselRevSFX();
+        else if (type === 'OPTIMUS') playIonBlasterSFX();
         else if (type === 'BUMBLEBEE') playPlasmaSFX();
         else playEnergonSFX();
       }
@@ -1540,6 +1554,15 @@
     // 5. DOSSIER DATA IN UZBEK
     // =========================================================================
     const DOSSIERS = {
+      MEGATRON: {
+        title: "MEGATRON (DECEPTICON LEADER)",
+        faction: "Deseptikonlar (Oliy Yetakchi)",
+        altmode: "Cybertronian Heavy Siege Tank",
+        weapon: "Arm-Mounted Fusion Cannon (1450 DPS)",
+        melee: "Dark Energon Flail & Blade (1850 DMG)",
+        armor: "High-Tensile War-Damaged Dark Steel",
+        desc: "Transformers: War for Cybertron original 3D modeli. Ulkan Fusion Cannon va Dark Energon purkash tizimiga ega shafqatsiz titan."
+      },
       OPTIMUS: {
         title: "OPTIMUS PRIME (AUTOBOT LEADER)",
         faction: "Avtobotlar (Oliy Yetakchi)",

@@ -1952,9 +1952,243 @@
     }
   }
 
+  // ===========================================================================
+  // 3. MEGATRON: DECEPTICON LEADER (WAR FOR CYBERTRON 3D PBR GLB ENGINE)
+  // ===========================================================================
+  class MegatronMech {
+    constructor(THREE) {
+      this.THREE = THREE;
+      this.root = new THREE.Group();
+      this.body = new THREE.Group();
+      this.root.add(this.body);
+
+      this.mode = 'ROBOT';
+      this.time = 0;
+      this.recoil = 0;
+      this.yaw = 0;
+      this.yawVel = 0;
+      this.externalMesh = null;
+      this.mixer = null;
+      this.loaded = false;
+
+      // Dark Energon Purple Aura
+      this.energonLight = new THREE.PointLight(0xa855f7, 4.0, 9);
+      this.energonLight.position.set(0, 1.4, 0.6);
+      this.root.add(this.energonLight);
+
+      this.buildPlaceholder();
+      this.loadModel();
+    }
+
+    buildPlaceholder() {
+      const T = this.THREE;
+      if (!T) return;
+      const mat = (T.MeshStandardMaterial) ? new T.MeshStandardMaterial({
+        color: 0x334155,
+        metalness: 0.9,
+        roughness: 0.3
+      }) : {};
+      const purpleMat = (T.MeshStandardMaterial) ? new T.MeshStandardMaterial({
+        color: 0x9333ea,
+        emissive: (T.Color ? new T.Color(0xa855f7) : 0xa855f7),
+        emissiveIntensity: 0.8
+      }) : {};
+
+      if (T.BoxGeometry && T.Mesh) {
+        const torso = new T.Mesh(new T.BoxGeometry(1.6, 2.0, 1.1), mat);
+        torso.position.y = 1.0;
+        this.body.add(torso);
+      }
+
+      if (T.CylinderGeometry && T.Mesh) {
+        const cannon = new T.Mesh(new T.CylinderGeometry(0.35, 0.45, 2.4, 16), mat);
+        cannon.position.set(1.4, 1.0, 0.4);
+        cannon.rotation.x = Math.PI / 2;
+        this.body.add(cannon);
+      }
+
+      if (T.SphereGeometry && T.Mesh) {
+        const core = new T.Mesh(new T.SphereGeometry(0.25, 12, 12), purpleMat);
+        core.position.set(0, 1.2, 0.6);
+        this.body.add(core);
+      }
+    }
+
+    loadModel() {
+      const T = this.THREE;
+      const loaderClass = (T && T.GLTFLoader) || (typeof window !== 'undefined' && window.GLTFLoader);
+      if (!loaderClass) return;
+      const loader = new loaderClass();
+
+      const candidateUrls = [
+        'assets/models/megatron.glb',
+        './assets/models/megatron.glb',
+        '../assets/models/megatron.glb',
+        'transformers_war_for_cybertron_megatron.glb'
+      ];
+
+      const tryLoad = (idx) => {
+        if (idx >= candidateUrls.length) return;
+        const url = candidateUrls[idx];
+        loader.load(url, (gltf) => {
+          this.loaded = true;
+          this.body.visible = false;
+          const m = gltf.scene || gltf.scenes[0];
+          this.externalMesh = m;
+
+          if (T.Box3 && T.Vector3) {
+            const box = new T.Box3().setFromObject(m);
+            const size = new T.Vector3();
+            box.getSize(size);
+            const maxD = Math.max(size.x, size.y, size.z);
+            const scale = (maxD > 0) ? (4.3 / maxD) : 1.0;
+            m.scale.set(scale, scale, scale);
+
+            const center = new T.Vector3();
+            box.getCenter(center);
+            m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+          }
+
+          m.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.roughness = Math.min(child.material.roughness !== undefined ? child.material.roughness : 0.5, 0.42);
+                child.material.metalness = Math.max(child.material.metalness !== undefined ? child.material.metalness : 0.5, 0.85);
+                child.material.envMapIntensity = 1.4;
+              }
+            }
+          });
+
+          this.root.add(m);
+
+          if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
+            this.mixer = new T.AnimationMixer(m);
+            const action = this.mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+        }, undefined, () => {
+          tryLoad(idx + 1);
+        });
+      };
+
+      tryLoad(0);
+    }
+
+    update(dt) {
+      this.time += dt;
+      if (this.mixer) this.mixer.update(dt);
+
+      if (this.energonLight) {
+        this.energonLight.intensity = 3.5 + Math.sin(this.time * 5.0) * 1.5;
+      }
+
+      if (this.recoil > 0) {
+        this.recoil = Math.max(0, this.recoil - dt * 3.5);
+      }
+
+      this.yaw += this.yawVel;
+      this.yawVel *= 0.90;
+      this.root.rotation.y = this.yaw;
+    }
+
+    fireWeapon() {
+      this.recoil = 1.0;
+      if (this.energonLight) {
+        this.energonLight.intensity = 14.0;
+      }
+      if (typeof window !== 'undefined' && window.lastGridEngine) {
+        window.lastGridEngine.vibrate([45, 30, 60]);
+        window.lastGridEngine.addFloatingText("💥 FUSION CANNON: 1450 DMG!", 235, 270, "#a855f7", 16);
+      }
+      if (typeof audio !== 'undefined') {
+        try { audio.mortarFire(); audio.playSample('mortar_fire', 1.0); } catch(e) {}
+      }
+    }
+
+    hit() { this.fireWeapon(); }
+    swingBlade() { this.fireWeapon(); }
+    swingAxe() { this.fireWeapon(); }
+
+    toggleTransform() {
+      this.mode = (this.mode === 'ROBOT') ? 'TANK' : 'ROBOT';
+      if (this.externalMesh) {
+        const targetPitch = (this.mode === 'TANK') ? 0.45 : 0.0;
+        this.externalMesh.rotation.x = targetPitch;
+      }
+      if (typeof audio !== 'undefined') {
+        try { audio.upgrade(); audio.playSample('hero_dash', 0.9); } catch(e) {}
+      }
+      return this.mode;
+    }
+
+    toggleBattleMask(state) {
+      this.fireWeapon();
+      return true;
+    }
+
+    toggleMatrixChest(state) {
+      if (this.energonLight) {
+        this.energonLight.color.setHex(0xd946ef);
+        this.energonLight.intensity = 12.0;
+      }
+      if (typeof window !== 'undefined' && window.lastGridEngine) {
+        window.lastGridEngine.addFloatingText("⚡ DARK ENERGON OVERDRIVE!", 235, 270, "#c084fc", 16);
+      }
+      return true;
+    }
+
+    triggerDieselSmoke(burstCount) {
+      if (typeof window !== 'undefined' && window.lastGridEngine) {
+        window.lastGridEngine.addFloatingText("💨 DARK ENERGON PLASMA PURGE!", 235, 270, "#a855f7", 16);
+      }
+      this.fireWeapon();
+    }
+
+    setLookAtTarget(x, y) {
+      if (this.externalMesh) {
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+        this.externalMesh.rotation.y = clamp(-x * 0.35, -0.4, 0.4);
+      }
+    }
+
+    getStatusReport() {
+      return {
+        hero: 'MEGATRON',
+        mode: this.mode,
+        loaded: this.loaded,
+        recoil: this.recoil
+      };
+    }
+
+    dispose() {
+      if (this.mixer) {
+        this.mixer.stopAllAction();
+        this.mixer = null;
+      }
+      if (this.externalMesh) {
+        this.root.remove(this.externalMesh);
+        this.externalMesh.traverse((c) => {
+          if (c.geometry) {
+            try { c.geometry.dispose(); } catch(e) {}
+          }
+          if (c.material) {
+            try {
+              if (Array.isArray(c.material)) c.material.forEach(m => m.dispose());
+              else c.material.dispose();
+            } catch(e) {}
+          }
+        });
+        this.externalMesh = null;
+      }
+    }
+  }
+
   // Expose global classes & utilities
   rootScope.createStudioEnvironment = createStudioEnvironment;
   rootScope.createTransformerTextures = createTransformerTextures;
   rootScope.OptimusPrimeMech = OptimusPrimeMech;
   rootScope.BumblebeeMech = BumblebeeMech;
+  rootScope.MegatronMech = MegatronMech;
 })();

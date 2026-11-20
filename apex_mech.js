@@ -667,7 +667,7 @@
         rimPink.position.set(4, 2, -4);
         this.scene.add(rimPink);
 
-        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'OPTIMUS';
+        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin')) || 'MEGATRON';
         this.setSkin(savedSkin);
 
         this.bindEvents();
@@ -701,7 +701,9 @@
       this.currentSkin = skinName;
       const T = this.THREE || (typeof THREE !== 'undefined' ? THREE : (typeof window !== 'undefined' ? window.THREE : null));
       if (!T) return;
-      if (skinName === 'OPTIMUS' && window.OptimusPrimeMech) {
+      if (skinName === 'MEGATRON' && window.MegatronMech) {
+        this.mech = new window.MegatronMech(T);
+      } else if (skinName === 'OPTIMUS' && window.OptimusPrimeMech) {
         this.mech = new window.OptimusPrimeMech(T);
       } else if (skinName === 'BUMBLEBEE' && window.BumblebeeMech) {
         this.mech = new window.BumblebeeMech(T);

@@ -226,6 +226,18 @@ console.log('✔ Bumblebee mode toggled back to:', beeMode2);
 bee.dispose();
 console.log('✔ Bumblebee clean disposal verified');
 
+// Verify Megatron (War for Cybertron 3D Asset)
+if (!global.MegatronMech) throw new Error('MegatronMech not found on global!');
+const mega = new global.MegatronMech(mockTHREE);
+console.log('✔ MegatronMech instantiated with War for Cybertron Fusion Cannon and Dark Energon aura');
+mega.update(0.016);
+mega.fireWeapon();
+mega.toggleTransform();
+const megaRep = mega.getStatusReport();
+if (!megaRep || megaRep.hero !== 'MEGATRON') throw new Error('Megatron status report invalid');
+mega.dispose();
+console.log('✔ Megatron clean disposal verified');
+
 // 2. Load apex_mech.js & verify polymorphism in Apex01System
 const apexCode = fs.readFileSync(path.join(__dirname, '../apex_mech.js'), 'utf8');
 eval(apexCode);
