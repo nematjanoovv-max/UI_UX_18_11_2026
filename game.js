@@ -1400,14 +1400,14 @@
       if (!mechCanvas || !this.canvas) return;
 
       const rect = this.canvas.getBoundingClientRect();
-      const scaleX = rect.width / 1280;
-      const scaleY = rect.height / 720;
+      mechCanvas.style.left = `${rect.left}px`;
+      mechCanvas.style.top = `${rect.top}px`;
+      mechCanvas.style.width = `${rect.width}px`;
+      mechCanvas.style.height = `${rect.height}px`;
 
-      // Hangar slot in 1280x720: x: 50, y: 162, w: 370, h: 308
-      mechCanvas.style.left = `${rect.left + 50 * scaleX}px`;
-      mechCanvas.style.top = `${rect.top + 162 * scaleY}px`;
-      mechCanvas.style.width = `${Math.floor(370 * scaleX)}px`;
-      mechCanvas.style.height = `${Math.floor(308 * scaleY)}px`;
+      if (this.apexSystem && typeof this.apexSystem.resize === 'function') {
+        this.apexSystem.resize(rect.width, rect.height);
+      }
     }
 
     setupCanvasScaling() {
@@ -1929,21 +1929,38 @@
             this.codexDragging = true;
             this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
           }
+          if (this.state === 'MENU' && this.mousePos.x >= 40 && this.mousePos.x <= 440 && this.mousePos.y >= 160 && this.mousePos.y <= 470) {
+            this.mechDragging = true;
+            this.mechDragStart = { x: this.mousePos.x, y: this.mousePos.y, lx: this.mousePos.x, moved: false };
+            if (this.apexSystem) this.apexSystem.pointerActive = true;
+          }
         }
       });
       window.addEventListener('mouseup', () => {
         this.isPointerDown = false;
         this.codexDragging = false;
+        if (this.mechDragging) {
+          this.mechDragging = false;
+          if (this.apexSystem) this.apexSystem.pointerActive = false;
+        }
       });
 
       // Desktop Mouse Move
       this.canvas.addEventListener('mousemove', (e) => {
         this.mousePos = this.getCanvasPos(e);
         this.updateHoverCell();
-        if (this.state === 'MENU' && this.apexSystem && this.apexSystem.setLookAtTarget && this.mousePos) {
-          const nx = (this.mousePos.x - 235) / 400;
-          const ny = (this.mousePos.y - 316) / 300;
-          this.apexSystem.setLookAtTarget(nx, ny);
+        if (this.state === 'MENU') {
+          if (this.apexSystem && this.apexSystem.setLookAtTarget && this.mousePos) {
+            const nx = Math.max(-1, Math.min(1, (this.mousePos.x - 320) / 450));
+            const ny = Math.max(-1, Math.min(1, (this.mousePos.y - 320) / 300));
+            this.apexSystem.setLookAtTarget(nx, ny);
+          }
+          if (this.mechDragging && this.mousePos && this.apexSystem && this.apexSystem.mech) {
+            const dx = this.mousePos.x - this.mechDragStart.lx;
+            if (Math.abs(this.mousePos.x - this.mechDragStart.x) > 6) this.mechDragStart.moved = true;
+            this.apexSystem.mech.yawVel = dx * 0.007;
+            this.mechDragStart.lx = this.mousePos.x;
+          }
         }
         if (this.showSettingsModal && this.isPointerDown && this.mousePos) {
           this.handleSettingsClick(this.mousePos.x, this.mousePos.y);
@@ -1994,6 +2011,11 @@
         if (tPos) {
           this.mousePos = tPos;
           this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
+          if (this.state === 'MENU' && tPos.x >= 40 && tPos.x <= 440 && tPos.y >= 160 && tPos.y <= 470) {
+            this.mechDragging = true;
+            this.mechDragStart = { x: tPos.x, y: tPos.y, lx: tPos.x, moved: false };
+            if (this.apexSystem) this.apexSystem.pointerActive = true;
+          }
           if (this.state === 'MANUAL') {
             this.codexYawVel = 0;
             if (e.touches && e.touches.length === 2) {
@@ -2155,6 +2177,20 @@
           return;
         }
 
+        if (this.state === 'MENU') {
+          if (this.apexSystem && this.apexSystem.setLookAtTarget && pos) {
+            const nx = Math.max(-1, Math.min(1, (pos.x - 320) / 450));
+            const ny = Math.max(-1, Math.min(1, (pos.y - 320) / 300));
+            this.apexSystem.setLookAtTarget(nx, ny);
+          }
+          if (this.mechDragging && pos && this.apexSystem && this.apexSystem.mech) {
+            const dx = pos.x - this.mechDragStart.lx;
+            if (Math.abs(pos.x - this.mechDragStart.x) > 6) this.mechDragStart.moved = true;
+            this.apexSystem.mech.yawVel = dx * 0.007;
+            this.mechDragStart.lx = pos.x;
+          }
+        }
+
         if (this.state === 'MANUAL') {
           if (e.touches && e.touches.length === 2) {
             e.preventDefault();
@@ -2217,6 +2253,10 @@
         this.isPointerDown = false;
         this.codexDragging = false;
         this.codexPinchDist = null;
+        if (this.mechDragging) {
+          this.mechDragging = false;
+          if (this.apexSystem) this.apexSystem.pointerActive = false;
+        }
         e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
@@ -10707,21 +10747,22 @@
       const ctx = this.ctx;
       const time = performance.now() * 0.002;
 
-      // 1. Deep Space Atmospheric Gradient Background
-      const bgGrad = ctx.createLinearGradient(0, 0, this.width, this.height);
-      bgGrad.addColorStop(0, "#040711");
-      bgGrad.addColorStop(0.4, "#070e20");
-      bgGrad.addColorStop(1, "#03050b");
+      // 1. Transparent Clear with Cyber Vignette (Allows Fullscreen 3D Mech Hangar Behind)
+      ctx.clearRect(0, 0, this.width, this.height);
+      const bgGrad = ctx.createRadialGradient(this.width * 0.38, this.height * 0.5, 140, this.width * 0.5, this.height * 0.5, this.width * 0.85);
+      bgGrad.addColorStop(0, "rgba(4, 8, 18, 0.04)");
+      bgGrad.addColorStop(0.5, "rgba(5, 10, 22, 0.28)");
+      bgGrad.addColorStop(1, "rgba(2, 4, 10, 0.78)");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, this.width, this.height);
 
-      // Cyber Grid Lines
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.05)";
+      // Subtle Cyber Grid Overlay
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.035)";
       ctx.lineWidth = 1;
-      for (let x = 0; x <= this.width; x += 50) {
+      for (let x = 0; x <= this.width; x += 64) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.height); ctx.stroke();
       }
-      for (let y = 0; y <= this.height; y += 50) {
+      for (let y = 0; y <= this.height; y += 64) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
       }
 
@@ -10778,12 +10819,12 @@
       ctx.closePath();
 
       const hGrad = ctx.createLinearGradient(hx, hy, hx, hy + hh);
-      hGrad.addColorStop(0, "rgba(12, 22, 40, 0.94)");
-      hGrad.addColorStop(1, "rgba(6, 11, 20, 0.96)");
+      hGrad.addColorStop(0, "rgba(10, 22, 42, 0.22)");
+      hGrad.addColorStop(1, "rgba(4, 10, 20, 0.42)");
       ctx.fillStyle = hGrad;
       ctx.fill();
 
-      ctx.strokeStyle = "#00e5ff";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
@@ -10808,18 +10849,12 @@
       this.renderMiniButton(hx + 130, hy + 44, 120, 26, "🚛 OPTIMUS", activeSkin === 'OPTIMUS' ? "#ff3355" : "rgba(255, 51, 85, 0.4)");
       this.renderMiniButton(hx + 255, hy + 44, 125, 26, "🏎️ BUMBLEBEE", activeSkin === 'BUMBLEBEE' ? "#ffd600" : "rgba(255, 214, 0, 0.4)");
 
-      // Rotating Hologram Base Plate on Floor
-      const px = hx + hw / 2;
-      const py = hy + 285;
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
-      ctx.lineWidth = 2;
+      // Clean Cyber Frame Accents
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.2)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.ellipse(px, py + 95, 120, 36, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(255, 214, 0, 0.25)";
-      ctx.beginPath();
-      ctx.ellipse(px, py + 95, 85, 26, 0, 0, Math.PI * 2);
+      ctx.moveTo(hx + 10, hy + 370);
+      ctx.lineTo(hx + hw - 10, hy + 370);
       ctx.stroke();
 
       // Action Deck Buttons below 3D Canvas (Row 1: Modes & Combat)
@@ -10832,10 +10867,10 @@
       this.renderMiniButton(hx + 130, hy + 416, 120, 26, "✨ MATRIX", "#ffd600");
       this.renderMiniButton(hx + 255, hy + 416, 125, 26, "💨 TUTUN", "#94a3b8");
 
-      // Hero Dossier Stats at Hangar Bottom
-      ctx.fillStyle = "rgba(10, 18, 32, 0.88)";
+      // Hero Dossier Stats at Hangar Bottom (Glassmorphism HUD)
+      ctx.fillStyle = "rgba(10, 18, 32, 0.72)";
       ctx.fillRect(hx + 12, hy + 448, hw - 24, 132);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
       ctx.strokeRect(hx + 12, hy + 448, hw - 24, 132);
 
       ctx.fillStyle = "#cfd8dc";

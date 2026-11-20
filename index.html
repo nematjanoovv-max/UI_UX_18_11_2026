@@ -65,26 +65,27 @@
       box-shadow: none;
     }
     #game-canvas {
+      position: absolute;
       display: block;
       touch-action: none;
       -webkit-touch-callout: none;
       cursor: crosshair;
       image-rendering: auto;
+      z-index: 2;
     }
     #mech-hangar-canvas {
       position: absolute;
       display: none;
-      pointer-events: auto;
+      pointer-events: none;
       touch-action: none;
-      cursor: grab;
-      z-index: 4;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
   <div id="canvas-container">
+    <canvas id="mech-hangar-canvas" width="1280" height="720"></canvas>
     <canvas id="game-canvas" width="1280" height="720"></canvas>
-    <canvas id="mech-hangar-canvas" width="370" height="340"></canvas>
   </div>
   <script src="libs/three.min.js?v=4.1.0"></script>
   <script src="libs/GLTFLoader.js?v=4.1.0_rev9"></script>

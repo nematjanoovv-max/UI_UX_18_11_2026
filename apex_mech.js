@@ -650,7 +650,7 @@
           this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
         }
         this.camera = new THREE.PerspectiveCamera(36, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(2.0, 1.4, 7.6);
+        this.camera.position.set(0.2, 1.25, 7.2);
         this.camera.lookAt(0, 0.35, 0);
 
         // Cyber Lighting
@@ -678,6 +678,20 @@
       }
     }
 
+    resize(cssW, cssH) {
+      if (!this.canvas || !this.renderer || !this.camera) return;
+      const isLowEnd = (typeof navigator !== 'undefined') && (
+        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+        (window.innerWidth < 768) ||
+        (navigator.deviceMemory && navigator.deviceMemory <= 3)
+      );
+      const pr = isLowEnd ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
+      this.renderer.setPixelRatio(pr);
+      this.renderer.setSize(cssW, cssH, false);
+      this.camera.aspect = cssW / cssH;
+      this.camera.updateProjectionMatrix();
+    }
+
     setSkin(skinName) {
       if (this.currentSkin === skinName && this.mech) return;
       if (this.mech) {
@@ -693,6 +707,9 @@
         this.mech = new window.BumblebeeMech(T);
       } else {
         this.mech = new Apex01Mech(T);
+      }
+      if (this.mech && this.mech.root) {
+        this.mech.root.position.set(-1.8, 0, 0);
       }
       if (this.scene) this.scene.add(this.mech.root);
     }
