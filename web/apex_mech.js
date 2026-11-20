@@ -621,25 +621,20 @@
       this.THREE = THREE;
 
       try {
-        const isLowEnd = (typeof navigator !== 'undefined') && (
-          (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
-          (window.innerWidth < 768) ||
-          (navigator.deviceMemory && navigator.deviceMemory <= 3)
-        );
-        const pr = isLowEnd ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
+        const pr = Math.min(window.devicePixelRatio || 1, 2.5);
         this.renderer = new THREE.WebGLRenderer({
           canvas: this.canvas,
-          antialias: !isLowEnd,
+          antialias: true,
           alpha: true,
-          powerPreference: isLowEnd ? 'low-power' : 'high-performance',
-          precision: isLowEnd ? 'mediump' : 'highp'
+          powerPreference: 'high-performance',
+          precision: 'highp'
         });
         this.renderer.setPixelRatio(pr);
         this.renderer.setSize(this.canvas.width, this.canvas.height, false);
 
         if (THREE.ACESFilmicToneMapping) {
           this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          this.renderer.toneMappingExposure = 1.25;
+          this.renderer.toneMappingExposure = 1.35;
         }
         if (THREE.SRGBColorSpace) {
           this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -653,19 +648,19 @@
         this.camera.position.set(0.2, 1.25, 7.2);
         this.camera.lookAt(0, 0.35, 0);
 
-        // Cyber Lighting
-        this.scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.6));
-        const key = new THREE.DirectionalLight(0xffffff, 1.8);
+        // Cyber Studio Lighting
+        this.scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.8));
+        const key = new THREE.DirectionalLight(0xfff8ee, 2.2);
         key.position.set(5, 8, 6);
         this.scene.add(key);
 
-        const rimCyan = new THREE.PointLight(0x00e5ff, 12, 14);
+        const rimCyan = new THREE.PointLight(0x00e5ff, 14, 16);
         rimCyan.position.set(-4, 3, -3);
         this.scene.add(rimCyan);
 
-        const rimPink = new THREE.PointLight(0xff007f, 10, 14);
-        rimPink.position.set(4, 2, -4);
-        this.scene.add(rimPink);
+        const rimViolet = new THREE.PointLight(0xa855f7, 14, 16);
+        rimViolet.position.set(4, 2, -4);
+        this.scene.add(rimViolet);
 
         const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin_v42')) || 'MEGATRON';
         this.setSkin(savedSkin);
@@ -680,12 +675,7 @@
 
     resize(cssW, cssH) {
       if (!this.canvas || !this.renderer || !this.camera) return;
-      const isLowEnd = (typeof navigator !== 'undefined') && (
-        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
-        (window.innerWidth < 768) ||
-        (navigator.deviceMemory && navigator.deviceMemory <= 3)
-      );
-      const pr = isLowEnd ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5);
+      const pr = Math.min(window.devicePixelRatio || 1, 2.5);
       this.renderer.setPixelRatio(pr);
       this.renderer.setSize(cssW, cssH, false);
       this.camera.aspect = cssW / cssH;
