@@ -49,6 +49,12 @@ const engine = new global.Codex3DEngine();
 console.log("✓ Created Codex3DEngine instance");
 console.log("✓ Codex3DEngine class ready");
 
+// Test Lighting Presets
+for (let i = 0; i < 4; i++) {
+  const pName = engine.cycleLightingPreset();
+  console.log(`✓ Lighting preset [${i}]: ${pName}`);
+}
+
 const allUnits = [
   // Towers
   { id: 'pulse', tab: 'TOWERS' },

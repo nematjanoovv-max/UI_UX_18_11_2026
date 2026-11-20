@@ -1,6 +1,6 @@
 // Tower Defense: Last Grid - Service Worker for Offline PWA
 // Bumped cache revision to force automatic purge of old assets
-const CACHE_NAME = 'last-grid-cache-v4.1.0-rev6';
+const CACHE_NAME = 'last-grid-cache-v4.1.0-rev7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -1861,6 +1861,7 @@
           const dx = this.mousePos.x - this.codexDragStart.x;
           const dy = this.mousePos.y - this.codexDragStart.y;
           this.codexYaw = (this.codexYaw || 0) + dx * 0.012;
+          this.codexYawVel = dx * 0.007;
           this.codexPitch = Math.max(-0.6, Math.min(0.8, (this.codexPitch !== undefined ? this.codexPitch : 0.28) + dy * 0.012));
           this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
           this.codexAutoRotate = false;
@@ -1902,9 +1903,15 @@
         if (tPos) {
           this.mousePos = tPos;
           this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
-          if (this.state === 'MANUAL' && tPos.x >= 320 && tPos.x <= 780 && tPos.y >= 75 && tPos.y <= 540) {
-            this.codexDragging = true;
-            this.codexDragStart = { x: tPos.x, y: tPos.y };
+          if (this.state === 'MANUAL') {
+            this.codexYawVel = 0;
+            if (e.touches && e.touches.length === 2) {
+              this.codexPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+              this.codexDragging = false;
+            } else if (tPos.x >= 320 && tPos.x <= 780 && tPos.y >= 75 && tPos.y <= 540) {
+              this.codexDragging = true;
+              this.codexDragStart = { x: tPos.x, y: tPos.y };
+            }
           }
         }
         if (this.state === 'TPS_3D' && this.tps3D) {
@@ -2057,13 +2064,27 @@
           return;
         }
 
-        if (this.state === 'MANUAL' && this.codexDragging && pos) {
-          const dx = pos.x - this.codexDragStart.x;
-          const dy = pos.y - this.codexDragStart.y;
-          this.codexYaw = (this.codexYaw || 0) + dx * 0.012;
-          this.codexPitch = Math.max(-0.6, Math.min(0.8, (this.codexPitch !== undefined ? this.codexPitch : 0.28) + dy * 0.012));
-          this.codexDragStart = { x: pos.x, y: pos.y };
-          this.codexAutoRotate = false;
+        if (this.state === 'MANUAL') {
+          if (e.touches && e.touches.length === 2) {
+            e.preventDefault();
+            const curDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            if (this.codexPinchDist) {
+              const ratio = curDist / this.codexPinchDist;
+              this.codexZoom = Math.max(0.5, Math.min(2.2, (this.codexZoom || 1.0) * ratio));
+            }
+            this.codexPinchDist = curDist;
+            this.codexDragging = false;
+            return;
+          }
+          if (this.codexDragging && pos) {
+            const dx = pos.x - this.codexDragStart.x;
+            const dy = pos.y - this.codexDragStart.y;
+            this.codexYaw = (this.codexYaw || 0) + dx * 0.012;
+            this.codexYawVel = dx * 0.007;
+            this.codexPitch = Math.max(-0.6, Math.min(0.8, (this.codexPitch !== undefined ? this.codexPitch : 0.28) + dy * 0.012));
+            this.codexDragStart = { x: pos.x, y: pos.y };
+            this.codexAutoRotate = false;
+          }
         }
 
         if (this.state === 'TPS_3D' && this.tps3D) {
@@ -2104,6 +2125,7 @@
       this.canvas.addEventListener('touchend', (e) => {
         this.isPointerDown = false;
         this.codexDragging = false;
+        this.codexPinchDist = null;
         e.preventDefault(); // PREVENTS SYNTHETIC DUPLICATE CLICK!
         this.lastTouchActionTime = Date.now();
         const pos = this.getCanvasPos(e);
@@ -2712,6 +2734,30 @@
           if (x >= 790 && x <= 935) { this.codexBranch = 'BASE'; audio.click(); this.vibrate(12); return; }
           if (x >= 940 && x <= 1090) { this.codexBranch = 'BRANCH_A'; audio.click(); this.vibrate(12); return; }
           if (x >= 1095 && x <= 1250) { this.codexBranch = 'BRANCH_B'; audio.click(); this.vibrate(12); return; }
+        }
+
+        // Top Turntable HUD Controls (Reset & Lighting)
+        if (y >= 80 && y <= 112) {
+          // [⟲ RESET]
+          if (x >= 485 && x <= 562) {
+            this.codexYaw = 0.45;
+            this.codexPitch = 0.28;
+            this.codexZoom = 1.0;
+            this.codexYawVel = 0;
+            audio.click();
+            this.vibrate(12);
+            return;
+          }
+          // [💡 LIGHTING PRESET]
+          if (x >= 568 && x <= 770) {
+            if (this.codex3DEngine) {
+              const newPreset = this.codex3DEngine.cycleLightingPreset();
+              this.addFloatingText(`💡 YORUG'LIK: ${newPreset}`, 550, 140, "#00e5ff", 14);
+            }
+            audio.click();
+            this.vibrate(15);
+            return;
+          }
         }
 
         // Turntable Control Buttons (Row 1)
@@ -11438,6 +11484,9 @@ getCodexDatabase() {
 
       if (this.codexAutoRotate) {
         this.codexYaw = (this.codexYaw || 0) + dt * 0.75;
+      } else if (!this.codexDragging && Math.abs(this.codexYawVel || 0) > 0.0002) {
+        this.codexYaw = (this.codexYaw || 0) + this.codexYawVel * dt * 60;
+        this.codexYawVel *= Math.pow(0.88, dt * 60);
       }
       if (this.codexRecoil > 0) {
         this.codexRecoil = Math.max(0, this.codexRecoil - dt * 4.5);
@@ -12120,6 +12169,21 @@ getCodexDatabase() {
       const pitch = (this.codexPitch !== undefined ? this.codexPitch : 0.28);
       const mode = this.codexRenderMode || "SHADED";
       const branch = this.codexBranch || "BASE";
+
+      // Top Turntable HUD Controls (Badge, Reset & Lighting)
+      ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
+      ctx.fillRect(332, 82, 140, 26);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(332, 82, 140, 26);
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡ 3D PBR // 60 FPS", 402, 99);
+
+      this.drawCyberButton(485, 82, 75, 26, "⟲ RESET", "#ffd600", "", "");
+      const lightName = this.codex3DEngine ? this.codex3DEngine.getLightingPresetName() : "CS2 HANGAR";
+      this.drawCyberButton(568, 82, 198, 26, `💡 ${lightName}`, "#00e5ff", "", "");
 
       // Holographic Turntable Base & Animated Scanner Rings
       ctx.save();

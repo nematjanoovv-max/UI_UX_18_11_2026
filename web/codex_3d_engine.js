@@ -923,9 +923,36 @@
       this.zoom = 1.0;
       this.recoil = 0;
       this.time = 0;
+      this.lightPresetIdx = 0;
 
       this.width = 512;
       this.height = 512;
+    }
+
+    cycleLightingPreset() {
+      this.lightPresetIdx = ((this.lightPresetIdx || 0) + 1) % 4;
+      this.applyLightingPreset();
+      return this.getLightingPresetName();
+    }
+
+    getLightingPresetName() {
+      const names = ['CS2 HANGAR', 'NEON KIBERPANK', "CHO'L POLIGONI", 'GIGANT VOID'];
+      return names[this.lightPresetIdx || 0];
+    }
+
+    applyLightingPreset() {
+      const presets = [
+        { name: 'CS2 HANGAR', keyCol: 0xfff4e6, keyI: 2.6, fillCol: 0x406085, fillI: 1.2, rimC: 0x00e5ff, rimM: 0xff007f, hemiSky: 0x7fb8ff, hemiGrd: 0x09101c },
+        { name: 'NEON KIBERPANK', keyCol: 0x00f0ff, keyI: 2.4, fillCol: 0x6b21a8, fillI: 1.6, rimC: 0xffd600, rimM: 0xff0077, hemiSky: 0x00f0ff, hemiGrd: 0x1f0733 },
+        { name: "CHO'L POLIGONI", keyCol: 0xffeedd, keyI: 3.4, fillCol: 0x64748b, fillI: 1.0, rimC: 0xf59e0b, rimM: 0x38bdf8, hemiSky: 0xffedd5, hemiGrd: 0x431407 },
+        { name: 'GIGANT VOID', keyCol: 0xc084fc, keyI: 2.5, fillCol: 0x1e1b4b, fillI: 1.4, rimC: 0x7c3aed, rimM: 0x06b6d4, hemiSky: 0x581c87, hemiGrd: 0x030712 }
+      ];
+      const p = presets[this.lightPresetIdx || 0];
+      if (this.keyLight) { this.keyLight.color.setHex(p.keyCol); this.keyLight.intensity = p.keyI; }
+      if (this.fillLight) { this.fillLight.color.setHex(p.fillCol); this.fillLight.intensity = p.fillI; }
+      if (this.rimCyan) { this.rimCyan.color.setHex(p.rimC); }
+      if (this.rimMagenta) { this.rimMagenta.color.setHex(p.rimM); }
+      if (this.hemiLight) { this.hemiLight.color.setHex(p.hemiSky); this.hemiLight.groundColor.setHex(p.hemiGrd); }
     }
 
     init() {
@@ -1121,15 +1148,61 @@
           }
           if (m.isGunship && m.rotors) {
             for (const r of m.rotors) r.rotation.y += dt * 35.0;
+            if (m.hull) m.hull.position.y = 0.3 + Math.sin(this.time * 3) * 0.08;
           }
           if (m.dish) {
             m.dish.rotation.y += dt * (m.rotSpeed || 1.0);
           }
 
-          // Recoil kickback on firing
-          if (recoil > 0 && (m.barrels || m.barrel || m.rails || m.guns)) {
-            const rObj = m.barrels || m.barrel || m.rails || m.guns;
-            rObj.position.z = (rObj._origZ || rObj.position.z) - recoil * 0.4;
+          // Biped Soldier Walk Kinematics (Grunt)
+          if (m.isBiped) {
+            const wSpeed = 5.2;
+            if (m.legR) m.legR.rotation.x = Math.sin(this.time * wSpeed) * 0.42;
+            if (m.legL) m.legL.rotation.x = -Math.sin(this.time * wSpeed) * 0.42;
+            if (m.armR) m.armR.rotation.x = -Math.sin(this.time * wSpeed) * 0.32;
+            if (m.armL) m.armL.rotation.x = Math.sin(this.time * wSpeed) * 0.32;
+            if (m.torso) m.torso.position.y = 0.4 + Math.abs(Math.sin(this.time * wSpeed * 2)) * 0.04;
+          }
+
+          // Sprinter Raptor Leaping Kinematics
+          if (m.isSprinter && m.body) {
+            const sSpeed = 8.5;
+            m.body.position.y = 0.1 + Math.abs(Math.sin(this.time * sSpeed)) * 0.16;
+            m.body.rotation.z = Math.sin(this.time * sSpeed) * 0.07;
+            if (m.head) m.head.rotation.x = Math.sin(this.time * sSpeed) * 0.12;
+          }
+
+          // Brute Heavy Stomping Kinematics
+          if (m.isBrute && m.torso) {
+            const bSpeed = 3.4;
+            m.torso.position.y = 0.4 + Math.abs(Math.sin(this.time * bSpeed)) * 0.08;
+            m.torso.rotation.z = Math.sin(this.time * bSpeed) * 0.05;
+          }
+
+          // Mecha Colossus Macro Reactor Breathing
+          if (m.isColossus && m.torso) {
+            m.torso.position.y = 0.6 + Math.sin(this.time * 2.0) * 0.05;
+          }
+
+          // Hive Titan Biological Crawl
+          if (m.isHive && m.body) {
+            m.body.position.y = 0.2 + Math.sin(this.time * 2.6) * 0.06;
+          }
+
+          // Turret Autonomous Aim Scanning
+          if (m.head && m.rotSpeed) {
+            m.head.rotation.y = Math.sin(this.time * 0.6) * 0.35;
+          }
+
+          // Recoil kickback and smooth hydraulic recovery
+          const rObj = m.barrels || m.barrel || m.rails || m.guns || m.nozzles;
+          if (rObj) {
+            if (rObj._origZ === undefined) rObj._origZ = rObj.position.z;
+            if (recoil > 0) {
+              rObj.position.z = rObj._origZ - recoil * 0.45;
+            } else if (rObj.position.z < rObj._origZ) {
+              rObj.position.z = Math.min(rObj._origZ, rObj.position.z + dt * 3.5);
+            }
           }
         }
       }
