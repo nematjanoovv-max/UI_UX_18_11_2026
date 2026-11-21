@@ -1314,6 +1314,11 @@
         }
         this.syncMechCanvasPosition();
       }
+      if (mechCanvas && window.Battlefield3DEngine) {
+        this.battle3D = new window.Battlefield3DEngine();
+        this.battle3D.init(mechCanvas, this);
+        this.view3D = true;
+      }
     }
 
     cycleNextMechHero() {
@@ -2492,6 +2497,9 @@
       this.aimingSkill = null;
       this.state = 'PLAYING';
       this.bakeMapLanes(map);
+      if (this.view3D && this.battle3D) {
+        this.battle3D.currentMapIndex = -1; // trigger terrain rebuild
+      }
       this.addFloatingText(`${map.name.toUpperCase()}`, 640, 200, "#00e5ff", 22);
 
       // Initialize Battlefield Dynamics (Barricades, Airdrops, Red Zones, Radio Comms)
@@ -3272,7 +3280,7 @@
           audio.modal();
         }
         else if (x >= 1092 && x <= 1265) {
-          this.start3DTPSMode();
+          this.toggle3DView();
           return;
         }
         return;
@@ -6141,25 +6149,34 @@
       else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
       else if (this.state === 'TPS_3D') this.render3DTPS();
       else {
-        this.renderBackgroundGrid();
-        this.renderLanes();
-        this.renderGroundDecals();
-        this.renderGroundHazards();
-        this.renderRedZones();
-        this.renderBarricades();
-        this.renderUnitShadows();
-        this.renderBaseCore();
-        this.renderTowers();
+        const is3DActive = !!(this.view3D && this.battle3D && this.battle3D.active);
+        if (is3DActive) {
+          const mechCanvas = document.getElementById('mech-hangar-canvas');
+          if (mechCanvas) mechCanvas.style.display = 'block';
+          this.battle3D.update(1 / 60);
+          this.battle3D.render();
+          this.ctx.clearRect(0, 0, this.width, this.height);
+        } else {
+          this.renderBackgroundGrid();
+          this.renderLanes();
+          this.renderGroundDecals();
+          this.renderGroundHazards();
+          this.renderRedZones();
+          this.renderBarricades();
+          this.renderUnitShadows();
+          this.renderBaseCore();
+          this.renderTowers();
+          this.renderHero();
+          this.renderEnemies();
+        }
         this.renderAirdrops();
-        this.renderHero();
-        this.renderEnemies();
         this.renderProjectiles();
         this.renderParticles();
         this.renderUpgradePillars();
         this.renderFlyingCoins();
         this.renderSelectedTowerRadialHUD();
         this.renderCriticalLowHPPulse();
-        this.renderDynamicLightingLayer();
+        if (!is3DActive) this.renderDynamicLightingLayer();
         this.renderFloatingText();
         this.renderPlacementGhost();
         this.renderTacticalDragVector();
@@ -8717,7 +8734,35 @@
       this.drawCyberButton(725, 9, 125, 42, "SOZLAMALAR", "#00e5ff", "SETTINGS", "⚙️", false);
       this.drawCyberButton(860, 9, 105, 42, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff", "PAUSE", "⏸", false);
       this.drawCyberButton(975, 9, 110, 42, "← MENYU", "#ff1744", "ABORT", "🚪", false);
-      this.drawCyberButton(1095, 9, 165, 42, "🕹️ 3D PILOT", "#e040fb", "TPS BATTLE", "🎮", false);
+      const is3D = !!(this.view3D);
+      const camMode = (this.battle3D && this.battle3D.cameraMode) ? this.battle3D.cameraMode : 'TACTICAL';
+      const modeLabel = is3D ? (camMode === 'HERO_CHASE' ? "🎥 3D MEGATRON" : "🎥 3D TAKTIK") : "🎥 2D KLASSIK";
+      this.drawCyberButton(1095, 9, 165, 42, modeLabel, is3D ? "#e040fb" : "#00e5ff", is3D ? "VIEW: " + camMode : "FLAT 2.5D", "🎥", is3D);
+    }
+
+    toggle3DView() {
+      if (!this.battle3D) {
+        const mechCanvas = document.getElementById('mech-hangar-canvas');
+        if (mechCanvas && window.Battlefield3DEngine) {
+          this.battle3D = new window.Battlefield3DEngine();
+          this.battle3D.init(mechCanvas, this);
+        }
+      }
+
+      if (!this.view3D) {
+        this.view3D = true;
+        if (this.battle3D) this.battle3D.setCameraMode('TACTICAL');
+        this.addFloatingText("🎥 3D TAKTIK REJIM YOQILDI!", 640, 120, "#e040fb", 16);
+      } else if (this.battle3D && this.battle3D.cameraMode === 'TACTICAL') {
+        this.battle3D.setCameraMode('HERO_CHASE');
+        this.addFloatingText("🎥 3D MEGATRON ACTION KAMERA!", 640, 120, "#c084fc", 16);
+      } else {
+        this.view3D = false;
+        const mechCanvas = document.getElementById('mech-hangar-canvas');
+        if (mechCanvas) mechCanvas.style.display = 'none';
+        this.addFloatingText("🎥 2D KLASSIK REJIM", 640, 120, "#00e5ff", 16);
+      }
+      try { audio.click(); this.vibrate(18); } catch(e) {}
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
