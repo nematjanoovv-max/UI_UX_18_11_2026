@@ -2238,8 +2238,16 @@
 
         if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
           this.mixer = new T.AnimationMixer(m);
-          const action = this.mixer.clipAction(gltf.animations[0]);
-          action.play();
+          this.actions = [];
+          for (let i = 0; i < gltf.animations.length; i++) {
+            const action = this.mixer.clipAction(gltf.animations[i]);
+            action.setLoop(T.LoopRepeat || 2201);
+            action.clampWhenFinished = false;
+            action.enabled = true;
+            action.play();
+            this.actions.push(action);
+          }
+          console.log('[MegatronMech] War for Cybertron animation active! Clips:', gltf.animations.length, 'Duration:', gltf.animations[0].duration);
         }
         console.log('[MegatronMech] War for Cybertron 3D Model successfully loaded and attached!');
       };
@@ -2272,10 +2280,11 @@
       };
 
       const candidateUrls = [
+        'transformers_war_for_cybertron_megatron.glb',
+        './transformers_war_for_cybertron_megatron.glb',
         'assets/models/megatron.glb',
         './assets/models/megatron.glb',
-        '../assets/models/megatron.glb',
-        'transformers_war_for_cybertron_megatron.glb'
+        '../assets/models/megatron.glb'
       ];
 
       const tryLoad = (idx) => {
