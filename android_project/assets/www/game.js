@@ -1934,7 +1934,7 @@
             this.codexDragging = true;
             this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
           }
-          if (this.state === 'MENU' && this.mousePos.x >= 24 && this.mousePos.x <= 516 && this.mousePos.y >= 80 && this.mousePos.y <= 616) {
+          if (this.state === 'MENU' && this.mousePos.x >= 20 && this.mousePos.x <= 590 && this.mousePos.y >= 70 && this.mousePos.y <= 665) {
             this.mechDragging = true;
             this.mechDragStart = { x: this.mousePos.x, y: this.mousePos.y, lx: this.mousePos.x, moved: false };
             if (this.apexSystem) this.apexSystem.pointerActive = true;
@@ -1956,7 +1956,7 @@
         this.updateHoverCell();
         if (this.state === 'MENU') {
           if (this.apexSystem && this.apexSystem.setLookAtTarget && this.mousePos) {
-            const nx = Math.max(-1, Math.min(1, (this.mousePos.x - 268) / 380));
+            const nx = Math.max(-1, Math.min(1, (this.mousePos.x - 360) / 380));
             const ny = Math.max(-1, Math.min(1, (this.mousePos.y - 360) / 280));
             this.apexSystem.setLookAtTarget(nx, ny);
           }
@@ -2016,7 +2016,7 @@
         if (tPos) {
           this.mousePos = tPos;
           this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
-          if (this.state === 'MENU' && tPos.x >= 24 && tPos.x <= 516 && tPos.y >= 80 && tPos.y <= 616) {
+          if (this.state === 'MENU' && tPos.x >= 20 && tPos.x <= 590 && tPos.y >= 70 && tPos.y <= 665) {
             this.mechDragging = true;
             this.mechDragStart = { x: tPos.x, y: tPos.y, lx: tPos.x, moved: false };
             if (this.apexSystem) this.apexSystem.pointerActive = true;
@@ -2184,7 +2184,7 @@
 
         if (this.state === 'MENU') {
           if (this.apexSystem && this.apexSystem.setLookAtTarget && pos) {
-            const nx = Math.max(-1, Math.min(1, (pos.x - 268) / 380));
+            const nx = Math.max(-1, Math.min(1, (pos.x - 360) / 380));
             const ny = Math.max(-1, Math.min(1, (pos.y - 360) / 280));
             this.apexSystem.setLookAtTarget(nx, ny);
           }
@@ -2658,118 +2658,93 @@
         return;
       }
       if (this.state === 'MENU') {
-        // Left Megatron Hero Showcase & Interactive Action Deck (x: 24 to 516, y: 70 to 696)
-        if (x >= 24 && x <= 516 && y >= 70 && y <= 696) {
-          // Row 1 Action Buttons (y: 616 to 650)
-          if (y >= 616 && y <= 650) {
-            if (x >= 32 && x <= 262) {
-              this.toggleMechTransform();
-              this.vibrate([30, 20, 40]);
-              audio.click();
-              return;
-            }
-            if (x >= 270 && x <= 508) {
-              this.triggerMechAction();
-              this.vibrate([45, 30, 60]);
-              return;
-            }
+        // 1. Floating Action Pills under Megatron (y: 665 to 708)
+        if (y >= 665 && y <= 708) {
+          if (x >= 60 && x <= 180) {
+            this.toggleMechTransform();
+            this.vibrate([30, 20, 40]);
+            audio.click();
+            return;
           }
-          // Row 2 Action Buttons (y: 654 to 688)
-          if (y >= 654 && y <= 688) {
-            if (x >= 32 && x <= 262) {
-              this.toggleMechMatrixChest();
-              this.vibrate([40, 25, 50]);
-              audio.click();
-              return;
-            }
-            if (x >= 270 && x <= 508) {
-              try { window.open('preview_transformers.html', '_blank'); } catch(e) {}
-              this.vibrate(20);
-              audio.click();
-              return;
-            }
+          if (x >= 190 && x <= 310) {
+            this.triggerMechAction();
+            this.vibrate([45, 30, 60]);
+            return;
           }
-          // Stage tap on Megatron's 3D Body: Trigger Fusion Cannon Blast
+          if (x >= 320 && x <= 450) {
+            this.toggleMechMatrixChest();
+            this.vibrate([40, 25, 50]);
+            audio.click();
+            return;
+          }
+          if (x >= 460 && x <= 580) {
+            try { window.open('preview_transformers.html', '_blank'); } catch(e) {}
+            this.vibrate(20);
+            audio.click();
+            return;
+          }
+        }
+
+        // 2. Stage tap on Megatron's 3D Body: Trigger Fusion Cannon Blast
+        if (x >= 20 && x <= 590 && y >= 70 && y <= 664) {
           this.triggerMechAction();
           return;
         }
 
-        // Primary Action 1: Kampaniya (x: 528 to 884, y: 70 to 172)
-        if (x >= 528 && x <= 884 && y >= 70 && y <= 172) {
-          this.vibrate([25, 20, 35]);
-          audio.click();
-          this.startMission(0, 'CAMPAIGN');
-          return;
+        // 3. Primary Hero Mission Cards (Row 1, y: 72 to 184)
+        if (y >= 72 && y <= 184) {
+          if (x >= 600 && x <= 920) {
+            this.vibrate([25, 20, 35]);
+            audio.click();
+            this.startMission(0, 'CAMPAIGN');
+            return;
+          }
+          if (x >= 936 && x <= 1256) {
+            this.vibrate([25, 20, 35]);
+            audio.click();
+            this.startMission(9, 'ENDLESS');
+            return;
+          }
         }
 
-        // Primary Action 2: Cheksiz Omon Qolish (x: 896 to 1256, y: 70 to 172)
-        if (x >= 896 && x <= 1256 && y >= 70 && y <= 172) {
-          this.vibrate([25, 20, 35]);
-          audio.click();
-          this.startMission(9, 'ENDLESS');
-          return;
-        }
-
-        // Secondary Action Row 2 (y: 178 to 254)
-        // Left: Sektorlar Xaritasi (x: 528 to 884)
-        if (x >= 528 && x <= 884 && y >= 178 && y <= 254) {
-          this.vibrate(15);
-          audio.click();
-          this.state = 'MAP_SELECT';
-          return;
-        }
-        // Right: Ensiklopediya (x: 896 to 1256)
-        if (x >= 896 && x <= 1256 && y >= 178 && y <= 254) {
-          this.vibrate(15);
-          audio.click();
-          this.state = 'MANUAL';
-          if (this.apexSystem) this.apexSystem.hide();
-          return;
-        }
-
-        // Quick Ops Row 3 (y: 260 to 324)
-        if (y >= 260 && y <= 324) {
-          if (x >= 528 && x <= 764) {
+        // 4. Tactical Operations (Row 2, y: 202 to 286)
+        if (y >= 202 && y <= 286) {
+          if (x >= 600 && x <= 808) {
+            this.vibrate(15);
+            audio.click();
+            this.state = 'MAP_SELECT';
+            return;
+          }
+          if (x >= 824 && x <= 1032) {
             this.vibrate([25, 20, 45]);
             audio.click();
             this.startMission(0, 'BOSS_RUSH');
             return;
           }
-          if (x >= 774 && x <= 1010) {
+          if (x >= 1048 && x <= 1256) {
             this.vibrate(15);
             audio.click();
             this.state = 'EDITOR';
             return;
           }
-          if (x >= 1020 && x <= 1256) {
+        }
+
+        // 5. Codex, Records & Achievements (Row 3, y: 304 to 388)
+        if (y >= 304 && y <= 388) {
+          if (x >= 600 && x <= 808) {
+            this.vibrate(15);
+            audio.click();
+            this.state = 'MANUAL';
+            if (this.apexSystem) this.apexSystem.hide();
+            return;
+          }
+          if (x >= 824 && x <= 1032) {
             this.vibrate(15);
             audio.click();
             this.state = 'LEADERBOARD';
             return;
           }
-        }
-
-        // System Controls Row 4 (y: 330 to 390)
-        if (y >= 330 && y <= 390) {
-          if (x >= 528 && x <= 884) {
-            this.vibrate(15);
-            audio.click();
-            this.showSettingsModal = true;
-            this.settingsReturnState = 'MENU';
-            if (this.apexSystem) this.apexSystem.hide();
-            return;
-          }
-          if (x >= 896 && x <= 1256) {
-            this.vibrate([20, 15, 30]);
-            audio.click();
-            this.downloadApk();
-            return;
-          }
-        }
-
-        // Strategic Report Action Buttons (Achievements & Analytics, y: 530 to 636)
-        if (y >= 530 && y <= 636) {
-          if (x >= 538 && x <= 886) {
+          if (x >= 1048 && x <= 1256) {
             this.vibrate(20);
             audio.click();
             this.state = 'ACHIEVEMENTS';
@@ -2777,7 +2752,25 @@
             if (this.apexSystem) this.apexSystem.hide();
             return;
           }
-          if (x >= 896 && x <= 1244) {
+        }
+
+        // 6. Dossier Actions (y: 536 to 616)
+        if (y >= 536 && y <= 616) {
+          if (x >= 614 && x <= 812) {
+            this.vibrate(15);
+            audio.click();
+            this.showSettingsModal = true;
+            this.settingsReturnState = 'MENU';
+            if (this.apexSystem) this.apexSystem.hide();
+            return;
+          }
+          if (x >= 828 && x <= 1026) {
+            this.vibrate([20, 15, 30]);
+            audio.click();
+            this.downloadApk();
+            return;
+          }
+          if (x >= 1042 && x <= 1240) {
             this.vibrate(20);
             audio.click();
             this.state = 'ANALYTICS';
@@ -10926,81 +10919,47 @@
       ctx.restore();
 
       // =========================================================================
-      // 3. LEFT HERO SHOWCASE HANGAR: MEGATRON (x: 24 to 516, y: 70 to 696)
+      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (x: 20 to 590)
       // =========================================================================
-      const hx = 24, hy = 70, hw = 492, hh = 626;
+      // Holographic Commander Header Badge
       ctx.save();
-      const cut = 14;
-      ctx.beginPath();
-      ctx.moveTo(hx + cut, hy);
-      ctx.lineTo(hx + hw, hy);
-      ctx.lineTo(hx + hw, hy + hh - cut);
-      ctx.lineTo(hx + hw - cut, hy + hh);
-      ctx.lineTo(hx, hy + hh);
-      ctx.lineTo(hx, hy + cut);
-      ctx.closePath();
-
-      const hGrad = ctx.createLinearGradient(hx, hy, hx, hy + hh);
-      hGrad.addColorStop(0, "rgba(14, 10, 26, 0.28)");
-      hGrad.addColorStop(0.5, "rgba(8, 6, 18, 0.18)");
-      hGrad.addColorStop(1, "rgba(5, 4, 12, 0.42)");
-      ctx.fillStyle = hGrad;
-      ctx.fill();
-
-      // Decepticon Neon Purple Cyber Border
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.65)";
-      ctx.lineWidth = 1.6;
-      ctx.shadowColor = "rgba(192, 132, 252, 0.45)";
-      ctx.shadowBlur = 8;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Hangar Header - Decepticon Commander Megatron
+      const hy = 70;
       ctx.fillStyle = "#c084fc";
-      ctx.font = "bold 14px 'Segoe UI', monospace";
+      ctx.font = "bold 15px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("💀 DECEPTICON COMMANDER // MEGATRON", hx + 16, hy + 22);
+      ctx.fillText("💀 DECEPTICON SUPREME COMMANDER // MEGATRON", 36, hy + 22);
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "bold 10px monospace";
-      ctx.fillText("WAR FOR CYBERTRON • CYBERTRONIAN HEAVY SIEGE CHASSIS", hx + 16, hy + 36);
+      ctx.fillText("WAR FOR CYBERTRON • CYBERTRONIAN HEAVY SIEGE CHASSIS", 36, hy + 38);
 
       ctx.fillStyle = "#00e676";
       ctx.font = "bold 10px monospace";
-      ctx.fillText("● DARK ENERGON CORE: 100% // PBR 3D SHADER ACTIVE", hx + 16, hy + 49);
+      ctx.fillText("● DARK ENERGON CORE: 100% // PBR 3D SHADER ACTIVE", 36, hy + 52);
 
-      // Top Header Line Divider
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.3)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(hx + 12, hy + 56);
-      ctx.lineTo(hx + hw - 12, hy + 56);
-      ctx.stroke();
-
-      // Holographic Floor Pedestal Rings under 3D Model Feet (Center: pcx: 268, pcy: 588)
-      const pcx = 268;
-      const pcy = 588;
-      ctx.save();
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.55)";
+      // Holographic Floor Pedestal Rings under Megatron (Center: pcx: 360, pcy: 665)
+      const pcx = 360;
+      const pcy = 665;
+      ctx.strokeStyle = "rgba(192, 132, 252, 0.65)";
       ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 150, 48, 0, 0, Math.PI * 2);
+      ctx.ellipse(pcx, pcy, 165, 52, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.75)";
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.85)";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 115, 36, 0, 0, Math.PI * 2);
+      ctx.ellipse(pcx, pcy, 125, 38, 0, 0, Math.PI * 2);
       ctx.stroke();
 
       // Rotating tick marks
       const rotAngle = time * 0.8;
       for (let a = 0; a < 12; a++) {
         const ang = rotAngle + a * (Math.PI / 6);
-        const tx1 = pcx + Math.cos(ang) * 142;
-        const ty1 = pcy + Math.sin(ang) * 45;
-        const tx2 = pcx + Math.cos(ang) * 154;
-        const ty2 = pcy + Math.sin(ang) * 49;
+        const tx1 = pcx + Math.cos(ang) * 156;
+        const ty1 = pcy + Math.sin(ang) * 49;
+        const tx2 = pcx + Math.cos(ang) * 168;
+        const ty2 = pcy + Math.sin(ang) * 53;
         ctx.strokeStyle = (a % 3 === 0) ? "#c084fc" : "rgba(192, 132, 252, 0.4)";
         ctx.beginPath();
         ctx.moveTo(tx1, ty1);
@@ -11014,75 +10973,63 @@
       ctx.textAlign = "center";
       const dragPulse = 0.65 + Math.sin(time * 4) * 0.35;
       ctx.globalAlpha = dragPulse;
-      ctx.fillText("⟲ 3D MODELNI BURASH UCHUN USHLAB SURING (DRAG 360°)", pcx, pcy + 22);
+      ctx.fillText("⟲ 3D MODELNI BURASH UCHUN USHLAB SURING (DRAG 360°)", pcx, pcy - 20);
       ctx.globalAlpha = 1.0;
-      ctx.restore();
 
-      // Action Deck Buttons below 3D Model (x: 24 to 516)
-      // Row 1: y: 618, h: 30
-      this.renderMiniButton(hx + 8, hy + 548, 230, 30, "🔄 TANK / ROBOT REJIMI", "#00ff88");
-      this.renderMiniButton(hx + 246, hy + 548, 230, 30, "💥 FUSION CANNON: ATISH", "#ff1744");
-
-      // Row 2: y: 654, h: 30
-      this.renderMiniButton(hx + 8, hy + 584, 230, 30, "⚡ DARK ENERGON SURGE", "#c084fc");
-      this.renderMiniButton(hx + 246, hy + 584, 230, 30, "🔍 3D KODEX KO'RISH", "#00e5ff");
-
+      // Floating Tactical Action Deck under Megatron (y: 670 to 704, h: 34)
+      this.renderMiniButton(60, 670, 120, 34, "🔄 REJIM", "#00ff88");
+      this.renderMiniButton(190, 670, 120, 34, "💥 ZARBA", "#ff1744");
+      this.renderMiniButton(320, 670, 130, 34, "⚡ OVERDRIVE", "#c084fc");
+      this.renderMiniButton(460, 670, 120, 34, "🔍 3D KODEX", "#00e5ff");
       ctx.restore();
 
       // =========================================================================
-      // 4. RIGHT TACTICAL MISSION MATRIX (x: 528 to 1256, y: 70 to 696)
+      // 4. RIGHT COMMAND DECK: SPACIOUS & UNCLUTTERED (x: 600 to 1256, w: 656)
       // =========================================================================
-      // Primary Action Card 1: KAMPANIYA (x: 528, y: 70, w: 356, h: 100)
-      this.drawCyberButton(528, 70, 356, 100, this.t("campaign"), "#00e5ff", "10 PROGRESSIV SEKTOR • 3 TA BIOM", "🚀", true);
-
-      // Primary Action Card 2: CHEKSIZ OMON QOLISH (x: 896, y: 70, w: 360, h: 100)
+      // Row 1: Primary Hero Mission Cards (y: 72 to 184, h: 112)
+      this.drawCyberButton(600, 72, 320, 112, this.t("campaign"), "#00e5ff", "10 TA KIBER-SEKTOR • 3 TA BIOM", "🚀", true);
       const record = localStorage.getItem('lg_endless_wave') || "0";
-      this.drawCyberButton(896, 70, 360, 100, this.t("endless"), "#e040fb", `CHEKSIZ TO'LQINLAR • ENG YAXSHI: W${record}`, "⚡", true);
+      this.drawCyberButton(936, 72, 320, 112, this.t("endless"), "#e040fb", `CHEKSIZ TO'LQINLAR • W${record}`, "⚡", true);
 
-      // Secondary Action Cards Row 2 (y: 178, h: 74)
-      // Left: Sektorlar Xaritasi
-      this.drawCyberButton(528, 178, 356, 74, this.t("sectorSelect"), "#00e5ff", "10 TA STRATEGIK SEKTOR VA BIOM", "🗺️", true);
-      // Right: Ensiklopediya (Kiber-Kodex)
-      this.drawCyberButton(896, 178, 360, 74, this.t("fieldManual"), "#ffd600", "MINORALAR, DUSHMANLAR VA BOSSLAR BAZASI", "📖", true);
+      // Row 2: Tactical Operations (y: 202 to 286, h: 84)
+      this.drawCyberButton(600, 202, 208, 84, this.t("sectorSelect"), "#00e5ff", "STRATEGIK BIOM", "🗺️", false);
+      this.drawCyberButton(824, 202, 208, 84, this.t("bossRush"), "#ff1744", "10 TA ELITA BOSS", "💀", false);
+      this.drawCyberButton(1048, 202, 208, 84, this.t("mapEditor"), "#00e676", "MAXSUS YO'LLAR", "🛠️", false);
 
-      // Quick Ops Grid (Row 3: 3 balanced buttons across 728px, y: 260, h: 62)
-      this.drawCyberButton(528, 260, 236, 62, this.t("bossRush"), "#ff1744", "TITANLAR DUELI", "💀", false);
-      this.drawCyberButton(774, 260, 236, 62, this.t("mapEditor"), "#00e676", "XARITALAR MUHARRIRI", "🛠️", false);
-      this.drawCyberButton(1020, 260, 236, 62, this.t("leaderboard"), "#ffd600", "GLOBAL REKORDLAR", "🏆", false);
+      // Row 3: Codex, Records & Achievements (y: 304 to 388, h: 84)
+      this.drawCyberButton(600, 304, 208, 84, this.t("fieldManual"), "#ffd600", "3D MINORALAR & BAZA", "📖", false);
+      this.drawCyberButton(824, 304, 208, 84, this.t("leaderboard"), "#00e5ff", "GLOBAL LIDERLAR", "🏆", false);
+      this.drawCyberButton(1048, 304, 208, 84, "YUTUQLAR", "#e040fb", "20 TA UNVON", "🎖️", false);
 
-      // System Controls (Row 4: 2 wide ergonomic buttons across 728px, y: 330, h: 58)
-      this.drawCyberButton(528, 330, 356, 58, "SOZLAMALAR", "#00e5ff", "AUDIO VA GRAFIKA SOZLAMALARI", "⚙️", true);
-      this.drawCyberButton(896, 330, 360, 58, "ANDROID APK", "#00e676", "OFLAYN APK O'RNATISH (63MB)", "📲", true);
-
-      // Commander Tactical Report & Dossier Panel (Bottom Right: y: 396 to 696, h: 300)
+      // Section 4: Commander Tactical Telemetry Dossier Panel (Bottom Right: y: 408 to 684, h: 276)
       ctx.save();
-      const dx = 528, dy = 396, dw = 728, dh = 300;
-      ctx.fillStyle = "rgba(10, 18, 32, 0.94)";
+      const dx = 600, dy = 408, dw = 656, dh = 276;
+      ctx.fillStyle = "rgba(10, 16, 30, 0.90)";
       ctx.fillRect(dx, dy, dw, dh);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
       ctx.strokeRect(dx, dy, dw, dh);
 
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 14px 'Segoe UI', monospace";
+      ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("📊 MEGATRON SHTABI & HARBIY TELEMETRIYA", dx + 20, dy + 24);
+      ctx.fillText("📊 MEGATRON HARBIY TELEMETRIYASI & QO'MONDONLIK SHTABI", dx + 18, dy + 22);
 
-      // Stats 3-box clean player performance row (y: 432, h: 84)
+      // Live 3-Metrics Bar (y: 440 to 520, h: 80)
       const totalStars = Object.values(this.saveData.stars || {}).reduce((a, b) => a + b, 0);
       const statBoxes = [
-        { label: "FATH ETILGAN YULDUZLAR", val: `★ ${totalStars} / 30`, col: "#ffd600" },
-        { label: "CHEKSIZ REKORD TO'LQINI", val: `Wave ${record}`, col: "#e040fb" },
-        { label: "HARBIY LIDERLIK BALLI", val: `${this.saveData.highScores?.campaign || 0} PTS`, col: "#00e5ff" }
+        { label: "★ FATH ETILGAN", val: `★ ${totalStars} / 30`, col: "#ffd600" },
+        { label: "⚡ CHEKSIZ REKORD", val: `Wave ${record}`, col: "#e040fb" },
+        { label: "🛡️ HARBIY BALL", val: `${this.saveData.highScores?.campaign || 0} PTS`, col: "#00e5ff" }
       ];
 
       for (let i = 0; i < 3; i++) {
-        const bx = dx + 12 + i * 240;
-        const by = dy + 36;
-        ctx.fillStyle = "rgba(16, 28, 48, 0.88)";
-        ctx.fillRect(bx, by, 230, 84);
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
-        ctx.strokeRect(bx, by, 230, 84);
+        const bx = dx + 14 + i * 214;
+        const by = dy + 32;
+        ctx.fillStyle = "rgba(16, 26, 44, 0.88)";
+        ctx.fillRect(bx, by, 200, 80);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+        ctx.strokeRect(bx, by, 200, 80);
 
         ctx.fillStyle = "#90a4ae";
         ctx.font = "bold 10px monospace";
@@ -11090,18 +11037,19 @@
 
         ctx.fillStyle = statBoxes[i].col;
         ctx.font = "bold 20px 'Segoe UI', monospace";
-        ctx.fillText(statBoxes[i].val, bx + 12, by + 60);
+        ctx.fillText(statBoxes[i].val, bx + 12, by + 58);
       }
 
-      // Quick Access: Achievements & Battle Analytics (Expanded clean cards, y: 532, h: 100)
-      this.drawCyberButton(dx + 12, dy + 136, 346, 100, "🏆 YUTUQLAR ZALI", "#ffd600", "20 TA HARBIY UNVON VA TROFEYLAR", "★", true);
-      this.drawCyberButton(dx + 368, dy + 136, 346, 100, "📊 JANG TAHLILI", "#00e5ff", "MVP & HARBIY TELEMETRIYA TAHLILI", "📈", true);
+      // Quick System Action Buttons inside Dossier (y: 536 to 616, h: 80)
+      this.drawCyberButton(dx + 14, dy + 126, 200, 80, "SOZLAMALAR", "#38bdf8", "AUDIO & GRAFIKA", "⚙️", false);
+      this.drawCyberButton(dx + 228, dy + 126, 200, 80, "ANDROID APK", "#00e676", "OFLAYN APK (63MB)", "📲", false);
+      this.drawCyberButton(dx + 442, dy + 126, 200, 80, "JANG TAHLILI", "#a855f7", "MVP & TELEMETRIYA", "📈", false);
 
       // Micro status footer ticker
       ctx.fillStyle = "#64748b";
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("● DECEPTICON CORE SYNCHRONIZED // 60 FPS ULTRA HD // ALL COMBAT SYSTEMS OPERATIONAL", dx + dw / 2, dy + 276);
+      ctx.fillText("● DECEPTICON CORE SYNCHRONIZED // 60 FPS ULTRA PBR // ALL COMBAT SYSTEMS OPERATIONAL", dx + dw / 2, dy + 254);
 
       ctx.restore();
     }

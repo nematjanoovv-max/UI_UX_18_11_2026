@@ -2032,12 +2032,13 @@
           const size = new T.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          const scale = (maxD > 0) ? (4.3 / maxD) : 1.0;
+          // Heroic large scale for majestic close-up presence
+          const scale = (maxD > 0) ? (4.85 / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
           const center = new T.Vector3();
           box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+          m.position.set(-center.x * scale, -box.min.y * scale - 1.95, -center.z * scale);
         }
 
         m.traverse((child) => {
@@ -2045,9 +2046,34 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.roughness = Math.min(child.material.roughness !== undefined ? child.material.roughness : 0.5, 0.42);
-              child.material.metalness = Math.max(child.material.metalness !== undefined ? child.material.metalness : 0.5, 0.85);
-              child.material.envMapIntensity = 1.4;
+              child.material.envMapIntensity = 2.4;
+              // High-fidelity 16x anisotropic filtering on all PBR texture channels
+              if (child.material.map) {
+                child.material.map.anisotropy = 16;
+                child.material.map.generateMipmaps = true;
+                if (T.LinearMipmapLinearFilter) child.material.map.minFilter = T.LinearMipmapLinearFilter;
+                if (T.LinearFilter) child.material.map.magFilter = T.LinearFilter;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.normalMap) {
+                child.material.normalMap.anisotropy = 16;
+                if (T.Vector2) child.material.normalScale = new T.Vector2(1.6, 1.6);
+                child.material.normalMap.needsUpdate = true;
+              }
+              if (child.material.roughnessMap) {
+                child.material.roughnessMap.anisotropy = 16;
+                child.material.roughness = 0.95;
+              }
+              if (child.material.metalnessMap) {
+                child.material.metalnessMap.anisotropy = 16;
+                child.material.metalness = 1.0;
+              }
+              if (child.material.emissiveMap) {
+                child.material.emissiveMap.anisotropy = 16;
+                if (T.Color) child.material.emissive = new T.Color(0xa855f7);
+                child.material.emissiveIntensity = 2.6;
+              }
+              child.material.needsUpdate = true;
             }
           }
         });

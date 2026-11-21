@@ -621,20 +621,22 @@
       this.THREE = THREE;
 
       try {
-        const pr = Math.min(window.devicePixelRatio || 1, 2.5);
+        const pr = Math.min(window.devicePixelRatio || 1, 3.0);
         this.renderer = new THREE.WebGLRenderer({
           canvas: this.canvas,
           antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
-          precision: 'highp'
+          precision: 'highp',
+          stencil: false,
+          depth: true
         });
         this.renderer.setPixelRatio(pr);
         this.renderer.setSize(this.canvas.width, this.canvas.height, false);
 
         if (THREE.ACESFilmicToneMapping) {
           this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          this.renderer.toneMappingExposure = 1.35;
+          this.renderer.toneMappingExposure = 1.25;
         }
         if (THREE.SRGBColorSpace) {
           this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -642,28 +644,33 @@
 
         this.scene = new THREE.Scene();
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
-          this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
+          this.scene.environment = window.createStudioEnvironment(THREE, 'NEON');
         }
-        this.camera = new THREE.PerspectiveCamera(34, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0, 0.1, 8.5);
-        this.camera.lookAt(0, 0.05, 0);
+        // Heroic Closer Camera (Focal depth: 5.2m, FOV: 42 deg)
+        this.camera = new THREE.PerspectiveCamera(42, this.canvas.width / this.canvas.height, 0.1, 80);
+        this.camera.position.set(0, 0.18, 5.2);
+        this.camera.lookAt(0, 0.12, 0);
 
-        // Cyber Studio Lighting - Decepticon Dark Energon Atmosphere
-        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x070e1e, 0.95));
-        const key = new THREE.DirectionalLight(0xfff8ee, 2.6);
-        key.position.set(4, 7, 7);
+        // Cinematic Decepticon Key + Rim + Dark Energon Lighting
+        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.1));
+        const key = new THREE.DirectionalLight(0xfff8ee, 3.0);
+        key.position.set(3, 5, 6);
         this.scene.add(key);
 
-        const rimCyan = new THREE.PointLight(0x00e5ff, 12, 18);
-        rimCyan.position.set(-5, 2, -3);
+        const rimCyan = new THREE.PointLight(0x00e5ff, 18, 20);
+        rimCyan.position.set(-4, 2.5, -2);
         this.scene.add(rimCyan);
 
-        const rimViolet = new THREE.PointLight(0xa855f7, 18, 20);
-        rimViolet.position.set(3, 3, -2);
+        const rimViolet = new THREE.PointLight(0xa855f7, 24, 22);
+        rimViolet.position.set(3.5, 3.5, -1.5);
         this.scene.add(rimViolet);
 
-        const groundFill = new THREE.DirectionalLight(0x6b21a8, 1.2);
-        groundFill.position.set(0, -5, 4);
+        const frontFill = new THREE.PointLight(0xc084fc, 12, 14);
+        frontFill.position.set(-1.5, 1.0, 3.0);
+        this.scene.add(frontFill);
+
+        const groundFill = new THREE.DirectionalLight(0x7e22ce, 1.5);
+        groundFill.position.set(0, -4, 3);
         this.scene.add(groundFill);
 
         const savedSkin = 'MEGATRON';
@@ -679,7 +686,7 @@
 
     resize(cssW, cssH) {
       if (!this.canvas || !this.renderer || !this.camera) return;
-      const pr = Math.min(window.devicePixelRatio || 1, 2.5);
+      const pr = Math.min(window.devicePixelRatio || 1, 3.0);
       this.renderer.setPixelRatio(pr);
       this.renderer.setSize(cssW, cssH, false);
       this.camera.aspect = cssW / cssH;
@@ -705,7 +712,7 @@
         this.mech = new Apex01Mech(T);
       }
       if (this.mech && this.mech.root) {
-        this.mech.root.position.set(-2.65, -0.05, 0);
+        this.mech.root.position.set(-1.55, 0.08, 0);
       }
       if (this.scene) this.scene.add(this.mech.root);
     }
