@@ -705,87 +705,121 @@
       const matEnergon = new THREE.MeshStandardMaterial({
         color: 0x4a044e,
         emissive: 0xa855f7,
-        emissiveIntensity: 3.2,
+        emissiveIntensity: 3.8,
         roughness: 0.2
       });
-      const matCyan = new THREE.MeshStandardMaterial({
-        color: 0x082f49,
-        emissive: 0x00e5ff,
-        emissiveIntensity: 2.4,
-        roughness: 0.2
+      const matFireMagma = new THREE.MeshStandardMaterial({
+        color: 0x7c2d12,
+        emissive: 0xff3d00,
+        emissiveIntensity: 3.5,
+        roughness: 0.25
+      });
+      const matRuinWall = new THREE.MeshStandardMaterial({
+        color: 0x0a0f1d,
+        metalness: 0.75,
+        roughness: 0.55
       });
 
-      // 1. Heavy Turntable Pedestal Base (Octagonal)
-      const baseGeo = new THREE.CylinderGeometry(2.8, 3.2, 0.45, 8);
+      // 1. Shattered Citadel War Monument Pedestal (Octagonal with Broken Chunks)
+      const baseGeo = new THREE.CylinderGeometry(2.8, 3.3, 0.45, 8);
       const baseMesh = new THREE.Mesh(baseGeo, matDarkSteel);
       baseMesh.position.set(0, -1.85, 0);
       this.hangarGroup.add(baseMesh);
 
-      // Glowing Dark Energon Conduit Rings
-      const ringGeo = new THREE.TorusGeometry(2.6, 0.045, 8, 32);
+      // Cracked Dark Energon Magma Fissure Conduits
+      const ringGeo = new THREE.TorusGeometry(2.6, 0.05, 8, 32);
       const ringMesh = new THREE.Mesh(ringGeo, matEnergon);
       ringMesh.rotation.x = Math.PI / 2;
       ringMesh.position.set(0, -1.62, 0);
       this.hangarGroup.add(ringMesh);
 
-      const innerRingGeo = new THREE.TorusGeometry(1.8, 0.035, 8, 32);
-      const innerRingMesh = new THREE.Mesh(innerRingGeo, matCyan);
+      const innerRingGeo = new THREE.TorusGeometry(1.85, 0.04, 8, 32);
+      const innerRingMesh = new THREE.Mesh(innerRingGeo, matFireMagma);
       innerRingMesh.rotation.x = Math.PI / 2;
       innerRingMesh.position.set(0, -1.62, 0);
       this.hangarGroup.add(innerRingMesh);
 
-      // 2. Twin Industrial Gantry Columns (Framing Megatron's pedestal)
-      [-2.2, 2.2].forEach((xPos) => {
-        const colGeo = new THREE.BoxGeometry(0.55, 7.5, 0.55);
-        const col = new THREE.Mesh(colGeo, matMetal);
-        col.position.set(xPos, 1.2, -1.5);
-        this.hangarGroup.add(col);
+      // Broken Slanted Slab Fragment on the Pedestal
+      const slabGeo = new THREE.BoxGeometry(1.2, 0.25, 0.8);
+      const slabMesh = new THREE.Mesh(slabGeo, matRuinWall);
+      slabMesh.position.set(-1.4, -1.70, 0.9);
+      slabMesh.rotation.set(0.1, 0.4, 0.15);
+      this.hangarGroup.add(slabMesh);
 
-        // Diagonal Truss Bracing
-        const trussGeo = new THREE.CylinderGeometry(0.08, 0.08, 3.2, 8);
-        const truss = new THREE.Mesh(trussGeo, matDarkSteel);
-        truss.rotation.z = (xPos > 0 ? 1 : -1) * 0.65;
-        truss.position.set(xPos * 0.82, 0.2, -1.5);
-        this.hangarGroup.add(truss);
+      // 2. Distant Ruined Cybertron Skyscrapers / Spires (Background: z = -2.8 to -5.0)
+      const ruinSpires = [
+        { x: -3.8, y: 1.8, z: -3.5, w: 1.4, h: 7.2, d: 1.4, rotZ: 0.08 },
+        { x: -1.8, y: 2.6, z: -4.5, w: 1.8, h: 9.0, d: 1.8, rotZ: -0.05 },
+        { x: 1.5, y: 2.2, z: -4.0, w: 1.5, h: 8.0, d: 1.5, rotZ: 0.04 },
+        { x: 3.6, y: 1.5, z: -3.2, w: 1.2, h: 6.5, d: 1.2, rotZ: -0.07 }
+      ];
+      ruinSpires.forEach((sp) => {
+        const spireGeo = new THREE.BoxGeometry(sp.w, sp.h, sp.d);
+        const spireMesh = new THREE.Mesh(spireGeo, matRuinWall);
+        spireMesh.position.set(sp.x, sp.y, sp.z);
+        spireMesh.rotation.z = sp.rotZ;
+        this.hangarGroup.add(spireMesh);
 
-        // Vertical Conduit Tubes (Pulsing Dark Energon)
-        const tubeGeo = new THREE.CylinderGeometry(0.06, 0.06, 7.0, 8);
-        const tube = new THREE.Mesh(tubeGeo, matEnergon);
-        tube.position.set(xPos + (xPos > 0 ? -0.35 : 0.35), 1.2, -1.4);
-        this.hangarGroup.add(tube);
+        // Glowing Cyber-Circuit Windows on the Spire
+        const winGeo = new THREE.BoxGeometry(sp.w * 0.45, sp.h * 0.6, 0.05);
+        const winMesh = new THREE.Mesh(winGeo, Math.abs(sp.x) > 2 ? matEnergon : matFireMagma);
+        winMesh.position.set(sp.x, sp.y * 0.8, sp.z + sp.d * 0.52);
+        winMesh.rotation.z = sp.rotZ;
+        this.hangarGroup.add(winMesh);
       });
 
-      // 3. Overhead Gantry Beam
-      const overheadGeo = new THREE.BoxGeometry(4.8, 0.45, 0.65);
-      overhead.position.set(0, 4.6, -1.5);
-      this.hangarGroup.add(overhead);
+      // 3. Collapsed Leaning Steel Girders & Rebar (War Debris)
+      [-2.4, 2.4].forEach((xPos, idx) => {
+        const girderGeo = new THREE.BoxGeometry(0.35, 6.2, 0.35);
+        const girder = new THREE.Mesh(girderGeo, matMetal);
+        girder.position.set(xPos, 1.2, -1.8);
+        girder.rotation.z = (idx === 0 ? 0.35 : -0.38);
+        this.hangarGroup.add(girder);
 
-      // 4. Floating 3D Dark Energon Atmospheric Particles
-      const pCount = 64;
+        // Leaning cross truss
+        const crossGeo = new THREE.CylinderGeometry(0.06, 0.06, 4.0, 8);
+        const cross = new THREE.Mesh(crossGeo, matDarkSteel);
+        cross.position.set(xPos * 0.7, 0.4, -1.6);
+        cross.rotation.z = (idx === 0 ? -0.55 : 0.6);
+        this.hangarGroup.add(cross);
+      });
+
+      // 4. Burning Energon Fissures & Fire Pits
+      const pitGeo = new THREE.CylinderGeometry(0.8, 1.1, 0.2, 12);
+      const pitMesh = new THREE.Mesh(pitGeo, matFireMagma);
+      pitMesh.position.set(1.8, -1.88, 0.8);
+      this.hangarGroup.add(pitMesh);
+
+      // 5. 96 Floating 3D Dark Energon & Fiery Ember Particles
+      const pCount = 96;
       const pGeo = new THREE.BufferGeometry();
       const pPos = new Float32Array(pCount * 3);
       for (let i = 0; i < pCount; i++) {
-        pPos[i * 3] = (Math.random() - 0.5) * 4.4;
-        pPos[i * 3 + 1] = -1.6 + Math.random() * 5.5;
-        pPos[i * 3 + 2] = -2.5 + Math.random() * 4.5;
+        pPos[i * 3] = (Math.random() - 0.5) * 5.5;
+        pPos[i * 3 + 1] = -1.6 + Math.random() * 5.8;
+        pPos[i * 3 + 2] = -3.5 + Math.random() * 5.0;
       }
       pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
       const pMat = new THREE.PointsMaterial({
         color: 0xc084fc,
-        size: 0.08,
+        size: 0.09,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.85,
         blending: THREE.AdditiveBlending
       });
       this.hangarParticles = new THREE.Points(pGeo, pMat);
       this.hangarGroup.add(this.hangarParticles);
 
-      // Pedestal Upward Point Light
-      this.pedestalLight = new THREE.PointLight(0xa855f7, 8.0, 6.0);
-      this.pedestalLight.position.set(0, -1.5, 0.5);
+      // Flickering Fiery & Dark Energon Point Lights
+      this.pedestalLight = new THREE.PointLight(0xa855f7, 8.5, 7.0);
+      this.pedestalLight.position.set(0, -1.4, 0.6);
       this.hangarGroup.add(this.pedestalLight);
 
-      // Center Hangar Group directly under Megatron (x: -2.10)
+      this.fireLight = new THREE.PointLight(0xff3d00, 6.0, 8.0);
+      this.fireLight.position.set(1.8, -1.2, 1.0);
+      this.hangarGroup.add(this.fireLight);
+
+      // Center Ruined Cybertron Group directly under Megatron (x: -2.10)
       this.hangarGroup.position.set(-2.10, 0, 0);
 
       this.scene.add(this.hangarGroup);
@@ -1031,6 +1065,9 @@
       }
       if (this.pedestalLight) {
         this.pedestalLight.intensity = 7.0 + Math.sin(now * 0.003) * 2.5;
+      }
+      if (this.fireLight) {
+        this.fireLight.intensity = 5.0 + Math.sin(now * 0.007) * 2.2 + Math.cos(now * 0.013) * 1.2;
       }
       if (this.renderer && this.scene && this.camera) {
         this.renderer.render(this.scene, this.camera);

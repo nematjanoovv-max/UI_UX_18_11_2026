@@ -7357,11 +7357,24 @@
       ctx.lineWidth = 1.4;
       ctx.strokeRect(10 - barrelRecoil, -6, 34, 12);
 
-      // Slotted Muzzle Brake with Heat Glow
+      // Slotted Muzzle Brake with Heat Glow & Colossal Gas Jets
       this.drawSlottedMuzzleBrake(ctx, 42 - barrelRecoil, -7.5, 9, 15, 3);
       if (h.siegeRecoil > 0) {
-        ctx.fillStyle = `rgba(192, 132, 252, ${h.siegeRecoil})`;
-        ctx.fillRect(44 - barrelRecoil, -6, 6, 12);
+        // Barrel thermal emission glow
+        ctx.save();
+        ctx.fillStyle = `rgba(192, 132, 252, ${h.siegeRecoil * 0.9})`;
+        ctx.shadowColor = "#c084fc";
+        ctx.shadowBlur = 14 * h.siegeRecoil;
+        ctx.fillRect(12 - barrelRecoil, -5, 30, 10);
+
+        // Muzzle brake side blast gas jets
+        const gLen = h.siegeRecoil * 22;
+        ctx.fillStyle = `rgba(224, 64, 251, ${h.siegeRecoil * 0.8})`;
+        ctx.beginPath();
+        ctx.moveTo(42 - barrelRecoil, -7.5); ctx.lineTo(42 - barrelRecoil - gLen * 0.4, -7.5 - gLen); ctx.lineTo(49 - barrelRecoil, -7.5); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(42 - barrelRecoil, 7.5); ctx.lineTo(42 - barrelRecoil - gLen * 0.4, 7.5 + gLen); ctx.lineTo(49 - barrelRecoil, 7.5); ctx.fill();
+        ctx.restore();
       }
     }
 
@@ -7825,6 +7838,37 @@
           ctx.restore();
         }
 
+        // Overheating Barrel Thermal Radiation Glow (Cherry-red to molten yellow)
+        if (t.heat && t.heat > 0.05) {
+          ctx.save();
+          const hAlpha = Math.min(0.85, t.heat * 1.1);
+          const hGrad = ctx.createLinearGradient(0, 0, 36, 0);
+          hGrad.addColorStop(0, `rgba(180, 20, 0, ${hAlpha * 0.35})`);
+          hGrad.addColorStop(0.6, `rgba(255, 61, 0, ${hAlpha * 0.8})`);
+          hGrad.addColorStop(1, `rgba(255, 235, 59, ${hAlpha})`);
+          ctx.fillStyle = hGrad;
+          ctx.shadowColor = "#ff3d00";
+          ctx.shadowBlur = 12 * t.heat;
+          ctx.fillRect(4, -5, 28, 10);
+          ctx.restore();
+        }
+
+        // Side Muzzle Brake High-Pressure Gas Exhaust Jets
+        if (t.recoil && t.recoil > 0.12) {
+          ctx.save();
+          const gLen = t.recoil * 18;
+          const gGrad = ctx.createLinearGradient(24, 0, 24, -gLen);
+          gGrad.addColorStop(0, "#ffffff");
+          gGrad.addColorStop(0.4, "#ff9100");
+          gGrad.addColorStop(1, "rgba(255, 61, 0, 0)");
+          ctx.fillStyle = gGrad;
+          ctx.beginPath();
+          ctx.moveTo(25, -6); ctx.lineTo(25 - gLen * 0.4, -6 - gLen); ctx.lineTo(31, -6); ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(25, 6); ctx.lineTo(25 - gLen * 0.4, 6 + gLen); ctx.lineTo(31, 6); ctx.fill();
+          ctx.restore();
+        }
+
         // Dynamic Recoil Muzzle Flash Burst when firing
         if (t.recoil && t.recoil > 0.05) {
           ctx.save();
@@ -8154,12 +8198,25 @@
           this.drawSlottedMuzzleBrake(ctx, 38 - bOffset, -12.5, 6, 11, 2);
           this.drawSlottedMuzzleBrake(ctx, 38 - bOffset, 1.5, 6, 11, 2);
           if (bossRecoil) {
+            // Muzzle flash bursts
             ctx.fillStyle = "#ffffff";
             ctx.beginPath(); ctx.arc(46, -7, 6, 0, Math.PI * 2); ctx.fill();
             ctx.beginPath(); ctx.arc(46, 7, 6, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "rgba(255, 23, 68, 0.75)";
             ctx.beginPath(); ctx.arc(48, -7, 12, 0, Math.PI * 2); ctx.fill();
             ctx.beginPath(); ctx.arc(48, 7, 12, 0, Math.PI * 2); ctx.fill();
+
+            // Muzzle brake side blast gas jets
+            ctx.fillStyle = "rgba(255, 145, 0, 0.85)";
+            ctx.beginPath();
+            ctx.moveTo(38 - bOffset, -14); ctx.lineTo(32 - bOffset, -22); ctx.lineTo(44 - bOffset, -14); ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(38 - bOffset, 14); ctx.lineTo(32 - bOffset, 22); ctx.lineTo(44 - bOffset, 14); ctx.fill();
+
+            // Glowing cherry-red barrel heat overlay
+            ctx.fillStyle = "rgba(255, 61, 0, 0.65)";
+            ctx.fillRect(18 - bOffset, -10, 22, 6);
+            ctx.fillRect(18 - bOffset, 4, 22, 6);
           }
 
           // Center Rotating Command Cupola
@@ -10348,7 +10405,7 @@
       // =========================================================================
       ctx.save();
       const heroTitle = "💀 DECEPTICON MEGATRON // SUPREME LEADER";
-      const heroSub = "WAR FOR CYBERTRON • HEAVY SIEGE CLASS";
+      const heroSub = "VAYRON BO'LGAN CYBERTRON XAROBALARI • CITADEL";
       const heroStat = "● DARK ENERGON: 100% // 60 FPS ULTRA PBR";
       const heroCol = "#c084fc";
       const heroPedCol = "rgba(192, 132, 252, 0.70)";
