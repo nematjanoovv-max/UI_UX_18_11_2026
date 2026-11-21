@@ -1231,17 +1231,49 @@
       this.gltfCache = {};
       this.activeMixer = null;
       this.modelMap = {
+        // Towers & Defenses
         pulse: 'assets/models/turret_scifi.glb',
+        mortar: 'assets/models/turret_mortar.glb',
+        cryo: 'assets/models/turret_cryo.glb',
+        tesla: 'assets/models/turret_tesla.glb',
+        flame: 'assets/models/turret_flame.glb',
         railgun: 'assets/models/turret_railgun.glb',
+        beacon: 'assets/models/turret_beacon.glb',
+        barricade: 'assets/models/turret_barricade.glb',
+        wall: 'assets/models/turret_barricade.glb',
+
+        // Frontline & Mobile Hostiles
+        scout: 'assets/models/biped_robot.glb',
         grunt: 'assets/models/biped_robot.glb',
-        brute: 'assets/models/biped_robot.glb',
-        gunship: 'assets/models/mech_drone.glb',
-        juggernaut: 'assets/models/mech_drone.glb',
+        sprinter: 'assets/models/enemy_sprinter.glb',
+        brute: 'assets/models/enemy_brute.glb',
+        tank: 'assets/models/enemy_brute.glb',
+        shieldbearer: 'assets/models/enemy_shieldbearer.glb',
+        shielded: 'assets/models/enemy_shieldbearer.glb',
+        medic: 'assets/models/enemy_medic.glb',
+        splitter: 'assets/models/enemy_splitter.glb',
+        phantom: 'assets/models/enemy_phantom.glb',
         kamikaze_drone: 'assets/models/sphere_bot.glb',
-        overseer: 'assets/models/sphere_bot.glb',
+        swarm: 'assets/models/sphere_bot.glb',
+        swarmling: 'assets/models/sphere_bot.glb',
+        flyer: 'assets/models/mech_drone.glb',
+        gunship: 'assets/models/mech_drone.glb',
+
+        // Boss Titans
+        boss: 'assets/models/boss_juggernaut.glb',
+        juggernaut: 'assets/models/boss_juggernaut.glb',
+        overseer: 'assets/models/boss_overseer.glb',
+        hive_titan: 'assets/models/boss_hive_titan.glb',
+        void_titan: 'assets/models/megatron.glb',
+        chrono_phantom: 'assets/models/enemy_phantom.glb',
+        mecha_colossus: 'assets/models/optimus.glb',
+
+        // Transformers & Mech Apex
         megatron: 'assets/models/megatron.glb',
         optimus: 'assets/models/optimus.glb',
-        bumblebee: 'assets/models/bumblebee.glb'
+        bumblebee: 'assets/models/bumblebee.glb',
+        biped: 'assets/models/biped_robot.glb',
+        siege: 'assets/models/boss_juggernaut.glb'
       };
     }
 
@@ -1269,7 +1301,21 @@
           const size = new THREE.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          const targetHeight = (id === 'megatron') ? 3.2 : ((id === 'optimus') ? 3.0 : ((id === 'bumblebee') ? 2.6 : ((id === 'pulse' || id === 'railgun') ? 2.1 : ((id === 'kamikaze_drone' || id === 'overseer') ? 1.7 : ((id === 'gunship' || id === 'juggernaut') ? 2.3 : 2.7)))));
+          let targetHeight = 2.4;
+          if (id === 'megatron' || id === 'void_titan' || id === 'mecha_colossus') targetHeight = 3.3;
+          else if (id === 'optimus') targetHeight = 3.0;
+          else if (id === 'bumblebee' || id === 'chrono_phantom') targetHeight = 2.6;
+          else if (id === 'hive_titan') targetHeight = 2.8;
+          else if (id === 'juggernaut' || id === 'boss' || id === 'siege') targetHeight = 2.5;
+          else if (id === 'overseer') targetHeight = 2.4;
+          else if (id === 'pulse' || id === 'mortar' || id === 'cryo' || id === 'tesla' || id === 'flame' || id === 'railgun' || id === 'beacon' || id === 'barricade' || id === 'wall') targetHeight = 2.2;
+          else if (id === 'kamikaze_drone' || id === 'swarm' || id === 'swarmling') targetHeight = 1.6;
+          else if (id === 'gunship' || id === 'flyer') targetHeight = 2.2;
+          else if (id === 'sprinter') targetHeight = 1.8;
+          else if (id === 'brute' || id === 'tank' || id === 'shieldbearer' || id === 'shielded') targetHeight = 2.6;
+          else if (id === 'phantom') targetHeight = 2.5;
+          else if (id === 'medic' || id === 'splitter') targetHeight = 2.2;
+
           const scale = maxD > 0 ? (targetHeight / maxD) : 1.0;
           clone.scale.set(scale, scale, scale);
 
