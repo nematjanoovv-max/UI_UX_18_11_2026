@@ -11899,7 +11899,63 @@ getCodexDatabase() {
           this.drawCodex3DSphere(ctx, 0, -8, 16, 8, yaw, pitch, scale, cx, cy, "#ffd600", true);
         }
       } else if (tab === "MECH") {
-        if (item.id === "biped") {
+        if (item.id === "megatron") {
+          // Megatron (WFC 3D) - Cybertronian Supreme Warlord
+          const walkMech = Math.sin(t * 4);
+          // Dark Gunmetal Torso with Energon Conduits
+          this.drawCodex3DBox(ctx, 0, -4, 0, 32, 28, 24, yaw, pitch, scale, cx, cy, "#334155", "#a855f7", mode);
+          this.drawCodex3DSphere(ctx, 0, -4, 12, 8, yaw, pitch, scale, cx, cy, "#a855f7", true);
+          // Bucket Crested Helmet & Crimson Optics
+          this.drawCodex3DBox(ctx, 0, -24, 2, 16, 16, 16, yaw, pitch, scale, cx, cy, "#1e293b", "#a855f7", mode);
+          this.drawCodex3DBox(ctx, 0, -23, 11, 12, 4, 3, yaw, pitch, scale, cx, cy, "#ff0055", "#ffffff", mode);
+          // Right Arm: Iconic 1450 Fusion Cannon with Dark Energon Corona & Recoil Slide
+          this.drawCodex3DBox(ctx, 22, -2, 8 - rec, 11, 13, 16, yaw, pitch, scale, cx, cy, "#334155", "#a855f7", mode);
+          this.drawCodex3DCylinder(ctx, 24, -4, 20 - rec, 7.5, 8.5, 46, 8, yaw, pitch, scale, cx, cy, "#0f172a", "#a855f7", mode);
+          this.drawCodex3DSphere(ctx, 24, -4, 43 - rec, 8.5, yaw, pitch, scale, cx, cy, "#a855f7", true);
+          // Left Arm: Clawed Gauntlet
+          this.drawCodex3DBox(ctx, -22, -2, 6, 10, 14, 14, yaw, pitch, scale, cx, cy, "#334155", "#475569", mode);
+          // Tank Tread Calf Guarded Legs
+          this.drawCodex3DBox(ctx, -12, 24, walkMech * 7, 11, 26, 14, yaw, pitch, scale, cx, cy, "#1e293b", "#a855f7", mode);
+          this.drawCodex3DBox(ctx, 12, 24, -walkMech * 7, 11, 26, 14, yaw, pitch, scale, cx, cy, "#1e293b", "#a855f7", mode);
+        } else if (item.id === "optimus") {
+          // Optimus Prime (Autobot Supreme Commander)
+          const walkMech = Math.sin(t * 4.5);
+          // Red Peterbilt Windshield Torso
+          this.drawCodex3DBox(ctx, 0, -4, 0, 30, 26, 22, yaw, pitch, scale, cx, cy, "#b91c1c", "#60a5fa", mode);
+          this.drawCodex3DBox(ctx, -8, -6, 11, 9, 8, 2, yaw, pitch, scale, cx, cy, "#0284c7", "#ffffff", mode);
+          this.drawCodex3DBox(ctx, 8, -6, 11, 9, 8, 2, yaw, pitch, scale, cx, cy, "#0284c7", "#ffffff", mode);
+          // Glowing Matrix of Leadership Chamber
+          this.drawCodex3DSphere(ctx, 0, -4, 11, 7, yaw, pitch, scale, cx, cy, "#93c5fd", true);
+          // Battle Mask Head with Side Antennas
+          this.drawCodex3DBox(ctx, 0, -22, 2, 15, 14, 16, yaw, pitch, scale, cx, cy, "#1d4ed8", "#60a5fa", mode);
+          this.drawCodex3DBox(ctx, 0, -21, 11, 11, 3.5, 2.5, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          // Dual Chrome Smokestacks on Back
+          this.drawCodex3DCylinder(ctx, -12, -18, -10, 2.5, 2.5, 28, 6, yaw, pitch, scale, cx, cy, "#e2e8f0", "#ffffff", mode);
+          this.drawCodex3DCylinder(ctx, 12, -18, -10, 2.5, 2.5, 28, 6, yaw, pitch, scale, cx, cy, "#e2e8f0", "#ffffff", mode);
+          // Right Arm: Heavy Ion Blaster
+          this.drawCodex3DCylinder(ctx, 22, -2, 20 - rec, 5, 5, 36, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#60a5fa", mode);
+          // Left Arm: Flaming Energon Battle Axe
+          this.drawCodex3DBox(ctx, -22, -2, 20, 3, 24, 14, yaw, pitch, scale, cx, cy, "#ff7700", "#ffea00", mode);
+          // Cobalt Blue Legs
+          this.drawCodex3DBox(ctx, -11, 24, walkMech * 7, 10, 26, 12, yaw, pitch, scale, cx, cy, "#1d4ed8", "#475569", mode);
+          this.drawCodex3DBox(ctx, 11, 24, -walkMech * 7, 10, 26, 12, yaw, pitch, scale, cx, cy, "#1d4ed8", "#475569", mode);
+        } else if (item.id === "bumblebee") {
+          // Bumblebee TLK (Elite Autobot Scout)
+          const walkMech = Math.sin(t * 6);
+          // Yellow & Carbon Rally Torso
+          this.drawCodex3DBox(ctx, 0, -2, 0, 26, 24, 18, yaw, pitch, scale, cx, cy, "#f59e0b", "#000000", mode);
+          this.drawCodex3DBox(ctx, -5, -2, 10, 3, 24, 2, yaw, pitch, scale, cx, cy, "#111827", "#111827", mode);
+          this.drawCodex3DBox(ctx, 5, -2, 10, 3, 24, 2, yaw, pitch, scale, cx, cy, "#111827", "#111827", mode);
+          // Scout Head
+          this.drawCodex3DBox(ctx, 0, -18, 2, 13, 12, 14, yaw, pitch, scale, cx, cy, "#f59e0b", "#00e5ff", mode);
+          this.drawCodex3DBox(ctx, 0, -17, 10, 9, 3, 2, yaw, pitch, scale, cx, cy, "#00e5ff", "#ffffff", mode);
+          // Dual Arm Stinger Cannons
+          this.drawCodex3DCylinder(ctx, -18, 0, 18 - rec, 4, 4, 28, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", mode);
+          this.drawCodex3DCylinder(ctx, 18, 0, 18 - rec, 4, 4, 28, 6, yaw, pitch, scale, cx, cy, "#0f172a", "#ffd600", mode);
+          // Agile Legs
+          this.drawCodex3DBox(ctx, -9, 22, walkMech * 8, 8, 24, 10, yaw, pitch, scale, cx, cy, "#f59e0b", "#141824", mode);
+          this.drawCodex3DBox(ctx, 9, 22, -walkMech * 8, 8, 24, 10, yaw, pitch, scale, cx, cy, "#f59e0b", "#141824", mode);
+        } else if (item.id === "biped") {
           // APEX-01 Biped Assault Robot in 3D (Full Articulated Rig)
           const walkMech = Math.sin(t * 5);
           // Torso Chassis & Quantum Reactor Core

@@ -2,14 +2,14 @@
 // CODEX 3D ENGINE (Three.js Photorealistic WebGL 3D Viewport)
 // Designed for Tower Defense: Last Grid - Kiber-Kodex Encyclopedia
 // Features: 
-//   - True PBR Materials (Brushed Titanium, Carbon Fiber, Hazard Chevrons, Chrome Pistons)
-//   - Procedural Normal Maps, Roughness Maps & Specular Highlights
-//   - Studio 3-Point Lighting (Key, Fill, Rim Cyan, Rim Magenta, Ambient)
-//   - 25 Fully Articulated Procedural 3D Models:
+//   - True PBR Materials (Titanium, Carbon, Decepticon Metal, Autobot Crimson, Dark Energon)
+//   - Dynamic Barrel Overheating Glow & High-Pressure Muzzle Brake Gas Exhaust Plumes
+//   - Telescoping Hydraulic Recoil Slides & Rotary Barrel Clusters
+//   - Role-Specific Kinematics for all 28 Units:
 //       * 8 Towers: Pulse, Mortar, Cryo, Tesla, Flame, Railgun, Beacon, Barricade
 //       * 9 Enemies: Grunt, Sprinter, Brute, Shieldbearer, Medic, Splitter, Phantom, Kamikaze, Gunship
 //       * 6 Titans: Juggernaut, Overseer, Hive Titan, Void Titan, Chrono Phantom, Mecha Colossus
-//       * 2 Hero Modes: APEX-01 Biped Assault, APEX-01 Siege Tank
+//       * 5 Heroes: Megatron (WFC 3D Animated), Optimus Prime, Bumblebee, Apex-01 Biped & Siege
 //   - Interactive 360° Drag Orbit, Pitch & Zoom
 //   - Shading Modes: PBR_ULTRA, WIREFRAME, XRAY
 //   - Seamless Offscreen Rendering to 2D Canvas Blit
@@ -31,6 +31,7 @@
     };
 
     function metalCanvas(baseHex, noiseAmt = 18, size = 256) {
+      if (typeof document === 'undefined' || !document.createElement) return null;
       const c = document.createElement('canvas'); c.width = c.height = size;
       const g = c.getContext('2d');
       g.fillStyle = baseHex; g.fillRect(0, 0, size, size);
@@ -55,6 +56,7 @@
     }
 
     function normalFromHeight(size = 256, strength = 2.0) {
+      if (typeof document === 'undefined' || !document.createElement) return null;
       const c = document.createElement('canvas'); c.width = c.height = size;
       const g = c.getContext('2d');
       const img = g.createImageData(size, size), d = img.data;
@@ -76,6 +78,7 @@
     }
 
     function hazardCanvas() {
+      if (typeof document === 'undefined' || !document.createElement) return null;
       const c = document.createElement('canvas'); c.width = c.height = 128;
       const g = c.getContext('2d');
       g.fillStyle = '#ffd600'; g.fillRect(0, 0, 128, 128);
@@ -89,18 +92,29 @@
     }
 
     function makeTex(can, rx = 1, ry = 1) {
-      const t = new THREE.CanvasTexture(can);
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      t.repeat.set(rx, ry);
-      return t;
+      if (!can || !THREE.CanvasTexture) return null;
+      try {
+        const t = new THREE.CanvasTexture(can);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(rx, ry);
+        return t;
+      } catch(e) {
+        return null;
+      }
     }
 
+    const cTitanium = metalCanvas('#242e42');
+    const cCarbon = metalCanvas('#141824', 28);
+    const cArmorLight = metalCanvas('#3b4a68');
+    const cHazard = hazardCanvas();
+    const cNormal = normalFromHeight(256, 1.8);
+
     return {
-      tTitanium: makeTex(metalCanvas('#242e42'), 2, 2),
-      tCarbon: makeTex(metalCanvas('#141824', 28), 3, 3),
-      tArmorLight: makeTex(metalCanvas('#3b4a68'), 2, 2),
-      tHazard: makeTex(hazardCanvas(), 2, 2),
-      tNormal: makeTex(normalFromHeight(256, 1.8), 2, 2)
+      tTitanium: makeTex(cTitanium, 2, 2),
+      tCarbon: makeTex(cCarbon, 3, 3),
+      tArmorLight: makeTex(cArmorLight, 2, 2),
+      tHazard: makeTex(cHazard, 2, 2),
+      tNormal: makeTex(cNormal, 2, 2)
     };
   }
 
@@ -109,7 +123,10 @@
     constructor(THREE) {
       this.THREE = THREE;
       const tex = createCodexPBRTextures(THREE);
-      const std = o => new THREE.MeshStandardMaterial(o);
+      const std = o => {
+        if (!THREE.MeshStandardMaterial) return new THREE.MeshBasicMaterial(o);
+        return new THREE.MeshStandardMaterial(o);
+      };
 
       this.materials = {
         // Heavy Armor
@@ -126,18 +143,34 @@
         copper: std({ color: 0xd97706, metalness: 0.92, roughness: 0.28 }),
         goldTrim: std({ color: 0xf59e0b, metalness: 0.85, roughness: 0.30 }),
 
+        // Military Realism & Transformer Materials
+        decepticonMetal: std({ map: tex.tTitanium, normalMap: tex.tNormal, color: 0x384152, metalness: 0.92, roughness: 0.24 }),
+        autobotRed: std({ color: 0xb91c1c, metalness: 0.88, roughness: 0.26 }),
+        autobotBlue: std({ color: 0x1d4ed8, metalness: 0.88, roughness: 0.26 }),
+        bumblebeeYellow: std({ color: 0xf59e0b, metalness: 0.90, roughness: 0.25 }),
+        smokeSoot: std({ color: 0x18181b, roughness: 0.95, metalness: 0.05 }),
+
         // Emissive Energies
-        cyanEnergy: std({ color: 0x082f49, emissive: 0x00e5ff, emissiveIntensity: 2.4, metalness: 0.2, roughness: 0.3 }),
-        magentaEnergy: std({ color: 0x4a044e, emissive: 0xff007f, emissiveIntensity: 2.2, metalness: 0.2, roughness: 0.3 }),
-        plasmaYellow: std({ color: 0x422006, emissive: 0xffd600, emissiveIntensity: 2.2, metalness: 0.2, roughness: 0.3 }),
-        flameOrange: std({ color: 0x431407, emissive: 0xff5722, emissiveIntensity: 2.4, metalness: 0.2, roughness: 0.3 }),
-        acidGreen: std({ color: 0x052e16, emissive: 0x00e676, emissiveIntensity: 2.4, metalness: 0.2, roughness: 0.3 }),
-        voidPurple: std({ color: 0x2e1065, emissive: 0xa855f7, emissiveIntensity: 2.5, metalness: 0.2, roughness: 0.3 }),
+        cyanEnergy: std({ color: 0x082f49, emissive: 0x00e5ff, emissiveIntensity: 2.6, metalness: 0.2, roughness: 0.3 }),
+        magentaEnergy: std({ color: 0x4a044e, emissive: 0xff007f, emissiveIntensity: 2.4, metalness: 0.2, roughness: 0.3 }),
+        plasmaYellow: std({ color: 0x422006, emissive: 0xffd600, emissiveIntensity: 2.4, metalness: 0.2, roughness: 0.3 }),
+        flameOrange: std({ color: 0x431407, emissive: 0xff5722, emissiveIntensity: 2.6, metalness: 0.2, roughness: 0.3 }),
+        acidGreen: std({ color: 0x052e16, emissive: 0x00e676, emissiveIntensity: 2.6, metalness: 0.2, roughness: 0.3 }),
+        voidPurple: std({ color: 0x2e1065, emissive: 0xa855f7, emissiveIntensity: 2.8, metalness: 0.2, roughness: 0.3 }),
+        darkEnergon: std({ color: 0x2e0854, emissive: 0xa855f7, emissiveIntensity: 4.2, metalness: 0.4, roughness: 0.2 }),
+        matrixCore: std({ color: 0x60a5fa, emissive: 0x93c5fd, emissiveIntensity: 4.5, metalness: 0.1, roughness: 0.1 }),
+
+        // Thermal Overheating & Muzzle Blast Gas
+        moltenHeat: std({ color: 0x4a1005, emissive: 0xff3700, emissiveIntensity: 3.2, metalness: 0.8, roughness: 0.25 }),
+        gasJet: std({ color: 0xffedd5, emissive: 0xffaa00, emissiveIntensity: 3.5, transparent: true, opacity: 0.75 }),
+        gasJetCyan: std({ color: 0xe0f2fe, emissive: 0x00e5ff, emissiveIntensity: 3.5, transparent: true, opacity: 0.75 }),
+        energonAxe: std({ color: 0xff5722, emissive: 0xff9100, emissiveIntensity: 3.8, transparent: true, opacity: 0.85 }),
 
         // Special Glass & Translucent
         glassCyan: std({ color: 0x0284c7, emissive: 0x00e5ff, emissiveIntensity: 0.6, metalness: 0.9, roughness: 0.08, transparent: true, opacity: 0.65 }),
-        cryoIce: std({ color: 0xe0f2fe, emissive: 0x38bdf8, emissiveIntensity: 0.7, metalness: 0.3, roughness: 0.12, transparent: true, opacity: 0.75 }),
-        bioChitin: std({ color: 0x312e81, emissive: 0x6366f1, emissiveIntensity: 0.5, metalness: 0.45, roughness: 0.55 }),
+        cryoIce: std({ color: 0xe0f2fe, emissive: 0x38bdf8, emissiveIntensity: 1.2, metalness: 0.3, roughness: 0.12, transparent: true, opacity: 0.75 }),
+        bioChitin: std({ color: 0x312e81, emissive: 0x6366f1, emissiveIntensity: 0.6, metalness: 0.45, roughness: 0.55 }),
+        hexForcefield: std({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.8, transparent: true, opacity: 0.45, roughness: 0.1 }),
 
         // Diagnostic wireframe
         wireframe: new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true }),
@@ -152,7 +185,7 @@
     }
   }
 
-  // --- 3D Model Factory for All 25 Units ---
+  // --- 3D Model Factory for All 28 Units ---
   class Codex3DModelFactory {
     constructor(THREE, matLib) {
       this.THREE = THREE;
@@ -212,7 +245,9 @@
       const barrels = new T.Group();
       head.add(barrels);
       const isGatling = (branch === 'BRANCH_B');
-      const bCount = isGatling ? 4 : 2;
+      const bCount = isGatling ? 6 : 2;
+      const gasJets = [];
+      const heatMeshes = [];
 
       for (let i = 0; i < bCount; i++) {
         const ang = (i * Math.PI * 2) / bCount;
@@ -220,9 +255,19 @@
         const by = isGatling ? Math.sin(ang) * 0.35 : 0;
         this.mesh(barrels, new T.CylinderGeometry(0.12, 0.12, 1.9, 12), 'barrel', mode, bx, by, 1.1, Math.PI / 2, 0, 0);
         this.mesh(barrels, new T.CylinderGeometry(0.16, 0.16, 0.35, 12), 'chrome', mode, bx, by, 1.8, Math.PI / 2, 0, 0);
-        this.mesh(barrels, new T.TorusGeometry(0.13, 0.03, 6, 16), 'cyanEnergy', mode, bx, by, 1.6, 0, 0, 0);
+        
+        // Barrel Overheat Thermal Glow mesh
+        const hm = this.mesh(barrels, new T.CylinderGeometry(0.13, 0.13, 1.2, 12), 'moltenHeat', mode, bx, by, 1.4, Math.PI / 2, 0, 0);
+        hm.visible = false;
+        heatMeshes.push(hm);
+
+        // Muzzle brake gas ejection jets (flares sideways 45 deg)
+        const jetL = this.mesh(barrels, new T.ConeGeometry(0.08, 0.45, 8), 'gasJetCyan', mode, bx - 0.12, by, 2.05, 0, 0, Math.PI / 3);
+        const jetR = this.mesh(barrels, new T.ConeGeometry(0.08, 0.45, 8), 'gasJetCyan', mode, bx + 0.12, by, 2.05, 0, 0, -Math.PI / 3);
+        jetL.visible = jetR.visible = false;
+        gasJets.push(jetL, jetR);
       }
-      return { group: g, head, barrels, rotSpeed: 0.6 };
+      return { group: g, head, barrels, heatMeshes, gasJets, isGatling, rotSpeed: 0.6 };
     }
 
     buildMortarTower(root, mode) {
@@ -252,10 +297,21 @@
       this.mesh(barrel, new T.CylinderGeometry(0.58, 0.58, 0.45, 16), 'titanium', mode, 0, 1.9, 0);
       this.mesh(barrel, new T.TorusGeometry(0.5, 0.06, 8, 24), 'plasmaYellow', mode, 0, 1.4, 0, Math.PI / 2, 0, 0);
 
+      // Thermal Overheat Mesh at Breech
+      const heatMesh = this.mesh(barrel, new T.CylinderGeometry(0.5, 0.56, 1.2, 16), 'moltenHeat', mode, 0, 1.1, 0);
+      heatMesh.visible = false;
+
       // Hydraulic Recoil Pistons
-      this.mesh(barrel, new T.CylinderGeometry(0.08, 0.08, 1.2, 8), 'chrome', mode, -0.55, 0.6, -0.2);
-      this.mesh(barrel, new T.CylinderGeometry(0.08, 0.08, 1.2, 8), 'chrome', mode, 0.55, 0.6, -0.2);
-      return { group: g, head, barrel, rotSpeed: 0.35 };
+      const pistonL = this.mesh(barrel, new T.CylinderGeometry(0.08, 0.08, 1.2, 8), 'chrome', mode, -0.55, 0.6, -0.2);
+      const pistonR = this.mesh(barrel, new T.CylinderGeometry(0.08, 0.08, 1.2, 8), 'chrome', mode, 0.55, 0.6, -0.2);
+      pistonL._origY = pistonR._origY = 0.6;
+
+      // Muzzle Brake Side Gas Vent Cones
+      const jetL = this.mesh(barrel, new T.ConeGeometry(0.18, 0.8, 8), 'gasJet', mode, -0.65, 2.1, 0, 0, 0, Math.PI / 2.5);
+      const jetR = this.mesh(barrel, new T.ConeGeometry(0.18, 0.8, 8), 'gasJet', mode, 0.65, 2.1, 0, 0, 0, -Math.PI / 2.5);
+      jetL.visible = jetR.visible = false;
+
+      return { group: g, head, barrel, heatMesh, pistonRods: [pistonL, pistonR], gasJets: [jetL, jetR], rotSpeed: 0.35 };
     }
 
     buildCryoTower(root, mode) {
@@ -268,8 +324,12 @@
       this.mesh(g, new T.CylinderGeometry(1.2, 1.4, 0.5, 16), 'titanium', mode, 0, -0.9, 0);
 
       // Central Cryogenic Reactor Core
-      this.mesh(g, new T.CylinderGeometry(0.65, 0.65, 1.4, 16), 'cryoIce', mode, 0, 0.1, 0);
+      const cryoCore = this.mesh(g, new T.CylinderGeometry(0.65, 0.65, 1.4, 16), 'cryoIce', mode, 0, 0.1, 0);
       this.mesh(g, new T.SphereGeometry(0.45, 16, 16), 'cyanEnergy', mode, 0, 0.1, 0);
+
+      // Rotating Cryo Containment Rings
+      const cryoRing1 = this.mesh(g, new T.TorusGeometry(1.15, 0.07, 8, 32), 'cyanEnergy', mode, 0, 0.1, 0, Math.PI / 2, 0, 0);
+      const cryoRing2 = this.mesh(g, new T.TorusGeometry(1.35, 0.05, 8, 32), 'cryoIce', mode, 0, 0.1, 0, Math.PI / 3, Math.PI / 4, 0);
 
       // 3 Liquid Nitrogen Pressure Tanks on outer perimeter
       for (let i = 0; i < 3; i++) {
@@ -286,7 +346,7 @@
       g.add(emitter);
       this.mesh(emitter, new T.ConeGeometry(1.2, 0.8, 16, 1, true), 'titanium', mode, 0, 0.2, 0, Math.PI, 0, 0);
       this.mesh(emitter, new T.TorusGeometry(1.1, 0.08, 8, 32), 'cyanEnergy', mode, 0, 0.55, 0, Math.PI / 2, 0, 0);
-      return { group: g, emitter, rotSpeed: 0.8 };
+      return { group: g, emitter, cryoCore, cryoRing1, cryoRing2, rotSpeed: 0.8 };
     }
 
     buildTeslaTower(root, mode) {
@@ -314,9 +374,15 @@
       topNode.position.set(0, 1.3, 0);
       g.add(topNode);
       this.mesh(topNode, new T.SphereGeometry(0.65, 24, 24), 'copper', mode, 0, 0, 0);
-      this.mesh(topNode, new T.TorusGeometry(0.9, 0.05, 8, 32), 'magentaEnergy', mode, 0, 0, 0, Math.PI / 2, 0, 0);
-      this.mesh(topNode, new T.TorusGeometry(1.1, 0.04, 8, 32), 'cyanEnergy', mode, 0, 0, 0, 0, Math.PI / 4, 0);
-      return { group: g, topNode, rotSpeed: 1.2 };
+      
+      // Dynamic High-Voltage Electrical Lightning Sparks
+      const sparks = [];
+      for (let i = 0; i < 3; i++) {
+        const sp = this.mesh(topNode, new T.TorusGeometry(0.85 + i * 0.2, 0.04, 6, 24), (i % 2 === 0 ? 'cyanEnergy' : 'plasmaYellow'), mode, 0, 0, 0, (i * Math.PI) / 3, (i * Math.PI) / 4, 0);
+        sparks.push(sp);
+      }
+
+      return { group: g, topNode, sparks, rotSpeed: 1.2 };
     }
 
     buildFlameTower(root, mode) {
@@ -335,16 +401,31 @@
       this.mesh(head, new T.CylinderGeometry(0.35, 0.35, 1.4, 12), 'flameOrange', mode, -0.9, 0.2, -0.2, Math.PI / 2, 0, 0);
       this.mesh(head, new T.CylinderGeometry(0.35, 0.35, 1.4, 12), 'flameOrange', mode, 0.9, 0.2, -0.2, Math.PI / 2, 0, 0);
 
+      // Fuel Level Indicator Sight Glass
+      this.mesh(head, new T.CylinderGeometry(0.06, 0.06, 1.0, 8), 'plasmaYellow', mode, -0.9, 0.2, 0.55);
+      this.mesh(head, new T.CylinderGeometry(0.06, 0.06, 1.0, 8), 'plasmaYellow', mode, 0.9, 0.2, 0.55);
+
       // Heavy Twin Flamethrower Projector Nozzles
       const nozzles = new T.Group();
       nozzles.position.set(0, 0.1, 0.8);
       head.add(nozzles);
+      const pilotFlames = [];
+      const flameJets = [];
+
       [-0.38, 0.38].forEach(x => {
         this.mesh(nozzles, new T.CylinderGeometry(0.18, 0.26, 1.6, 12), 'barrel', mode, x, 0, 0.6, Math.PI / 2, 0, 0);
         this.mesh(nozzles, new T.ConeGeometry(0.32, 0.4, 12, 1, true), 'titanium', mode, x, 0, 1.4, -Math.PI / 2, 0, 0);
-        this.mesh(nozzles, new T.SphereGeometry(0.1, 8, 8), 'flameOrange', mode, x, 0, 1.5);
+        
+        // Flickering Pilot Flame Cone at nozzle tip
+        const pf = this.mesh(nozzles, new T.ConeGeometry(0.12, 0.35, 8), 'flameOrange', mode, x, 0, 1.65, Math.PI / 2, 0, 0);
+        pilotFlames.push(pf);
+
+        // Burst flame cone on recoil
+        const fj = this.mesh(nozzles, new T.ConeGeometry(0.35, 1.2, 8), 'flameOrange', mode, x, 0, 2.2, Math.PI / 2, 0, 0);
+        fj.visible = false;
+        flameJets.push(fj);
       });
-      return { group: g, head, nozzles, rotSpeed: 0.5 };
+      return { group: g, head, nozzles, pilotFlames, flameJets, rotSpeed: 0.5 };
     }
 
     buildRailgunTower(root, mode) {
@@ -370,13 +451,24 @@
       this.mesh(rails, new T.BoxGeometry(0.8, 0.18, 3.6), 'titanium', mode, 0, 0.3, 1.6);
       this.mesh(rails, new T.BoxGeometry(0.8, 0.18, 3.6), 'titanium', mode, 0, -0.3, 1.6);
 
-      // Glowing Magnetic Accelerator Coils
+      // Dielectric Hyper-Beam Channel
+      const beamMesh = this.mesh(rails, new T.CylinderGeometry(0.08, 0.08, 3.4, 8), 'cyanEnergy', mode, 0, 0, 1.6, Math.PI / 2, 0, 0);
+
+      // Glowing Magnetic Accelerator Coils (7 Stages)
+      const coils = [];
       for (let i = 0; i < 7; i++) {
         const z = 0.2 + i * 0.48;
-        this.mesh(rails, new T.TorusGeometry(0.32, 0.05, 8, 16), 'cyanEnergy', mode, 0, 0, z);
+        const coil = this.mesh(rails, new T.TorusGeometry(0.32, 0.05, 8, 16), 'cyanEnergy', mode, 0, 0, z);
+        coils.push(coil);
       }
       this.mesh(rails, new T.BoxGeometry(0.3, 0.3, 0.6), 'magentaEnergy', mode, 0, 0, -0.4);
-      return { group: g, head, rails, rotSpeed: 0.3 };
+
+      // Muzzle Brake High-Pressure Vents
+      const jetT = this.mesh(rails, new T.ConeGeometry(0.12, 0.6, 8), 'gasJetCyan', mode, 0, 0.48, 3.4, -Math.PI / 3, 0, 0);
+      const jetB = this.mesh(rails, new T.ConeGeometry(0.12, 0.6, 8), 'gasJetCyan', mode, 0, -0.48, 3.4, Math.PI / 3, 0, 0);
+      jetT.visible = jetB.visible = false;
+
+      return { group: g, head, rails, coils, beamMesh, gasJets: [jetT, jetB], rotSpeed: 0.3 };
     }
 
     buildBeaconTower(root, mode) {
@@ -398,7 +490,14 @@
       this.mesh(dish, new T.TorusGeometry(1.3, 0.05, 8, 32), 'plasmaYellow', mode, 0, 0.1, 0, Math.PI / 2 + 0.4, 0, 0);
       this.mesh(dish, new T.CylinderGeometry(0.04, 0.04, 0.9, 8), 'chrome', mode, 0, 0.3, 0.4, 0.4, 0, 0);
       this.mesh(dish, new T.SphereGeometry(0.12, 8, 8), 'cyanEnergy', mode, 0, 0.45, 0.7);
-      return { group: g, dish, rotSpeed: 1.8 };
+
+      // Holographic Expanding Sonar Wave Ring
+      const radarWave = this.mesh(g, new T.TorusGeometry(1.2, 0.04, 8, 36), 'cyanEnergy', mode, 0, -1.0, 0, Math.PI / 2, 0, 0);
+
+      // Strobe warning light on top
+      const strobe = this.mesh(dish, new T.SphereGeometry(0.14, 8, 8), 'magentaEnergy', mode, 0, 0.8, 0);
+
+      return { group: g, dish, radarWave, strobe, rotSpeed: 1.8 };
     }
 
     buildBarricade(root, mode) {
@@ -415,7 +514,11 @@
         this.mesh(g, new T.ConeGeometry(0.22, 0.9, 6), 'darkAlloy', mode, i * 0.65, 0.5, 0.3, -0.3, 0, 0);
       }
       this.mesh(g, new T.SphereGeometry(0.4, 16, 16), 'cyanEnergy', mode, 0, -0.6, 0.65);
-      return { group: g, rotSpeed: 0.2 };
+
+      // Hexagonal holographic forcefield ripple
+      const hexBarrier = this.mesh(g, new T.BoxGeometry(3.1, 1.4, 0.1), 'hexForcefield', mode, 0, 0.4, 0.45);
+
+      return { group: g, hexBarrier, rotSpeed: 0.2 };
     }
 
     // --- 2. HOSTILE ENEMIES (9 Units) ---
@@ -430,22 +533,25 @@
       this.mesh(torso, new T.BoxGeometry(0.9, 1.0, 0.6), 'titanium', mode, 0, 0.4, 0);
       this.mesh(torso, new T.BoxGeometry(0.5, 0.3, 0.1), 'cyanEnergy', mode, 0, 0.4, 0.32);
 
-      // Helmet with glowing visor
+      // Helmet with glowing scanning visor
       const head = new T.Group();
       head.position.set(0, 1.1, 0);
       torso.add(head);
       this.mesh(head, new T.BoxGeometry(0.55, 0.5, 0.6), 'darkAlloy', mode, 0, 0, 0);
-      this.mesh(head, new T.BoxGeometry(0.45, 0.12, 0.1), 'cyanEnergy', mode, 0, 0.05, 0.32);
+      const visorMesh = this.mesh(head, new T.BoxGeometry(0.45, 0.12, 0.1), 'cyanEnergy', mode, 0, 0.05, 0.32);
 
-      // Right Arm with Plasma Carbine
+      // Right Arm with Plasma Carbine & Muzzle Flash Cone
       const armR = new T.Group();
       armR.position.set(0.65, 0.6, 0);
       torso.add(armR);
       this.mesh(armR, new T.BoxGeometry(0.25, 0.7, 0.3), 'carbon', mode, 0, -0.3, 0.1);
       this.mesh(armR, new T.BoxGeometry(0.2, 0.3, 1.2), 'barrel', mode, 0, -0.6, 0.5);
       this.mesh(armR, new T.CylinderGeometry(0.06, 0.06, 0.6, 8), 'cyanEnergy', mode, 0, -0.55, 1.1, Math.PI / 2, 0, 0);
+      
+      const muzzleFlash = this.mesh(armR, new T.ConeGeometry(0.18, 0.6, 8), 'cyanEnergy', mode, 0, -0.55, 1.6, Math.PI / 2, 0, 0);
+      muzzleFlash.visible = false;
 
-      // Left Arm
+      // Left Arm Tactical Stance
       const armL = new T.Group();
       armL.position.set(-0.65, 0.6, 0);
       torso.add(armL);
@@ -462,7 +568,7 @@
       this.mesh(legL, new T.BoxGeometry(0.24, 0.8, 0.3), 'titanium', mode, 0, -0.9, 0.1, 0.35, 0, 0);
       this.mesh(legL, new T.BoxGeometry(0.32, 0.15, 0.5), 'darkAlloy', mode, 0, -1.35, 0.2);
 
-      return { group: g, torso, armR, legR, legL, isBiped: true };
+      return { group: g, torso, head, armR, armL, legR, legL, visorMesh, muzzleFlash, isBiped: true };
     }
 
     buildSprinter(root, mode) {
@@ -475,22 +581,24 @@
       g.add(body);
       this.mesh(body, new T.ConeGeometry(0.55, 2.2, 8), 'carbon', mode, 0, 0.1, 0, -Math.PI / 2 + 0.2, 0, 0);
 
-      // Head with red sensory eye array
+      // Head with glowing predator optic flare
       const head = new T.Group();
       head.position.set(0, 0.2, 1.2);
       body.add(head);
       this.mesh(head, new T.ConeGeometry(0.35, 0.9, 6), 'darkAlloy', mode, 0, 0, 0.3, Math.PI / 2, 0, 0);
-      this.mesh(head, new T.BoxGeometry(0.4, 0.08, 0.08), 'magentaEnergy', mode, 0, 0.1, 0.5);
+      const opticsMesh = this.mesh(head, new T.BoxGeometry(0.4, 0.08, 0.08), 'magentaEnergy', mode, 0, 0.1, 0.5);
 
-      // Bladed Tail Stabilizer
-      this.mesh(body, new T.BoxGeometry(0.08, 0.35, 1.6), 'titanium', mode, 0, 0.3, -1.6, -0.2, 0, 0);
+      // Aerodynamic Bladed Tail Stabilizer
+      const tailMesh = this.mesh(body, new T.BoxGeometry(0.08, 0.35, 1.6), 'titanium', mode, 0, 0.3, -1.6, -0.2, 0, 0);
 
-      // Quadruped/Raptor Spring Legs
+      // Quadruped Raptor Spring Legs
+      const legs = [];
       [-0.45, 0.45].forEach(s => {
-        this.mesh(g, new T.CylinderGeometry(0.08, 0.08, 1.4, 8), 'chrome', mode, s, -0.6, -0.2, 0.4, 0, 0);
+        const fLeg = this.mesh(g, new T.CylinderGeometry(0.08, 0.08, 1.4, 8), 'chrome', mode, s, -0.6, -0.2, 0.4, 0, 0);
         this.mesh(g, new T.BoxGeometry(0.2, 0.1, 0.5), 'darkAlloy', mode, s, -1.3, -0.4);
+        legs.push(fLeg);
       });
-      return { group: g, body, head, isSprinter: true };
+      return { group: g, body, head, tailMesh, opticsMesh, legs, isSprinter: true };
     }
 
     buildBrute(root, mode) {
@@ -504,28 +612,33 @@
       this.mesh(torso, new T.BoxGeometry(2.0, 1.6, 1.4), 'titanium', mode, 0, 0.4, 0);
       this.mesh(torso, new T.BoxGeometry(1.6, 0.4, 0.2), 'hazard', mode, 0, 0.8, 0.72);
 
-      // Dual heavy exhaust smokestacks
+      // Dual heavy exhaust smokestacks venting dark diesel soot and fire
+      const smokestacks = [];
       [-0.7, 0.7].forEach(s => {
         this.mesh(torso, new T.CylinderGeometry(0.18, 0.22, 1.2, 8), 'barrel', mode, s, 1.4, -0.5, -0.25, 0, 0);
-        this.mesh(torso, new T.SphereGeometry(0.12, 8, 8), 'flameOrange', mode, s, 1.9, -0.6);
+        const ember = this.mesh(torso, new T.SphereGeometry(0.14, 8, 8), 'flameOrange', mode, s, 1.9, -0.6);
+        smokestacks.push(ember);
       });
 
-      // Pneumatic Spiked Power-Fists
-      [-1.35, 1.35].forEach(s => {
-        const arm = new T.Group();
-        arm.position.set(s, 0.5, 0.3);
-        torso.add(arm);
-        this.mesh(arm, new T.BoxGeometry(0.7, 1.2, 0.8), 'darkAlloy', mode, 0, -0.4, 0);
-        this.mesh(arm, new T.BoxGeometry(0.9, 0.9, 1.1), 'titanium', mode, 0, -1.0, 0.2);
-        this.mesh(arm, new T.ConeGeometry(0.15, 0.4, 6), 'chrome', mode, 0, -1.0, 0.85, Math.PI / 2, 0, 0);
-      });
+      // Pneumatic Spiked Power-Fists with hydraulic extension
+      const fistR = new T.Group(); fistR.position.set(-1.35, 0.5, 0.3); torso.add(fistR);
+      this.mesh(fistR, new T.BoxGeometry(0.7, 1.2, 0.8), 'darkAlloy', mode, 0, -0.4, 0);
+      this.mesh(fistR, new T.BoxGeometry(0.9, 0.9, 1.1), 'titanium', mode, 0, -1.0, 0.2);
+      this.mesh(fistR, new T.ConeGeometry(0.15, 0.4, 6), 'chrome', mode, 0, -1.0, 0.85, Math.PI / 2, 0, 0);
+      fistR._origZ = 0.3;
+
+      const fistL = new T.Group(); fistL.position.set(1.35, 0.5, 0.3); torso.add(fistL);
+      this.mesh(fistL, new T.BoxGeometry(0.7, 1.2, 0.8), 'darkAlloy', mode, 0, -0.4, 0);
+      this.mesh(fistL, new T.BoxGeometry(0.9, 0.9, 1.1), 'titanium', mode, 0, -1.0, 0.2);
+      this.mesh(fistL, new T.ConeGeometry(0.15, 0.4, 6), 'chrome', mode, 0, -1.0, 0.85, Math.PI / 2, 0, 0);
+      fistL._origZ = 0.3;
 
       // Reinforced Heavy Pillar Legs
       [-0.6, 0.6].forEach(s => {
         this.mesh(g, new T.BoxGeometry(0.65, 1.4, 0.75), 'carbon', mode, s, -0.7, 0);
         this.mesh(g, new T.BoxGeometry(0.8, 0.3, 1.0), 'darkAlloy', mode, s, -1.35, 0.1);
       });
-      return { group: g, torso, isBrute: true };
+      return { group: g, torso, fistR, fistL, smokestacks, isBrute: true };
     }
 
     buildShieldbearer(root, mode) {
@@ -538,22 +651,22 @@
       g.add(torso);
       this.mesh(torso, new T.BoxGeometry(1.2, 1.4, 0.9), 'titanium', mode, 0, 0.2, -0.2);
 
-      // Giant Tower Energy Shield in front
+      // Giant Tower Energy Shield in front with animated hexagonal ripple
       const shield = new T.Group();
       shield.position.set(0, 0.1, 0.9);
       g.add(shield);
       this.mesh(shield, new T.BoxGeometry(2.4, 2.2, 0.15), 'titanium', mode, 0, 0, 0);
-      this.mesh(shield, new T.BoxGeometry(2.1, 1.9, 0.2), 'cyanEnergy', mode, 0, 0, 0.05);
+      const shieldHex = this.mesh(shield, new T.BoxGeometry(2.1, 1.9, 0.2), 'hexForcefield', mode, 0, 0, 0.05);
       this.mesh(shield, new T.TorusGeometry(0.5, 0.06, 6, 6), 'plasmaYellow', mode, 0, 0, 0.18);
 
       // Heavy Shoulder Shock Cannon
-      this.mesh(torso, new T.CylinderGeometry(0.16, 0.2, 1.4, 8), 'barrel', mode, 0.75, 1.1, 0.2, Math.PI / 2, 0, 0);
+      const shoulderCannon = this.mesh(torso, new T.CylinderGeometry(0.16, 0.2, 1.4, 8), 'barrel', mode, 0.75, 1.1, 0.2, Math.PI / 2, 0, 0);
 
       // Lower Legs
       [-0.45, 0.45].forEach(s => {
         this.mesh(g, new T.BoxGeometry(0.4, 1.2, 0.5), 'carbon', mode, s, -0.8, -0.2);
       });
-      return { group: g, torso, shield };
+      return { group: g, torso, shield, shieldHex, shoulderCannon, isShieldbearer: true };
     }
 
     buildMedic(root, mode) {
@@ -571,7 +684,7 @@
       const ring1 = this.mesh(drone, new T.TorusGeometry(1.25, 0.06, 8, 32), 'chrome', mode, 0, 0.2, 0, Math.PI / 3, 0, 0);
       const ring2 = this.mesh(drone, new T.TorusGeometry(1.4, 0.05, 8, 32), 'acidGreen', mode, 0, 0.2, 0, -Math.PI / 4, 0, 0);
 
-      // 3 Nanite Welding Arms underneath
+      // 3 Nanite Welding Arms underneath with green laser targeting
       for (let i = 0; i < 3; i++) {
         const a = (i * Math.PI * 2) / 3;
         const arm = new T.Group();
@@ -580,7 +693,9 @@
         this.mesh(arm, new T.CylinderGeometry(0.05, 0.05, 0.8, 8), 'chrome', mode, 0, -0.35, 0);
         this.mesh(arm, new T.SphereGeometry(0.09, 8, 8), 'acidGreen', mode, 0, -0.75, 0);
       }
-      return { group: g, drone, ring1, ring2, isHover: true };
+      const healLaser = this.mesh(drone, new T.CylinderGeometry(0.04, 0.2, 1.8, 8), 'acidGreen', mode, 0, -1.2, 0);
+
+      return { group: g, drone, ring1, ring2, healLaser, isHover: true };
     }
 
     buildSplitter(root, mode) {
@@ -628,7 +743,7 @@
       [-0.35, 0.35].forEach(s => {
         this.mesh(g, new T.CylinderGeometry(0.06, 0.08, 1.4, 8), 'chrome', mode, s, -0.7, 0);
       });
-      return { group: g, torso, isStealth: true };
+      return { group: g, torso, gun, isStealth: true };
     }
 
     buildKamikazeDrone(root, mode) {
@@ -642,12 +757,19 @@
       this.mesh(body, new T.SphereGeometry(0.75, 16, 16), 'hazard', mode, 0, 0.2, 0);
       this.mesh(body, new T.SphereGeometry(0.55, 16, 16), 'flameOrange', mode, 0, 0.2, 0);
 
-      // 4 High-Speed Thruster Cones
+      // 4 High-Speed Thruster Cones with orange ion fire
+      const thrusterFlames = [];
       for (let i = 0; i < 4; i++) {
         const a = (i * Math.PI) / 2;
         this.mesh(body, new T.ConeGeometry(0.18, 0.5, 8), 'carbon', mode, Math.cos(a) * 0.8, 0.2, Math.sin(a) * 0.8, 0, 0, a + Math.PI / 2);
+        const fl = this.mesh(body, new T.ConeGeometry(0.12, 0.45, 8), 'flameOrange', mode, Math.cos(a) * 1.15, 0.2, Math.sin(a) * 1.15, 0, 0, a + Math.PI / 2);
+        thrusterFlames.push(fl);
       }
-      return { group: g, body, isHover: true };
+
+      // Accelerating Countdown Proximity Strobe Beacon
+      const strobeMesh = this.mesh(body, new T.SphereGeometry(0.18, 8, 8), 'flameOrange', mode, 0, 0.85, 0);
+
+      return { group: g, body, thrusterFlames, strobeMesh, isKamikaze: true, isHover: true };
     }
 
     buildGunship(root, mode) {
@@ -663,21 +785,23 @@
 
       // Twin Tilting Ducted Rotor Nacelles
       const rotors = [];
+      const rotorPods = [];
       [-1.4, 1.4].forEach(s => {
         const pod = new T.Group();
         pod.position.set(s, 0.4, 0);
         hull.add(pod);
+        rotorPods.push(pod);
         this.mesh(pod, new T.CylinderGeometry(0.8, 0.8, 0.25, 16), 'carbon', mode, 0, 0, 0);
         const blades = this.mesh(pod, new T.BoxGeometry(1.5, 0.05, 0.15), 'chrome', mode, 0, 0, 0);
         rotors.push(blades);
       });
 
       // Chin Gatling Gun
-      const turret = new T.Group();
-      turret.position.set(0, -0.3, 1.3);
-      hull.add(turret);
-      this.mesh(turret, new T.CylinderGeometry(0.08, 0.08, 0.9, 8), 'barrel', mode, 0, 0, 0.4, Math.PI / 2, 0, 0);
-      return { group: g, hull, rotors, isGunship: true };
+      const chinTurret = new T.Group();
+      chinTurret.position.set(0, -0.3, 1.3);
+      hull.add(chinTurret);
+      this.mesh(chinTurret, new T.CylinderGeometry(0.08, 0.08, 0.9, 8), 'barrel', mode, 0, 0, 0.4, Math.PI / 2, 0, 0);
+      return { group: g, hull, rotorPods, rotors, chinTurret, isGunship: true };
     }
 
     // --- 3. TITAN BOSSES (6 Gigantic Units) ---
@@ -686,10 +810,12 @@
       const g = new T.Group();
       root.add(g);
 
-      // Giant Dual Tank Treads
+      // Giant Dual Continuous Tank Treads
+      const treads = [];
       [-1.4, 1.4].forEach(s => {
-        this.mesh(g, new T.BoxGeometry(0.7, 0.9, 3.8), 'carbon', mode, s, -0.9, 0);
+        const tr = this.mesh(g, new T.BoxGeometry(0.7, 0.9, 3.8), 'carbon', mode, s, -0.9, 0);
         this.mesh(g, new T.BoxGeometry(0.75, 0.25, 3.6), 'hazard', mode, s, -0.4, 0);
+        treads.push(tr);
       });
 
       // Sloped Heavy Chassis
@@ -700,15 +826,19 @@
       turret.position.set(0, 0.4, 0);
       g.add(turret);
       this.mesh(turret, new T.BoxGeometry(2.0, 1.0, 2.2), 'titanium', mode, 0, 0, 0);
-      this.mesh(turret, new T.CylinderGeometry(0.28, 0.35, 3.2, 16), 'barrel', mode, 0, 0.1, 1.8, Math.PI / 2, 0, 0);
-      this.mesh(turret, new T.TorusGeometry(0.36, 0.08, 8, 24), 'flameOrange', mode, 0, 0.1, 3.2);
+      
+      const cannon = new T.Group();
+      cannon.position.set(0, 0.1, 1.8);
+      turret.add(cannon);
+      this.mesh(cannon, new T.CylinderGeometry(0.28, 0.35, 3.2, 16), 'barrel', mode, 0, 0, 0, Math.PI / 2, 0, 0);
+      this.mesh(cannon, new T.TorusGeometry(0.36, 0.08, 8, 24), 'flameOrange', mode, 0, 0, 1.4);
 
-      // Dual flamethrower exhausts
+      // Dual flamethrower smokestacks
       [-0.8, 0.8].forEach(s => {
         this.mesh(turret, new T.CylinderGeometry(0.18, 0.24, 1.0, 8), 'barrel', mode, s, 0.7, -0.8, -0.3, 0, 0);
         this.mesh(turret, new T.SphereGeometry(0.12, 8, 8), 'flameOrange', mode, s, 1.2, -1.0);
       });
-      return { group: g, turret, rotSpeed: 0.35 };
+      return { group: g, turret, cannon, treads, rotSpeed: 0.35, isJuggernaut: true };
     }
 
     buildOverseer(root, mode) {
@@ -722,12 +852,19 @@
       this.mesh(core, new T.SphereGeometry(1.6, 32, 32), 'carbon', mode, 0, 0.3, 0);
       this.mesh(core, new T.SphereGeometry(1.0, 24, 24), 'magentaEnergy', mode, 0, 0.3, 0.8);
 
-      // 3 Giant Concentric Rotating Energy Rings
+      // 3 Giant Concentric Rotating Gimbal Energy Rings
       const ringA = this.mesh(core, new T.TorusGeometry(2.2, 0.08, 8, 48), 'cyanEnergy', mode, 0, 0.3, 0, Math.PI / 2, 0, 0);
       const ringB = this.mesh(core, new T.TorusGeometry(2.6, 0.06, 8, 48), 'magentaEnergy', mode, 0, 0.3, 0, Math.PI / 3, Math.PI / 4, 0);
       const ringC = this.mesh(core, new T.TorusGeometry(3.0, 0.05, 8, 48), 'plasmaYellow', mode, 0, 0.3, 0, -Math.PI / 4, 0, Math.PI / 3);
 
-      return { group: g, core, ringA, ringB, ringC, isOverseer: true };
+      // 4 Orbiting Escort Drone Bits
+      const drones = [];
+      for (let i = 0; i < 4; i++) {
+        const d = this.mesh(core, new T.BoxGeometry(0.3, 0.3, 0.3), 'titanium', mode, 0, 0, 0);
+        drones.push(d);
+      }
+
+      return { group: g, core, ringA, ringB, ringC, drones, isOverseer: true };
     }
 
     buildHiveTitan(root, mode) {
@@ -742,7 +879,8 @@
       this.mesh(body, new T.SphereGeometry(0.9, 16, 16), 'acidGreen', mode, 0, 0.3, -0.6);
       this.mesh(body, new T.BoxGeometry(1.4, 0.9, 1.2), 'titanium', mode, 0, 0.1, 0.8);
 
-      // 8 Towering Claws/Legs
+      // 8 Articulated Walking Spider Legs in Tripod Gait
+      const legs = [];
       for (let i = 0; i < 8; i++) {
         const side = i % 2 === 0 ? -1 : 1;
         const row = Math.floor(i / 2);
@@ -751,8 +889,9 @@
         body.add(leg);
         this.mesh(leg, new T.CylinderGeometry(0.12, 0.16, 1.8, 8), 'carbon', mode, side * 0.5, 0.5, 0, 0, 0, -side * 0.6);
         this.mesh(leg, new T.CylinderGeometry(0.08, 0.12, 2.0, 8), 'darkAlloy', mode, side * 1.0, -0.6, 0, 0, 0, side * 0.4);
+        legs.push(leg);
       }
-      return { group: g, body, isHive: true };
+      return { group: g, body, legs, isHive: true };
     }
 
     buildVoidTitan(root, mode) {
@@ -814,14 +953,15 @@
       this.mesh(torso, new T.SphereGeometry(0.65, 16, 16), 'plasmaYellow', mode, 0, 0.6, 0.95); // Macro Reactor
 
       // Shoulder Hyper-Railgun Cannons
-      [-1.8, 1.8].forEach(s => {
-        const arm = new T.Group();
-        arm.position.set(s, 0.9, 0.2);
-        torso.add(arm);
-        this.mesh(arm, new T.BoxGeometry(1.0, 1.2, 1.4), 'darkAlloy', mode, 0, 0, 0);
-        this.mesh(arm, new T.CylinderGeometry(0.24, 0.3, 3.4, 12), 'barrel', mode, 0, -0.4, 1.5, Math.PI / 2, 0, 0);
-        this.mesh(arm, new T.TorusGeometry(0.32, 0.06, 8, 16), 'cyanEnergy', mode, 0, -0.4, 2.8);
-      });
+      const cannonL = new T.Group(); cannonL.position.set(-1.8, 0.9, 0.2); torso.add(cannonL);
+      this.mesh(cannonL, new T.BoxGeometry(1.0, 1.2, 1.4), 'darkAlloy', mode, 0, 0, 0);
+      this.mesh(cannonL, new T.CylinderGeometry(0.24, 0.3, 3.4, 12), 'barrel', mode, 0, -0.4, 1.5, Math.PI / 2, 0, 0);
+      this.mesh(cannonL, new T.TorusGeometry(0.32, 0.06, 8, 16), 'cyanEnergy', mode, 0, -0.4, 2.8);
+
+      const cannonR = new T.Group(); cannonR.position.set(1.8, 0.9, 0.2); torso.add(cannonR);
+      this.mesh(cannonR, new T.BoxGeometry(1.0, 1.2, 1.4), 'darkAlloy', mode, 0, 0, 0);
+      this.mesh(cannonR, new T.CylinderGeometry(0.24, 0.3, 3.4, 12), 'barrel', mode, 0, -0.4, 1.5, Math.PI / 2, 0, 0);
+      this.mesh(cannonR, new T.TorusGeometry(0.32, 0.06, 8, 16), 'cyanEnergy', mode, 0, -0.4, 2.8);
 
       // Massive Hydraulic Suspension Pillar Legs
       [-0.9, 0.9].forEach(s => {
@@ -829,22 +969,177 @@
         this.mesh(g, new T.CylinderGeometry(0.14, 0.14, 1.2, 8), 'chrome', mode, s, -0.7, -0.5);
         this.mesh(g, new T.BoxGeometry(1.1, 0.35, 1.4), 'darkAlloy', mode, s, -1.6, 0.2);
       });
-      return { group: g, torso, isColossus: true };
+      return { group: g, torso, cannonL, cannonR, isColossus: true };
     }
 
-    // --- 4. HERO MECH APEX-01 (2 Modes) ---
+    // --- 4. HEROES (Transformers & Apex) ---
+    buildMegatron(root, mode) {
+      const T = this.THREE;
+      const g = new T.Group();
+      root.add(g);
+
+      // Torso & Decepticon Chest Grille
+      const torso = new T.Group();
+      g.add(torso);
+      this.mesh(torso, new T.BoxGeometry(1.8, 1.5, 1.3), 'decepticonMetal', mode, 0, 0.6, 0);
+      this.mesh(torso, new T.BoxGeometry(1.2, 0.6, 0.2), 'darkEnergon', mode, 0, 0.7, 0.68);
+      this.mesh(torso, new T.ConeGeometry(0.4, 0.5, 4), 'decepticonMetal', mode, 0, 1.2, 0.6, 0, 0, Math.PI); // Crest
+
+      // Helmet with Decepticon Crest & Crimson Optics
+      const head = new T.Group();
+      head.position.set(0, 1.55, 0);
+      torso.add(head);
+      this.mesh(head, new T.BoxGeometry(0.7, 0.7, 0.75), 'decepticonMetal', mode, 0, 0, 0);
+      this.mesh(head, new T.ConeGeometry(0.35, 0.5, 4), 'darkAlloy', mode, 0, 0.45, 0);
+      this.mesh(head, new T.BoxGeometry(0.5, 0.14, 0.15), 'magentaEnergy', mode, 0, 0.05, 0.38); // Crimson Visor
+
+      // Right Arm: Iconic War for Cybertron Fusion Cannon
+      const armR = new T.Group();
+      armR.position.set(1.25, 0.7, 0.2);
+      torso.add(armR);
+      this.mesh(armR, new T.BoxGeometry(0.5, 1.0, 0.6), 'decepticonMetal', mode, 0, -0.2, 0);
+      
+      const fusionCannon = new T.Group();
+      fusionCannon.position.set(0.1, -0.6, 0.5);
+      armR.add(fusionCannon);
+      this.mesh(fusionCannon, new T.CylinderGeometry(0.32, 0.38, 2.6, 16), 'barrel', mode, 0, 0, 0, Math.PI / 2, 0, 0);
+      this.mesh(fusionCannon, new T.CylinderGeometry(0.42, 0.42, 0.6, 16), 'decepticonMetal', mode, 0, 0, -0.8, Math.PI / 2, 0, 0);
+      const darkEnergonCore = this.mesh(fusionCannon, new T.SphereGeometry(0.28, 16, 16), 'darkEnergon', mode, 0, 0, 0.5);
+
+      // Left Arm with Clawed Hand
+      const armL = new T.Group();
+      armL.position.set(-1.25, 0.7, 0);
+      torso.add(armL);
+      this.mesh(armL, new T.BoxGeometry(0.5, 1.1, 0.6), 'decepticonMetal', mode, 0, -0.3, 0);
+      this.mesh(armL, new T.BoxGeometry(0.6, 0.4, 0.7), 'darkAlloy', mode, 0, -0.9, 0.1);
+
+      // Heavy Legs with Tank Tread Calf Guards
+      const legR = new T.Group(); legR.position.set(0.55, -0.2, 0); g.add(legR);
+      this.mesh(legR, new T.BoxGeometry(0.55, 1.2, 0.65), 'decepticonMetal', mode, 0, -0.5, 0);
+      this.mesh(legR, new T.BoxGeometry(0.65, 0.9, 0.45), 'carbon', mode, 0, -0.6, -0.35); // Tread calf
+      this.mesh(legR, new T.BoxGeometry(0.65, 0.35, 0.95), 'darkAlloy', mode, 0, -1.25, 0.15);
+
+      const legL = new T.Group(); legL.position.set(-0.55, -0.2, 0); g.add(legL);
+      this.mesh(legL, new T.BoxGeometry(0.55, 1.2, 0.65), 'decepticonMetal', mode, 0, -0.5, 0);
+      this.mesh(legL, new T.BoxGeometry(0.65, 0.9, 0.45), 'carbon', mode, 0, -0.6, -0.35);
+      this.mesh(legL, new T.BoxGeometry(0.65, 0.35, 0.95), 'darkAlloy', mode, 0, -1.25, 0.15);
+
+      return { group: g, torso, armR, armL, legR, legL, fusionCannon, darkEnergonCore, isMegatron: true, isBiped: true };
+    }
+
+    buildOptimus(root, mode) {
+      const T = this.THREE;
+      const g = new T.Group();
+      root.add(g);
+
+      // Torso & Peterbilt Windshield Windows
+      const torso = new T.Group();
+      g.add(torso);
+      this.mesh(torso, new T.BoxGeometry(1.7, 1.4, 1.2), 'autobotRed', mode, 0, 0.6, 0);
+      this.mesh(torso, new T.BoxGeometry(0.6, 0.45, 0.1), 'glassCyan', mode, -0.4, 0.8, 0.62);
+      this.mesh(torso, new T.BoxGeometry(0.6, 0.45, 0.1), 'glassCyan', mode, 0.4, 0.8, 0.62);
+      this.mesh(torso, new T.BoxGeometry(1.2, 0.3, 0.15), 'hazard', mode, 0, 0.2, 0.62);
+      
+      // Glowing Matrix of Leadership Chamber inside
+      const matrixCore = this.mesh(torso, new T.SphereGeometry(0.28, 16, 16), 'matrixCore', mode, 0, 0.8, 0.1);
+
+      // Dual Chrome Peterbilt Smokestacks on Back
+      [-0.65, 0.65].forEach(x => {
+        this.mesh(torso, new T.CylinderGeometry(0.08, 0.08, 1.8, 8), 'chrome', mode, x, 1.3, -0.6);
+      });
+
+      // Battle-Mask Helmet with Tall Side Antennas
+      const head = new T.Group();
+      head.position.set(0, 1.5, 0);
+      torso.add(head);
+      this.mesh(head, new T.BoxGeometry(0.65, 0.65, 0.7), 'autobotBlue', mode, 0, 0, 0);
+      this.mesh(head, new T.BoxGeometry(0.5, 0.12, 0.1), 'cyanEnergy', mode, 0, 0.05, 0.36);
+      [-0.38, 0.38].forEach(x => {
+        this.mesh(head, new T.ConeGeometry(0.06, 0.6, 6), 'autobotBlue', mode, x, 0.4, 0);
+      });
+
+      // Right Arm: Heavy Ion Blaster Rifle
+      const armR = new T.Group();
+      armR.position.set(1.2, 0.6, 0.2);
+      torso.add(armR);
+      this.mesh(armR, new T.BoxGeometry(0.45, 1.0, 0.5), 'autobotRed', mode, 0, -0.2, 0);
+      const ionBlaster = new T.Group();
+      ionBlaster.position.set(0, -0.7, 0.4);
+      armR.add(ionBlaster);
+      this.mesh(ionBlaster, new T.BoxGeometry(0.25, 0.4, 1.8), 'barrel', mode, 0, 0, 0.4);
+      this.mesh(ionBlaster, new T.CylinderGeometry(0.08, 0.08, 1.0, 8), 'cyanEnergy', mode, 0, 0.05, 1.4, Math.PI / 2, 0, 0);
+
+      // Left Arm: Translucent Flaming Energon Battle Axe
+      const armL = new T.Group();
+      armL.position.set(-1.2, 0.6, 0);
+      torso.add(armL);
+      this.mesh(armL, new T.BoxGeometry(0.45, 1.0, 0.5), 'autobotRed', mode, 0, -0.2, 0);
+      const energonAxe = this.mesh(armL, new T.BoxGeometry(0.1, 1.4, 0.8), 'energonAxe', mode, 0, -1.0, 0.3);
+
+      // Blue Legs
+      const legR = new T.Group(); legR.position.set(0.5, -0.2, 0); g.add(legR);
+      this.mesh(legR, new T.BoxGeometry(0.5, 1.3, 0.6), 'autobotBlue', mode, 0, -0.5, 0);
+      this.mesh(legR, new T.BoxGeometry(0.6, 0.35, 0.9), 'steel', mode, 0, -1.3, 0.15);
+
+      const legL = new T.Group(); legL.position.set(-0.5, -0.2, 0); g.add(legL);
+      this.mesh(legL, new T.BoxGeometry(0.5, 1.3, 0.6), 'autobotBlue', mode, 0, -0.5, 0);
+      this.mesh(legL, new T.BoxGeometry(0.6, 0.35, 0.9), 'steel', mode, 0, -1.3, 0.15);
+
+      return { group: g, torso, armR, armL, legR, legL, ionBlaster, energonAxe, matrixCore, isOptimus: true, isBiped: true };
+    }
+
+    buildBumblebee(root, mode) {
+      const T = this.THREE;
+      const g = new T.Group();
+      root.add(g);
+
+      // Sleek Camaro Rally Chassis
+      const torso = new T.Group();
+      g.add(torso);
+      this.mesh(torso, new T.BoxGeometry(1.4, 1.2, 1.0), 'bumblebeeYellow', mode, 0, 0.5, 0);
+      this.mesh(torso, new T.BoxGeometry(0.3, 1.2, 0.1), 'carbon', mode, -0.25, 0.5, 0.52); // Rally stripe
+      this.mesh(torso, new T.BoxGeometry(0.3, 1.2, 0.1), 'carbon', mode, 0.25, 0.5, 0.52);
+
+      // Scout Helmet with Dual Antennas
+      const head = new T.Group();
+      head.position.set(0, 1.3, 0);
+      torso.add(head);
+      this.mesh(head, new T.BoxGeometry(0.55, 0.55, 0.6), 'bumblebeeYellow', mode, 0, 0, 0);
+      this.mesh(head, new T.BoxGeometry(0.4, 0.12, 0.1), 'cyanEnergy', mode, 0, 0.05, 0.32);
+
+      // Dual Arm Stinger Cannons
+      const armR = new T.Group(); armR.position.set(0.95, 0.5, 0.2); torso.add(armR);
+      this.mesh(armR, new T.BoxGeometry(0.35, 0.8, 0.4), 'bumblebeeYellow', mode, 0, -0.2, 0);
+      const stingerR = this.mesh(armR, new T.CylinderGeometry(0.1, 0.14, 1.4, 8), 'barrel', mode, 0, -0.6, 0.5, Math.PI / 2, 0, 0);
+      this.mesh(armR, new T.TorusGeometry(0.16, 0.04, 6, 12), 'plasmaYellow', mode, 0, -0.6, 1.1);
+
+      const armL = new T.Group(); armL.position.set(-0.95, 0.5, 0.2); torso.add(armL);
+      this.mesh(armL, new T.BoxGeometry(0.35, 0.8, 0.4), 'bumblebeeYellow', mode, 0, -0.2, 0);
+      const stingerL = this.mesh(armL, new T.CylinderGeometry(0.1, 0.14, 1.4, 8), 'barrel', mode, 0, -0.6, 0.5, Math.PI / 2, 0, 0);
+      this.mesh(armL, new T.TorusGeometry(0.16, 0.04, 6, 12), 'plasmaYellow', mode, 0, -0.6, 1.1);
+
+      // Agile Digitigrade Legs
+      const legR = new T.Group(); legR.position.set(0.4, -0.15, 0); g.add(legR);
+      this.mesh(legR, new T.BoxGeometry(0.4, 1.0, 0.45), 'bumblebeeYellow', mode, 0, -0.4, 0);
+      this.mesh(legR, new T.BoxGeometry(0.45, 0.25, 0.75), 'carbon', mode, 0, -1.05, 0.15);
+
+      const legL = new T.Group(); legL.position.set(-0.4, -0.15, 0); g.add(legL);
+      this.mesh(legL, new T.BoxGeometry(0.4, 1.0, 0.45), 'bumblebeeYellow', mode, 0, -0.4, 0);
+      this.mesh(legL, new T.BoxGeometry(0.45, 0.25, 0.75), 'carbon', mode, 0, -1.05, 0.15);
+
+      return { group: g, torso, armR, armL, legR, legL, stingerL, stingerR, isBumblebee: true, isBiped: true };
+    }
+
     buildApexBiped(root, mode) {
       const T = this.THREE;
-      // If window.Apex01Mech is available, we can instantiate it, or build our procedural high-detail rig
       if (typeof window.Apex01Mech === 'function') {
         const mech = new window.Apex01Mech(T);
         mech.root.position.set(0, -1.2, 0);
         mech.root.scale.set(0.65, 0.65, 0.65);
         root.add(mech.root);
-        return { group: mech.root, mechInstance: mech };
+        return { group: mech.root, mechInstance: mech, isBiped: true };
       }
 
-      // Fallback articulated APEX-01 Mech
       const g = new T.Group();
       root.add(g);
       const torso = new T.Group(); g.add(torso);
@@ -863,13 +1158,17 @@
       });
 
       // Digitigrade Legs
-      [-0.55, 0.55].forEach(s => {
-        this.mesh(g, new T.BoxGeometry(0.4, 1.1, 0.5), 'carbon', mode, s, -0.5, -0.1, -0.3, 0, 0);
-        this.mesh(g, new T.CylinderGeometry(0.08, 0.08, 1.1, 8), 'chrome', mode, s, -0.5, -0.4);
-        this.mesh(g, new T.BoxGeometry(0.35, 1.1, 0.45), 'titanium', mode, s, -1.0, 0.1, 0.35, 0, 0);
-        this.mesh(g, new T.BoxGeometry(0.5, 0.2, 0.8), 'darkAlloy', mode, s, -1.5, 0.2);
-      });
-      return { group: g, torso, isBiped: true };
+      const legR = new T.Group(); legR.position.set(0.55, -0.5, 0); g.add(legR);
+      this.mesh(legR, new T.BoxGeometry(0.4, 1.1, 0.5), 'carbon', mode, 0, 0, -0.1, -0.3, 0, 0);
+      this.mesh(legR, new T.BoxGeometry(0.35, 1.1, 0.45), 'titanium', mode, 0, -0.5, 0.1, 0.35, 0, 0);
+      this.mesh(legR, new T.BoxGeometry(0.5, 0.2, 0.8), 'darkAlloy', mode, 0, -1.0, 0.2);
+
+      const legL = new T.Group(); legL.position.set(-0.55, -0.5, 0); g.add(legL);
+      this.mesh(legL, new T.BoxGeometry(0.4, 1.1, 0.5), 'carbon', mode, 0, 0, -0.1, -0.3, 0, 0);
+      this.mesh(legL, new T.BoxGeometry(0.35, 1.1, 0.45), 'titanium', mode, 0, -0.5, 0.1, 0.35, 0, 0);
+      this.mesh(legL, new T.BoxGeometry(0.5, 0.2, 0.8), 'darkAlloy', mode, 0, -1.0, 0.2);
+
+      return { group: g, torso, legR, legL, isBiped: true };
     }
 
     buildApexSiege(root, mode) {
@@ -887,7 +1186,7 @@
       this.mesh(g, new T.BoxGeometry(2.2, 0.8, 2.6), 'titanium', mode, 0, -0.5, 0);
       this.mesh(g, new T.SphereGeometry(0.5, 16, 16), 'plasmaYellow', mode, 0, -0.3, 0.4);
 
-      // Dual 150mm Forward Siege Cannons
+      // Dual 150mm Forward Siege Cannons with Recoil Slide
       const guns = new T.Group();
       guns.position.set(0, 0.2, 0.2);
       g.add(guns);
@@ -923,6 +1222,7 @@
       this.zoom = 1.0;
       this.recoil = 0;
       this.time = 0;
+      this.barrelHeat = 0;
       this.lightPresetIdx = 0;
 
       this.width = 512;
@@ -969,7 +1269,7 @@
           const size = new THREE.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          const targetHeight = (id === 'pulse' || id === 'railgun') ? 2.1 : ((id === 'kamikaze_drone' || id === 'overseer') ? 1.7 : ((id === 'gunship' || id === 'juggernaut') ? 2.3 : 2.7));
+          const targetHeight = (id === 'megatron') ? 3.2 : ((id === 'optimus') ? 3.0 : ((id === 'bumblebee') ? 2.6 : ((id === 'pulse' || id === 'railgun') ? 2.1 : ((id === 'kamikaze_drone' || id === 'overseer') ? 1.7 : ((id === 'gunship' || id === 'juggernaut') ? 2.3 : 2.7)))));
           const scale = maxD > 0 ? (targetHeight / maxD) : 1.0;
           clone.scale.set(scale, scale, scale);
 
@@ -984,14 +1284,8 @@
             child.receiveShadow = true;
             if (child.material) {
               child.material.envMapIntensity = 2.6;
-              if (child.material.map) {
-                child.material.map.anisotropy = 16;
-                child.material.map.needsUpdate = true;
-              }
-              if (child.material.normalMap) {
-                child.material.normalMap.anisotropy = 16;
-                child.material.normalMap.needsUpdate = true;
-              }
+              if (child.material.map) child.material.map.anisotropy = 16;
+              if (child.material.normalMap) child.material.normalMap.anisotropy = 16;
               if (child.material.roughnessMap) {
                 child.material.roughnessMap.anisotropy = 16;
                 child.material.roughness = 0.35;
@@ -999,6 +1293,11 @@
               if (child.material.metalnessMap) {
                 child.material.metalnessMap.anisotropy = 16;
                 child.material.metalness = 0.85;
+              }
+              // Dark Energon glow for Megatron
+              if (id === 'megatron' && child.material.name && child.material.name.toLowerCase().includes('energon')) {
+                child.material.emissive = new THREE.Color(0xa855f7);
+                child.material.emissiveIntensity = 4.2;
               }
               if (mode === 'WIREFRAME') {
                 child.material.wireframe = true;
@@ -1016,6 +1315,7 @@
         if (gltf.animations && gltf.animations.length > 0 && THREE.AnimationMixer) {
           this.activeMixer = new THREE.AnimationMixer(clone);
           const action = this.activeMixer.clipAction(gltf.animations[0]);
+          if (THREE.LoopRepeat !== undefined) action.setLoop(THREE.LoopRepeat);
           action.play();
         }
 
@@ -1239,10 +1539,10 @@
           case 'chrono_phantom': this.currentModelObj = F.buildChronoPhantom(R, mode); break;
           case 'mecha_colossus': this.currentModelObj = F.buildMechaColossus(R, mode); break;
 
-          // Hero Mech
-          case 'megatron':
-          case 'optimus':
-          case 'bumblebee':
+          // Hero Transformers & Apex Mech
+          case 'megatron': this.currentModelObj = F.buildMegatron(R, mode); break;
+          case 'optimus': this.currentModelObj = F.buildOptimus(R, mode); break;
+          case 'bumblebee': this.currentModelObj = F.buildBumblebee(R, mode); break;
           case 'biped': this.currentModelObj = F.buildApexBiped(R, mode); break;
           case 'siege': this.currentModelObj = F.buildApexSiege(R, mode); break;
 
@@ -1269,13 +1569,22 @@
       this.zoom = zoom;
       this.recoil = recoil;
 
+      // Dynamic barrel overheating accumulation & gradual cooling
+      if (recoil > 0) {
+        this.barrelHeat = Math.min(1.0, (this.barrelHeat || 0) + recoil * 1.6);
+      } else {
+        this.barrelHeat = Math.max(0, (this.barrelHeat || 0) - dt * 1.25);
+      }
+
       // Update Camera & Orbit
       const dist = 7.8 / Math.max(0.4, zoom);
       const camY = 1.4 + Math.sin(pitch) * dist * 0.7;
       const camZ = Math.cos(pitch) * dist;
 
-      this.camera.position.set(0, camY, camZ);
-      this.camera.lookAt(0, 0.1, 0);
+      if (this.camera) {
+        this.camera.position.set(0, camY, camZ);
+        this.camera.lookAt(0, 0.1, 0);
+      }
 
       // Rotate root model
       if (this.modelRoot) {
@@ -1287,20 +1596,262 @@
           if (m.mechInstance && typeof m.mechInstance.update === 'function') {
             m.mechInstance.update(dt);
           }
+
+          // --- 1. TOWERS ROLE-SPECIFIC KINEMATICS ---
+          // Pulse / Gatling Barrels spin & Overheat
+          if (m.barrels) {
+            if (m.isGatling) {
+              m.barrels.rotation.z += dt * (recoil > 0 ? 35.0 : 8.0);
+            }
+          }
+          if (m.heatMeshes) {
+            const isHot = (this.barrelHeat > 0.05);
+            m.heatMeshes.forEach(hm => {
+              hm.visible = isHot;
+              if (isHot && hm.material) {
+                hm.material.emissiveIntensity = 1.2 + this.barrelHeat * 3.4;
+              }
+            });
+          }
+          if (m.gasJets) {
+            const hasPlume = (recoil > 0.08);
+            m.gasJets.forEach(j => {
+              j.visible = hasPlume;
+              if (hasPlume) {
+                const s = Math.min(1.4, recoil * 1.8);
+                j.scale.set(s, s, s);
+              }
+            });
+          }
+
+          // Mortar Hydraulic Pistons recoil
+          if (m.pistonRods && recoil > 0) {
+            m.pistonRods.forEach(p => {
+              p.position.y = (p._origY || 0.6) - recoil * 0.4;
+            });
+          } else if (m.pistonRods) {
+            m.pistonRods.forEach(p => {
+              if (p.position.y < (p._origY || 0.6)) p.position.y = Math.min(p._origY || 0.6, p.position.y + dt * 2.5);
+            });
+          }
+          if (m.heatMesh) {
+            m.heatMesh.visible = (this.barrelHeat > 0.05);
+            if (m.heatMesh.visible && m.heatMesh.material) {
+              m.heatMesh.material.emissiveIntensity = 1.0 + this.barrelHeat * 3.2;
+            }
+          }
+
+          // Cryo Counter-Rotating Containment Rings & Core pulse
+          if (m.cryoRing1 && m.cryoRing2) {
+            m.cryoRing1.rotation.z += dt * 2.2;
+            m.cryoRing2.rotation.y -= dt * 2.6;
+            if (m.cryoCore) {
+              const sc = 1.0 + Math.sin(this.time * 4) * 0.08;
+              m.cryoCore.scale.set(sc, 1.0, sc);
+            }
+          }
+
+          // Tesla Electrical Sparks dancing
+          if (m.sparks) {
+            m.sparks.forEach((sp, idx) => {
+              sp.rotation.z += dt * (14.0 + idx * 6.0);
+              sp.rotation.x = Math.sin(this.time * 20.0 + idx) * 0.45;
+              sp.scale.setScalar(0.9 + Math.sin(this.time * 28.0 + idx * 2) * 0.2);
+            });
+          }
+
+          // Flame Pilot Flames flickering & Napalm bursts
+          if (m.pilotFlames) {
+            m.pilotFlames.forEach((pf, idx) => {
+              const fl = 0.9 + Math.sin(this.time * 26.0 + idx * 8.0) * 0.28;
+              pf.scale.set(fl, fl, fl * 1.25);
+            });
+          }
+          if (m.flameJets) {
+            const flaring = (recoil > 0.05);
+            m.flameJets.forEach(fj => {
+              fj.visible = flaring;
+              if (flaring) fj.scale.setScalar(Math.min(1.5, recoil * 2.0));
+            });
+          }
+
+          // Railgun Sequential Accelerator Coil light propagation
+          if (m.coils) {
+            m.coils.forEach((c, idx) => {
+              const wave = Math.sin(this.time * 9.0 - idx * 0.85);
+              if (c.material) {
+                c.material.emissiveIntensity = Math.max(0.6, wave * 3.2 + (recoil > 0 ? 1.5 : 0));
+              }
+            });
+            if (m.beamMesh) {
+              m.beamMesh.scale.set(1.0 + Math.sin(this.time * 16.0) * 0.3, 1.0, 1.0 + Math.sin(this.time * 16.0) * 0.3);
+            }
+          }
+
+          // Beacon 360° Radar Dish & Expanding Sonar Wave
+          if (m.dish) {
+            m.dish.rotation.y += dt * (m.rotSpeed || 1.8);
+          }
+          if (m.radarWave) {
+            m.radarWaveProgress = ((m.radarWaveProgress || 0) + dt * 0.75) % 1.0;
+            const rSc = 0.5 + m.radarWaveProgress * 3.2;
+            m.radarWave.scale.set(rSc, rSc, 1.0);
+            if (m.radarWave.material) m.radarWave.material.opacity = (1.0 - m.radarWaveProgress) * 0.75;
+          }
+          if (m.strobe) {
+            m.strobe.visible = (Math.sin(this.time * 10) > 0.1);
+          }
+
+          // Barricade Hexagonal Forcefield ripple
+          if (m.hexBarrier && m.hexBarrier.material) {
+            m.hexBarrier.material.opacity = 0.35 + Math.sin(this.time * 4) * 0.25;
+          }
+
+          // --- 2. ENEMIES & BOSSES KINEMATICS ---
+          // Hover drones (Medic & Kamikaze)
           if (m.isHover && m.drone) {
             m.drone.position.y = 0.2 + Math.sin(this.time * 2.5) * 0.12;
             if (m.ring1) m.ring1.rotation.z += dt * 1.8;
             if (m.ring2) m.ring2.rotation.y -= dt * 2.2;
+            if (m.healLaser) m.healLaser.scale.y = 0.8 + Math.sin(this.time * 6) * 0.25;
           }
+          if (m.isKamikaze && m.body) {
+            m.body.position.y = 0.2 + Math.sin(this.time * 6.0) * 0.08;
+            if (m.thrusterFlames) {
+              m.thrusterFlames.forEach(fl => {
+                const s = 0.8 + Math.sin(this.time * 24.0) * 0.3;
+                fl.scale.set(s, s, s * 1.3);
+              });
+            }
+            if (m.strobeMesh) {
+              m.strobeMesh.visible = (Math.sin(this.time * 16.0) > 0);
+            }
+          }
+
+          // Gunship Ducted Rotors & Pitch
+          if (m.isGunship && m.rotors) {
+            for (const r of m.rotors) r.rotation.y += dt * 38.0;
+            if (m.hull) {
+              m.hull.position.y = 0.3 + Math.sin(this.time * 3) * 0.08;
+              m.hull.rotation.x = Math.sin(this.time * 2.5) * 0.05;
+            }
+            if (m.chinTurret) {
+              m.chinTurret.rotation.y = Math.sin(this.time * 1.2) * 0.4;
+            }
+          }
+
+          // Biped Soldier Walk Kinematics (Grunt, Optimus, Bumblebee)
+          if (m.isBiped) {
+            const wSpeed = 5.2;
+            if (m.legR) m.legR.rotation.x = Math.sin(this.time * wSpeed) * 0.42;
+            if (m.legL) m.legL.rotation.x = -Math.sin(this.time * wSpeed) * 0.42;
+            if (m.armR) m.armR.rotation.x = -Math.sin(this.time * wSpeed) * 0.32;
+            if (m.armL) m.armL.rotation.x = Math.sin(this.time * wSpeed) * 0.32;
+            if (m.torso) m.torso.position.y = (m.torso._origY || m.torso.position.y) + Math.abs(Math.sin(this.time * wSpeed * 2)) * 0.04;
+            if (m.visorMesh) {
+              m.visorMesh.position.x = Math.sin(this.time * 1.8) * 0.06;
+            }
+            if (m.muzzleFlash) {
+              m.muzzleFlash.visible = (recoil > 0.1 || Math.sin(this.time * 12) > 0.7);
+            }
+          }
+
+          // Sprinter Raptor Leaping Kinematics
+          if (m.isSprinter && m.body) {
+            const sSpeed = 8.5;
+            m.body.position.y = 0.1 + Math.abs(Math.sin(this.time * sSpeed)) * 0.16;
+            m.body.rotation.z = Math.sin(this.time * sSpeed) * 0.07;
+            if (m.head) m.head.rotation.x = Math.sin(this.time * sSpeed) * 0.12;
+            if (m.tailMesh) m.tailMesh.rotation.y = Math.sin(this.time * sSpeed * 1.2) * 0.2;
+          }
+
+          // Brute Heavy Stomping & Power-Fist Strikes
+          if (m.isBrute && m.torso) {
+            const bSpeed = 3.4;
+            m.torso.position.y = 0.4 + Math.abs(Math.sin(this.time * bSpeed)) * 0.08;
+            m.torso.rotation.z = Math.sin(this.time * bSpeed) * 0.05;
+            if (m.fistR) {
+              m.fistR.position.z = (m.fistR._origZ || 0.3) + (recoil > 0 ? recoil * 0.9 : Math.sin(this.time * bSpeed) * 0.3);
+            }
+            if (m.fistL) {
+              m.fistL.position.z = (m.fistL._origZ || 0.3) + (recoil > 0 ? recoil * 0.9 : -Math.sin(this.time * bSpeed) * 0.3);
+            }
+            if (m.smokestacks) {
+              m.smokestacks.forEach(em => {
+                em.scale.setScalar(0.9 + Math.sin(this.time * 20) * 0.25);
+              });
+            }
+          }
+
+          // Shieldbearer forcefield ripple & shoulder cannon recoil
+          if (m.isShieldbearer) {
+            if (m.shieldHex && m.shieldHex.material) {
+              m.shieldHex.material.opacity = 0.35 + Math.sin(this.time * 4) * 0.25;
+            }
+            if (m.shoulderCannon) {
+              m.shoulderCannon.position.z = 0.2 - recoil * 0.3;
+            }
+          }
+
+          // Splitter Cluster Breathing
+          if (m.isCluster && m.satellites) {
+            for (let i = 0; i < m.satellites.length; i++) {
+              const sat = m.satellites[i];
+              const a = (i * Math.PI) / 2 + this.time * 1.4;
+              sat.position.set(Math.cos(a) * 1.5, 0.2 + Math.sin(this.time * 2 + i) * 0.25, Math.sin(a) * 1.5);
+              sat.rotation.x += dt * 2.0;
+            }
+          }
+
+          // Phantom Stealth Cloak Phase Shimmer
+          if (m.isStealth && m.torso) {
+            m.torso.traverse(c => {
+              if (c.isMesh && c.material) {
+                c.material.opacity = 0.45 + Math.sin(this.time * 3.5) * 0.35;
+                c.material.transparent = true;
+              }
+            });
+          }
+
+          // Juggernaut Mega Siege Turret & Tracks
+          if (m.isJuggernaut) {
+            if (m.turret) m.turret.rotation.y = Math.sin(this.time * 0.4) * 0.35;
+            if (m.cannon) {
+              if (m.cannon._origZ === undefined) m.cannon._origZ = m.cannon.position.z;
+              m.cannon.position.z = m.cannon._origZ - recoil * 0.6;
+            }
+          }
+
+          // Overseer Concentric Gimbal Rings & Escort Drones
           if (m.isOverseer && m.core) {
             m.core.position.y = 0.3 + Math.sin(this.time * 1.8) * 0.15;
-            if (m.ringA) m.ringA.rotation.z += dt * 0.9;
-            if (m.ringB) m.ringB.rotation.y -= dt * 1.2;
-            if (m.ringC) m.ringC.rotation.x += dt * 0.8;
+            if (m.ringA) m.ringA.rotation.z += dt * 1.1;
+            if (m.ringB) m.ringB.rotation.y -= dt * 1.4;
+            if (m.ringC) m.ringC.rotation.x += dt * 0.9;
+            if (m.drones) {
+              for (let i = 0; i < m.drones.length; i++) {
+                const a = (i * Math.PI) / 2 + this.time * 0.8;
+                m.drones[i].position.set(Math.cos(a) * 3.4, 0.3 + Math.sin(this.time * 2 + i) * 0.3, Math.sin(a) * 3.4);
+                m.drones[i].rotation.y += dt * 2.5;
+              }
+            }
           }
+
+          // Hive Titan 8-Leg Tripod Crawl
+          if (m.isHive && m.legs) {
+            m.body.position.y = 0.2 + Math.sin(this.time * 2.6) * 0.06;
+            for (let i = 0; i < m.legs.length; i++) {
+              const leg = m.legs[i];
+              const phase = (i % 2 === 0 ? 0 : Math.PI) + Math.floor(i / 2) * 0.6;
+              leg.rotation.x = Math.sin(this.time * 4.2 + phase) * 0.38;
+              leg.rotation.z = (i % 2 === 0 ? -1 : 1) * (0.3 + Math.cos(this.time * 4.2 + phase) * 0.12);
+            }
+          }
+
+          // Void Titan Singularity Accretion Disks & Obelisks
           if (m.isVoid && m.voidCore) {
-            if (m.disk1) m.disk1.rotation.z += dt * 1.5;
-            if (m.disk2) m.disk2.rotation.z -= dt * 1.1;
+            if (m.disk1) m.disk1.rotation.z += dt * 1.6;
+            if (m.disk2) m.disk2.rotation.z -= dt * 1.2;
             if (m.obelisks) {
               for (let i = 0; i < m.obelisks.length; i++) {
                 const ob = m.obelisks[i];
@@ -1310,69 +1861,60 @@
               }
             }
           }
+
+          // Chrono Phantom Temporal Halo Rings
           if (m.isChrono && m.chronoCore) {
             m.chronoCore.rotation.y += dt * 0.8;
             m.chronoCore.rotation.x += dt * 0.5;
             if (m.dialA) m.dialA.rotation.z += dt * 1.4;
             if (m.dialB) m.dialB.rotation.x -= dt * 1.1;
           }
-          if (m.isCluster && m.satellites) {
-            for (let i = 0; i < m.satellites.length; i++) {
-              const sat = m.satellites[i];
-              const a = (i * Math.PI) / 2 + this.time * 1.4;
-              sat.position.set(Math.cos(a) * 1.5, 0.2 + Math.sin(this.time * 2 + i) * 0.25, Math.sin(a) * 1.5);
-              sat.rotation.x += dt * 2.0;
-            }
-          }
-          if (m.isGunship && m.rotors) {
-            for (const r of m.rotors) r.rotation.y += dt * 35.0;
-            if (m.hull) m.hull.position.y = 0.3 + Math.sin(this.time * 3) * 0.08;
-          }
-          if (m.dish) {
-            m.dish.rotation.y += dt * (m.rotSpeed || 1.0);
-          }
 
-          // Biped Soldier Walk Kinematics (Grunt)
-          if (m.isBiped) {
-            const wSpeed = 5.2;
-            if (m.legR) m.legR.rotation.x = Math.sin(this.time * wSpeed) * 0.42;
-            if (m.legL) m.legL.rotation.x = -Math.sin(this.time * wSpeed) * 0.42;
-            if (m.armR) m.armR.rotation.x = -Math.sin(this.time * wSpeed) * 0.32;
-            if (m.armL) m.armL.rotation.x = Math.sin(this.time * wSpeed) * 0.32;
-            if (m.torso) m.torso.position.y = 0.4 + Math.abs(Math.sin(this.time * wSpeed * 2)) * 0.04;
-          }
-
-          // Sprinter Raptor Leaping Kinematics
-          if (m.isSprinter && m.body) {
-            const sSpeed = 8.5;
-            m.body.position.y = 0.1 + Math.abs(Math.sin(this.time * sSpeed)) * 0.16;
-            m.body.rotation.z = Math.sin(this.time * sSpeed) * 0.07;
-            if (m.head) m.head.rotation.x = Math.sin(this.time * sSpeed) * 0.12;
-          }
-
-          // Brute Heavy Stomping Kinematics
-          if (m.isBrute && m.torso) {
-            const bSpeed = 3.4;
-            m.torso.position.y = 0.4 + Math.abs(Math.sin(this.time * bSpeed)) * 0.08;
-            m.torso.rotation.z = Math.sin(this.time * bSpeed) * 0.05;
-          }
-
-          // Mecha Colossus Macro Reactor Breathing
+          // Mecha Colossus Alternate Railgun Recoil & Reactor Breathing
           if (m.isColossus && m.torso) {
             m.torso.position.y = 0.6 + Math.sin(this.time * 2.0) * 0.05;
+            if (m.cannonL && m.cannonR) {
+              m.cannonL.position.z = 0.2 - (recoil > 0 ? recoil * 0.5 : 0);
+              m.cannonR.position.z = 0.2 - (recoil > 0 ? recoil * 0.25 : 0);
+            }
           }
 
-          // Hive Titan Biological Crawl
-          if (m.isHive && m.body) {
-            m.body.position.y = 0.2 + Math.sin(this.time * 2.6) * 0.06;
+          // Megatron Dark Energon Corona & Fusion Cannon Recoil
+          if (m.isMegatron) {
+            if (m.darkEnergonCore && m.darkEnergonCore.material) {
+              m.darkEnergonCore.material.emissiveIntensity = 3.6 + Math.sin(this.time * 6.0) * 1.2;
+            }
+            if (m.fusionCannon) {
+              if (m.fusionCannon._origZ === undefined) m.fusionCannon._origZ = m.fusionCannon.position.z;
+              m.fusionCannon.position.z = m.fusionCannon._origZ - recoil * 0.45;
+            }
+          }
+
+          // Optimus Matrix of Leadership pulse & Ion Blaster recoil
+          if (m.isOptimus) {
+            if (m.matrixCore && m.matrixCore.material) {
+              m.matrixCore.material.emissiveIntensity = 3.8 + Math.sin(this.time * 4.0) * 1.5;
+            }
+            if (m.ionBlaster) {
+              if (m.ionBlaster._origZ === undefined) m.ionBlaster._origZ = m.ionBlaster.position.z;
+              m.ionBlaster.position.z = m.ionBlaster._origZ - recoil * 0.4;
+            }
+          }
+
+          // Bumblebee Stinger rapid alternation
+          if (m.isBumblebee) {
+            if (m.stingerL && m.stingerR) {
+              m.stingerR.position.z = 0.5 - (recoil > 0 ? recoil * 0.35 : 0);
+              m.stingerL.position.z = 0.5 - (recoil > 0 ? recoil * 0.2 : 0);
+            }
           }
 
           // Turret Autonomous Aim Scanning
-          if (m.head && m.rotSpeed) {
+          if (m.head && m.rotSpeed && !m.isBiped) {
             m.head.rotation.y = Math.sin(this.time * 0.6) * 0.35;
           }
 
-          // Recoil kickback and smooth hydraulic recovery
+          // Smooth hydraulic recovery for barrels
           const rObj = m.barrels || m.barrel || m.rails || m.guns || m.nozzles;
           if (rObj) {
             if (rObj._origZ === undefined) rObj._origZ = rObj.position.z;
@@ -1407,5 +1949,7 @@
     }
   }
 
+  window.CodexMaterialLibrary = CodexMaterialLibrary;
+  window.Codex3DModelFactory = Codex3DModelFactory;
   window.Codex3DEngine = Codex3DEngine;
 })();

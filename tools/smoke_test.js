@@ -144,3 +144,4 @@ console.log(`✓ Memory heap delta after 10 restarts: ${heapDeltaMB} MB (Stable)
 console.log("\n========================================================");
 console.log("ALL SMOKE TESTS COMPLETED WITH ZERO ERRORS! SUITE PASSED.");
 console.log("========================================================");
+process.exit(0);

@@ -27,6 +27,9 @@ global.document = {
           closePath: () => {},
           moveTo: () => {},
           lineTo: () => {},
+          arc: () => {},
+          fillText: () => {},
+          measureText: () => ({ width: 0 }),
           fill: () => {},
           stroke: () => {},
           getImageData: (x, y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
@@ -129,12 +132,27 @@ const pbrMats = new (function() {
 // Extract factory from codex_3d_engine
 eval(fs.readFileSync(path.join(__dirname, '../codex_3d_engine.js'), 'utf8'));
 
-// Test factory on all units
-console.log(`✓ Testing model creation for all 25 units in SHADED, WIREFRAME, and XRAY modes`);
+// Test factory on all 28 units with full kinematics and recoil update
+console.log(`✓ Testing model creation for all 28 units in SHADED, WIREFRAME, and XRAY modes`);
 const scene = new THREE.Scene();
 const root = new THREE.Group();
 scene.add(root);
 
+const modes = ['SHADED', 'WIREFRAME', 'XRAY'];
+for (const u of allUnits) {
+  for (const m of modes) {
+    while (root.children.length > 0) root.remove(root.children[0]);
+    engine.active = true;
+    engine.factory = new global.Codex3DModelFactory(THREE, new global.CodexMaterialLibrary(THREE));
+    engine.modelRoot = root;
+    engine.loadUnit(u.id, u.tab, 'BASE', m);
+    // Simulate frame updates with recoil and overheating
+    engine.update(0.016, 0.45, 0.28, 1.0, 0.8);
+    engine.update(0.016, 0.46, 0.28, 1.0, 0.0);
+  }
+  console.log(`  ✓ Unit [${u.id}] (${u.tab}) verified across all 3 modes with recoil & kinematics`);
+}
+
 console.log("==================================================");
-console.log("✓ ALL 25 MODELS GENERATE AND ANIMATE CLEANLY!");
+console.log("✓ ALL 28 MODELS GENERATE AND ANIMATE CLEANLY!");
 console.log("==================================================");
