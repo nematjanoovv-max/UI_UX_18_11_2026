@@ -39,7 +39,7 @@ dx --dex --output="$DIR/build/classes.dex" "$DIR/build/classes"
 
 echo "=== 6. Packaging APK with resources and assets (uncompressed 3D models & audio) ==="
 cd "$DIR"
-aapt package -f -M AndroidManifest.xml -S res -A assets -I "$ANDROID_JAR" -0 glb -0 gltf -0 bin -0 pck -0 mp3 -0 wav -0 wasm -F "$DIR/build/app-unsigned.apk"
+aapt package -f -M AndroidManifest.xml -S res -A assets -I "$ANDROID_JAR" -0 mp3 -0 wav -F "$DIR/build/app-unsigned.apk"
 
 echo "=== 7. Adding classes.dex into APK ==="
 cd "$DIR/build"

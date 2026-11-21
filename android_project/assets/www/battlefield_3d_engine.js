@@ -167,6 +167,7 @@
         optimus: 'assets/models/optimus.glb',
         bumblebee: 'assets/models/bumblebee.glb',
         turret: 'assets/models/turret_scifi.glb',
+        railgun: 'assets/models/turret_railgun.glb',
         grunt: 'assets/models/biped_robot.glb',
         gunship: 'assets/models/mech_drone.glb',
         kamikaze: 'assets/models/sphere_bot.glb'
@@ -174,13 +175,54 @@
 
       for (const [key, path] of Object.entries(modelMap)) {
         try {
+          // 1. Direct Node.js filesystem loading for automated QA test suites
+          if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+            try {
+              const fs = require('fs');
+              const p = require('path');
+              const fullPath = p.resolve(path);
+              if (fs.existsSync(fullPath)) {
+                const buf = fs.readFileSync(fullPath);
+                const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+                this.loader.parse(ab, '', (gltf) => {
+                  this.gltfCache.set(key, gltf);
+                  if (key === 'megatron' && (!this.heroLoadedSkin || this.heroLoadedSkin === 'MEGATRON')) {
+                    this.buildHeroModel('MEGATRON', this.heroLoadedMode || 'BIPED');
+                  }
+                }, () => {});
+                continue;
+              }
+            } catch (e) {}
+          }
+
+          // 2. Android Bridge base64 direct stream for guaranteed offline Android WebView loading
+          if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getModelBase64 === 'function') {
+            try {
+              const filename = path.split('/').pop();
+              const b64 = window.AndroidBridge.getModelBase64(filename);
+              if (b64 && b64.length > 1000) {
+                const bin = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                this.loader.parse(bytes.buffer, '', (gltf) => {
+                  this.gltfCache.set(key, gltf);
+                  if (key === 'megatron' && (!this.heroLoadedSkin || this.heroLoadedSkin === 'MEGATRON')) {
+                    this.buildHeroModel('MEGATRON', this.heroLoadedMode || 'BIPED');
+                  }
+                }, () => {});
+                continue;
+              }
+            } catch (e) {}
+          }
+
+          // 3. Browser standard HTTP/file fetch
           this.loader.load(path, (gltf) => {
             this.gltfCache.set(key, gltf);
             if (key === 'megatron' && (!this.heroLoadedSkin || this.heroLoadedSkin === 'MEGATRON')) {
               this.buildHeroModel('MEGATRON', this.heroLoadedMode || 'BIPED');
             }
           }, undefined, () => {});
-        } catch(e) {}
+        } catch (e) {}
       }
     }
 
@@ -743,7 +785,21 @@
       headGroup.add(collar);
 
       // Weapon Barrels by Type or Real 3D Turret Model
-      if (this.gltfCache && this.gltfCache.has('turret') && (t.type === 'pulse' || t.type === 'laser')) {
+      if (this.gltfCache && this.gltfCache.has('railgun') && (t.type === 'laser' || t.type === 'tesla' || t.branch === 'BRANCH_A')) {
+        const gltf = this.gltfCache.get('railgun');
+        const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = maxD > 0 ? (32 / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+          clone.rotation.x = Math.PI / 2;
+          clone.position.z = 4;
+        }
+        headGroup.add(clone);
+      } else if (this.gltfCache && this.gltfCache.has('turret')) {
         const gltf = this.gltfCache.get('turret');
         const clone = (gltf.scene || gltf.scenes[0]).clone(true);
         if (THREE.Box3 && THREE.Vector3) {

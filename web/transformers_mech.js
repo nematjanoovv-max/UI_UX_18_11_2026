@@ -2272,6 +2272,7 @@
       };
 
       const candidateUrls = [
+        'assets/models/megatron_movie_hd.glb',
         'assets/models/megatron.glb',
         './assets/models/megatron.glb',
         '../assets/models/megatron.glb',

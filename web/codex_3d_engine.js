@@ -931,15 +931,15 @@
       this.gltfCache = {};
       this.activeMixer = null;
       this.modelMap = {
-        pulse: 'assets/models/turret_scifi.glb',
-        railgun: 'assets/models/turret_scifi.glb',
-        grunt: 'assets/models/biped_robot.glb',
-        brute: 'assets/models/biped_robot.glb',
-        gunship: 'assets/models/mech_drone.glb',
-        juggernaut: 'assets/models/mech_drone.glb',
+        pulse: 'assets/models/turret_scifi_hd.glb',
+        railgun: 'assets/models/turret_railgun_hd.glb',
+        grunt: 'assets/models/biped_robot_hd.glb',
+        brute: 'assets/models/biped_robot_hd.glb',
+        gunship: 'assets/models/mech_drone_hd.glb',
+        juggernaut: 'assets/models/mech_drone_hd.glb',
         kamikaze_drone: 'assets/models/sphere_bot.glb',
         overseer: 'assets/models/sphere_bot.glb',
-        megatron: 'assets/models/megatron.glb',
+        megatron: 'assets/models/megatron_movie_hd.glb',
         optimus: 'assets/models/optimus.glb',
         bumblebee: 'assets/models/bumblebee.glb'
       };

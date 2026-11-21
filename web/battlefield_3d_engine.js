@@ -163,12 +163,14 @@
     preloadModels() {
       if (!this.loader) return;
       const modelMap = {
-        megatron: 'assets/models/megatron.glb',
+        megatron: 'assets/models/megatron_movie_hd.glb',
+        megatron_g1: 'assets/models/megatron.glb',
         optimus: 'assets/models/optimus.glb',
         bumblebee: 'assets/models/bumblebee.glb',
-        turret: 'assets/models/turret_scifi.glb',
-        grunt: 'assets/models/biped_robot.glb',
-        gunship: 'assets/models/mech_drone.glb',
+        turret: 'assets/models/turret_scifi_hd.glb',
+        railgun: 'assets/models/turret_railgun_hd.glb',
+        grunt: 'assets/models/biped_robot_hd.glb',
+        gunship: 'assets/models/mech_drone_hd.glb',
         kamikaze: 'assets/models/sphere_bot.glb'
       };
 
@@ -743,7 +745,21 @@
       headGroup.add(collar);
 
       // Weapon Barrels by Type or Real 3D Turret Model
-      if (this.gltfCache && this.gltfCache.has('turret') && (t.type === 'pulse' || t.type === 'laser')) {
+      if (this.gltfCache && this.gltfCache.has('railgun') && (t.type === 'laser' || t.type === 'tesla' || t.branch === 'BRANCH_A')) {
+        const gltf = this.gltfCache.get('railgun');
+        const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = maxD > 0 ? (32 / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+          clone.rotation.x = Math.PI / 2;
+          clone.position.z = 4;
+        }
+        headGroup.add(clone);
+      } else if (this.gltfCache && this.gltfCache.has('turret')) {
         const gltf = this.gltfCache.get('turret');
         const clone = (gltf.scene || gltf.scenes[0]).clone(true);
         if (THREE.Box3 && THREE.Vector3) {

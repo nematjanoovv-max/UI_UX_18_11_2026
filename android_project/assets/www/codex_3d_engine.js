@@ -932,7 +932,7 @@
       this.activeMixer = null;
       this.modelMap = {
         pulse: 'assets/models/turret_scifi.glb',
-        railgun: 'assets/models/turret_scifi.glb',
+        railgun: 'assets/models/turret_railgun.glb',
         grunt: 'assets/models/biped_robot.glb',
         brute: 'assets/models/biped_robot.glb',
         gunship: 'assets/models/mech_drone.glb',
