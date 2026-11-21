@@ -6376,12 +6376,12 @@
         ctx.fillRect(0, 0, this.width, this.height);
       }
 
-      // Grid Lines
-      const gridStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.12)" :
-                         (biome === 'cryo') ? "rgba(128, 222, 234, 0.14)" :
-                         "rgba(0, 229, 255, 0.08)";
-      ctx.strokeStyle = gridStroke;
-      ctx.lineWidth = 1;
+      // Photorealistic Interlocking Steel Decking & Expansion Seams
+      const seamStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.16)" :
+                         (biome === 'cryo') ? "rgba(128, 222, 234, 0.18)" :
+                         "rgba(0, 229, 255, 0.12)";
+      ctx.strokeStyle = seamStroke;
+      ctx.lineWidth = 1.2;
       for (let x = 0; x <= this.width; x += 64) {
         ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x, 620); ctx.stroke();
       }
@@ -6389,23 +6389,16 @@
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
       }
 
-      // Tech Junction Crosshairs
-      ctx.fillStyle = (biome === 'lava') ? "rgba(255, 112, 67, 0.35)" :
-                      (biome === 'cryo') ? "rgba(0, 229, 255, 0.40)" :
-                      "rgba(0, 229, 255, 0.25)";
+      // Hexagonal Plate Fasteners & Rivet Clusters
       for (let x = 64; x < this.width; x += 128) {
         for (let y = 124; y < 620; y += 128) {
-          ctx.fillRect(x - 3, y - 0.5, 6, 1);
-          ctx.fillRect(x - 0.5, y - 3, 1, 6);
+          this.drawHexBolt(ctx, x, y, 2.2);
         }
       }
 
-      // Outer Perimeter Defense Hazard Border
-      ctx.strokeStyle = (biome === 'lava') ? "rgba(255, 61, 0, 0.45)" :
-                        (biome === 'cryo') ? "rgba(0, 229, 255, 0.40)" :
-                        "rgba(0, 229, 255, 0.30)";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(2, 62, this.width - 4, 556);
+      // Outer Perimeter Defense Hazard Stripes
+      this.drawHazardStripes(ctx, 4, 60, this.width - 8, 5, 6);
+      this.drawHazardStripes(ctx, 4, 615, this.width - 8, 5, 6);
 
       // Atmospheric Biome Floating Particles
       this.renderBiomeParticles(ctx, biome);
@@ -6423,28 +6416,28 @@
         ctx.beginPath();
         ctx.moveTo(lane[0].x, lane[0].y);
         for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
-        ctx.strokeStyle = "#0d1629";
-        ctx.lineWidth = 48;
+        ctx.strokeStyle = "#060a12";
+        ctx.lineWidth = 54;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.stroke();
 
-        // 2. Concrete Curb Edge Lines
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.28)";
-        ctx.lineWidth = 44;
+        // 2. Concrete Curb Edge Lines with Specular Bevel
+        ctx.strokeStyle = "rgba(71, 85, 105, 0.85)";
+        ctx.lineWidth = 48;
         ctx.stroke();
 
-        // 3. Inner Dark Pavement
-        ctx.strokeStyle = "#0a1120";
-        ctx.lineWidth = 38;
+        // 3. Inner Dark Asphalt / Weathered Metal Roadbed
+        ctx.strokeStyle = "#0c1424";
+        ctx.lineWidth = 42;
         ctx.stroke();
 
         // 4. Animated Tactical Guidance Dashed Centerline
         ctx.save();
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.9)";
         ctx.lineWidth = 2.5;
         ctx.lineDashOffset = -time * 28;
-        ctx.setLineDash([14, 12]);
+        ctx.setLineDash([16, 12]);
         ctx.beginPath();
         ctx.moveTo(lane[0].x, lane[0].y);
         for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
@@ -6894,63 +6887,525 @@
       ctx.fillRect(x + w - 1.5, y + 0.5, 1.5, h - 1);
     }
 
+    drawHexBolt(ctx, x, y, r = 2) {
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i;
+        const px = x + Math.cos(a) * (r + 0.6);
+        const py = y + Math.sin(a) * (r + 0.6);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i;
+        const px = x + Math.cos(a) * r;
+        const py = y + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x - r * 0.35, y - r * 0.35, r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    drawHazardStripes(ctx, x, y, w, h, stripeW = 6) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+      ctx.fillStyle = "#ffd600";
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#0a0f1d";
+      for (let sx = -h; sx < w + h; sx += stripeW * 2) {
+        ctx.beginPath();
+        ctx.moveTo(x + sx, y);
+        ctx.lineTo(x + sx + stripeW, y);
+        ctx.lineTo(x + sx + stripeW - h, y + h);
+        ctx.lineTo(x + sx - h, y + h);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, h);
+      ctx.restore();
+    }
+
+    drawSlottedMuzzleBrake(ctx, x, y, w, h, slots = 2) {
+      const mGrad = ctx.createLinearGradient(0, y, 0, y + h);
+      mGrad.addColorStop(0, "#475569");
+      mGrad.addColorStop(0.5, "#1e293b");
+      mGrad.addColorStop(1, "#090d16");
+      ctx.fillStyle = mGrad;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, h);
+
+      ctx.fillStyle = "#020617";
+      const slotW = Math.max(2, (w - 4) / (slots * 2));
+      for (let i = 0; i < slots; i++) {
+        const sx = x + 3 + i * (slotW * 2);
+        ctx.fillRect(sx, y - 1, slotW, h + 2);
+      }
+    }
+
+    drawUnitContactShadow(ctx, rx, ry, alpha = 0.55) {
+      ctx.save();
+      const shGrad = ctx.createRadialGradient(0, 3, 2, 0, 3, Math.max(rx, ry));
+      shGrad.addColorStop(0, `rgba(0, 0, 0, ${alpha})`);
+      shGrad.addColorStop(0.5, `rgba(0, 0, 0, ${alpha * 0.45})`);
+      shGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = shGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 3, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    renderHeroMegatronBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath) {
+      const titPat = pbr.brushedTitanium || "#475569";
+      const carbPat = pbr.carbonFiber || "#1e293b";
+      const strideL = walkCycle * 7;
+      const strideR = -walkCycle * 7;
+      const kneeFlexL = Math.max(0, -walkCos * 3.5);
+      const kneeFlexR = Math.max(0, walkCos * 3.5);
+
+      // 1. Hydraulic Reverse-Articulated Bipedal Legs
+      // Left Leg
+      ctx.save();
+      ctx.translate(-5, -14);
+      this.drawBevelPlate(ctx, strideL - 4, -3, 11, 7, "#334155", "#a855f7", 2);
+      this.drawChromePiston(ctx, strideL - 2, -1.5, 6, 2.8);
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath(); ctx.arc(strideL + 4, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+      this.drawBevelPlate(ctx, strideL + 3, -2 - kneeFlexL, 7, 5, "#0f172a", "#c084fc", 1);
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(strideL + 7, -3.5 - kneeFlexL, 4, 7); // Talon claw boot
+      ctx.restore();
+
+      // Right Leg
+      ctx.save();
+      ctx.translate(-5, 14);
+      this.drawBevelPlate(ctx, strideR - 4, -3, 11, 7, "#334155", "#a855f7", 2);
+      this.drawChromePiston(ctx, strideR - 2, -1, 6, 2.8);
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath(); ctx.arc(strideR + 4, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+      this.drawBevelPlate(ctx, strideR + 3, -2.5 + kneeFlexR, 7, 5, "#0f172a", "#c084fc", 1);
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(strideR + 7, -3.5 + kneeFlexR, 4, 7);
+      ctx.restore();
+
+      // 2. Dark Energon Booster Core Backpack
+      const jetGrad = ctx.createLinearGradient(-19, -11, -11, 11);
+      jetGrad.addColorStop(0, "#475569");
+      jetGrad.addColorStop(0.5, "#1e293b");
+      jetGrad.addColorStop(1, "#0a0a0f");
+      ctx.fillStyle = jetGrad;
+      ctx.fillRect(-18, -11, 9, 22);
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 1.4;
+      ctx.strokeRect(-18, -11, 9, 22);
+
+      // Dark Energon Thruster Vent Plumes (Pulsing Purple)
+      const ePulse = 5 + Math.sin(tNow * 0.02) * 2.5;
+      ctx.fillStyle = "rgba(192, 132, 252, 0.45)";
+      ctx.beginPath();
+      ctx.moveTo(-18, -8); ctx.lineTo(-18 - ePulse * 2, -5.5); ctx.lineTo(-18, -3);
+      ctx.moveTo(-18, 3); ctx.lineTo(-18 - ePulse * 2, 5.5); ctx.lineTo(-18, 8);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(-18, -7); ctx.lineTo(-18 - ePulse, -5.5); ctx.lineTo(-18, -4);
+      ctx.moveTo(-18, 4); ctx.lineTo(-18 - ePulse, 5.5); ctx.lineTo(-18, 7);
+      ctx.fill();
+
+      // 3. Megatron Silver-Gunmetal Heavy Chest Glacis
+      this.drawBevelPlate(ctx, -13, -13, 30, 26, titPat, "#a855f7", 5);
+      this.drawRivet(ctx, -11, -11); this.drawRivet(ctx, 13, -9);
+      this.drawRivet(ctx, -11, 11); this.drawRivet(ctx, 13, 9);
+
+      // Sweeping Decepticon Shoulder Pauldrons (Spiked Blades)
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.moveTo(-8, -14); ctx.lineTo(4, -20); ctx.lineTo(-4, -14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(-8, 14); ctx.lineTo(4, 20); ctx.lineTo(-4, 14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Pulsing Dark Energon Chest Conduit
+      const coreGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 7);
+      coreGrad.addColorStop(0, "#ffffff");
+      coreGrad.addColorStop(0.35, "#c084fc");
+      coreGrad.addColorStop(0.8, "#7e22ce");
+      coreGrad.addColorStop(1, "rgba(126, 34, 206, 0)");
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6 + idleBreath * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 4. Decepticon Crowned Helmet & Menacing Crimson Optics
+      ctx.fillStyle = "#090d16";
+      ctx.beginPath();
+      ctx.moveTo(3, -5); ctx.lineTo(16, -3); ctx.lineTo(19, 0); ctx.lineTo(16, 3); ctx.lineTo(3, 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#ff1744";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Decepticon Helmet Brow Horns
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(8, -6, 5, 2);
+      ctx.fillRect(8, 4, 5, 2);
+
+      // Glowing Red Optic Visor
+      ctx.fillStyle = "#ff1744";
+      ctx.fillRect(9, -2.5, 7, 5);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(13, -1.2, 2.5, 2.4);
+
+      // 5. Left Arm: Spiked Decepticon Energon Gauntlet
+      ctx.save();
+      ctx.translate(3, -13);
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(-3, -3.5, 8, 7);
+      ctx.strokeStyle = "#a855f7";
+      ctx.strokeRect(-3, -3.5, 8, 7);
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(5, -4, 5, 8); // Knuckle block
+      // 3 Armored finger claws
+      ctx.fillStyle = "#c084fc";
+      ctx.fillRect(10, -4, 4, 2);
+      ctx.fillRect(10, -1, 4, 2);
+      ctx.fillRect(10, 2, 4, 2);
+      ctx.restore();
+
+      // 6. Right Arm: THE ICONIC FUSION CANNON (Heavy High-Caliber Energy Cannon)
+      const fireRecoil = (h.slashAnim > 0) ? ((0.22 - h.slashAnim) / 0.22) * 5 : 0;
+      ctx.save();
+      ctx.translate(4 - fireRecoil, 12);
+
+      // Heavy Forearm Mount Saddle
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(-6, -4, 10, 8);
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(-6, -4, 10, 8);
+
+      // Main Fusion Cannon Cylindrical Chassis
+      const fcGrad = ctx.createLinearGradient(0, -6, 0, 6);
+      fcGrad.addColorStop(0, "#64748b");
+      fcGrad.addColorStop(0.4, "#334155");
+      fcGrad.addColorStop(0.8, "#1e293b");
+      fcGrad.addColorStop(1, "#090d16");
+      ctx.fillStyle = fcGrad;
+      ctx.fillRect(0, -5.5, 26, 11);
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(0, -5.5, 26, 11);
+
+      // Dark Energon Power Conduits & Cooling Fins
+      ctx.fillStyle = "#7e22ce";
+      ctx.fillRect(6, -6.5, 12, 1.5);
+      ctx.fillRect(6, 5, 12, 1.5);
+
+      // Glowing Purple Plasma Core Window
+      ctx.fillStyle = "#c084fc";
+      ctx.fillRect(8, -2, 9, 4);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(11, -1, 3, 2);
+
+      // Heavy Slotted Double-Baffle Muzzle Brake
+      this.drawSlottedMuzzleBrake(ctx, 24, -6.5, 7, 13, 2);
+
+      // Violet Fusion Plasma Flash when firing
+      if (h.slashAnim > 0) {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(32, 0, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(192, 132, 252, 0.75)";
+        ctx.beginPath(); ctx.arc(33, 0, 18, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    renderHeroMegatronTank(ctx, h, pbr, walk, tNow) {
+      const recoil = (h.siegeRecoil || 0) * 8;
+      const trackCycle = walk * 10;
+
+      // Heavy Cybertronian Tank Destroyer Chassis
+      // Left Dark Energon Track Assembly
+      ctx.fillStyle = "#090d16";
+      ctx.fillRect(-22 - recoil, -24, 44, 13);
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-22 - recoil, -24, 44, 13);
+
+      for (let t = -18; t <= 18; t += 5) {
+        const off = ((t + trackCycle) % 40) - 20;
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(off - recoil, -24, 2.5, 13);
+      }
+
+      // Right Dark Energon Track Assembly
+      ctx.fillStyle = "#090d16";
+      ctx.fillRect(-22 - recoil, 11, 44, 13);
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(-22 - recoil, 11, 44, 13);
+
+      for (let t = -18; t <= 18; t += 5) {
+        const off = ((t + trackCycle) % 40) - 20;
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(off - recoil, 11, 2.5, 13);
+      }
+
+      // Sloped Heavy Glacis Armor Hull (Decepticon Wedge)
+      this.drawBevelPlate(ctx, -18 - recoil, -14, 38, 28, "#334155", "#a855f7", 5);
+      this.drawHazardStripes(ctx, -15 - recoil, -12, 8, 24, 4);
+
+      // Center Heavy Fusion Cannon Turret Housing
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.arc(-2 - recoil, 0, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#c084fc";
+      ctx.lineWidth = 2.0;
+      ctx.stroke();
+
+      // Colossal 1500 DMG Fusion Artillery Cannon Barrel
+      const barrelRecoil = recoil * 1.3;
+      const bGrad = ctx.createLinearGradient(0, -7, 0, 7);
+      bGrad.addColorStop(0, "#64748b");
+      bGrad.addColorStop(0.5, "#334155");
+      bGrad.addColorStop(1, "#090d16");
+      ctx.fillStyle = bGrad;
+      ctx.fillRect(10 - barrelRecoil, -6, 34, 12);
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 1.4;
+      ctx.strokeRect(10 - barrelRecoil, -6, 34, 12);
+
+      // Slotted Muzzle Brake with Heat Glow
+      this.drawSlottedMuzzleBrake(ctx, 42 - barrelRecoil, -7.5, 9, 15, 3);
+      if (h.siegeRecoil > 0) {
+        ctx.fillStyle = `rgba(192, 132, 252, ${h.siegeRecoil})`;
+        ctx.fillRect(44 - barrelRecoil, -6, 6, 12);
+      }
+    }
+
+    renderHeroOptimusBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath) {
+      const strideL = walkCycle * 7;
+      const strideR = -walkCycle * 7;
+      const kneeFlexL = Math.max(0, -walkCos * 3);
+      const kneeFlexR = Math.max(0, walkCos * 3);
+
+      // Cobalt Blue Articulated Legs
+      ctx.save();
+      ctx.translate(-5, -13);
+      this.drawBevelPlate(ctx, strideL - 4, -3, 10, 6.5, "#1d4ed8", "#60a5fa", 2);
+      this.drawChromePiston(ctx, strideL - 2, -1.5, 6, 2.5);
+      ctx.fillStyle = "#1e3a8a";
+      ctx.fillRect(strideL + 6, -3 - kneeFlexL, 3, 6);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(-5, 13);
+      this.drawBevelPlate(ctx, strideR - 4, -3, 10, 6.5, "#1d4ed8", "#60a5fa", 2);
+      this.drawChromePiston(ctx, strideR - 2, -1, 6, 2.5);
+      ctx.fillStyle = "#1e3a8a";
+      ctx.fillRect(strideR + 6, -3 + kneeFlexR, 3, 6);
+      ctx.restore();
+
+      // Dual Chrome Exhaust Smokestacks
+      this.drawChromePiston(ctx, -17, -9, 4, 6);
+      this.drawChromePiston(ctx, -17, 3, 4, 6);
+
+      // Peterbilt Crimson Torso Chassis & Dual Windshield Grille
+      this.drawBevelPlate(ctx, -12, -12, 28, 24, "#b91c1c", "#f87171", 4);
+      // Dual Chrome Windshield Panels
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(4, -8, 7, 6);
+      ctx.fillRect(4, 2, 7, 6);
+      // Chrome Radiator Grille
+      this.drawChromePiston(ctx, 11, -5, 3, 10);
+
+      // Matrix of Leadership Core
+      const matGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 6);
+      matGrad.addColorStop(0, "#ffffff");
+      matGrad.addColorStop(0.4, "#ffd700");
+      matGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+      ctx.fillStyle = matGrad;
+      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+
+      // Cobalt Blue Head & Cyan Optics
+      ctx.fillStyle = "#1d4ed8";
+      ctx.beginPath();
+      ctx.moveTo(5, -4); ctx.lineTo(15, -2); ctx.lineTo(17, 0); ctx.lineTo(15, 2); ctx.lineTo(5, 4);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#00e5ff";
+      ctx.fillRect(11, -1.5, 4, 3);
+
+      // Right Arm: ION BLASTER
+      ctx.save();
+      ctx.translate(3, 12);
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(-2, -3, 6, 6);
+      this.drawTemperedBarrel(ctx, 4, -3, 20, 6);
+      this.drawSlottedMuzzleBrake(ctx, 22, -4, 4, 8, 2);
+      ctx.restore();
+
+      // Left Arm: ENERGON BATTLE AXE
+      ctx.save();
+      ctx.translate(3, -12);
+      ctx.fillStyle = "#1e293b"; ctx.fillRect(-2, -3, 6, 6);
+      // Glowing Orange-Gold Holographic Blade
+      ctx.fillStyle = "rgba(255, 160, 0, 0.85)";
+      ctx.strokeStyle = "#ffd700";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(6, 0); ctx.lineTo(18, -8); ctx.lineTo(15, 0); ctx.lineTo(18, 8);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+
+    renderHeroOptimusTruck(ctx, h, pbr, walk, tNow) {
+      const recoil = (h.siegeRecoil || 0) * 8;
+      // Heavy Peterbilt 379 Truck Armor Chassis
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(-20 - recoil, -20, 40, 40);
+      this.drawBevelPlate(ctx, -18 - recoil, -16, 36, 32, "#b91c1c", "#f87171", 5);
+      // Dual Chrome Stacks
+      this.drawChromePiston(ctx, -20 - recoil, -15, 5, 6);
+      this.drawChromePiston(ctx, -20 - recoil, 9, 5, 6);
+      // Chrome Bumper Ram
+      this.drawChromePiston(ctx, 16 - recoil, -14, 5, 28);
+      // Dual Heavy Roof Lasers
+      this.drawTemperedBarrel(ctx, 4 - recoil, -9, 24, 5);
+      this.drawTemperedBarrel(ctx, 4 - recoil, 4, 24, 5);
+    }
+
+    renderHeroBumblebeeBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath) {
+      const strideL = walkCycle * 7;
+      const strideR = -walkCycle * 7;
+
+      // Agile Racing Legs
+      ctx.save(); ctx.translate(-4, -13);
+      this.drawBevelPlate(ctx, strideL - 4, -3, 10, 6.5, "#eab308", "#facc15", 2);
+      ctx.restore();
+      ctx.save(); ctx.translate(-4, 13);
+      this.drawBevelPlate(ctx, strideR - 4, -3, 10, 6.5, "#eab308", "#facc15", 2);
+      ctx.restore();
+
+      // Canary Yellow Muscle Chassis & Racing Stripes
+      this.drawBevelPlate(ctx, -12, -12, 28, 24, "#eab308", "#fde047", 4);
+      ctx.fillStyle = "#0a0a0f";
+      ctx.fillRect(-10, -5, 24, 3);
+      ctx.fillRect(-10, 2, 24, 3);
+
+      // Battle Mask & Blue Honeycomb Optics
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.moveTo(4, -4); ctx.lineTo(15, -2); ctx.lineTo(17, 0); ctx.lineTo(15, 2); ctx.lineTo(4, 4);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#00e5ff";
+      ctx.fillRect(10, -2, 4, 4);
+
+      // Right Arm: TRIPLE STINGER PLASMA CANNON
+      ctx.save();
+      ctx.translate(3, 12);
+      ctx.fillStyle = "#1e293b"; ctx.fillRect(-2, -3, 6, 6);
+      this.drawTemperedBarrel(ctx, 4, -4, 18, 3);
+      this.drawTemperedBarrel(ctx, 4, -1, 18, 3);
+      this.drawTemperedBarrel(ctx, 4, 2, 18, 3);
+      ctx.restore();
+    }
+
+    renderHeroBumblebeeTank(ctx, h, pbr, walk, tNow) {
+      const recoil = (h.siegeRecoil || 0) * 8;
+      this.drawBevelPlate(ctx, -16 - recoil, -14, 34, 28, "#eab308", "#facc15", 6);
+      ctx.fillStyle = "#0f172a"; ctx.fillRect(-14 - recoil, -5, 28, 10);
+      this.drawTemperedBarrel(ctx, 8 - recoil, -4, 22, 8);
+      this.drawSlottedMuzzleBrake(ctx, 28 - recoil, -5, 5, 10, 2);
+    }
+
+    renderHeroApexBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath) {
+      const strideL = walkCycle * 7;
+      const strideR = -walkCycle * 7;
+      ctx.save(); ctx.translate(-4, -13);
+      this.drawBevelPlate(ctx, strideL - 4, -3, 10, 6.5, "#1e293b", "#00e5ff", 2);
+      ctx.restore();
+      ctx.save(); ctx.translate(-4, 13);
+      this.drawBevelPlate(ctx, strideR - 4, -3, 10, 6.5, "#1e293b", "#00e5ff", 2);
+      ctx.restore();
+
+      this.drawBevelPlate(ctx, -12, -12, 28, 24, "#334155", "#00e5ff", 4);
+      ctx.fillStyle = "#00e5ff";
+      ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+
+      ctx.save(); ctx.translate(3, 12);
+      this.drawTemperedBarrel(ctx, 2, -3, 20, 6);
+      ctx.restore();
+      ctx.save(); ctx.translate(3, -12);
+      this.drawTemperedBarrel(ctx, 2, -3, 20, 6);
+      ctx.restore();
+    }
+
+    renderHeroApexTank(ctx, h, pbr, walk, tNow) {
+      const recoil = (h.siegeRecoil || 0) * 8;
+      this.drawBevelPlate(ctx, -16 - recoil, -14, 36, 28, "#1e293b", "#00e5ff", 4);
+      this.drawTemperedBarrel(ctx, 10 - recoil, -7, 26, 5);
+      this.drawTemperedBarrel(ctx, 10 - recoil, 2, 26, 5);
+    }
+
     renderHero() {
       const h = this.hero;
       const ctx = this.ctx;
       ctx.save();
       ctx.translate(h.x, h.y);
 
-      // 0. Soft Ambient Occlusion Ground Drop-Shadow
+      // Contact Ambient Occlusion Ground Shadow (Soft Multi-Stop)
       const shadowStretch = 1.0 + Math.sin(h.walkAnim || 0) * 0.08;
-      ctx.save();
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-      ctx.beginPath();
-      if (h.mode === 'SIEGE') {
-        ctx.ellipse(0, 4, 30 * shadowStretch, 20, 0, 0, Math.PI * 2);
-      } else {
-        ctx.ellipse(0, 4, 22 * shadowStretch, 14, 0, 0, Math.PI * 2);
-      }
-      ctx.fill();
-      ctx.restore();
+      this.drawUnitContactShadow(ctx, (h.mode === 'SIEGE' ? 36 : 26) * shadowStretch, (h.mode === 'SIEGE' ? 22 : 16) * shadowStretch, 0.65);
 
-      // 1. Ultimate Holographic Mandala Blade Storm
+      // Ultimate Holographic Mandala Blade Storm
       if (h.ultActiveTime > 0) {
         const ultProg = h.ultActiveTime / 0.6;
         ctx.save();
         ctx.rotate(performance.now() * 0.015);
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.9)";
+        ctx.strokeStyle = "rgba(192, 132, 252, 0.95)";
         ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.arc(0, 0, 85 * (1.1 - ultProg * 0.3), 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = "rgba(255, 214, 0, 0.85)";
+        ctx.beginPath(); ctx.arc(0, 0, 85 * (1.1 - ultProg * 0.3), 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 23, 68, 0.85)";
         ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, 0, 125 * (1.0 - ultProg * 0.4), 0, Math.PI * 2);
-        ctx.stroke();
-
-        for (let i = 0; i < 4; i++) {
-          const ang = (Math.PI / 2) * i;
-          ctx.beginPath();
-          ctx.arc(0, 0, 75, ang, ang + Math.PI / 3);
-          ctx.stroke();
-        }
+        ctx.beginPath(); ctx.arc(0, 0, 125 * (1.0 - ultProg * 0.4), 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
       }
 
-      // 2. Selection Halo (Tactical Reticle)
+      // Tactical Reticle when selected
       if (h.selected) {
-        ctx.strokeStyle = "#ffd600";
+        ctx.strokeStyle = (this.selectedMechSkin === 'MEGATRON') ? "#c084fc" : "#ffd600";
         ctx.lineWidth = 2.5;
-        ctx.setLineDash([6, 4]);
-        ctx.beginPath();
-        ctx.arc(0, 0, 34, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath(); ctx.arc(0, 0, 36, 0, Math.PI * 2); ctx.stroke();
         ctx.setLineDash([]);
       }
 
-      // 3. Facing Orientation & Articulated Mech (SIEGE vs BIPED)
       const ang = h.angle || 0;
       ctx.rotate(ang);
 
@@ -6959,464 +7414,29 @@
       const walkCos = Math.cos(walk);
       const idleBreath = Math.sin(performance.now() * 0.003) * 0.8;
       const tNow = performance.now();
-
       const pbr = this.pbrPatterns || {};
       const activeSkin = this.selectedMechSkin || 'MEGATRON';
-      const titPat = (activeSkin === 'OPTIMUS') ? "#b91c1c" : ((activeSkin === 'BUMBLEBEE') ? "#eab308" : ((activeSkin === 'MEGATRON') ? "#475569" : (pbr.brushedTitanium || "#1e293b")));
-      const carbPat = (activeSkin === 'OPTIMUS') ? "#1d4ed8" : ((activeSkin === 'BUMBLEBEE') ? "#0f172a" : ((activeSkin === 'MEGATRON') ? "#3b0764" : (pbr.carbonFiber || "#0f172a")));
-      const hazPat = (activeSkin === 'OPTIMUS') ? "#00e5ff" : ((activeSkin === 'BUMBLEBEE') ? "#facc15" : ((activeSkin === 'MEGATRON') ? "#a855f7" : (pbr.hazardPlate || "#ffd600")));
 
-      if (h.mode === 'SIEGE') {
-        // --- SIEGE TANK: ARMORED CATERPILLAR TRACKS & DUAL 120MM ARTILLERY ---
-        const trackCycle = walk * 10;
-        const recoil = (h.siegeRecoil || 0) * 8;
-
-        // Left Continuous Caterpillar Tread Assembly
-        ctx.fillStyle = "#090d16";
-        ctx.fillRect(-19 - recoil, -22, 38, 12);
-        ctx.strokeStyle = "#475569";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(-19 - recoil, -22, 38, 12);
-
-        // Interlocking steel track shoes
-        ctx.fillStyle = "#334155";
-        for (let t = -16; t <= 16; t += 5) {
-          const off = ((t + trackCycle) % 34) - 17;
-          ctx.fillRect(off - recoil, -22, 2.5, 12);
-        }
-
-        // 5 Heavy Bogie Road Wheels with Axle Hubs
-        for (let w = -14; w <= 14; w += 7) {
-          ctx.fillStyle = "#1e293b";
-          ctx.beginPath();
-          ctx.arc(w - recoil, -16, 3.8, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#64748b";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.fillStyle = "#ffd600";
-          ctx.beginPath();
-          ctx.arc(w - recoil, -16, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Right Continuous Caterpillar Tread Assembly
-        ctx.fillStyle = "#090d16";
-        ctx.fillRect(-19 - recoil, 10, 38, 12);
-        ctx.strokeStyle = "#475569";
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(-19 - recoil, 10, 38, 12);
-
-        // Interlocking steel track shoes
-        ctx.fillStyle = "#334155";
-        for (let t = -16; t <= 16; t += 5) {
-          const off = ((t + trackCycle) % 34) - 17;
-          ctx.fillRect(off - recoil, 10, 2.5, 12);
-        }
-
-        // 5 Heavy Bogie Road Wheels with Axle Hubs
-        for (let w = -14; w <= 14; w += 7) {
-          ctx.fillStyle = "#1e293b";
-          ctx.beginPath();
-          ctx.arc(w - recoil, 16, 3.8, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#64748b";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-          ctx.fillStyle = "#ffd600";
-          ctx.beginPath();
-          ctx.arc(w - recoil, 16, 1.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Armored Fortress Hull Chassis (PBR Brushed Titanium & Bevels)
-        this.drawBevelPlate(ctx, -16 - recoil, -13, 36, 26, titPat, "#ffd600", 4);
-        this.drawBevelPlate(ctx, -14 - recoil, -10, 8, 20, hazPat, null, 2);
-        this.drawRivet(ctx, -14 - recoil, -11); this.drawRivet(ctx, 16 - recoil, -11);
-        this.drawRivet(ctx, -14 - recoil, 11); this.drawRivet(ctx, 16 - recoil, 11);
-
-        // Dual Vertical Exhaust Smokestacks
-        ctx.fillStyle = "#334155";
-        ctx.fillRect(-18 - recoil, -9, 4, 5);
-        ctx.fillRect(-18 - recoil, 4, 4, 5);
-        ctx.fillStyle = "#ff9100";
-        ctx.fillRect(-19 - recoil, -8, 1.5, 3);
-        ctx.fillRect(-19 - recoil, 5, 1.5, 3);
-
-        // Heavy Gun Mantlet Mount
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(8 - recoil, -10, 8, 20);
-        ctx.strokeStyle = "#475569";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(8 - recoil, -10, 8, 20);
-
-        // Dual 120mm Heavy Siege Artillery Barrels with Pneumatic Dampers
-        const barrelRecoil = recoil * 1.2;
-        const bGrad = ctx.createLinearGradient(0, -8, 0, 8);
-        bGrad.addColorStop(0, "#475569");
-        bGrad.addColorStop(0.5, "#1e293b");
-        bGrad.addColorStop(1, "#0f172a");
-        ctx.fillStyle = bGrad;
-        ctx.fillRect(12 - barrelRecoil, -8, 28, 5.5);
-        ctx.fillRect(12 - barrelRecoil, 2.5, 28, 5.5);
-        ctx.strokeStyle = "#94a3b8";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(12 - barrelRecoil, -8, 28, 5.5);
-        ctx.strokeRect(12 - barrelRecoil, 2.5, 28, 5.5);
-
-        // Slotted Double-Baffle Muzzle Brakes
-        ctx.fillStyle = "#090d16";
-        ctx.fillRect(37 - barrelRecoil, -9.5, 7, 8.5);
-        ctx.fillRect(37 - barrelRecoil, 1, 7, 8.5);
-        ctx.strokeStyle = "#ffd600";
-        ctx.strokeRect(37 - barrelRecoil, -9.5, 7, 8.5);
-        ctx.strokeRect(37 - barrelRecoil, 1, 7, 8.5);
-
-        // Thermal Barrel Glow & Heat Distortion
-        if (h.siegeRecoil > 0) {
-          ctx.fillStyle = `rgba(255, 145, 0, ${h.siegeRecoil})`;
-          ctx.fillRect(38 - barrelRecoil, -8.5, 5, 6.5);
-          ctx.fillRect(38 - barrelRecoil, 2, 5, 6.5);
-        }
-
-        // Rotating Heavy Commander Turret Cupola
-        ctx.fillStyle = "#1e293b";
-        ctx.beginPath();
-        ctx.arc(-2 - recoil, 0, 9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#ffd600";
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-
-        // 360-degree Vision Slits & Commander Hatch
-        ctx.fillStyle = "#0f172a";
-        ctx.beginPath();
-        ctx.arc(-2 - recoil, 0, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#ffd600";
-        ctx.fillRect(4 - recoil, -3, 3.5, 6);
-
-        // Tactical Laser Rangefinder Beam
-        ctx.strokeStyle = "rgba(255, 214, 0, 0.4)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(7 - recoil, 0);
-        ctx.lineTo(80, 0);
-        ctx.stroke();
+      if (activeSkin === 'MEGATRON') {
+        if (h.mode === 'SIEGE') this.renderHeroMegatronTank(ctx, h, pbr, walk, tNow);
+        else this.renderHeroMegatronBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
+      } else if (activeSkin === 'OPTIMUS') {
+        if (h.mode === 'SIEGE') this.renderHeroOptimusTruck(ctx, h, pbr, walk, tNow);
+        else this.renderHeroOptimusBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
+      } else if (activeSkin === 'BUMBLEBEE') {
+        if (h.mode === 'SIEGE') this.renderHeroBumblebeeTank(ctx, h, pbr, walk, tNow);
+        else this.renderHeroBumblebeeBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
       } else {
-        // --- BIPED ASSAULT ROBOT: ARTICULATED HYDRAULIC LEGS & WEAPONS ---
-        const torsoSway = walkCycle * 0.08;
-        const torsoBob = Math.abs(walkCos) * 1.5;
-
-        // 1. Articulated Hydraulic Legs (2-Joint IK Mechanics)
-        const strideL = walkCycle * 7;
-        const strideR = -walkCycle * 7;
-        const kneeFlexL = Math.max(0, -walkCos * 3);
-        const kneeFlexR = Math.max(0, walkCos * 3);
-
-        // Left Leg Assembly (PBR Thigh, Chrome Hydraulic Piston & Articulated Footplate)
-        ctx.save();
-        ctx.translate(-4, -13);
-        this.drawBevelPlate(ctx, strideL - 4, -3, 10, 6.5, titPat, "#00e5ff", 2);
-        this.drawChromePiston(ctx, strideL - 2, -1.5, 6, 2.5);
-        ctx.fillStyle = "#475569";
-        ctx.beginPath(); ctx.arc(strideL + 4, 0, 2.8, 0, Math.PI * 2); ctx.fill();
-        this.drawBevelPlate(ctx, strideL + 3, -2 - kneeFlexL, 6, 4.5, carbPat, null, 1);
-        ctx.fillStyle = "#0284c7";
-        ctx.fillRect(strideL + 6, -3 - kneeFlexL, 3, 6);
-        ctx.restore();
-
-        // Right Leg Assembly (PBR Thigh, Chrome Hydraulic Piston & Articulated Footplate)
-        ctx.save();
-        ctx.translate(-4, 13);
-        this.drawBevelPlate(ctx, strideR - 4, -3, 10, 6.5, titPat, "#00e5ff", 2);
-        this.drawChromePiston(ctx, strideR - 2, -1, 6, 2.5);
-        ctx.fillStyle = "#475569";
-        ctx.beginPath(); ctx.arc(strideR + 4, 0, 2.8, 0, Math.PI * 2); ctx.fill();
-        this.drawBevelPlate(ctx, strideR + 3, -2.5 + kneeFlexR, 6, 4.5, carbPat, null, 1);
-        ctx.fillStyle = "#0284c7";
-        ctx.fillRect(strideR + 6, -3 + kneeFlexR, 3, 6);
-        ctx.restore();
-
-        // 2. Dual Ion Thruster Backpack with Multi-Stage Exhaust Plumes
-        const thrusterGrad = ctx.createLinearGradient(-18, -10, -10, 10);
-        thrusterGrad.addColorStop(0, "#334155");
-        thrusterGrad.addColorStop(0.5, "#1e293b");
-        thrusterGrad.addColorStop(1, "#090d16");
-        ctx.fillStyle = thrusterGrad;
-        ctx.fillRect(-17, -10, 8, 20);
-        ctx.strokeStyle = "#475569";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(-17, -10, 8, 20);
-
-        // Heat Radiator Ribs
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillRect(-15, -7, 4, 1.5);
-        ctx.fillRect(-15, -3, 4, 1.5);
-        ctx.fillRect(-15, 1.5, 4, 1.5);
-        ctx.fillRect(-15, 5.5, 4, 1.5);
-
-        // Exhaust Vector Nozzles & Pulsing Blue-White Plasma Cones
-        const flamePulse = 4 + Math.sin(tNow * 0.02) * 2;
-        // Upper Nozzle
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(-19, -8, 3, 5);
-        // Lower Nozzle
-        ctx.fillRect(-19, 3, 3, 5);
-        // Plasma Exhaust Flame (Left/Upper)
-        ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
-        ctx.beginPath();
-        ctx.moveTo(-19, -8);
-        ctx.lineTo(-19 - flamePulse * 2, -5.5);
-        ctx.lineTo(-19, -3);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.moveTo(-19, -7);
-        ctx.lineTo(-19 - flamePulse, -5.5);
-        ctx.lineTo(-19, -4);
-        ctx.closePath();
-        ctx.fill();
-        // Plasma Exhaust Flame (Right/Lower)
-        ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
-        ctx.beginPath();
-        ctx.moveTo(-19, 3);
-        ctx.lineTo(-19 - flamePulse * 2, 5.5);
-        ctx.lineTo(-19, 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.moveTo(-19, 4);
-        ctx.lineTo(-19 - flamePulse, 5.5);
-        ctx.lineTo(-19, 7);
-        ctx.closePath();
-        ctx.fill();
-
-        // 3. Heavy Titanium Torso Chassis with PBR Brushed Metal, Rivets & Bevels
-        ctx.save();
-        ctx.rotate(torsoSway);
-
-        this.drawBevelPlate(ctx, -12, -12, 28, 24, titPat, "#00e5ff", 5);
-        this.drawRivet(ctx, -10, -10); this.drawRivet(ctx, 12, -8);
-        this.drawRivet(ctx, -10, 10); this.drawRivet(ctx, 12, 8);
-
-        // Tactical Carbon-Fiber Shoulder Pauldrons
-        this.drawBevelPlate(ctx, -7, -16, 8, 5, carbPat, "#00e5ff", 1);
-        this.drawBevelPlate(ctx, -7, 11, 8, 5, carbPat, "#00e5ff", 1);
-
-        // Glowing Quantum Arc-Reactor / Matrix of Leadership Core
-        const reactorGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, 6);
-        reactorGrad.addColorStop(0, "#ffffff");
-        if (activeSkin === 'OPTIMUS') {
-          reactorGrad.addColorStop(0.35, "#ffd700");
-          reactorGrad.addColorStop(0.8, "#f59e0b");
-          reactorGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
-        } else if (activeSkin === 'BUMBLEBEE') {
-          reactorGrad.addColorStop(0.35, "#00e5ff");
-          reactorGrad.addColorStop(0.8, "#0284c7");
-          reactorGrad.addColorStop(1, "rgba(2, 132, 199, 0)");
-        } else if (activeSkin === 'MEGATRON') {
-          reactorGrad.addColorStop(0.35, "#c084fc");
-          reactorGrad.addColorStop(0.8, "#7e22ce");
-          reactorGrad.addColorStop(1, "rgba(126, 34, 206, 0)");
-        } else {
-          reactorGrad.addColorStop(0.35, "#00e5ff");
-          reactorGrad.addColorStop(0.8, "#0091ea");
-          reactorGrad.addColorStop(1, "rgba(0, 145, 234, 0)");
-        }
-        ctx.fillStyle = reactorGrad;
-        ctx.beginPath();
-        ctx.arc(0, 0, 5.5 + idleBreath * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Counter-Rotating Magnetic Confinement Rings
-        ctx.save();
-        ctx.rotate(tNow * 0.006);
-        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#c084fc" : "#ffd54f";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 7.5, 0, Math.PI * 1.5);
-        ctx.stroke();
-        ctx.restore();
-
-        ctx.save();
-        ctx.rotate(-tNow * 0.009);
-        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#a855f7" : "#00e5ff";
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        ctx.arc(0, 0, 9, 0, Math.PI);
-        ctx.stroke();
-        ctx.restore();
-
-        // 4. Angular Cockpit Canopy & Neon Cyan / Red Visor with Specular Glint
-        ctx.fillStyle = "#090d16";
-        ctx.beginPath();
-        ctx.moveTo(4, -5);
-        ctx.lineTo(15, -3);
-        ctx.lineTo(18, 0);
-        ctx.lineTo(15, 3);
-        ctx.lineTo(4, 5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#ff1744" : "#00e5ff";
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
-        // Iridescent HUD Visor Glass
-        const visorGrad = ctx.createLinearGradient(7, -3, 16, 0);
-        if (activeSkin === 'MEGATRON') {
-          visorGrad.addColorStop(0, "#ffffff");
-          visorGrad.addColorStop(0.5, "#ff1744");
-          visorGrad.addColorStop(1, "#991b1b");
-        } else {
-          visorGrad.addColorStop(0, "#ffffff");
-          visorGrad.addColorStop(0.5, "#00e5ff");
-          visorGrad.addColorStop(1, "#0052cc");
-        }
-        ctx.strokeStyle = visorGrad;
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(7, -3);
-        ctx.lineTo(16, 0);
-        ctx.lineTo(7, 3);
-        ctx.stroke();
-
-        // Visor Internal Tactical Reticle Dot
-        ctx.fillStyle = "#ffd600";
-        ctx.beginPath();
-        ctx.arc(13, 0, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 5. Left Arm: Rotary Multi-Barrel Gatling Autocannon
-        ctx.save();
-        ctx.translate(2, -13);
-        // Weapon Chassis Mount
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(-2, -3.5, 8, 7);
-        ctx.strokeStyle = "#64748b";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-2, -3.5, 8, 7);
-        // Ammo Feed Chute with Golden Brass Shells
-        ctx.fillStyle = "#ffd600";
-        ctx.fillRect(-4, -2, 3, 4);
-        // Rotary 3-Barrel Cluster (Animated spinning)
-        const barrelSpin = (walk * 12);
-        ctx.fillStyle = "#334155";
-        ctx.fillRect(6, -2.5, 14, 5);
-        ctx.strokeStyle = "#94a3b8";
-        ctx.strokeRect(6, -2.5, 14, 5);
-        // Slotted Muzzle Compensator
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(19, -3.5, 4, 7);
-        // Barrel tips
-        ctx.fillStyle = "#64748b";
-        ctx.fillRect(20, -2.5 + Math.sin(barrelSpin) * 1.5, 3, 2);
-        ctx.fillRect(20, 1 - Math.sin(barrelSpin) * 1.5, 3, 2);
-        ctx.restore();
-
-        // 6. Right Arm: Articulated High-Frequency Plasma Katana
-        const slashAngle = (h.slashAnim > 0) ? ((0.22 - h.slashAnim) / 0.22) * Math.PI : 0;
-        ctx.save();
-        ctx.translate(4, 11);
-        ctx.rotate(slashAngle);
-
-        // Tactical Armored Gauntlet
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(-3, -3, 7, 6);
-        ctx.strokeStyle = "#00e5ff";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-3, -3, 7, 6);
-
-        // Katana Ergonomic Grip & Tsuba Collar
-        ctx.fillStyle = "#475569";
-        ctx.fillRect(3, -2, 5, 4);
-        ctx.fillStyle = "#ffd600";
-        ctx.fillRect(7, -3.5, 2, 7);
-
-        // Motion-Blur Ribbon Trail when slashing
-        if (h.slashAnim > 0) {
-          ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
-          ctx.lineWidth = 10;
-          ctx.beginPath();
-          ctx.arc(-4, 0, 28, -0.7, 0.7);
-          ctx.stroke();
-
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(-4, 0, 28, -0.6, 0.6);
-          ctx.stroke();
-        }
-
-        // Outer Magnetic Confinement Envelope
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.9)";
-        ctx.lineWidth = 4.5;
-        ctx.beginPath();
-        ctx.moveTo(9, 0);
-        ctx.lineTo(31, 0);
-        ctx.stroke();
-
-        // Inner Incandescent Tungsten Cutting Core
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(9, 0);
-        ctx.lineTo(30, 0);
-        ctx.stroke();
-
-        // Blade Tip Emitter Spark
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(31, 0, 1.8, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.restore(); // Katana
-        ctx.restore(); // Torso
+        if (h.mode === 'SIEGE') this.renderHeroApexTank(ctx, h, pbr, walk, tNow);
+        else this.renderHeroApexBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
       }
 
-      // Energy Shield Dome Hexagonal Forcefield Visual
-      if (h.shieldDome && h.shieldDome.timer > 0) {
-        ctx.save();
-        const domeAngle = performance.now() * 0.002;
-        ctx.rotate(domeAngle);
-        const domeAlpha = 0.35 + Math.sin(performance.now() * 0.006) * 0.15;
-        ctx.strokeStyle = `rgba(0, 229, 255, ${domeAlpha + 0.35})`;
-        ctx.fillStyle = `rgba(0, 229, 255, ${domeAlpha * 0.22})`;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        const hr = 72;
-        for (let i = 0; i < 6; i++) {
-          const a = (Math.PI / 3) * i;
-          const px = Math.cos(a) * hr;
-          const py = Math.sin(a) * hr;
-          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
+      // Floating Tactical Health & Energy Bar
+      ctx.rotate(-ang);
+      const barW = 34;
+      const bx = -barW / 2;
+      const by = -36;
 
-      ctx.restore();
-
-      // Floating Tactical Health Bar & Mode Badge
-      const barW = 52;
-      const bx = h.x - barW / 2;
-      const by = h.y - 32;
-
-      // Mode Badge Pill
-      ctx.fillStyle = h.mode === 'SIEGE' ? "#ffd600" : "#00e5ff";
-      ctx.beginPath();
-      ctx.arc(bx - 10, by + 3, 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#000";
-      ctx.font = "bold 9px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(h.mode === 'SIEGE' ? "TNK" : "MECH", bx - 10, by + 6);
-
-      // Shield Dome Bar if active
       if (h.shieldDome && h.shieldDome.timer > 0) {
         const shPct = Math.max(0, h.shieldDome.hp / h.shieldDome.maxHp);
         ctx.fillStyle = "#003366";
@@ -7425,7 +7445,6 @@
         ctx.fillRect(bx, by - 6, barW * shPct, 4);
       }
 
-      // Health Bar Chassis
       ctx.fillStyle = "#090e17";
       ctx.fillRect(bx, by, barW, 6);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.5)";
@@ -7433,8 +7452,9 @@
       ctx.strokeRect(bx, by, barW, 6);
 
       const hpPct = Math.max(0, h.hp / h.maxHp);
-      ctx.fillStyle = hpPct > 0.3 ? "#00e676" : "#ff1744";
+      ctx.fillStyle = hpPct > 0.3 ? ((activeSkin === 'MEGATRON') ? "#c084fc" : "#00e676") : "#ff1744";
       ctx.fillRect(bx, by, barW * hpPct, 6);
+      ctx.restore();
     }
 
     renderTowers() {
@@ -7444,6 +7464,7 @@
       for (const t of this.towers) {
         const def = TOWER_DEFS[t.type];
         const spec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
+        const color = t.branch ? spec.color : def.color;
 
         // 1. Selection Range Indicator
         if (this.selectedTower === t) {
@@ -7452,451 +7473,174 @@
           ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
           ctx.fillStyle = "rgba(0, 229, 255, 0.08)";
           ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, range, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
+          ctx.beginPath(); ctx.arc(t.x, t.y, range, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         }
 
         // Overclock Aura
         if (this.skills.overclock.activeTime > 0) {
-          ctx.strokeStyle = "rgba(255, 214, 0, 0.65)";
+          ctx.strokeStyle = "rgba(255, 214, 0, 0.75)";
           ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, 28, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.beginPath(); ctx.arc(t.x, t.y, 30, 0, Math.PI * 2); ctx.stroke();
         }
 
-        // 2. Heavy Cast-Titanium Octagonal Pedestal Base
-        const color = t.branch ? spec.color : def.color;
-        const baseGrad = ctx.createLinearGradient(t.x - 24, t.y - 24, t.x + 24, t.y + 24);
-        baseGrad.addColorStop(0, "#334155"); // specular top edge
-        baseGrad.addColorStop(0.4, "#1e293b"); // gunmetal body
-        baseGrad.addColorStop(1, "#090d16"); // dark shadow edge
+        // 2. Heavy Cast-Titanium Octagonal Pedestal Base with PBR Bevels
+        this.drawUnitContactShadow(ctx, 28, 28, 0.65);
+
+        const baseGrad = ctx.createLinearGradient(t.x - 25, t.y - 25, t.x + 25, t.y + 25);
+        baseGrad.addColorStop(0, "#475569");
+        baseGrad.addColorStop(0.4, "#1e293b");
+        baseGrad.addColorStop(1, "#090d16");
         ctx.fillStyle = baseGrad;
         ctx.strokeStyle = color;
         ctx.lineWidth = t.branch ? 3 : 2;
+
         ctx.beginPath();
         const r = 24;
         for (let i = 0; i < 8; i++) {
           const a = (Math.PI / 4) * i;
           const px = t.x + Math.cos(a) * r;
           const py = t.y + Math.sin(a) * r;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // 45-degree Inner Bevel Ring
-        ctx.strokeStyle = "rgba(100, 116, 139, 0.5)";
-        ctx.lineWidth = 1;
+        // Inner 45-degree Bevel Chamfer
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         for (let i = 0; i < 8; i++) {
           const a = (Math.PI / 4) * i;
           const px = t.x + Math.cos(a) * 19;
           const py = t.y + Math.sin(a) * 19;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
-        ctx.closePath();
+        ctx.closePath(); ctx.stroke();
+
+        // 8 Stainless Steel Hex Mounting Bolts
+        for (let i = 0; i < 8; i++) {
+          const a = (Math.PI / 4) * i;
+          this.drawHexBolt(ctx, t.x + Math.cos(a) * 16, t.y + Math.sin(a) * 16, 1.8);
+        }
+
+        // Turret Traverse Bearing Ring
+        ctx.fillStyle = "#020617";
+        ctx.beginPath(); ctx.arc(t.x, t.y, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Stainless Steel Mounting Hex Bolts
-        ctx.fillStyle = "#cbd5e1";
-        for (let i = 0; i < 4; i++) {
-          const a = (Math.PI / 2) * i + Math.PI / 4;
-          const bx = t.x + Math.cos(a) * 16;
-          const by = t.y + Math.sin(a) * 16;
-          ctx.fillRect(bx - 2, by - 2, 4, 4);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(bx - 1, by - 1, 1.5, 1.5);
-          ctx.fillStyle = "#cbd5e1";
-        }
-
-        // Turret Mounting Collar Ring
-        ctx.fillStyle = "#090d16";
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, 11, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 3. Rotating Turret Head Assembly with Physical Recoil Kickback
+        // 3. Rotating Turret Head Assembly with Dynamic Recoil
         ctx.save();
         ctx.translate(t.x, t.y);
         ctx.rotate(t.angle);
 
-        // Apply physical barrel recoil kickback
-        const recoilKick = (t.recoil || 0) * 6;
+        const recoilKick = (t.recoil || 0) * 6.5;
         ctx.translate(-recoilKick, 0);
-
-        ctx.fillStyle = color;
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1;
 
         if (t.type === 'pulse') {
           if (t.branch === 'A') {
-            // Gatling Shredder: 6-Barrel Rotary Minigun with Heat Glow
+            // Gatling Vulcan: 6-Barrel Rotary Minigun
             const spin = t.barrelSpin || 0;
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(0, -7, 24, 14);
-            ctx.strokeStyle = "#64748b";
-            ctx.strokeRect(0, -7, 24, 14);
-
-            // Brass ammunition feed chute
-            ctx.fillStyle = "#ffd54f";
-            ctx.fillRect(-6, -4, 6, 8);
-
-            // 6 Rotating Fluted Barrels
-            ctx.fillStyle = "#0f172a";
+            this.drawBevelPlate(ctx, -2, -8, 26, 16, "#334155", "#64748b", 3);
+            ctx.fillStyle = "#ffd54f"; ctx.fillRect(-7, -4, 5, 8); // Brass feed
             for (let b = 0; b < 6; b++) {
               const ba = spin + (Math.PI / 3) * b;
-              const by = Math.sin(ba) * 5;
-              ctx.fillRect(24, by - 1.2, 8, 2.4);
-              // Barrel tip heat glow
-              if (t.heat > 0) {
-                ctx.fillStyle = `rgba(255, 109, 0, ${t.heat})`;
-                ctx.fillRect(30, by - 1.2, 2.5, 2.4);
-                ctx.fillStyle = "#0f172a";
-              }
+              const by = Math.sin(ba) * 5.5;
+              this.drawTemperedBarrel(ctx, 24, by - 1.5, 9, 3);
             }
           } else if (t.branch === 'B') {
-            // Sniper Rail-Pulse: Ultra-Long Anti-Materiel Rifle
-            ctx.fillStyle = "#1e293b";
-            ctx.fillRect(-7, -6, 16, 12);
-            ctx.strokeRect(-7, -6, 16, 12);
-
-            // Long fluted barrel
-            ctx.fillStyle = "#00b0ff";
-            ctx.fillRect(9, -2.5, 34, 5);
-            // Heavy muzzle compensator
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(40, -4, 5, 8);
-
-            // Holographic Optic Scope with Specular Lens Glint
-            ctx.fillStyle = "#ffd600";
-            ctx.fillRect(14, -6, 12, 3.5);
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(24, -6, 2, 3.5);
+            // Anti-Materiel Sniper Rail-Pulse
+            this.drawBevelPlate(ctx, -8, -7, 18, 14, "#1e293b", "#00b0ff", 3);
+            this.drawTemperedBarrel(ctx, 10, -3, 38, 6);
+            this.drawSlottedMuzzleBrake(ctx, 46, -4.5, 6, 9, 2);
+            // Targeting Laser
+            ctx.fillStyle = "#ffd600"; ctx.fillRect(16, -7, 12, 3.5);
           } else {
-            // Dual Autocannon Barrels with Slotted Muzzle Brakes
-            ctx.fillStyle = color;
-            ctx.fillRect(2, -7, 22, 5);
-            ctx.fillRect(2, 2, 22, 5);
-            // Slotted muzzle brakes
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(20, -8, 3, 7);
-            ctx.fillRect(20, 1, 3, 7);
-
-            // Receiver chassis
-            ctx.fillStyle = "#1e293b";
-            ctx.fillRect(-8, -8, 16, 16);
-            ctx.strokeStyle = "#475569";
-            ctx.strokeRect(-8, -8, 16, 16);
+            // Dual Heavy Autocannon Barrels with Slotted Muzzle Brakes
+            this.drawBevelPlate(ctx, -9, -9, 18, 18, "#1e293b", "#475569", 3);
+            this.drawTemperedBarrel(ctx, 3, -8, 23, 5.5);
+            this.drawTemperedBarrel(ctx, 3, 2.5, 23, 5.5);
+            this.drawSlottedMuzzleBrake(ctx, 24, -9, 4, 7.5, 2);
+            this.drawSlottedMuzzleBrake(ctx, 24, 1.5, 4, 7.5, 2);
           }
         } else if (t.type === 'mortar') {
           if (t.branch === 'A') {
-            // Cluster Bomb: Quad Rocket Pod with Warheads
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-8, -11, 24, 22);
-            ctx.strokeStyle = "#ff9100";
-            ctx.strokeRect(-8, -11, 24, 22);
-
-            // 4 Armed Missile Cells with Red Warheads
+            // Hexagonal Cluster Rocket Pod
+            this.drawBevelPlate(ctx, -9, -12, 26, 24, "#334155", "#ff9100", 4);
             ctx.fillStyle = "#ff1744";
-            ctx.fillRect(16, -9, 4, 5);
-            ctx.fillRect(16, -2, 4, 5);
-            ctx.fillRect(16, 5, 4, 5);
+            ctx.fillRect(17, -9, 4, 5); ctx.fillRect(17, -2, 4, 5); ctx.fillRect(17, 5, 4, 5);
           } else if (t.branch === 'B') {
-            // Napalm Cyber-Fire: Heavy Fuel Tanks & Pilot Flame Igniter
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-6, -10, 22, 20);
-            // Pressurized dual fuel tanks
-            ctx.fillStyle = "#ff3d00";
-            ctx.fillRect(-11, -8, 6, 16);
-            ctx.strokeStyle = "#ffd600";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(-11, -8, 6, 16);
-
-            // Pilot Igniter Nozzle
-            ctx.fillStyle = "#ffd600";
-            ctx.fillRect(16, -2.5, 9, 5);
+            // Napalm Flame Projector & Pressurized Fuel Tanks
+            this.drawBevelPlate(ctx, -7, -11, 24, 22, "#334155", "#ff3d00", 3);
+            ctx.fillStyle = "#ff3d00"; ctx.fillRect(-12, -9, 6, 18);
+            ctx.fillStyle = "#ffd600"; ctx.fillRect(17, -3, 10, 6);
           } else {
-            // Heavy Howitzer Artillery Cannon with Hydraulic Recoil Dampers
-            ctx.fillStyle = color;
-            ctx.fillRect(-5, -8, 25, 16);
-            // Bore cavity
-            ctx.fillStyle = "#0a0a0f";
-            ctx.fillRect(18, -6, 3, 12);
-
-            // Hydraulic dampener cylinders
-            ctx.fillStyle = "#1e293b";
-            ctx.fillRect(-10, -10, 14, 20);
-            ctx.fillStyle = "#94a3b8";
-            ctx.fillRect(-2, -11, 8, 2);
-            ctx.fillRect(-2, 9, 8, 2);
+            // Heavy 155mm Howitzer with Armored Recoil Mantlet
+            this.drawBevelPlate(ctx, -11, -11, 16, 22, "#1e293b", "#ff9100", 4);
+            this.drawTemperedBarrel(ctx, 5, -7, 26, 14);
+            this.drawSlottedMuzzleBrake(ctx, 28, -9, 6, 18, 2);
           }
         } else if (t.type === 'cryo') {
           if (t.branch === 'A') {
-            // Blizzard Zero: Crystalline Faceted Spire
-            const cryoGrad = ctx.createLinearGradient(18, 0, -8, 0);
-            cryoGrad.addColorStop(0, "#ffffff");
-            cryoGrad.addColorStop(0.5, "#00f0ff");
-            cryoGrad.addColorStop(1, "#0066cc");
+            // Blizzard Zero Crystalline Spire
+            const cryoGrad = ctx.createLinearGradient(20, 0, -9, 0);
+            cryoGrad.addColorStop(0, "#ffffff"); cryoGrad.addColorStop(0.5, "#00f0ff"); cryoGrad.addColorStop(1, "#0066cc");
             ctx.fillStyle = cryoGrad;
-            ctx.beginPath();
-            ctx.moveTo(20, 0); ctx.lineTo(-8, -11); ctx.lineTo(-3, 0); ctx.lineTo(-8, 11);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(-9, -12); ctx.lineTo(-4, 0); ctx.lineTo(-9, 12);
+            ctx.closePath(); ctx.fill(); ctx.stroke();
           } else if (t.branch === 'B') {
-            // Tesla Chain-Frost: Dual Copper Inductor Prongs
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-6, -9, 16, 18);
-            ctx.strokeStyle = "#76ff03";
-            ctx.lineWidth = 2.5;
+            // Tesla Chain-Frost Dual Prongs
+            this.drawBevelPlate(ctx, -7, -10, 18, 20, "#334155", "#76ff03", 3);
+            ctx.strokeStyle = "#76ff03"; ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(10, -7); ctx.lineTo(25, -4);
-            ctx.moveTo(10, 7); ctx.lineTo(25, 4);
+            ctx.moveTo(11, -8); ctx.lineTo(27, -5); ctx.moveTo(11, 8); ctx.lineTo(27, 5);
             ctx.stroke();
-            // Ceramic insulators
-            ctx.fillStyle = "#ffd600";
-            ctx.fillRect(12, -8, 3, 3);
-            ctx.fillRect(12, 5, 3, 3);
           } else {
-            // Cryogenic Sphere with Liquid Nitrogen Core
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(0, 0, 13, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(-3, -3, 3.5, 0, Math.PI * 2);
-            ctx.fill();
+            // Frosted Cryogenic Pressure Sphere
+            const spGrad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 15);
+            spGrad.addColorStop(0, "#ffffff"); spGrad.addColorStop(0.4, "#00e5ff"); spGrad.addColorStop(1, "#0284c7");
+            ctx.fillStyle = spGrad;
+            ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2; ctx.stroke();
           }
         } else if (t.type === 'railgun') {
           if (t.branch === 'A') {
-            // Hyper Beam Laser: Optical Prism Array
-            ctx.fillStyle = "#ff007f";
-            ctx.fillRect(0, -4, 32, 8);
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(30, -6, 6, 12);
-            ctx.strokeStyle = "#ff4081";
-            ctx.strokeRect(0, -4, 32, 8);
+            // Hyper Beam Optical Ruby Prism Array
+            this.drawBevelPlate(ctx, -2, -6, 34, 12, "#ff007f", "#ff4081", 3);
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(30, -7, 7, 14);
           } else if (t.branch === 'B') {
-            // Ion Disrupter: Triple Toroidal Rings
-            ctx.fillStyle = "#d500f9";
-            ctx.fillRect(0, -3, 28, 6);
-            ctx.strokeStyle = "#e040fb";
-            ctx.lineWidth = 2;
-            for (let r = 8; r <= 24; r += 8) {
-              ctx.strokeRect(r, -6, 3, 12);
-            }
+            // Ion Disruptor Triple Toroidal Rings
+            this.drawTemperedBarrel(ctx, 0, -4, 30, 8);
+            ctx.strokeStyle = "#e040fb"; ctx.lineWidth = 2.2;
+            for (let r = 8; r <= 24; r += 8) ctx.strokeRect(r, -7, 3.5, 14);
           } else {
-            // Parallel Magnetic Acceleration Rails
-            ctx.fillStyle = color;
-            ctx.fillRect(0, -3.5, 32, 7);
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-8, -8, 14, 16);
-            // Electromagnetic Induction Coils
-            ctx.fillStyle = "#ffd600";
-            ctx.fillRect(10, -6, 4, 12);
-            ctx.fillRect(20, -6, 4, 12);
+            // Heavy Magnetic Induction Rails
+            this.drawBevelPlate(ctx, -9, -9, 15, 18, "#334155", "#ff007f", 3);
+            this.drawTemperedBarrel(ctx, 0, -4, 34, 8);
+            ctx.fillStyle = "#ffd600"; ctx.fillRect(11, -7, 4, 14); ctx.fillRect(21, -7, 4, 14);
           }
         } else if (t.type === 'beacon') {
-          if (t.branch === 'A') {
-            // Overcharge Reactor: Arcing Lightning Sphere
-            const spGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 15);
-            spGrad.addColorStop(0, "#ffffff");
-            spGrad.addColorStop(0.5, "#b388ff");
-            spGrad.addColorStop(1, "#651fff");
-            ctx.fillStyle = spGrad;
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#ffd600";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          } else if (t.branch === 'B') {
-            // Tactical Radar: 360-Degree Rotating Dish
-            ctx.fillStyle = "#e040fb";
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, -Math.PI / 3, Math.PI / 3);
-            ctx.lineTo(0, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.stroke();
-          } else {
-            // Satellite Power Crystal
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(0, 0, 14, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(-2, -2, 4, 4);
-          }
+          // Tactical Radar / Overcharge Arc
+          const spGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16);
+          spGrad.addColorStop(0, "#ffffff"); spGrad.addColorStop(0.5, "#b388ff"); spGrad.addColorStop(1, "#651fff");
+          ctx.fillStyle = spGrad;
+          ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2; ctx.stroke();
         } else if (t.type === 'tesla') {
-          if (t.branch === 'A') {
-            // Overcharge Arc: Triple High-Frequency Induction Coils
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-8, -10, 16, 20);
-            ctx.strokeStyle = "#ffd600";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(-8, -10, 16, 20);
-            for (let c = -6; c <= 6; c += 6) {
-              ctx.fillStyle = "#ffb300";
-              ctx.fillRect(-6, c - 2, 12, 4);
-            }
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(10, 0, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#00e5ff";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          } else if (t.branch === 'B') {
-            // Tesla Storm Aura: Quad Corona Emitters
-            const spinAura = performance.now() * 0.004;
-            ctx.fillStyle = "#1e293b";
-            ctx.beginPath();
-            ctx.arc(0, 0, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#76ff03";
-            ctx.lineWidth = 2.2;
-            ctx.stroke();
-            for (let k = 0; k < 4; k++) {
-              const a = spinAura + (Math.PI / 2) * k;
-              ctx.strokeStyle = "#ffd600";
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.moveTo(0, 0);
-              ctx.lineTo(Math.cos(a) * 18, Math.sin(a) * 18);
-              ctx.stroke();
-              ctx.fillStyle = "#ffffff";
-              ctx.beginPath();
-              ctx.arc(Math.cos(a) * 18, Math.sin(a) * 18, 3, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          } else {
-            // Standard Tesla Coil: Porcelain Insulator & Copper Toroid
-            ctx.fillStyle = "#e2e8f0";
-            ctx.fillRect(-6, -8, 12, 16);
-            ctx.strokeStyle = "#64748b";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(-6, -8, 12, 16);
-            ctx.fillStyle = "#d97706";
-            ctx.fillRect(-5, -6, 10, 3);
-            ctx.fillRect(-5, -1, 10, 3);
-            ctx.fillRect(-5, 4, 10, 3);
-            ctx.fillStyle = "#ffd600";
-            ctx.beginPath();
-            ctx.arc(6, 0, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            if (Math.random() < 0.4) {
-              ctx.strokeStyle = "#ffffff";
-              ctx.lineWidth = 1.2;
-              ctx.beginPath();
-              ctx.moveTo(6, 0);
-              ctx.lineTo(6 + (Math.random() * 14 - 7), (Math.random() * 14 - 7));
-              ctx.stroke();
-            }
-          }
-        } else if (t.type === 'flame') {
-          if (t.branch === 'A') {
-            // Napalm Inferno: Heavy Pressurized Fuel Cells
-            ctx.fillStyle = "#1e293b";
-            ctx.fillRect(-8, -12, 18, 24);
-            ctx.strokeStyle = "#ff3d00";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(-8, -12, 18, 24);
-            ctx.fillStyle = "#ff1744";
-            ctx.fillRect(-14, -10, 6, 6);
-            ctx.fillRect(-14, -3, 6, 6);
-            ctx.fillRect(-14, 4, 6, 6);
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(10, -6, 16, 12);
-            ctx.fillStyle = "#ff9100";
-            ctx.fillRect(24, -4, 4, 8);
-          } else if (t.branch === 'B') {
-            // Plasma Blaze: Superconducting Magnetic Injector
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(-6, -9, 16, 18);
-            ctx.strokeStyle = "#00e5ff";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(-6, -9, 16, 18);
-            ctx.fillStyle = "#00e5ff";
-            ctx.fillRect(10, -5, 18, 4);
-            ctx.fillRect(10, 1, 18, 4);
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(16, -7, 4, 14);
-          } else {
-            // Twin Pressurized Fuel Cylinders & Combustion Nozzles
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-6, -9, 16, 18);
-            ctx.fillStyle = "#ff3d00";
-            ctx.fillRect(-12, -7, 6, 6);
-            ctx.fillRect(-12, 1, 6, 6);
-            ctx.fillStyle = "#1e293b";
-            ctx.fillRect(10, -6, 14, 4);
-            ctx.fillRect(10, 2, 14, 4);
-            ctx.fillStyle = "#00e5ff";
-            ctx.fillRect(22, -5.5, 3, 3);
-            ctx.fillRect(22, 2.5, 3, 3);
-          }
+          // Induction Coil Stack & Spherical Electrode
+          this.drawBevelPlate(ctx, -9, -11, 18, 22, "#334155", "#ffd600", 3);
+          const tGrad = ctx.createRadialGradient(10, 0, 1, 10, 0, 9);
+          tGrad.addColorStop(0, "#ffffff"); tGrad.addColorStop(0.5, "#ffd600"); tGrad.addColorStop(1, "#b45309");
+          ctx.fillStyle = tGrad;
+          ctx.beginPath(); ctx.arc(10, 0, 8.5, 0, Math.PI * 2); ctx.fill();
         }
+
         ctx.restore();
 
-        // Render Active Tesla Chain Lightning Arcs
-        if (t.lightningArcs && t.lightningArcs.points.length >= 2) {
-          ctx.save();
-          const pts = t.lightningArcs.points;
-          ctx.strokeStyle = (t.branch === 'B') ? "#76ff03" : "#ffd600";
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = "#ffffff";
-          ctx.shadowBlur = 8;
-          for (let pIdx = 0; pIdx < pts.length - 1; pIdx++) {
-            const p1 = pts[pIdx];
-            const p2 = pts[pIdx + 1];
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            const midX1 = p1.x + (p2.x - p1.x) * 0.33 + (Math.random() * 16 - 8);
-            const midY1 = p1.y + (p2.y - p1.y) * 0.33 + (Math.random() * 16 - 8);
-            const midX2 = p1.x + (p2.x - p1.x) * 0.66 + (Math.random() * 16 - 8);
-            const midY2 = p1.y + (p2.y - p1.y) * 0.66 + (Math.random() * 16 - 8);
-            ctx.lineTo(midX1, midY1);
-            ctx.lineTo(midX2, midY2);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
-          ctx.restore();
-        }
-
-        // 4. Tier Markers (Stars)
-        ctx.fillStyle = "#ffd600";
-        for (let i = 0; i < t.tier; i++) {
-          ctx.beginPath();
-          ctx.arc(t.x - 12 + i * 12, t.y + 16, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // 5. Laser Beam FX
-        if (t.laserTimer > 0 && t.targetPoint) {
-          ctx.strokeStyle = (t.branch === 'A') ? "rgba(255, 0, 127, 0.9)" : `rgba(213, 0, 249, ${t.laserTimer / 0.25})`;
-          ctx.lineWidth = (t.branch === 'A') ? 8 : 5;
-          ctx.beginPath();
-          ctx.moveTo(t.x, t.y);
-          ctx.lineTo(t.targetPoint.x, t.targetPoint.y);
-          ctx.stroke();
+        // 4. Floating Tactical Ammo / Charge Bar
+        if (t.heat > 0) {
+          ctx.fillStyle = "#ff3d00";
+          ctx.fillRect(t.x - 14, t.y - 30, 28 * t.heat, 3);
         }
       }
     }
@@ -7905,10 +7649,6 @@
       const ctx = this.ctx;
       const tNow = performance.now();
       const pbr = this.pbrPatterns || {};
-      const titPat = pbr.brushedTitanium || "#1e293b";
-      const carbPat = pbr.carbonFiber || "#0f172a";
-      const hazPat = pbr.hazardPlate || "#ffd600";
-      const bioPat = pbr.bioChitin || "#2e1065";
 
       for (const e of this.enemies) {
         ctx.save();
@@ -7916,911 +7656,267 @@
 
         if (e.isFlyer) {
           if (e.type === "gunship") {
-            // VTOL Heavy Aerial Gunship (Multi-Rotor Attack Craft)
-            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-            ctx.beginPath();
-            ctx.ellipse(6, 24, 22, 11, e.angle, 0, Math.PI * 2);
-            ctx.fill();
-
+            // VTOL Heavy Aerial Attack Gunship
+            this.drawUnitContactShadow(ctx, 24, 13, 0.45);
             ctx.rotate(e.angle);
-            const rotorSpin = tNow * 0.045;
+            const rotorSpin = tNow * 0.05;
 
-            // Swept Composite Wings
-            ctx.fillStyle = "#334155";
-            ctx.fillRect(-6, -22, 8, 44);
-            ctx.strokeStyle = "#475569";
-            ctx.lineWidth = 1.2;
-            ctx.strokeRect(-6, -22, 8, 44);
+            // Swept Composite Stealth Wings
+            this.drawBevelPlate(ctx, -7, -24, 9, 48, "#334155", "#64748b", 2);
 
-            // Underwing Rocket Pod Pylons
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(-2, -18, 6, 4);
-            ctx.fillRect(-2, 14, 6, 4);
+            // Dual Tilting Tilt-Rotor Nacelles
+            this.drawChromePiston(ctx, -5, -28, 10, 8);
+            this.drawChromePiston(ctx, -5, 20, 10, 8);
 
-            // Dual Tilt-Rotor Engine Nacelles
-            const nacGrad = ctx.createLinearGradient(-4, -25, 4, -18);
-            nacGrad.addColorStop(0, "#475569");
-            nacGrad.addColorStop(1, "#0f172a");
-            ctx.fillStyle = nacGrad;
-            ctx.fillRect(-4, -26, 9, 7);
-            ctx.fillRect(-4, 19, 9, 7);
-            ctx.strokeStyle = "#00e5ff";
-            ctx.strokeRect(-4, -26, 9, 7);
-            ctx.strokeRect(-4, 19, 9, 7);
-
-            // Spinning 3-Blade Rotor Discs with Motion Blur Trails
+            // Rapid 3-Blade Rotor Discs with Motion Blur Trails
             ctx.save();
             ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
-            ctx.lineWidth = 1.6;
+            ctx.lineWidth = 1.8;
             for (let b = 0; b < 3; b++) {
               const ba = rotorSpin + (Math.PI * 2 / 3) * b;
-              ctx.beginPath();
-              ctx.moveTo(0, -22.5);
-              ctx.lineTo(Math.cos(ba) * 15, -22.5 + Math.sin(ba) * 15);
-              ctx.stroke();
-
+              ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(Math.cos(ba) * 16, -24 + Math.sin(ba) * 16); ctx.stroke();
               const ba2 = -rotorSpin + (Math.PI * 2 / 3) * b;
-              ctx.beginPath();
-              ctx.moveTo(0, 22.5);
-              ctx.lineTo(Math.cos(ba2) * 15, 22.5 + Math.sin(ba2) * 15);
-              ctx.stroke();
+              ctx.beginPath(); ctx.moveTo(0, 24); ctx.lineTo(Math.cos(ba2) * 16, 24 + Math.sin(ba2) * 16); ctx.stroke();
             }
             ctx.restore();
 
-            // Aerodynamic Stealth Fuselage
-            const gunGrad = ctx.createLinearGradient(-18, -11, 20, 11);
-            gunGrad.addColorStop(0, "#475569");
-            gunGrad.addColorStop(0.4, "#1e293b");
-            gunGrad.addColorStop(1, "#090d16");
-            ctx.fillStyle = gunGrad;
+            // Aerodynamic Carbon-Fiber Fuselage
+            const fGrad = ctx.createLinearGradient(-19, -12, 21, 12);
+            fGrad.addColorStop(0, "#475569"); fGrad.addColorStop(0.4, "#1e293b"); fGrad.addColorStop(1, "#090d16");
+            ctx.fillStyle = fGrad;
             ctx.beginPath();
-            ctx.moveTo(22, 0);
-            ctx.lineTo(10, -10);
-            ctx.lineTo(-15, -8);
-            ctx.lineTo(-20, -12); // Twin tailfins
-            ctx.lineTo(-18, 0);
-            ctx.lineTo(-20, 12);
-            ctx.lineTo(-15, 8);
-            ctx.lineTo(10, 10);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = "#00e5ff";
-            ctx.lineWidth = 2.0;
-            ctx.stroke();
+            ctx.moveTo(23, 0); ctx.lineTo(11, -11); ctx.lineTo(-16, -9); ctx.lineTo(-21, -13);
+            ctx.lineTo(-19, 0); ctx.lineTo(-21, 13); ctx.lineTo(-16, 9); ctx.lineTo(11, 11);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = "#00e5ff"; ctx.lineWidth = 2.0; ctx.stroke();
 
-            // Tandem Bubble Cockpit Canopy
-            const cGrad = ctx.createLinearGradient(4, -4, 15, 4);
-            cGrad.addColorStop(0, "#ffffff");
-            cGrad.addColorStop(0.5, "#00e5ff");
-            cGrad.addColorStop(1, "#0284c7");
+            // Cockpit Canopy Reflection
+            const cGrad = ctx.createLinearGradient(5, -4, 16, 4);
+            cGrad.addColorStop(0, "#ffffff"); cGrad.addColorStop(0.5, "#00e5ff"); cGrad.addColorStop(1, "#0284c7");
             ctx.fillStyle = cGrad;
-            ctx.beginPath();
-            ctx.ellipse(9, 0, 7, 3.5, 0, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.ellipse(10, 0, 7.5, 4, 0, 0, Math.PI * 2); ctx.fill();
 
-            // Underslung Chin 30mm Rotary Autocannon Turret
-            ctx.fillStyle = "#0f172a";
-            ctx.beginPath();
-            ctx.arc(17, 0, 3.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#ffd600";
-            ctx.fillRect(17, -1.2, 9, 2.4);
+            // Underslung Chin 30mm Autocannon
+            this.drawTemperedBarrel(ctx, 17, -1.5, 10, 3);
 
-            // Floating HP & Shield Bar
+            // Floating HP
             ctx.rotate(-e.angle);
             const fHpPct = Math.max(0, e.hp / e.maxHp);
-            ctx.fillStyle = "#090d16";
-            ctx.fillRect(-18, -26, 36, 4.5);
-            ctx.fillStyle = "#00e5ff";
-            ctx.fillRect(-18, -26, 36 * fHpPct, 4.5);
-            if (e.shield > 0) {
-              const shPct = Math.max(0, e.shield / (e.maxShield || 100));
-              ctx.fillStyle = "#00b0ff";
-              ctx.fillRect(-18, -31, 36 * shPct, 3);
-            }
+            ctx.fillStyle = "#090d16"; ctx.fillRect(-18, -27, 36, 4.5);
+            ctx.fillStyle = "#00e5ff"; ctx.fillRect(-18, -27, 36 * fHpPct, 4.5);
             ctx.restore();
             continue;
           }
 
-          // Aerial Jet Shadow
-          ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-          ctx.beginPath();
-          ctx.ellipse(4, 20, 16, 8, e.angle, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Aerial Jet Silhouette
+          // Aerial Fighter Jet
+          this.drawUnitContactShadow(ctx, 18, 9, 0.4);
           ctx.rotate(e.angle);
           ctx.fillStyle = e.color || "#00e5ff";
           ctx.beginPath();
-          ctx.moveTo(16, 0);
-          ctx.lineTo(-12, -12);
-          ctx.lineTo(-7, 0);
-          ctx.lineTo(-12, 12);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-
-          // Cockpit glow
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(3, 0, 3.2, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Afterburner Flame
-          ctx.fillStyle = "#ff9100";
-          ctx.beginPath();
-          ctx.moveTo(-7, -3);
-          ctx.lineTo(-16 - Math.random() * 5, 0);
-          ctx.lineTo(-7, 3);
-          ctx.closePath();
-          ctx.fill();
-
-          // HP Bar
+          ctx.moveTo(17, 0); ctx.lineTo(-13, -13); ctx.lineTo(-8, 0); ctx.lineTo(-13, 13);
+          ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.4; ctx.stroke();
           ctx.rotate(-e.angle);
           const fHpPct = Math.max(0, e.hp / e.maxHp);
-          ctx.fillStyle = "#090d16";
-          ctx.fillRect(-14, -22, 28, 4);
-          ctx.fillStyle = fHpPct > 0.4 ? "#00e5ff" : "#ff1744";
-          ctx.fillRect(-14, -22, 28 * fHpPct, 4);
+          ctx.fillStyle = "#090d16"; ctx.fillRect(-14, -22, 28, 4);
+          ctx.fillStyle = fHpPct > 0.4 ? "#00e5ff" : "#ff1744"; ctx.fillRect(-14, -22, 28 * fHpPct, 4);
           ctx.restore();
           continue;
         }
 
         if (e.phased) ctx.globalAlpha = 0.25;
 
+        // Ground Unit Contact Shadow
+        this.drawUnitContactShadow(ctx, e.size * 1.1, e.size * 0.7, 0.55);
+
         // Slow Frost Field Aura
         if (e.slowTimer > 0) {
-          ctx.strokeStyle = "#00f0ff";
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, e.size + 6, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.strokeStyle = "#00f0ff"; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(0, 0, e.size + 6, 0, Math.PI * 2); ctx.stroke();
         }
 
         // Energy Shield Dome
         if (e.shield > 0) {
-          ctx.strokeStyle = "rgba(0, 176, 255, 0.85)";
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(0, 0, e.size + 8, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.strokeStyle = "rgba(0, 176, 255, 0.85)"; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(0, 0, e.size + 8, 0, Math.PI * 2); ctx.stroke();
         }
 
-        // Soft Ground Occlusion Shadow
-        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-        ctx.beginPath();
-        ctx.ellipse(0, 3, e.size * 0.9, e.size * 0.55, e.angle, 0, Math.PI * 2);
-        ctx.fill();
-
-        // --- ARTICULATED PROCEDURAL ENEMY CHARACTER MODELS ---
+        // --- ARTICULATED PHOTOREALISTIC PROCEDURAL ENEMY MODELS ---
         if (e.type === "grunt") {
-          // Cyborg Mercenary Infantry Trooper
+          // Cyborg Shock-Trooper
           ctx.rotate(e.angle);
-          const walk = Math.sin(e.walkAnim || 0) * 4.5;
-          const walkCos = Math.cos(e.walkAnim || 0);
+          const walk = Math.sin(e.walkAnim || 0) * 5;
+          ctx.fillStyle = "#0f172a"; ctx.fillRect(-10 + walk, -9, 8, 4.5); ctx.fillRect(-10 - walk, 4.5, 8, 4.5);
 
-          // 2-Joint Running Exoskeleton Legs
-          // Left Boot & Leg
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(-9 + walk, -8, 7, 4);
-          ctx.fillStyle = "#475569";
-          ctx.fillRect(-7 + walk, -7, 4, 2);
-          ctx.fillStyle = "#0284c7";
-          ctx.fillRect(-3 + walk, -8, 2, 4); // Toe bootcap
-
-          // Right Boot & Leg (Opposing Stride)
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(-9 - walk, 4, 7, 4);
-          ctx.fillStyle = "#475569";
-          ctx.fillRect(-7 - walk, 5, 4, 2);
-          ctx.fillStyle = "#0284c7";
-          ctx.fillRect(-3 - walk, 4, 2, 4);
-
-          // Ballistic Kevlar Chest Rig & Armor Carrier
-          const chestGrad = ctx.createLinearGradient(-7, -7, 7, 7);
-          chestGrad.addColorStop(0, "#475569");
-          chestGrad.addColorStop(0.5, "#1e293b");
-          chestGrad.addColorStop(1, "#0f172a");
-          ctx.fillStyle = chestGrad;
-          ctx.fillRect(-7, -7, 14, 14);
-          ctx.strokeStyle = e.color || "#00e5ff";
-          ctx.lineWidth = 1.8;
-          ctx.strokeRect(-7, -7, 14, 14);
-
-          // Tactical Ammo Pouches & Comm Antenna
-          ctx.fillStyle = "#334155";
-          ctx.fillRect(-5, -6, 3, 3);
-          ctx.fillRect(-5, 3, 3, 3);
-          ctx.strokeStyle = "#94a3b8";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(-5, -6);
-          ctx.lineTo(-10, -9);
-          ctx.stroke();
-
-          // Combat Helmet with Glowing NVG Visor
-          ctx.fillStyle = "#0f172a";
-          ctx.beginPath();
-          ctx.arc(4, 0, 5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#475569";
-          ctx.lineWidth = 1;
-          ctx.stroke();
-
-          // Glowing Night-Vision Visor Lens
-          ctx.fillStyle = "#00e5ff";
-          ctx.fillRect(5, -3, 3.5, 6);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(7, -1.5, 1.5, 3);
-
-          // Two-Handed Assault Carbine with Muzzle Compensator
-          ctx.fillStyle = "#1e293b";
-          ctx.fillRect(6, 3.5, 12, 3);
-          ctx.fillStyle = "#64748b";
-          ctx.fillRect(16, 2.5, 3.5, 5); // Extended Magazine
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(17, 4, 2, 2); // Red-dot sight dot
+          // Ballistic Kevlar Chest Rig
+          this.drawBevelPlate(ctx, -8, -8, 16, 16, "#334155", e.color || "#00e5ff", 3);
+          // Combat Helmet & Glowing NVG Visor
+          ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(4, 0, 5.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#00e5ff"; ctx.fillRect(6, -2.5, 4, 5);
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(8, -1.2, 1.8, 2.4);
+          // Assault Carbine
+          this.drawTemperedBarrel(ctx, 7, 3, 14, 3.5);
 
         } else if (e.type === "sprinter") {
-          // Quadruped Predatory Cyber-Hound / Stalker
+          // Quadruped Predator Cyber-Hound
           ctx.rotate(e.angle);
-          const runFore = Math.sin(e.walkAnim || 0) * 6.5;
-          const runHind = Math.sin((e.walkAnim || 0) + 1.2) * 6.5;
-          const spineFlex = Math.sin(e.walkAnim || 0) * 2;
-
-          // 4 Articulated Digitigrade Legs with Titanium Claws
-          // Forelegs (Shoulder, Elbow, Paw)
+          const runFore = Math.sin(e.walkAnim || 0) * 7;
+          const runHind = Math.sin((e.walkAnim || 0) + 1.2) * 7;
           ctx.fillStyle = "#1e293b";
-          ctx.fillRect(4 + runFore, -11, 6, 4);
-          ctx.fillRect(4 - runFore, 7, 6, 4);
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(9 + runFore, -11, 2.5, 4); // Claws
-          ctx.fillRect(9 - runFore, 7, 2.5, 4);
+          ctx.fillRect(4 + runFore, -12, 7, 4.5); ctx.fillRect(4 - runFore, 7.5, 7, 4.5);
+          ctx.fillRect(-12 - runHind, -11, 7, 5); ctx.fillRect(-12 + runHind, 6, 7, 5);
 
-          // Hindlegs (Muscular Hip, Hock, Pouncing Talons)
+          // Flexible Carbon Chassis
+          this.drawBevelPlate(ctx, -13, -8, 26, 16, "#451a03", e.color || "#ffd600", 4);
+          // Cyber Skull & Glowing Crimson Optics
           ctx.fillStyle = "#0f172a";
-          ctx.fillRect(-11 - runHind, -10, 6, 4.5);
-          ctx.fillRect(-11 + runHind, 5.5, 6, 4.5);
-          ctx.fillStyle = "#ff9100";
-          ctx.fillRect(-6 - runHind, -10, 2.5, 4.5);
-          ctx.fillRect(-6 + runHind, 5.5, 2.5, 4.5);
-
-          // Sleek Flexible Carbon-Fiber Chassis with Arching Spine
-          const stalkerGrad = ctx.createLinearGradient(-13, -9, 16, 9);
-          stalkerGrad.addColorStop(0, "#451a03");
-          stalkerGrad.addColorStop(0.5, "#292524");
-          stalkerGrad.addColorStop(1, "#0c0a09");
-          ctx.fillStyle = stalkerGrad;
-          ctx.beginPath();
-          ctx.moveTo(16, 0);
-          ctx.lineTo(-6, -9 + spineFlex);
-          ctx.lineTo(-13, 0);
-          ctx.lineTo(-6, 9 - spineFlex);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = e.color || "#ffd600";
-          ctx.lineWidth = 2.0;
-          ctx.stroke();
-
-          // Predatory Cybernetic Skull with Hydraulic Jaws
-          ctx.fillStyle = "#0f172a";
-          ctx.beginPath();
-          ctx.moveTo(8, -4);
-          ctx.lineTo(16, 0);
-          ctx.lineTo(8, 4);
-          ctx.closePath();
-          ctx.fill();
-
-          // Triple Glowing Crimson Optical Cluster
-          ctx.fillStyle = "#ff1744";
-          ctx.beginPath();
-          ctx.arc(12, -2, 1.6, 0, Math.PI * 2);
-          ctx.arc(14, 0, 1.8, 0, Math.PI * 2);
-          ctx.arc(12, 2, 1.6, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Twin Dorsal Afterburner Thruster Flumes
-          ctx.fillStyle = "#ff9100";
-          ctx.fillRect(-15, -6, 4, 3.5);
-          ctx.fillRect(-15, 2.5, 4, 3.5);
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(-17 - Math.random() * 4, -5, 3, 1.5);
-          ctx.fillRect(-17 - Math.random() * 4, 3.5, 3, 1.5);
+          ctx.beginPath(); ctx.moveTo(9, -4.5); ctx.lineTo(18, 0); ctx.lineTo(9, 4.5); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#ff1744"; ctx.fillRect(13, -2, 4, 4);
 
         } else if (e.type === "brute") {
-          // Goliath 3.5m Heavy War-Mech
+          // 4-Meter War-Mech Juggernaut
           ctx.rotate(e.angle);
-          const stomp = Math.sin(e.walkAnim || 0) * 4;
-
-          // Heavy Hydraulic Stomping Legs
+          const stomp = Math.sin(e.walkAnim || 0) * 4.5;
           ctx.fillStyle = "#090d16";
-          ctx.fillRect(-17 + stomp, -18, 11, 8);
-          ctx.fillRect(-17 - stomp, 10, 11, 8);
-          ctx.strokeStyle = "#475569";
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(-17 + stomp, -18, 11, 8);
-          ctx.strokeRect(-17 - stomp, 10, 11, 8);
+          ctx.fillRect(-18 + stomp, -19, 12, 9); ctx.fillRect(-18 - stomp, 10, 12, 9);
 
-          // Hydraulic Piston Rods
-          ctx.fillStyle = "#cbd5e1";
-          ctx.fillRect(-14 + stomp, -16, 6, 4);
-          ctx.fillRect(-14 - stomp, 12, 6, 4);
+          // Bolted Glacis Armor & Hazard Stripes
+          this.drawBevelPlate(ctx, -16, -17, 30, 34, "#334155", e.color || "#ff007f", 4);
+          this.drawHazardStripes(ctx, -14, -14, 6, 28, 4);
 
-          // Heavy Bolted Frontal Glacis Armor (Triple Gradient)
-          const bruteGrad = ctx.createLinearGradient(-15, -16, 15, 16);
-          bruteGrad.addColorStop(0, "#475569");
-          bruteGrad.addColorStop(0.4, "#1e293b");
-          bruteGrad.addColorStop(1, "#090d16");
-          ctx.fillStyle = bruteGrad;
-          ctx.fillRect(-15, -16, 28, 32);
-          ctx.strokeStyle = e.color || "#ff007f";
-          ctx.lineWidth = 3.0;
-          ctx.strokeRect(-15, -16, 28, 32);
+          // Twin Exhaust Smokestacks spewing soot & ember sparks
+          ctx.fillStyle = "#1e293b"; ctx.fillRect(-19, -15, 5, 8); ctx.fillRect(-19, 7, 5, 8);
+          ctx.fillStyle = "#ff3d00"; ctx.fillRect(-20, -14, 2, 6); ctx.fillRect(-20, 8, 2, 6);
 
-          // Yellow/Black Industrial Hazard Warning Chevron Stripes
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(-13, -14, 5, 28);
-          ctx.fillStyle = "#000000";
-          ctx.fillRect(-6, -14, 5, 28);
-
-          // Dual Vertical Exhaust Smokestacks with Exhaust Soot
-          ctx.fillStyle = "#334155";
-          ctx.fillRect(-18, -14, 5, 7);
-          ctx.fillRect(-18, 7, 5, 7);
-          ctx.fillStyle = "#ff3d00";
-          ctx.fillRect(-19, -13, 2, 5);
-          ctx.fillRect(-19, 8, 2, 5);
-
-          // Heavy Pneumatic Ram Arms & Power-Fists
-          ctx.fillStyle = "#475569";
-          ctx.fillRect(8, -20, 16, 7);
-          ctx.fillRect(8, 13, 16, 7);
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(20, -21, 6, 9);
-          ctx.fillRect(20, 12, 6, 9);
-          ctx.fillStyle = "#ff1744";
-          ctx.fillRect(24, -20, 2.5, 7);
-          ctx.fillRect(24, 13, 2.5, 7);
-
+          // Hydraulic Ram Power-Fists
+          this.drawChromePiston(ctx, 9, -21, 17, 8);
+          this.drawChromePiston(ctx, 9, 13, 17, 8);
           // Glowing Thermal Reactor Grille
-          ctx.fillStyle = "#ff1744";
-          ctx.fillRect(6, -4, 8, 8);
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(8, -2.5, 5, 5);
-
-        } else if (e.type === "swarmling") {
-          // Nano-Drone Cyber-Arachnid (6-Legged Articulated Walker)
-          ctx.rotate(e.angle);
-          const walkS = Math.sin(tNow * 0.025) * 3.5;
-
-          // 6 Multi-Jointed Arachnid Legs
-          ctx.strokeStyle = "#ffab00";
-          ctx.lineWidth = 1.6;
-          for (let i = 0; i < 3; i++) {
-            const legY = -8 + i * 8;
-            const stride = (i % 2 === 0 ? walkS : -walkS);
-            // Left leg
-            ctx.beginPath();
-            ctx.moveTo(-2, legY);
-            ctx.lineTo(-7, legY + stride);
-            ctx.lineTo(-13, legY + stride * 1.6);
-            ctx.stroke();
-
-            // Right leg
-            ctx.beginPath();
-            ctx.moveTo(2, legY);
-            ctx.lineTo(7, legY - stride);
-            ctx.lineTo(13, legY - stride * 1.6);
-            ctx.stroke();
-          }
-
-          // Armored Chitin Carapace & Abdomen
-          ctx.fillStyle = "#0f172a";
-          ctx.beginPath();
-          ctx.moveTo(10, 0);
-          ctx.lineTo(1, -8);
-          ctx.lineTo(-9, 0);
-          ctx.lineTo(1, 8);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = e.color || "#ffab00";
-          ctx.lineWidth = 1.8;
-          ctx.stroke();
-
-          // Bioluminescent Amber Abdomen Pulse
-          const pulse = Math.sin(tNow * 0.01) * 0.5 + 0.5;
-          ctx.fillStyle = `rgba(255, 171, 0, ${0.4 + pulse * 0.5})`;
-          ctx.beginPath();
-          ctx.arc(-4, 0, 4, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Compound Crimson Eyes & Titanium Mandibles
-          ctx.fillStyle = "#ff1744";
-          ctx.fillRect(3, -2.5, 4, 5);
-
-        } else if (e.type === "shieldbearer") {
-          // Aegis Paladin Android with Articulated Hex-Pavise Shield
-          ctx.rotate(e.angle);
-
-          // Heavy Titanium Android Chassis
-          ctx.fillStyle = "#1e293b";
-          ctx.fillRect(-12, -11, 16, 22);
-          ctx.strokeStyle = "#00b0ff";
-          ctx.lineWidth = 2.0;
-          ctx.strokeRect(-12, -11, 16, 22);
-
-          // Articulated Shoulder Pauldrons
-          ctx.fillStyle = "#334155";
-          ctx.fillRect(-8, -15, 8, 5);
-          ctx.fillRect(-8, 10, 8, 5);
-
-          // Core Aegis Conduit
-          ctx.fillStyle = "#00e5ff";
-          ctx.beginPath();
-          ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Massive Curved Holographic Hexagonal Shield Barrier
-          ctx.save();
-          ctx.strokeStyle = "rgba(0, 176, 255, 0.95)";
-          ctx.fillStyle = "rgba(0, 229, 255, 0.32)";
-          ctx.lineWidth = 3.2;
-          ctx.beginPath();
-          ctx.arc(12, 0, 22, -Math.PI / 2.2, Math.PI / 2.2);
-          ctx.stroke();
-          ctx.fill();
-
-          // Hexagonal Mesh Matrix on Shield Face
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.moveTo(14, -14); ctx.lineTo(24, 0); ctx.lineTo(14, 14);
-          ctx.moveTo(19, -8); ctx.lineTo(28, 0); ctx.lineTo(19, 8);
-          ctx.stroke();
-          ctx.restore();
-
-          // Titanium Shield Emitter Node
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(10, -3, 5, 6);
-
-        } else if (e.type === "medic") {
-          // Nanite Bio-Synth Medical Drone (4 Tilting Thrusters)
-          ctx.rotate(e.angle);
-          const bob = Math.sin(tNow * 0.005) * 2;
-          const rotorSpin = tNow * 0.05;
-
-          // 4 Corner Ducted Thruster Pods
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(-14, -14 + bob, 6, 6);
-          ctx.fillRect(8, -14 + bob, 6, 6);
-          ctx.fillRect(-14, 8 + bob, 6, 6);
-          ctx.fillRect(8, 8 + bob, 6, 6);
-
-          // Micro Rotor Blades
-          ctx.strokeStyle = "#69f0ae";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.moveTo(-11 - Math.cos(rotorSpin) * 5, -11 + bob - Math.sin(rotorSpin) * 5);
-          ctx.lineTo(-11 + Math.cos(rotorSpin) * 5, -11 + bob + Math.sin(rotorSpin) * 5);
-          ctx.moveTo(11 - Math.cos(rotorSpin) * 5, -11 + bob - Math.sin(rotorSpin) * 5);
-          ctx.lineTo(11 + Math.cos(rotorSpin) * 5, -11 + bob + Math.sin(rotorSpin) * 5);
-          ctx.stroke();
-
-          // Central Composite Hull
-          ctx.fillStyle = "#064e3b";
-          ctx.beginPath();
-          ctx.arc(0, bob, 12, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#00e676";
-          ctx.lineWidth = 2.4;
-          ctx.stroke();
-
-          // Illuminated Medical Cross Insignia
-          ctx.fillStyle = "#00e676";
-          ctx.fillRect(-2.5, bob - 7.5, 5, 15);
-          ctx.fillRect(-7.5, bob - 2.5, 15, 5);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(-1, bob - 5, 2, 10);
-          ctx.fillRect(-5, bob - 1, 10, 2);
-
-          // Orbiting Repair Nanite Spheres
-          const orbit = tNow * 0.004;
-          for (let i = 0; i < 4; i++) {
-            const a = orbit + (Math.PI / 2) * i;
-            ctx.fillStyle = "#69f0ae";
-            ctx.beginPath();
-            ctx.arc(Math.cos(a) * 17, Math.sin(a) * 17 + bob, 3, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-        } else if (e.type === "splitter") {
-          // Living Bio-Cyber Abomination with Beating Heart & Expanding Chitin Ribs
-          const pulse = Math.sin(tNow * 0.008) * 2.5;
-          const spin = tNow * 0.003;
-
-          // Multi-Segmented Chitin Rib Carapace Plates (Breathing Cycle)
-          const ribExpand = Math.sin(tNow * 0.006) * 3;
-          ctx.strokeStyle = "#e040fb";
-          ctx.lineWidth = 2.0;
-          ctx.fillStyle = "#2e1065";
-          for (let r = 0; r < 4; r++) {
-            const ra = spin + (Math.PI / 2) * r;
-            const rx = Math.cos(ra) * (18 + ribExpand);
-            const ry = Math.sin(ra) * (18 + ribExpand);
-            ctx.fillRect(rx - 4, ry - 4, 8, 8);
-            ctx.strokeRect(rx - 4, ry - 4, 8, 8);
-          }
-
-          // Pulsating Organic Heart Nucleus with Capillaries
-          const heartGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 10 + pulse);
-          heartGrad.addColorStop(0, "#ffffff");
-          heartGrad.addColorStop(0.35, "#f43f5e");
-          heartGrad.addColorStop(0.85, "#be123c");
-          heartGrad.addColorStop(1, "#4c0519");
-          ctx.fillStyle = heartGrad;
-          ctx.beginPath();
-          ctx.arc(0, 0, 10 + pulse, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#ffd600";
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-        } else if (e.type === "phantom") {
-          // Stealth Ghost Infiltrator with Chromatic Aberration & Vibro-Daggers
-          ctx.rotate(e.angle);
-          const shimmer = Math.sin(tNow * 0.015) * 3.5;
-
-          // Chromatic Aberration Silhouette Echoes (RGB Dispersion)
-          ctx.fillStyle = "rgba(255, 0, 127, 0.4)";
-          ctx.fillRect(-10 + shimmer, -8, 16, 16);
-          ctx.fillStyle = "rgba(0, 229, 255, 0.4)";
-          ctx.fillRect(-10 - shimmer, -8, 16, 16);
-
-          // Sleek Nanotech Hooded Cowl
-          ctx.fillStyle = "rgba(109, 40, 217, 0.85)";
-          ctx.beginPath();
-          ctx.moveTo(13, 0);
-          ctx.lineTo(-10, -9);
-          ctx.lineTo(-6, 0);
-          ctx.lineTo(-10, 9);
-          ctx.closePath();
-          ctx.fill();
-          ctx.strokeStyle = "#c084fc";
-          ctx.lineWidth = 1.8;
-          ctx.stroke();
-
-          // Dual Glowing Vibro-Daggers with Electric Arc Tips
-          ctx.strokeStyle = "#00e5ff";
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.moveTo(8, -7); ctx.lineTo(19, -3);
-          ctx.moveTo(8, 7); ctx.lineTo(19, 3);
-          ctx.stroke();
+          ctx.fillStyle = "#ff1744"; ctx.fillRect(7, -4.5, 8, 9);
+          ctx.fillStyle = "#ffd600"; ctx.fillRect(9, -2.5, 5, 5);
 
         } else if (e.type === "kamikaze") {
-          // Skittering Spider-Mine with Ticking Crimson Strobe
+          // Skittering Spider-Mine with Ticking Strobe
           ctx.rotate(e.angle);
-          const kWalk = Math.sin(tNow * 0.035) * 4.5;
-          const kPulse = Math.sin(tNow * 0.02) * 2.5;
-
-          // 4 Articulated Skittering Insectoid Legs
-          ctx.strokeStyle = "#ff3d00";
-          ctx.lineWidth = 2.0;
+          const kWalk = Math.sin(tNow * 0.035) * 5;
+          ctx.strokeStyle = "#ff3d00"; ctx.lineWidth = 2.2;
           ctx.beginPath();
-          ctx.moveTo(-5, -6); ctx.lineTo(-11, -13 + kWalk);
-          ctx.moveTo(5, -6); ctx.lineTo(11, -13 - kWalk);
-          ctx.moveTo(-5, 6); ctx.lineTo(-11, 13 - kWalk);
-          ctx.moveTo(5, 6); ctx.lineTo(11, 13 + kWalk);
+          ctx.moveTo(-5, -6); ctx.lineTo(-12, -14 + kWalk);
+          ctx.moveTo(5, -6); ctx.lineTo(12, -14 - kWalk);
+          ctx.moveTo(-5, 6); ctx.lineTo(-12, 14 - kWalk);
+          ctx.moveTo(5, 6); ctx.lineTo(12, 14 + kWalk);
           ctx.stroke();
 
-          // Heavy High-Explosive Spherical Canister
-          ctx.fillStyle = "#1e293b";
-          ctx.beginPath();
-          ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#ffd600";
-          ctx.lineWidth = 1.8;
-          ctx.stroke();
+          // High-Explosive Spherical Payload
+          const kGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, 10);
+          kGrad.addColorStop(0, "#cbd5e1"); kGrad.addColorStop(0.5, "#475569"); kGrad.addColorStop(1, "#090d16");
+          ctx.fillStyle = kGrad; ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
 
-          // Pulsing High-Frequency Crimson Detonator LED
-          ctx.fillStyle = "#ff1744";
-          ctx.beginPath();
-          ctx.arc(0, 0, 4.5 + kPulse, 0, Math.PI * 2);
-          ctx.fill();
+          // High-Intensity Ticking Crimson Strobe
+          const kStrobe = Math.sin(tNow * 0.025) * 0.5 + 0.5;
+          ctx.fillStyle = `rgba(255, 23, 68, ${0.5 + kStrobe * 0.5})`;
+          ctx.beginPath(); ctx.arc(0, 0, 5 + kStrobe * 2, 0, Math.PI * 2); ctx.fill();
 
-          // Proximity Antenna
-          ctx.strokeStyle = "#94a3b8";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.moveTo(4, 0);
-          ctx.lineTo(12, 0);
-          ctx.stroke();
-
-        } else if (e.type === "siege_breaker") {
-          // Mechanized Runic Titan with Spiked Boulder Fists
+        } else if (e.type === "swarmling") {
+          // Nano-Arachnid Bio-Drone
           ctx.rotate(e.angle);
-          const gWalk = Math.sin(e.walkAnim || 0) * 3.5;
-
-          // Heavy Granite Feet
-          ctx.fillStyle = "#1e1b4b";
-          ctx.fillRect(-17 + gWalk, -19, 12, 9);
-          ctx.fillRect(-17 - gWalk, 10, 12, 9);
-
-          // Heavy Runic Torso
-          const golemGrad = ctx.createLinearGradient(-15, -16, 17, 16);
-          golemGrad.addColorStop(0, "#475569");
-          golemGrad.addColorStop(0.5, "#2e1065");
-          golemGrad.addColorStop(1, "#0f172a");
-          ctx.fillStyle = golemGrad;
-          ctx.fillRect(-15, -16, 30, 32);
-          ctx.strokeStyle = "#7c4dff";
-          ctx.lineWidth = 2.8;
-          ctx.strokeRect(-15, -16, 30, 32);
-
-          // Glowing Violet Runic Inscription Lines
-          ctx.strokeStyle = "#e040fb";
-          ctx.lineWidth = 2.0;
-          ctx.beginPath();
-          ctx.moveTo(-7, -11); ctx.lineTo(7, 0); ctx.lineTo(-7, 11);
-          ctx.moveTo(0, -11); ctx.lineTo(0, 11);
-          ctx.stroke();
-
-          // Giant Spiked Boulder Fists
-          ctx.fillStyle = "#334155";
-          ctx.fillRect(9, -21, 17, 10);
-          ctx.fillRect(9, 11, 17, 10);
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(25, -20, 4, 3.5);
-          ctx.fillRect(25, -14, 4, 3.5);
-          ctx.fillRect(25, 12, 4, 3.5);
-          ctx.fillRect(25, 18, 4, 3.5);
-
-        } else if (e.type === "juggernaut") {
-          // BOSS 1: Colossus MK-IV Super-Heavy Siege Fortress
-          const walkB = Math.sin(e.walkAnim || 0) * 5;
-          ctx.rotate(e.angle);
-
-          // Continuous Heavy Tank Tread Assemblies (4 Bogies)
-          ctx.fillStyle = "#090d16";
-          ctx.fillRect(-26 + walkB, -28, 16, 12);
-          ctx.fillRect(-26 - walkB, 16, 16, 12);
-          ctx.fillRect(11 - walkB, -28, 16, 12);
-          ctx.fillRect(11 + walkB, 16, 16, 12);
-          ctx.strokeStyle = "#475569";
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(-26 + walkB, -28, 16, 12);
-          ctx.strokeRect(-26 - walkB, 16, 16, 12);
-          ctx.strokeRect(11 - walkB, -28, 16, 12);
-          ctx.strokeRect(11 + walkB, 16, 16, 12);
-
-          // Heavy Welded Steel Armor Glacis
-          const colossusGrad = ctx.createLinearGradient(-22, -22, 22, 22);
-          colossusGrad.addColorStop(0, "#475569");
-          colossusGrad.addColorStop(0.4, "#1e293b");
-          colossusGrad.addColorStop(1, "#090d16");
-          ctx.fillStyle = colossusGrad;
-          ctx.fillRect(-22, -22, 44, 44);
-          ctx.strokeStyle = "#ff1744";
-          ctx.lineWidth = 3.6;
-          ctx.strokeRect(-22, -22, 44, 44);
-
-          // Massive Dual 150mm Artillery Cannons with Recoil Dampers
-          ctx.fillStyle = "#334155";
-          ctx.fillRect(6, -24, 26, 8);
-          ctx.fillRect(6, 16, 26, 8);
-          ctx.fillStyle = "#0f172a";
-          ctx.fillRect(30, -25, 6, 10);
-          ctx.fillRect(30, 15, 6, 10);
-
-          // Sweeping Tactical Red Laser Searchlight
-          ctx.strokeStyle = "rgba(255, 23, 68, 0.75)";
-          ctx.lineWidth = 1.8;
-          ctx.beginPath();
-          ctx.moveTo(32, -20); ctx.lineTo(140, -20);
-          ctx.moveTo(32, 20); ctx.lineTo(140, 20);
-          ctx.stroke();
-
-          // Incandescent Reactor Core
-          ctx.fillStyle = "#ff1744";
-          ctx.beginPath();
-          ctx.arc(3, 0, 10, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#ffd600";
-          ctx.beginPath();
-          ctx.arc(3, 0, 5, 0, Math.PI * 2);
-          ctx.fill();
-
-        } else if (e.type === "overseer") {
-          // BOSS 2: Eye of Chronos Quantum Singularity
-          const gyro1 = tNow * 0.002;
-          const gyro2 = tNow * -0.0035;
-
-          // 3 Concentric Gimbaled Titanium Rings
-          ctx.strokeStyle = "rgba(101, 31, 255, 0.9)";
-          ctx.lineWidth = 3.0;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 36, 16, gyro1, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.strokeStyle = "rgba(224, 64, 251, 0.9)";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 29, 14, gyro2, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // Central Quantum Singularity Black Hole Orb
-          ctx.fillStyle = "#0c0a09";
-          ctx.beginPath();
-          ctx.arc(0, 0, 18, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#d500f9";
-          ctx.lineWidth = 2.4;
-          ctx.stroke();
-
-          ctx.fillStyle = "#00e5ff";
-          ctx.beginPath();
-          ctx.arc(0, 0, 9, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(2.5, 0, 4, 0, Math.PI * 2);
-          ctx.fill();
-
-        } else if (e.type === "hive_titan") {
-          // BOSS 3: Leviathan Core Bio-Centipede (Undulating Spine Kinematics)
-          ctx.rotate(e.angle);
-
-          // 6 Multi-Segmented Carapace Nodes
-          for (let s = 5; s >= 0; s--) {
-            const undulate = Math.sin(tNow * 0.008 + s * 0.8) * 4;
-            const sx = -s * 11;
-            const segW = 30 - s * 3.2;
-            const segH = 28 - s * 3.2;
-            ctx.fillStyle = s % 2 === 0 ? "#1e293b" : "#374151";
-            ctx.fillRect(sx - segW / 2, -segH / 2 + undulate, segW, segH);
-            ctx.strokeStyle = "#f50057";
-            ctx.lineWidth = 2.4;
-            ctx.strokeRect(sx - segW / 2, -segH / 2 + undulate, segW, segH);
-
-            // Glowing Crimson Spine Conduits
-            ctx.fillStyle = "#ff1744";
-            ctx.fillRect(sx - 2.5, -4 + undulate, 5, 8);
-          }
-
-          // Armored Predatory Head & Hydraulic Mandibles
-          ctx.fillStyle = "#0f172a";
-          ctx.beginPath();
-          ctx.moveTo(17, 0); ctx.lineTo(4, -14); ctx.lineTo(4, 14);
-          ctx.closePath();
-          ctx.fill();
-
-          const snap = Math.sin(tNow * 0.009) * 4.5;
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.moveTo(10, -12); ctx.lineTo(23 + snap, -6);
-          ctx.moveTo(10, 12); ctx.lineTo(23 + snap, 6);
-          ctx.stroke();
-
-        } else if (e.type === "void_titan") {
-          // BOSS 4: Gravitational Singularity Core & Accretion Rings
-          ctx.strokeStyle = "rgba(156, 39, 176, 0.85)";
-          ctx.lineWidth = 2.8;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 40, 22, tNow * 0.003, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.strokeStyle = "rgba(186, 104, 200, 0.95)";
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 32, 15, -tNow * 0.004, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.fillStyle = "#000000";
-          ctx.beginPath();
-          ctx.arc(0, 0, 23, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "#e040fb";
-          ctx.lineWidth = 3.2;
-          ctx.stroke();
-
-          for (let c = 0; c < 4; c++) {
-            const ang = tNow * 0.006 + (Math.PI / 2) * c;
-            const cx = Math.cos(ang) * 36;
-            const cy = Math.sin(ang) * 20;
-            ctx.fillStyle = "#ba68c8";
+          const walkS = Math.sin(tNow * 0.025) * 4;
+          ctx.strokeStyle = "#ffab00"; ctx.lineWidth = 1.8;
+          for (let i = 0; i < 3; i++) {
+            const ly = -9 + i * 9;
+            const st = (i % 2 === 0 ? walkS : -walkS);
             ctx.beginPath();
-            ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(-2, ly); ctx.lineTo(-8, ly + st); ctx.lineTo(-14, ly + st * 1.5); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(2, ly); ctx.lineTo(8, ly - st); ctx.lineTo(14, ly - st * 1.5); ctx.stroke();
           }
 
-        } else if (e.type === "chrono_phantom") {
-          // BOSS 5: Chrono Phantom Temporal Clockwork & Prismatic Echoes
+          // Armored Chitin Carapace
+          this.drawBevelPlate(ctx, -10, -7, 18, 14, "#0f172a", "#ffab00", 3);
+          ctx.fillStyle = "#ff1744"; ctx.fillRect(4, -2.5, 4, 5);
+
+        } else if (e.type === "shieldbearer") {
+          // Aegis Paladin Mech with Hex-Pavise Shield
           ctx.rotate(e.angle);
+          this.drawBevelPlate(ctx, -13, -12, 18, 24, "#1e293b", "#00b0ff", 4);
+          ctx.fillStyle = "#00e5ff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
 
-          ctx.strokeStyle = "#00e5ff";
-          ctx.lineWidth = 2.2;
-          ctx.beginPath();
-          ctx.arc(0, 0, 28, 0, Math.PI * 2);
-          ctx.stroke();
-
-          for (let g = 0; g < 8; g++) {
-            const ga = tNow * 0.004 + (Math.PI / 4) * g;
-            ctx.fillStyle = "#00e5ff";
-            ctx.fillRect(Math.cos(ga) * 28 - 2.5, Math.sin(ga) * 28 - 2.5, 5, 5);
-          }
-
+          // Curved Holographic Hex Shield
+          ctx.save();
+          ctx.strokeStyle = "rgba(0, 176, 255, 0.95)";
           ctx.fillStyle = "rgba(0, 229, 255, 0.35)";
-          ctx.beginPath();
-          ctx.arc(0, 0, 19, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = "#ffffff";
-          ctx.beginPath();
-          ctx.arc(0, 0, 7, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.lineWidth = 3.5;
+          ctx.beginPath(); ctx.arc(13, 0, 24, -Math.PI / 2.2, Math.PI / 2.2); ctx.stroke(); ctx.fill();
+          ctx.restore();
 
-        } else if (e.type === "mecha_colossus") {
-          // BOSS 6: Apex Mecha Colossus (Golden-Titanium Dreadnought)
+        } else if (e.type === "medic") {
+          // Quad-Rotor Bio-Synth Drone
           ctx.rotate(e.angle);
+          const bob = Math.sin(tNow * 0.005) * 2;
+          this.drawBevelPlate(ctx, -12, -12 + bob, 24, 24, "#064e3b", "#00e676", 5);
+          ctx.fillStyle = "#00e676";
+          ctx.fillRect(-3, bob - 8, 6, 16); ctx.fillRect(-8, bob - 3, 16, 6);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(-1.5, bob - 5.5, 3, 11); ctx.fillRect(-5.5, bob - 1.5, 11, 3);
 
-          // Heavy Track Sponson Assemblies
-          ctx.fillStyle = "#1e293b";
-          ctx.fillRect(-24, -28, 48, 11);
-          ctx.fillRect(-24, 17, 48, 11);
-          ctx.strokeStyle = "#ffd600";
-          ctx.lineWidth = 2.0;
-          ctx.strokeRect(-24, -28, 48, 11);
-          ctx.strokeRect(-24, 17, 48, 11);
+        } else if (e.type === "phantom") {
+          // Stealth Spectre with Chromatic Aberration
+          ctx.rotate(e.angle);
+          const shimmer = Math.sin(tNow * 0.015) * 3.5;
+          ctx.fillStyle = "rgba(255, 0, 127, 0.35)"; ctx.fillRect(-10 + shimmer, -8, 16, 16);
+          ctx.fillStyle = "rgba(0, 229, 255, 0.35)"; ctx.fillRect(-10 - shimmer, -8, 16, 16);
+          this.drawBevelPlate(ctx, -11, -9, 22, 18, "rgba(109, 40, 217, 0.85)", "#c084fc", 4);
+          this.drawTemperedBarrel(ctx, 8, -6, 12, 3);
+          this.drawTemperedBarrel(ctx, 8, 3, 12, 3);
 
-          // Heavy Titanium Glacis Torso
-          ctx.fillStyle = "#0f172a";
-          ctx.beginPath();
-          ctx.roundRect(-22, -20, 44, 40, 7);
-          ctx.fill();
-          ctx.strokeStyle = "#ffd600";
-          ctx.lineWidth = 2.8;
-          ctx.stroke();
+        } else if (e.type === "juggernaut" || e.type === "boss" || e.isBoss) {
+          // TITAN DREADNOUGHT FORTRESS (Boss War-Machine)
+          ctx.rotate(e.angle);
+          const walkB = Math.sin(e.walkAnim || 0) * 5;
 
-          // Shoulder Missile Launch Pods
-          ctx.fillStyle = "#ff1744";
-          ctx.fillRect(-20, -26, 12, 7);
-          ctx.fillRect(-20, 19, 12, 7);
+          // 4 Independent Heavy Caterpillar Tread Assemblies
+          ctx.fillStyle = "#090d16";
+          ctx.fillRect(-28 + walkB, -30, 20, 14); ctx.fillRect(-28 - walkB, 16, 20, 14);
+          ctx.fillRect(8 - walkB, -30, 20, 14); ctx.fillRect(8 + walkB, 16, 20, 14);
+          ctx.strokeStyle = "#ff1744"; ctx.lineWidth = 1.8;
+          ctx.strokeRect(-28 + walkB, -30, 20, 14); ctx.strokeRect(-28 - walkB, 16, 20, 14);
+          ctx.strokeRect(8 - walkB, -30, 20, 14); ctx.strokeRect(8 + walkB, 16, 20, 14);
 
-          // Heavy Forward Autocannons
-          ctx.fillStyle = "#475569";
-          ctx.fillRect(16, -9, 20, 6);
-          ctx.fillRect(16, 3, 20, 6);
+          // Sloped Reactive Fortress Armor Glacis
+          this.drawBevelPlate(ctx, -24, -24, 48, 48, "#334155", "#ff1744", 6);
+          this.drawHazardStripes(ctx, -20, -20, 8, 40, 5);
 
-          // Central Radiant Gold Chest Aperture
-          ctx.fillStyle = "#ffd600";
-          ctx.fillRect(4, -5, 10, 10);
+          // Dual Heavy Siege Howitzer Barrels
+          this.drawTemperedBarrel(ctx, 16, -11, 26, 8);
+          this.drawTemperedBarrel(ctx, 16, 3, 26, 8);
+          this.drawSlottedMuzzleBrake(ctx, 38, -12.5, 6, 11, 2);
+          this.drawSlottedMuzzleBrake(ctx, 38, 1.5, 6, 11, 2);
+
+          // Center Rotating Command Cupola
+          ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2.2; ctx.stroke();
+          ctx.fillStyle = "#ff1744"; ctx.beginPath(); ctx.arc(4, 0, 4, 0, Math.PI * 2); ctx.fill();
+
         } else {
-          ctx.fillStyle = e.color;
-          ctx.beginPath();
-          ctx.arc(0, 0, e.size, 0, Math.PI * 2);
-          ctx.fill();
+          this.drawBevelPlate(ctx, -e.size, -e.size, e.size * 2, e.size * 2, "#1e293b", e.color || "#00e5ff", 3);
         }
 
         // Colorblind Indicator Icon
         if (this.colorblind) {
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 12px monospace";
-          ctx.textAlign = "center";
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px monospace"; ctx.textAlign = "center";
           ctx.fillText(e.marker, 0, 4);
         }
 
         ctx.restore();
 
         // Modern Floating Health Bar
-        const barW = Math.max(30, e.size * 2.2);
-        const barH = e.isBoss ? 6 : 4;
+        const barW = Math.max(32, e.size * 2.2);
+        const barH = e.isBoss ? 6 : 4.5;
         const bx = e.x - barW / 2;
-        const by = e.y - e.size - 12;
+        const by = e.y - e.size - 13;
 
-        ctx.fillStyle = "#0a0f1d";
-        ctx.fillRect(bx, by, barW, barH);
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
-        ctx.lineWidth = 1;
+        ctx.fillStyle = "#0a0f1d"; ctx.fillRect(bx, by, barW, barH);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.4)"; ctx.lineWidth = 1;
         ctx.strokeRect(bx, by, barW, barH);
 
         const hpPct = Math.max(0, e.hp / e.maxHp);
@@ -8829,12 +7925,10 @@
 
         if (e.maxShield > 0) {
           const shPct = Math.max(0, e.shield / e.maxShield);
-          ctx.fillStyle = "#00b0ff";
-          ctx.fillRect(bx, by - 3, barW * shPct, 2);
+          ctx.fillStyle = "#00b0ff"; ctx.fillRect(bx, by - 3.5, barW * shPct, 2.5);
         }
       }
     }
-
     renderProjectiles() {
       for (const p of this.projectiles) {
         if (p.type === 'pulse') {
