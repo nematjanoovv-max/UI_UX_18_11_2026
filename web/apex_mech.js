@@ -646,31 +646,31 @@
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
           this.scene.environment = window.createStudioEnvironment(THREE, 'NEON');
         }
-        // Heroic Closer Camera (Focal depth: 5.2m, FOV: 42 deg)
-        this.camera = new THREE.PerspectiveCamera(42, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0, 0.18, 5.2);
-        this.camera.lookAt(0, 0.12, 0);
+        // Cinematic Balanced Character Camera (Focal depth: 6.4m, FOV: 38 deg)
+        this.camera = new THREE.PerspectiveCamera(38, this.canvas.width / this.canvas.height, 0.1, 80);
+        this.camera.position.set(0, 0.12, 6.4);
+        this.camera.lookAt(0, 0.0, 0);
 
-        // Cinematic Decepticon Key + Rim + Dark Energon Lighting
-        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.1));
-        const key = new THREE.DirectionalLight(0xfff8ee, 3.0);
-        key.position.set(3, 5, 6);
+        // Cinematic Decepticon Key + Rim + Dark Energon Lighting (Front Specular Focus)
+        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.2));
+        const key = new THREE.DirectionalLight(0xfff8ee, 3.8);
+        key.position.set(2.0, 3.5, 5.0);
         this.scene.add(key);
 
+        const frontFill = new THREE.DirectionalLight(0xdbeafe, 2.2);
+        frontFill.position.set(-2.0, 1.0, 4.0);
+        this.scene.add(frontFill);
+
         const rimCyan = new THREE.PointLight(0x00e5ff, 18, 20);
-        rimCyan.position.set(-4, 2.5, -2);
+        rimCyan.position.set(-4, 2.8, -2);
         this.scene.add(rimCyan);
 
         const rimViolet = new THREE.PointLight(0xa855f7, 24, 22);
-        rimViolet.position.set(3.5, 3.5, -1.5);
+        rimViolet.position.set(3.5, 3.5, -1.8);
         this.scene.add(rimViolet);
 
-        const frontFill = new THREE.PointLight(0xc084fc, 12, 14);
-        frontFill.position.set(-1.5, 1.0, 3.0);
-        this.scene.add(frontFill);
-
-        const groundFill = new THREE.DirectionalLight(0x7e22ce, 1.5);
-        groundFill.position.set(0, -4, 3);
+        const groundFill = new THREE.DirectionalLight(0x7e22ce, 2.2);
+        groundFill.position.set(0, -3.5, 2.5);
         this.scene.add(groundFill);
 
         const savedSkin = 'MEGATRON';
@@ -712,7 +712,7 @@
         this.mech = new Apex01Mech(T);
       }
       if (this.mech && this.mech.root) {
-        this.mech.root.position.set(-1.55, 0.08, 0);
+        this.mech.root.position.set(-2.10, -0.08, 0);
       }
       if (this.scene) this.scene.add(this.mech.root);
     }

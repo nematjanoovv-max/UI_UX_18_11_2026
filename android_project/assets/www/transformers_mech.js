@@ -2032,13 +2032,15 @@
           const size = new T.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          // Heroic large scale for majestic close-up presence
-          const scale = (maxD > 0) ? (4.85 / maxD) : 1.0;
+          // Heroic balanced scale: 3.15m height fits entire helmet, shoulders, body and feet into viewport
+          const targetHeight = 3.15;
+          const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
           const center = new T.Vector3();
           box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - 1.95, -center.z * scale);
+          // Center X and Z, and place vertical span exactly from -targetHeight/2 to +targetHeight/2
+          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
         }
 
         m.traverse((child) => {
@@ -2046,7 +2048,7 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.envMapIntensity = 2.4;
+              child.material.envMapIntensity = 2.8;
               // High-fidelity 16x anisotropic filtering on all PBR texture channels
               if (child.material.map) {
                 child.material.map.anisotropy = 16;
@@ -2057,21 +2059,23 @@
               }
               if (child.material.normalMap) {
                 child.material.normalMap.anisotropy = 16;
-                if (T.Vector2) child.material.normalScale = new T.Vector2(1.6, 1.6);
+                if (T.Vector2) child.material.normalScale = new T.Vector2(1.5, 1.5);
                 child.material.normalMap.needsUpdate = true;
               }
               if (child.material.roughnessMap) {
                 child.material.roughnessMap.anisotropy = 16;
-                child.material.roughness = 0.95;
+                // Realistic metallic roughness: 0.35 creates sharp specular highlights and reveals surface scratches
+                child.material.roughness = 0.35;
               }
               if (child.material.metalnessMap) {
                 child.material.metalnessMap.anisotropy = 16;
-                child.material.metalness = 1.0;
+                // 0.85 metalness retains rich metallic gloss while preserving base albedo definition
+                child.material.metalness = 0.85;
               }
               if (child.material.emissiveMap) {
                 child.material.emissiveMap.anisotropy = 16;
                 if (T.Color) child.material.emissive = new T.Color(0xa855f7);
-                child.material.emissiveIntensity = 2.6;
+                child.material.emissiveIntensity = 2.8;
               }
               child.material.needsUpdate = true;
             }
