@@ -82,12 +82,18 @@
           this.renderer.toneMappingExposure = 1.25;
         }
       } catch (e) {
-        this.renderer = {
-          render: () => {},
-          setSize: () => {},
-          setPixelRatio: () => {},
-          dispose: () => {}
-        };
+        if (typeof process !== 'undefined' && process.release && process.release.name === 'node') {
+          this.renderer = {
+            render: () => {},
+            setSize: () => {},
+            setPixelRatio: () => {},
+            dispose: () => {}
+          };
+        } else {
+          this.renderer = null;
+          this.active = false;
+          return false;
+        }
       }
 
       // Create Hero Anchor Group
@@ -99,6 +105,19 @@
 
       this.active = true;
       return true;
+    }
+
+    resize(width, height) {
+      if (!this.renderer || !this.camera) return;
+      if (this.canvas) {
+        this.canvas.style.width = typeof width === 'number' ? `${width}px` : width;
+        this.canvas.style.height = typeof height === 'number' ? `${height}px` : height;
+      }
+      const w = parseInt(width, 10) || 1280;
+      const h = parseInt(height, 10) || 720;
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(w, h, false);
     }
 
     setupLights() {
@@ -135,8 +154,33 @@
 
     initGLTFLoader() {
       const THREE = window.THREE;
-      if (THREE.GLTFLoader) {
+      if (THREE && THREE.GLTFLoader) {
         this.loader = new THREE.GLTFLoader();
+        this.preloadModels();
+      }
+    }
+
+    preloadModels() {
+      if (!this.loader) return;
+      const modelMap = {
+        megatron: 'assets/models/megatron.glb',
+        optimus: 'assets/models/optimus.glb',
+        bumblebee: 'assets/models/bumblebee.glb',
+        turret: 'assets/models/turret_scifi.glb',
+        grunt: 'assets/models/biped_robot.glb',
+        gunship: 'assets/models/mech_drone.glb',
+        kamikaze: 'assets/models/sphere_bot.glb'
+      };
+
+      for (const [key, path] of Object.entries(modelMap)) {
+        try {
+          this.loader.load(path, (gltf) => {
+            this.gltfCache.set(key, gltf);
+            if (key === 'megatron' && (!this.heroLoadedSkin || this.heroLoadedSkin === 'MEGATRON')) {
+              this.buildHeroModel('MEGATRON', this.heroLoadedMode || 'BIPED');
+            }
+          }, undefined, () => {});
+        } catch(e) {}
       }
     }
 
@@ -415,6 +459,33 @@
       // Re-add dynamic light
       if (this.heroLight) this.heroObject.add(this.heroLight);
 
+      // Check if real 3D GLTF model is cached for this hero
+      const skinKey = skin ? skin.toLowerCase() : 'megatron';
+      if (mode !== 'SIEGE' && this.gltfCache && this.gltfCache.has(skinKey)) {
+        const gltf = this.gltfCache.get(skinKey);
+        const scene = gltf.scene || gltf.scenes[0];
+        const clone = scene.clone ? scene.clone(true) : scene;
+
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const targetHeight = 44;
+          const scale = maxD > 0 ? (targetHeight / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          clone.rotation.x = Math.PI / 2;
+          clone.position.set(-center.x * scale, -center.z * scale, 18);
+        }
+
+        this.heroBodyMesh = clone;
+        this.heroObject.add(clone);
+        return;
+      }
+
       if (skin === 'MEGATRON') {
         this.buildMegatron3D(mode);
       } else if (skin === 'OPTIMUS') {
@@ -671,8 +742,22 @@
       collar.rotation.x = Math.PI / 2;
       headGroup.add(collar);
 
-      // Weapon Barrels by Type
-      if (t.type === 'pulse') {
+      // Weapon Barrels by Type or Real 3D Turret Model
+      if (this.gltfCache && this.gltfCache.has('turret') && (t.type === 'pulse' || t.type === 'laser')) {
+        const gltf = this.gltfCache.get('turret');
+        const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = maxD > 0 ? (28 / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+          clone.rotation.x = Math.PI / 2;
+          clone.position.z = 2;
+        }
+        headGroup.add(clone);
+      } else if (t.type === 'pulse') {
         // Dual Autocannons
         const bGeo = new THREE.CylinderGeometry(2.5, 3.2, 28, 12);
         const bMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, metalness: 0.9, roughness: 0.2 });
@@ -752,7 +837,23 @@
       const col = e.color ? new THREE.Color(e.color) : new THREE.Color(0x00e5ff);
 
       if (e.isFlyer) {
-        // VTOL Aerial Gunship
+        // VTOL Aerial Gunship (Real 3D GLTF Mech Drone or Procedural)
+        if (this.gltfCache && this.gltfCache.has('gunship')) {
+          const gltf = this.gltfCache.get('gunship');
+          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+          if (THREE.Box3 && THREE.Vector3) {
+            const box = new THREE.Box3().setFromObject(clone);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxD = Math.max(size.x, size.y, size.z);
+            const scale = maxD > 0 ? (38 / maxD) : 1.0;
+            clone.scale.set(scale, scale, scale);
+            clone.rotation.x = Math.PI / 2;
+          }
+          group.add(clone);
+          return group;
+        }
+
         const bodyGeo = new THREE.ConeGeometry(14, 38, 6);
         const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.8 });
         const body = new THREE.Mesh(bodyGeo, bodyMat);
@@ -774,7 +875,24 @@
         group.rotors = [r1, r2];
 
       } else if (e.type === 'kamikaze') {
-        // Skittering Spider-Mine Sphere
+        // Skittering Spider-Mine Sphere (Real 3D GLTF Sphere Bot or Procedural)
+        if (this.gltfCache && this.gltfCache.has('kamikaze')) {
+          const gltf = this.gltfCache.get('kamikaze');
+          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+          if (THREE.Box3 && THREE.Vector3) {
+            const box = new THREE.Box3().setFromObject(clone);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxD = Math.max(size.x, size.y, size.z);
+            const scale = maxD > 0 ? (22 / maxD) : 1.0;
+            clone.scale.set(scale, scale, scale);
+            clone.rotation.x = Math.PI / 2;
+            clone.position.z = 9;
+          }
+          group.add(clone);
+          return group;
+        }
+
         const sGeo = new THREE.SphereGeometry(9, 16, 16);
         const sMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.8 });
         const s = new THREE.Mesh(sGeo, sMat);
@@ -788,6 +906,24 @@
         group.add(led);
 
       } else {
+        // Biped Soldier / Brute Mech (Real 3D GLTF Robot or Procedural)
+        if (this.gltfCache && this.gltfCache.has('grunt')) {
+          const gltf = this.gltfCache.get('grunt');
+          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+          if (THREE.Box3 && THREE.Vector3) {
+            const box = new THREE.Box3().setFromObject(clone);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxD = Math.max(size.x, size.y, size.z);
+            const sz = e.isBoss ? 55 : (e.type === 'brute' ? 36 : 26);
+            const scale = maxD > 0 ? (sz / maxD) : 1.0;
+            clone.scale.set(scale, scale, scale);
+            clone.rotation.x = Math.PI / 2;
+            clone.position.z = sz * 0.5;
+          }
+          group.add(clone);
+          return group;
+        }
         // Biped Soldier / Brute Mech
         const sz = e.isBoss ? 2.2 : (e.type === 'brute' ? 1.4 : 1.0);
         const bGeo = new THREE.BoxGeometry(12 * sz, 16 * sz, 18 * sz);
@@ -816,10 +952,10 @@
       if (!this.active || !this.game) return;
 
       // Ensure terrain is built for current map
-      if (this.currentMapIndex !== this.game.currentMapIndex) {
-        this.currentMapIndex = this.game.currentMapIndex;
+      if (this.currentMapIndex !== this.game.currentMapIndex || !this.terrainGroup) {
+        this.currentMapIndex = (typeof this.game.currentMapIndex === 'number') ? this.game.currentMapIndex : 0;
         const MAPS = window.MAPS || this.game.MAPS;
-        const curMap = (MAPS && MAPS[this.currentMapIndex]) ? MAPS[this.currentMapIndex] : null;
+        const curMap = (MAPS && MAPS[this.currentMapIndex]) ? MAPS[this.currentMapIndex] : (MAPS ? MAPS[0] : null);
         if (curMap) this.buildTerrain(curMap);
       }
 

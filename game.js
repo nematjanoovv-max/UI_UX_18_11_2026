@@ -789,6 +789,9 @@
       lanes: [ [ {x:64, y:96}, {x:1152, y:96}, {x:1152, y:256}, {x:128, y:256}, {x:128, y:448}, {x:1152, y:448}, {x:1152, y:576}, {x:640, y:576} ] ]
     }
   ];
+  if (typeof window !== 'undefined') {
+    window.MAPS = MAPS;
+  }
 
   // --- TOWER BLUEPRINTS & BRANCHING SPECIALIZATIONS (TIER 3) ---
   // Calibrated with Cyberpunk 2077 & Valorant Weapon Statistics
@@ -1028,6 +1031,7 @@
       this.ctx = this.canvas.getContext('2d');
       this.width = 1280;
       this.height = 720;
+      this.MAPS = MAPS;
 
       this.lang = localStorage.getItem('last_grid_lang') || 'uz';
       this.gameMode = 'CAMPAIGN';
@@ -1314,10 +1318,11 @@
         }
         this.syncMechCanvasPosition();
       }
-      if (mechCanvas && window.Battlefield3DEngine) {
+      const battleCanvas = document.getElementById('battlefield-3d-canvas');
+      if (battleCanvas && window.Battlefield3DEngine) {
         this.battle3D = new window.Battlefield3DEngine();
-        this.battle3D.init(mechCanvas, this);
-        this.view3D = true;
+        const ok = this.battle3D.init(battleCanvas, this);
+        this.view3D = !!ok;
       }
     }
 
@@ -1417,15 +1422,26 @@
 
     syncMechCanvasPosition() {
       const mechCanvas = document.getElementById('mech-hangar-canvas');
-      if (!mechCanvas || !this.canvas) return;
+      const battleCanvas = document.getElementById('battlefield-3d-canvas');
+      if (this.canvas) {
+        if (mechCanvas) {
+          mechCanvas.style.width = this.canvas.style.width;
+          mechCanvas.style.height = this.canvas.style.height;
+        }
+        if (battleCanvas) {
+          battleCanvas.style.width = this.canvas.style.width;
+          battleCanvas.style.height = this.canvas.style.height;
+        }
+      }
 
-      mechCanvas.style.width = this.canvas.style.width;
-      mechCanvas.style.height = this.canvas.style.height;
+      const rw = parseInt(this.canvas ? this.canvas.style.width : 0, 10) || window.innerWidth;
+      const rh = parseInt(this.canvas ? this.canvas.style.height : 0, 10) || window.innerHeight;
 
       if (this.apexSystem && typeof this.apexSystem.resize === 'function') {
-        const rw = parseInt(this.canvas.style.width, 10) || window.innerWidth;
-        const rh = parseInt(this.canvas.style.height, 10) || window.innerHeight;
         this.apexSystem.resize(rw, rh);
+      }
+      if (this.battle3D && typeof this.battle3D.resize === 'function') {
+        this.battle3D.resize(rw, rh);
       }
     }
 
@@ -6124,6 +6140,10 @@
         if (this.state === 'MENU' && !this.showSettingsModal) this.apexSystem.show();
         else this.apexSystem.hide();
       }
+      const battleCanvas = document.getElementById('battlefield-3d-canvas');
+      if (this.state !== 'PLAYING' && this.state !== 'PAUSED') {
+        if (battleCanvas) battleCanvas.style.display = 'none';
+      }
       if (this.state === 'MENU') {
         this.renderMainMenu();
         if (typeof audio !== 'undefined' && audio.ctx && audio.ctx.state === 'suspended') {
@@ -6149,14 +6169,14 @@
       else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
       else if (this.state === 'TPS_3D') this.render3DTPS();
       else {
-        const is3DActive = !!(this.view3D && this.battle3D && this.battle3D.active);
+        const is3DActive = !!(this.view3D && this.battle3D && this.battle3D.active && this.battle3D.renderer);
         if (is3DActive) {
-          const mechCanvas = document.getElementById('mech-hangar-canvas');
-          if (mechCanvas) mechCanvas.style.display = 'block';
+          if (battleCanvas) battleCanvas.style.display = 'block';
           this.battle3D.update(1 / 60);
           this.battle3D.render();
           this.ctx.clearRect(0, 0, this.width, this.height);
         } else {
+          if (battleCanvas) battleCanvas.style.display = 'none';
           this.renderBackgroundGrid();
           this.renderLanes();
           this.renderGroundDecals();
@@ -8741,25 +8761,25 @@
     }
 
     toggle3DView() {
+      const battleCanvas = document.getElementById('battlefield-3d-canvas');
       if (!this.battle3D) {
-        const mechCanvas = document.getElementById('mech-hangar-canvas');
-        if (mechCanvas && window.Battlefield3DEngine) {
+        if (battleCanvas && window.Battlefield3DEngine) {
           this.battle3D = new window.Battlefield3DEngine();
-          this.battle3D.init(mechCanvas, this);
+          this.battle3D.init(battleCanvas, this);
         }
       }
 
       if (!this.view3D) {
         this.view3D = true;
         if (this.battle3D) this.battle3D.setCameraMode('TACTICAL');
+        if (battleCanvas) battleCanvas.style.display = 'block';
         this.addFloatingText("🎥 3D TAKTIK REJIM YOQILDI!", 640, 120, "#e040fb", 16);
       } else if (this.battle3D && this.battle3D.cameraMode === 'TACTICAL') {
         this.battle3D.setCameraMode('HERO_CHASE');
         this.addFloatingText("🎥 3D MEGATRON ACTION KAMERA!", 640, 120, "#c084fc", 16);
       } else {
         this.view3D = false;
-        const mechCanvas = document.getElementById('mech-hangar-canvas');
-        if (mechCanvas) mechCanvas.style.display = 'none';
+        if (battleCanvas) battleCanvas.style.display = 'none';
         this.addFloatingText("🎥 2D KLASSIK REJIM", 640, 120, "#00e5ff", 16);
       }
       try { audio.click(); this.vibrate(18); } catch(e) {}
