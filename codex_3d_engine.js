@@ -1508,17 +1508,13 @@
       const THREE = window.THREE;
       if (!THREE) return;
 
-      const domCanvas = (typeof document !== 'undefined') ? document.getElementById('codex-3d-canvas') : null;
-      if (domCanvas) {
-        this.canvas = domCanvas;
-        this.width = 1280;
-        this.height = 720;
-        this.isDOMCanvas = true;
-      } else {
-        this.canvas = (typeof document !== 'undefined' && document.createElement) ? document.createElement('canvas') : null;
-        this.width = 512;
-        this.height = 512;
-        this.isDOMCanvas = false;
+      this.width = 512;
+      this.height = 512;
+      this.isDOMCanvas = false;
+      this.canvas = (typeof document !== 'undefined' && document.createElement) ? document.createElement('canvas') : null;
+      if (this.canvas) {
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
       }
 
       try {
@@ -1536,6 +1532,7 @@
 
       this.renderer.setSize(this.width, this.height, false);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
+      this.renderer.setClearColor(0x000000, 0);
       if (THREE.ACESFilmicToneMapping) this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.35;
       if (this.renderer.shadowMap) {
@@ -1549,11 +1546,7 @@
           this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
         } catch(e) {}
       }
-      if (this.isDOMCanvas) {
-        this.camera = new THREE.PerspectiveCamera(38, 450 / 630, 0.1, 100);
-      } else {
-        this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
-      }
+      this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
       this.camera.position.set(0, 1.4, 7.8);
       this.camera.lookAt(0, -0.3, 0);
 
@@ -2053,12 +2046,6 @@
 
       // Render Three.js frame
       if (this.renderer && this.scene && this.camera) {
-        if (this.isDOMCanvas) {
-          // Frame exactly to the Central Holographic Bay on the 1280x720 canvas
-          this.renderer.setViewport(325, 14, 450, 630);
-          this.renderer.setScissor(325, 14, 450, 630);
-          this.renderer.setScissorTest(true);
-        }
         this.renderer.render(this.scene, this.camera);
       }
     }

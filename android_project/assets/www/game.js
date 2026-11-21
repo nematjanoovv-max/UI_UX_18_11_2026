@@ -1196,7 +1196,6 @@
       this.initEvents();
       this.setupCanvasScaling();
       this.initMechSystem();
-      this.initBattlefield3DSystem();
       this.fetchLiveScores();
       this.startLoop();
     }
@@ -1321,15 +1320,6 @@
       }
     }
 
-    initBattlefield3DSystem() {
-      const bCanvas = (typeof document !== 'undefined') ? document.getElementById('battlefield-3d-canvas') : null;
-      if (bCanvas && window.Battlefield3DEngine) {
-        this.battlefield3DEngine = new window.Battlefield3DEngine();
-        this.battlefield3DEngine.init(bCanvas, this);
-        this.use3DBattlefield = true;
-      }
-    }
-
     cycleNextMechHero() {
       const skins = ['MEGATRON', 'OPTIMUS', 'BUMBLEBEE'];
       const cur = this.selectedMechSkin || 'MEGATRON';
@@ -1426,16 +1416,9 @@
 
     syncMechCanvasPosition() {
       const mechCanvas = (typeof document !== 'undefined') ? document.getElementById('mech-hangar-canvas') : null;
-      const bCanvas = (typeof document !== 'undefined') ? document.getElementById('battlefield-3d-canvas') : null;
-      if (this.canvas) {
-        if (mechCanvas) {
-          mechCanvas.style.width = this.canvas.style.width;
-          mechCanvas.style.height = this.canvas.style.height;
-        }
-        if (bCanvas) {
-          bCanvas.style.width = this.canvas.style.width;
-          bCanvas.style.height = this.canvas.style.height;
-        }
+      if (this.canvas && mechCanvas) {
+        mechCanvas.style.width = this.canvas.style.width;
+        mechCanvas.style.height = this.canvas.style.height;
       }
 
       const rw = parseInt(this.canvas ? this.canvas.style.width : 0, 10) || (typeof window !== 'undefined' ? window.innerWidth : 1280);
@@ -1443,9 +1426,6 @@
 
       if (this.apexSystem && typeof this.apexSystem.resize === 'function') {
         this.apexSystem.resize(rw, rh);
-      }
-      if (this.battlefield3DEngine && typeof this.battlefield3DEngine.resize === 'function') {
-        this.battlefield3DEngine.resize(rw, rh);
       }
     }
 
@@ -2516,10 +2496,6 @@
       this.selectedTower = null;
       this.aimingSkill = null;
       this.state = 'PLAYING';
-      if (this.battlefield3DEngine) {
-        this.battlefield3DEngine.currentMapIndex = -1;
-        this.battlefield3DEngine.buildTerrain(map);
-      }
       this.bakeMapLanes(map);
       this.addFloatingText(`${map.name.toUpperCase()}`, 640, 200, "#00e5ff", 22);
 
@@ -2919,10 +2895,6 @@
         // Back to Menu
         if (x >= 20 && x <= 160 && y >= 10 && y <= 65) {
           this.state = 'MENU';
-          if (typeof document !== 'undefined') {
-            const c3d = document.getElementById('codex-3d-canvas');
-            if (c3d) c3d.style.display = 'none';
-          }
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
           return;
@@ -3139,10 +3111,6 @@
           this.waveActive = false;
           this.waveCountdown = 8;
           this.state = 'PLAYING';
-      if (this.battlefield3DEngine) {
-        this.battlefield3DEngine.currentMapIndex = -1;
-        this.battlefield3DEngine.buildTerrain(map);
-      }
           audio.upgrade();
           this.vibrate([30, 40, 60]);
           this.triggerRadioComm("HQ OVERWATCH", "⚠️ CHEKSIZ REJIM FAOL! Barcha mudofaa minoralari saqlandi. Omon qoling, Komandir!", 5.0);
@@ -3163,10 +3131,6 @@
         // Button 1: Davom Etish (Resume Combat: 440, 340, 400, 50)
         if (x >= 440 && x <= 840 && y >= 340 && y <= 390) {
           this.state = 'PLAYING';
-      if (this.battlefield3DEngine) {
-        this.battlefield3DEngine.currentMapIndex = -1;
-        this.battlefield3DEngine.buildTerrain(map);
-      }
           audio.modal();
           this.vibrate(15);
           return;
@@ -3313,20 +3277,7 @@
           audio.modal();
         }
         else if (x >= 1092 && x <= 1265) {
-          if (!this.battlefield3DEngine || !this.battlefield3DEngine.active) {
-            this.initBattlefield3DSystem();
-          }
-          if (this.battlefield3DEngine && this.use3DBattlefield !== false) {
-            const nextMode = this.battlefield3DEngine.toggleCameraMode();
-            this.addFloatingText(`🎥 3D KAMERA: ${nextMode}`, 1170, 75, "#e040fb", 16);
-            if (audio) audio.click();
-            this.vibrate(15);
-          } else {
-            this.use3DBattlefield = true;
-            this.addFloatingText("🎮 3D JANG MAYDONI YOQILDI!", 640, 200, "#00e5ff", 22);
-            if (audio) audio.upgrade();
-            this.vibrate([20, 30]);
-          }
+          this.start3DTPSMode();
           return;
         }
         return;
@@ -4298,10 +4249,6 @@
       this.addFloatingText(`AUGMENT ACTIVATED: ${card.title}!`, 640, 200, card.color, 24);
       audio.victory();
       this.state = 'PLAYING';
-      if (this.battlefield3DEngine) {
-        this.battlefield3DEngine.currentMapIndex = -1;
-        this.battlefield3DEngine.buildTerrain(map);
-      }
       this.recalculateBeaconBuffs();
     }
 
@@ -6175,14 +6122,6 @@
         else this.apexSystem.hide();
       }
 
-      const bCanvas = (typeof document !== 'undefined') ? document.getElementById('battlefield-3d-canvas') : null;
-      const isBattle = (this.state === 'PLAYING' || this.state === 'PAUSED');
-      const is3DActive = (this.use3DBattlefield !== false && this.battlefield3DEngine && this.battlefield3DEngine.active && isBattle);
-
-      if (bCanvas) {
-        bCanvas.style.display = is3DActive ? 'block' : 'none';
-      }
-
       if (this.state === 'MENU') {
         this.renderMainMenu();
         if (typeof audio !== 'undefined' && audio.ctx && audio.ctx.state === 'suspended') {
@@ -6208,22 +6147,17 @@
       else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
       else if (this.state === 'TPS_3D') this.render3DTPS();
       else {
-        if (is3DActive) {
-          this.battlefield3DEngine.update(1 / 60);
-          this.battlefield3DEngine.render();
-        } else {
-          this.renderBackgroundGrid();
-          this.renderLanes();
-          this.renderGroundDecals();
-          this.renderGroundHazards();
-          this.renderRedZones();
-          this.renderBarricades();
-          this.renderUnitShadows();
-          this.renderBaseCore();
-          this.renderTowers();
-          this.renderHero();
-          this.renderEnemies();
-        }
+        this.renderBackgroundGrid();
+        this.renderLanes();
+        this.renderGroundDecals();
+        this.renderGroundHazards();
+        this.renderRedZones();
+        this.renderBarricades();
+        this.renderUnitShadows();
+        this.renderBaseCore();
+        this.renderTowers();
+        this.renderHero();
+        this.renderEnemies();
         this.renderAirdrops();
         this.renderHero();
         this.renderEnemies();
@@ -9111,9 +9045,7 @@
       this.drawCyberButton(725, 9, 125, 42, "SOZLAMALAR", "#00e5ff", "SETTINGS", "⚙️", false);
       this.drawCyberButton(860, 9, 105, 42, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff", "PAUSE", "⏸", false);
       this.drawCyberButton(975, 9, 110, 42, "← MENYU", "#ff1744", "ABORT", "🚪", false);
-      const camMode = (this.battlefield3DEngine) ? this.battlefield3DEngine.cameraMode : 'TACTICAL';
-      const bLabel = (this.use3DBattlefield !== false) ? `🎥 3D: ${camMode}` : "🕹️ 2D REJIM";
-      this.drawCyberButton(1095, 9, 165, 42, bLabel, (this.use3DBattlefield !== false) ? "#e040fb" : "#64748b", "VIEW MODE", "🎮", (this.use3DBattlefield !== false));
+      this.drawCyberButton(1095, 9, 165, 42, "🕹️ 3D PILOT", "#e040fb", "TPS BATTLE", "🎮", false);
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
@@ -11393,12 +11325,8 @@ getCodexDatabase() {
 
     updateCodex(dt) {
       if (typeof document !== 'undefined') {
-        const c3d = document.getElementById('codex-3d-canvas');
-        if (c3d && c3d.style.display !== 'block') c3d.style.display = 'block';
         const mh = document.getElementById('mech-hangar-canvas');
         if (mh && mh.style.display !== 'none') mh.style.display = 'none';
-        const bf = document.getElementById('battlefield-3d-canvas');
-        if (bf && bf.style.display !== 'none') bf.style.display = 'none';
       }
 
       if (!this.codex3DEngine && typeof window !== 'undefined' && window.Codex3DEngine) {
@@ -12140,8 +12068,7 @@ getCodexDatabase() {
       }
 
       // 5. Central Holographic Bay (x: 325, y: 76, w: 450, h: 630)
-      const is3DActive = (this.codex3DEngine && this.codex3DEngine.active && this.codex3DEngine.isDOMCanvas);
-      ctx.fillStyle = is3DActive ? "rgba(8, 14, 26, 0.15)" : "rgba(8, 14, 26, 0.95)";
+      ctx.fillStyle = "rgba(8, 14, 26, 0.95)";
       ctx.fillRect(325, 76, 450, 630);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
       ctx.lineWidth = 1.5;
@@ -12201,10 +12128,8 @@ getCodexDatabase() {
       ctx.lineTo(px + 110, scanY);
       ctx.stroke();
 
-      if (this.codex3DEngine && this.codex3DEngine.active) {
-        if (!this.codex3DEngine.isDOMCanvas && this.codex3DEngine.canvas) {
-          ctx.drawImage(this.codex3DEngine.canvas, 335, 105, 430, 430);
-        }
+      if (this.codex3DEngine && this.codex3DEngine.active && this.codex3DEngine.canvas) {
+        ctx.drawImage(this.codex3DEngine.canvas, 335, 105, 430, 430);
       } else {
         this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
       }
