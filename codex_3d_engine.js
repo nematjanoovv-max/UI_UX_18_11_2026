@@ -1359,7 +1359,13 @@
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide; // Ensure all face orientations render visible
-              child.material.envMapIntensity = 2.2;
+              child.material.envMapIntensity = 2.8;
+              if (child.material.color) {
+                // Prevent pitch black invisible models
+                if (child.material.color.r < 0.05 && child.material.color.g < 0.05 && child.material.color.b < 0.05) {
+                  child.material.color.setRGB(0.24, 0.28, 0.35);
+                }
+              }
               if (child.material.metalness !== undefined) {
                 child.material.metalness = Math.min(child.material.metalness, 0.85);
               }
@@ -1476,10 +1482,10 @@
 
     applyLightingPreset() {
       const presets = [
-        { name: 'CS2 HANGAR', keyCol: 0xfff4e6, keyI: 2.6, fillCol: 0x406085, fillI: 1.2, rimC: 0x00e5ff, rimM: 0xff007f, hemiSky: 0x7fb8ff, hemiGrd: 0x09101c },
-        { name: 'NEON KIBERPANK', keyCol: 0x00f0ff, keyI: 2.4, fillCol: 0x6b21a8, fillI: 1.6, rimC: 0xffd600, rimM: 0xff0077, hemiSky: 0x00f0ff, hemiGrd: 0x1f0733 },
-        { name: "CHO'L POLIGONI", keyCol: 0xffeedd, keyI: 3.4, fillCol: 0x64748b, fillI: 1.0, rimC: 0xf59e0b, rimM: 0x38bdf8, hemiSky: 0xffedd5, hemiGrd: 0x431407 },
-        { name: 'GIGANT VOID', keyCol: 0xc084fc, keyI: 2.5, fillCol: 0x1e1b4b, fillI: 1.4, rimC: 0x7c3aed, rimM: 0x06b6d4, hemiSky: 0x581c87, hemiGrd: 0x030712 }
+        { name: 'CS2 HANGAR', keyCol: 0xfff4e6, keyI: 2.6, fillCol: 0x406085, fillI: 1.2, rimC: 0x00e5ff, rimM: 0xff007f, hemiSky: 0x7fb8ff, hemiGrd: 0x09101c, envPreset: 'CS2' },
+        { name: 'NEON KIBERPANK', keyCol: 0x00f0ff, keyI: 2.4, fillCol: 0x6b21a8, fillI: 1.6, rimC: 0xffd600, rimM: 0xff0077, hemiSky: 0x00f0ff, hemiGrd: 0x1f0733, envPreset: 'NEON' },
+        { name: "CHO'L POLIGONI", keyCol: 0xffeedd, keyI: 3.4, fillCol: 0x64748b, fillI: 1.0, rimC: 0xf59e0b, rimM: 0x38bdf8, hemiSky: 0xffedd5, hemiGrd: 0x431407, envPreset: 'DESERT' },
+        { name: 'GIGANT VOID', keyCol: 0xc084fc, keyI: 2.5, fillCol: 0x1e1b4b, fillI: 1.4, rimC: 0x7c3aed, rimM: 0x06b6d4, hemiSky: 0x581c87, hemiGrd: 0x030712, envPreset: 'VOID' }
       ];
       const p = presets[this.lightPresetIdx || 0];
       if (this.keyLight) { this.keyLight.color.setHex(p.keyCol); this.keyLight.intensity = p.keyI; }
@@ -1487,6 +1493,11 @@
       if (this.rimCyan) { this.rimCyan.color.setHex(p.rimC); }
       if (this.rimMagenta) { this.rimMagenta.color.setHex(p.rimM); }
       if (this.hemiLight) { this.hemiLight.color.setHex(p.hemiSky); this.hemiLight.groundColor.setHex(p.hemiGrd); }
+      if (typeof window !== 'undefined' && window.createStudioEnvironment && this.scene && this.THREE) {
+        try {
+          this.scene.environment = window.createStudioEnvironment(this.THREE, p.envPreset);
+        } catch(e) {}
+      }
     }
 
     init() {
@@ -1503,6 +1514,7 @@
           canvas: this.canvas,
           antialias: true,
           alpha: true,
+          preserveDrawingBuffer: true,
           powerPreference: 'high-performance'
         });
       } catch(e) {
@@ -1514,10 +1526,17 @@
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
       if (THREE.ACESFilmicToneMapping) this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.35;
-      this.renderer.shadowMap.enabled = true;
-      if (THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      if (this.renderer.shadowMap) {
+        this.renderer.shadowMap.enabled = true;
+        if (THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      }
 
       this.scene = new THREE.Scene();
+      if (typeof window !== 'undefined' && window.createStudioEnvironment) {
+        try {
+          this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
+        } catch(e) {}
+      }
       this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
       this.camera.position.set(0, 1.8, 7.8);
       this.camera.lookAt(0, 0, 0);

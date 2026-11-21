@@ -2279,12 +2279,14 @@
         return false;
       };
 
+      if (tryAndroidBridge()) return;
+
       const candidateUrls = [
-        'transformers_war_for_cybertron_megatron.glb',
-        './transformers_war_for_cybertron_megatron.glb',
         'assets/models/megatron.glb',
         './assets/models/megatron.glb',
-        '../assets/models/megatron.glb'
+        '../assets/models/megatron.glb',
+        'transformers_war_for_cybertron_megatron.glb',
+        './transformers_war_for_cybertron_megatron.glb'
       ];
 
       const tryLoad = (idx) => {
