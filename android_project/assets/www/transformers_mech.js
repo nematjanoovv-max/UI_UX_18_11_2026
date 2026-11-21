@@ -700,9 +700,43 @@
     }
 
     checkLocalSketchfabAsset() {
-      if (typeof window !== 'undefined' && window.location && window.location.href && this.THREE && this.THREE.GLTFLoader) {
-        this.loadSketchfabGLB('assets/characters/transformers/optimus_prime.glb');
-      }
+      const tryAndroidBridge = () => {
+        try {
+          if (typeof window !== 'undefined' && window.AndroidBridge) {
+            let b64 = null;
+            if (typeof window.AndroidBridge.getModelBase64 === 'function') {
+              b64 = window.AndroidBridge.getModelBase64('optimus.glb');
+            } else if (typeof window.AndroidBridge.getOptimusModelBase64 === 'function') {
+              b64 = window.AndroidBridge.getOptimusModelBase64();
+            }
+            if (b64 && b64.length > 1000) {
+              const bin = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+              const bytes = new Uint8Array(bin.length);
+              for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+              this.loadSketchfabGLB(bytes.buffer, () => console.log('[OptimusPrimeMech] Loaded via AndroidBridge'));
+              return true;
+            }
+          }
+        } catch (e) { console.warn('[OptimusPrimeMech] AndroidBridge err:', e); }
+        return false;
+      };
+
+      const candidates = [
+        'assets/models/optimus.glb',
+        './assets/models/optimus.glb',
+        '../assets/models/optimus.glb',
+        'assets/characters/transformers/optimus_prime.glb'
+      ];
+      let idx = 0;
+      const tryNext = () => {
+        if (idx >= candidates.length) {
+          tryAndroidBridge();
+          return;
+        }
+        const p = candidates[idx++];
+        this.loadSketchfabGLB(p, undefined, () => tryNext());
+      };
+      tryNext();
     }
 
     put(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
@@ -1331,12 +1365,13 @@
           const size = new T.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          const scale = (maxD > 0) ? (4.2 / maxD) : 1.0;
+          const targetHeight = 3.15;
+          const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
           const center = new T.Vector3();
           box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
         }
 
         m.traverse((child) => {
@@ -1344,8 +1379,28 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.35);
-              child.material.envMapIntensity = 1.3;
+              child.material.envMapIntensity = 2.8;
+              if (child.material.map) {
+                child.material.map.anisotropy = 16;
+                child.material.map.generateMipmaps = true;
+                if (T.LinearMipmapLinearFilter) child.material.map.minFilter = T.LinearMipmapLinearFilter;
+                if (T.LinearFilter) child.material.map.magFilter = T.LinearFilter;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.normalMap) {
+                child.material.normalMap.anisotropy = 16;
+                if (T.Vector2) child.material.normalScale = new T.Vector2(1.5, 1.5);
+                child.material.normalMap.needsUpdate = true;
+              }
+              if (child.material.roughnessMap) {
+                child.material.roughnessMap.anisotropy = 16;
+                child.material.roughness = 0.35;
+              }
+              if (child.material.metalnessMap) {
+                child.material.metalnessMap.anisotropy = 16;
+                child.material.metalness = 0.85;
+              }
+              child.material.needsUpdate = true;
             }
           }
         });
@@ -1362,9 +1417,30 @@
       };
 
       if (typeof bufferOrUrl === 'string') {
-        loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+        if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const fullPath = path.resolve(bufferOrUrl);
+            if (fs.existsSync(fullPath)) {
+              const buf = fs.readFileSync(fullPath);
+              const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+              loader.parse(ab, '', processGltf, onErr || (() => {}));
+              return;
+            }
+          } catch (e) {}
+        }
+        try {
+          loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+        } catch (e) {
+          if (onErr) onErr(e);
+        }
       } else {
-        loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
+        try {
+          loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
+        } catch (e) {
+          if (onErr) onErr(e);
+        }
       }
     }
 
@@ -1549,9 +1625,43 @@
     }
 
     checkLocalSketchfabAsset() {
-      if (typeof window !== 'undefined' && window.location && window.location.href && this.THREE && this.THREE.GLTFLoader) {
-        this.loadSketchfabGLB('assets/characters/transformers/bumblebee.glb');
-      }
+      const tryAndroidBridge = () => {
+        try {
+          if (typeof window !== 'undefined' && window.AndroidBridge) {
+            let b64 = null;
+            if (typeof window.AndroidBridge.getModelBase64 === 'function') {
+              b64 = window.AndroidBridge.getModelBase64('bumblebee.glb');
+            } else if (typeof window.AndroidBridge.getBumblebeeModelBase64 === 'function') {
+              b64 = window.AndroidBridge.getBumblebeeModelBase64();
+            }
+            if (b64 && b64.length > 1000) {
+              const bin = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+              const bytes = new Uint8Array(bin.length);
+              for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+              this.loadSketchfabGLB(bytes.buffer, () => console.log('[BumblebeeMech] Loaded via AndroidBridge'));
+              return true;
+            }
+          }
+        } catch (e) { console.warn('[BumblebeeMech] AndroidBridge err:', e); }
+        return false;
+      };
+
+      const candidates = [
+        'assets/models/bumblebee.glb',
+        './assets/models/bumblebee.glb',
+        '../assets/models/bumblebee.glb',
+        'assets/characters/transformers/bumblebee.glb'
+      ];
+      let idx = 0;
+      const tryNext = () => {
+        if (idx >= candidates.length) {
+          tryAndroidBridge();
+          return;
+        }
+        const p = candidates[idx++];
+        this.loadSketchfabGLB(p, undefined, () => tryNext());
+      };
+      tryNext();
     }
 
     put(parent, geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) {
@@ -1835,12 +1945,13 @@
           const size = new T.Vector3();
           box.getSize(size);
           const maxD = Math.max(size.x, size.y, size.z);
-          const scale = (maxD > 0) ? (3.8 / maxD) : 1.0;
+          const targetHeight = 3.15;
+          const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
           const center = new T.Vector3();
           box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
         }
 
         m.traverse((child) => {
@@ -1848,8 +1959,28 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.35);
-              child.material.envMapIntensity = 1.3;
+              child.material.envMapIntensity = 2.8;
+              if (child.material.map) {
+                child.material.map.anisotropy = 16;
+                child.material.map.generateMipmaps = true;
+                if (T.LinearMipmapLinearFilter) child.material.map.minFilter = T.LinearMipmapLinearFilter;
+                if (T.LinearFilter) child.material.map.magFilter = T.LinearFilter;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.normalMap) {
+                child.material.normalMap.anisotropy = 16;
+                if (T.Vector2) child.material.normalScale = new T.Vector2(1.5, 1.5);
+                child.material.normalMap.needsUpdate = true;
+              }
+              if (child.material.roughnessMap) {
+                child.material.roughnessMap.anisotropy = 16;
+                child.material.roughness = 0.35;
+              }
+              if (child.material.metalnessMap) {
+                child.material.metalnessMap.anisotropy = 16;
+                child.material.metalness = 0.85;
+              }
+              child.material.needsUpdate = true;
             }
           }
         });
@@ -1866,9 +1997,30 @@
       };
 
       if (typeof bufferOrUrl === 'string') {
-        loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+        if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const fullPath = path.resolve(bufferOrUrl);
+            if (fs.existsSync(fullPath)) {
+              const buf = fs.readFileSync(fullPath);
+              const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+              loader.parse(ab, '', processGltf, onErr || (() => {}));
+              return;
+            }
+          } catch (e) {}
+        }
+        try {
+          loader.load(bufferOrUrl, processGltf, undefined, onErr || (() => {}));
+        } catch (e) {
+          if (onErr) onErr(e);
+        }
       } else {
-        loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
+        try {
+          loader.parse(bufferOrUrl, '', processGltf, onErr || (() => {}));
+        } catch (e) {
+          if (onErr) onErr(e);
+        }
       }
     }
 
@@ -2133,12 +2285,29 @@
           return;
         }
         const url = candidateUrls[idx];
-        loader.load(url, (gltf) => {
-          onModelSuccess(gltf);
-        }, undefined, (err) => {
-          console.warn('[MegatronMech] Could not load from URL ' + url + ':', err);
+        if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const fullPath = path.resolve(url);
+            if (fs.existsSync(fullPath)) {
+              const buf = fs.readFileSync(fullPath);
+              const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+              loader.parse(ab, '', (gltf) => onModelSuccess(gltf), (err) => tryLoad(idx + 1));
+              return;
+            }
+          } catch (e) {}
+        }
+        try {
+          loader.load(url, (gltf) => {
+            onModelSuccess(gltf);
+          }, undefined, (err) => {
+            console.warn('[MegatronMech] Could not load from URL ' + url + ':', err);
+            tryLoad(idx + 1);
+          });
+        } catch (err) {
           tryLoad(idx + 1);
-        });
+        }
       };
 
       tryLoad(0);

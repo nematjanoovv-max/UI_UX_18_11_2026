@@ -1316,6 +1316,15 @@
       }
     }
 
+    cycleNextMechHero() {
+      const skins = ['MEGATRON', 'OPTIMUS', 'BUMBLEBEE'];
+      const cur = this.selectedMechSkin || 'MEGATRON';
+      const curIdx = skins.indexOf(cur);
+      const nextIdx = (curIdx + 1) % skins.length;
+      const nextSkin = skins[nextIdx];
+      this.setMechSkin(nextSkin);
+    }
+
     setMechSkin(skin) {
       this.selectedMechSkin = skin;
       if (typeof localStorage !== 'undefined') {
@@ -2658,26 +2667,30 @@
         return;
       }
       if (this.state === 'MENU') {
-        // 1. Floating Action Pills under Megatron (y: 658 to 704)
+        // 1. Floating Action Deck under Character (y: 658 to 704)
         if (y >= 658 && y <= 704) {
-          if (x >= 24 && x <= 150) {
+          if (x >= 18 && x <= 124) {
+            this.cycleNextMechHero();
+            return;
+          }
+          if (x >= 126 && x <= 234) {
             this.toggleMechTransform();
             this.vibrate([30, 20, 40]);
             audio.click();
             return;
           }
-          if (x >= 154 && x <= 280) {
+          if (x >= 236 && x <= 344) {
             this.triggerMechAction();
             this.vibrate([45, 30, 60]);
             return;
           }
-          if (x >= 284 && x <= 412) {
+          if (x >= 346 && x <= 454) {
             this.toggleMechMatrixChest();
             this.vibrate([40, 25, 50]);
             audio.click();
             return;
           }
-          if (x >= 416 && x <= 550) {
+          if (x >= 456 && x <= 566) {
             try { window.open('preview_transformers.html', '_blank'); } catch(e) {}
             this.vibrate(20);
             audio.click();
@@ -2685,7 +2698,7 @@
           }
         }
 
-        // 2. Stage tap on Megatron's 3D Body: Trigger Fusion Cannon Blast
+        // 2. Stage tap on Character 3D Body: Trigger Weapon / Attack
         if (x >= 20 && x <= 580 && y >= 70 && y <= 656) {
           this.triggerMechAction();
           return;
@@ -6951,10 +6964,10 @@
       const tNow = performance.now();
 
       const pbr = this.pbrPatterns || {};
-      const activeSkin = this.selectedMechSkin || 'OPTIMUS';
-      const titPat = (activeSkin === 'OPTIMUS') ? "#b91c1c" : ((activeSkin === 'BUMBLEBEE') ? "#eab308" : (pbr.brushedTitanium || "#1e293b"));
-      const carbPat = (activeSkin === 'OPTIMUS') ? "#1d4ed8" : ((activeSkin === 'BUMBLEBEE') ? "#0f172a" : (pbr.carbonFiber || "#0f172a"));
-      const hazPat = (activeSkin === 'OPTIMUS') ? "#00e5ff" : ((activeSkin === 'BUMBLEBEE') ? "#facc15" : (pbr.hazardPlate || "#ffd600"));
+      const activeSkin = this.selectedMechSkin || 'MEGATRON';
+      const titPat = (activeSkin === 'OPTIMUS') ? "#b91c1c" : ((activeSkin === 'BUMBLEBEE') ? "#eab308" : ((activeSkin === 'MEGATRON') ? "#475569" : (pbr.brushedTitanium || "#1e293b")));
+      const carbPat = (activeSkin === 'OPTIMUS') ? "#1d4ed8" : ((activeSkin === 'BUMBLEBEE') ? "#0f172a" : ((activeSkin === 'MEGATRON') ? "#3b0764" : (pbr.carbonFiber || "#0f172a")));
+      const hazPat = (activeSkin === 'OPTIMUS') ? "#00e5ff" : ((activeSkin === 'BUMBLEBEE') ? "#facc15" : ((activeSkin === 'MEGATRON') ? "#a855f7" : (pbr.hazardPlate || "#ffd600")));
 
       if (h.mode === 'SIEGE') {
         // --- SIEGE TANK: ARMORED CATERPILLAR TRACKS & DUAL 120MM ARTILLERY ---
@@ -7207,6 +7220,10 @@
           reactorGrad.addColorStop(0.35, "#00e5ff");
           reactorGrad.addColorStop(0.8, "#0284c7");
           reactorGrad.addColorStop(1, "rgba(2, 132, 199, 0)");
+        } else if (activeSkin === 'MEGATRON') {
+          reactorGrad.addColorStop(0.35, "#c084fc");
+          reactorGrad.addColorStop(0.8, "#7e22ce");
+          reactorGrad.addColorStop(1, "rgba(126, 34, 206, 0)");
         } else {
           reactorGrad.addColorStop(0.35, "#00e5ff");
           reactorGrad.addColorStop(0.8, "#0091ea");
@@ -7220,7 +7237,7 @@
         // Counter-Rotating Magnetic Confinement Rings
         ctx.save();
         ctx.rotate(tNow * 0.006);
-        ctx.strokeStyle = "#ffd54f";
+        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#c084fc" : "#ffd54f";
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.arc(0, 0, 7.5, 0, Math.PI * 1.5);
@@ -7229,14 +7246,14 @@
 
         ctx.save();
         ctx.rotate(-tNow * 0.009);
-        ctx.strokeStyle = "#00e5ff";
+        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#a855f7" : "#00e5ff";
         ctx.lineWidth = 1.0;
         ctx.beginPath();
         ctx.arc(0, 0, 9, 0, Math.PI);
         ctx.stroke();
         ctx.restore();
 
-        // 4. Angular Cockpit Canopy & Neon Cyan Visor with Specular Glint
+        // 4. Angular Cockpit Canopy & Neon Cyan / Red Visor with Specular Glint
         ctx.fillStyle = "#090d16";
         ctx.beginPath();
         ctx.moveTo(4, -5);
@@ -7246,15 +7263,21 @@
         ctx.lineTo(4, 5);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = "#00e5ff";
+        ctx.strokeStyle = (activeSkin === 'MEGATRON') ? "#ff1744" : "#00e5ff";
         ctx.lineWidth = 1.6;
         ctx.stroke();
 
         // Iridescent HUD Visor Glass
         const visorGrad = ctx.createLinearGradient(7, -3, 16, 0);
-        visorGrad.addColorStop(0, "#ffffff");
-        visorGrad.addColorStop(0.5, "#00e5ff");
-        visorGrad.addColorStop(1, "#0052cc");
+        if (activeSkin === 'MEGATRON') {
+          visorGrad.addColorStop(0, "#ffffff");
+          visorGrad.addColorStop(0.5, "#ff1744");
+          visorGrad.addColorStop(1, "#991b1b");
+        } else {
+          visorGrad.addColorStop(0, "#ffffff");
+          visorGrad.addColorStop(0.5, "#00e5ff");
+          visorGrad.addColorStop(1, "#0052cc");
+        }
         ctx.strokeStyle = visorGrad;
         ctx.lineWidth = 2.4;
         ctx.beginPath();
@@ -10960,12 +10983,35 @@
       ctx.restore();
 
       // =========================================================================
-      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (x: 20 to 580)
+      // 3. LEFT HERO SHOWCASE: DYNAMIC 3D CHARACTER ARENA (x: 20 to 580)
       // =========================================================================
       ctx.save();
+      const activeSkin = this.selectedMechSkin || 'MEGATRON';
+      let heroTitle = "💀 DECEPTICON MEGATRON // SUPREME LEADER";
+      let heroSub = "WAR FOR CYBERTRON • HEAVY SIEGE CLASS";
+      let heroStat = "● DARK ENERGON: 100% // 60 FPS ULTRA PBR";
+      let heroCol = "#c084fc";
+      let heroPedCol = "rgba(192, 132, 252, 0.70)";
+      let heroPedSubCol = "rgba(168, 85, 247, 0.85)";
 
-      // Stylized Sci-Fi Military HUD Identity Plate (x: 26, y: 68, w: 330, h: 54)
-      const hx = 26, hy = 68, hw = 330, hh = 54, hcut = 8;
+      if (activeSkin === 'OPTIMUS') {
+        heroTitle = "⭐ AUTOBOT OPTIMUS PRIME // SUPREME COMMANDER";
+        heroSub = "CYBERTRON KNIGHT • MATRIX OF LEADERSHIP";
+        heroStat = "● ENERGON MATRIX: 100% // 60 FPS ULTRA PBR";
+        heroCol = "#ff3355";
+        heroPedCol = "rgba(255, 51, 85, 0.75)";
+        heroPedSubCol = "rgba(0, 229, 255, 0.85)";
+      } else if (activeSkin === 'BUMBLEBEE') {
+        heroTitle = "⚡ AUTOBOT BUMBLEBEE // ELITE SCOUT";
+        heroSub = "THE LAST KNIGHT • STINGER WARRIOR CLASS";
+        heroStat = "● STINGER CHARGE: 100% // 60 FPS ULTRA PBR";
+        heroCol = "#ffd600";
+        heroPedCol = "rgba(255, 214, 0, 0.75)";
+        heroPedSubCol = "rgba(250, 204, 21, 0.85)";
+      }
+
+      // Stylized Sci-Fi Military HUD Identity Plate (x: 26, y: 68, w: 350, h: 54)
+      const hx = 26, hy = 68, hw = 350, hh = 54, hcut = 8;
       ctx.beginPath();
       ctx.moveTo(hx + hcut, hy);
       ctx.lineTo(hx + hw, hy);
@@ -10976,37 +11022,37 @@
       ctx.closePath();
       ctx.fillStyle = "rgba(8, 16, 32, 0.85)";
       ctx.fill();
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.45)";
+      ctx.strokeStyle = heroCol;
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
-      // Accent purple strip
-      ctx.fillStyle = "#c084fc";
+      // Accent color strip
+      ctx.fillStyle = heroCol;
       ctx.fillRect(hx, hy + hcut, 3.5, hh - hcut * 2);
 
-      ctx.fillStyle = "#c084fc";
+      ctx.fillStyle = heroCol;
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("💀 DECEPTICON MEGATRON // SUPREME LEADER", hx + 12, hy + 18);
+      ctx.fillText(heroTitle, hx + 12, hy + 18);
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "bold 9px monospace";
-      ctx.fillText("WAR FOR CYBERTRON • HEAVY SIEGE CLASS", hx + 12, hy + 32);
+      ctx.fillText(heroSub, hx + 12, hy + 32);
 
       ctx.fillStyle = "#00e676";
       ctx.font = "bold 9px monospace";
-      ctx.fillText("● DARK ENERGON: 100% // 60 FPS ULTRA PBR", hx + 12, hy + 46);
+      ctx.fillText(heroStat, hx + 12, hy + 46);
 
-      // Holographic Floor Pedestal Rings under Megatron (Center: pcx: 295, pcy: 632)
+      // Holographic Floor Pedestal Rings under Character (Center: pcx: 295, pcy: 632)
       const pcx = 295;
       const pcy = 632;
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.70)";
+      ctx.strokeStyle = heroPedCol;
       ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.ellipse(pcx, pcy, 155, 46, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.85)";
+      ctx.strokeStyle = heroPedSubCol;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.ellipse(pcx, pcy, 115, 32, 0, 0, Math.PI * 2);
@@ -11020,7 +11066,7 @@
         const ty1 = pcy + Math.sin(ang) * 43;
         const tx2 = pcx + Math.cos(ang) * 158;
         const ty2 = pcy + Math.sin(ang) * 47;
-        ctx.strokeStyle = (a % 3 === 0) ? "#c084fc" : "rgba(192, 132, 252, 0.35)";
+        ctx.strokeStyle = (a % 3 === 0) ? heroCol : "rgba(148, 163, 184, 0.35)";
         ctx.beginPath();
         ctx.moveTo(tx1, ty1);
         ctx.lineTo(tx2, ty2);
@@ -11028,7 +11074,7 @@
       }
 
       // Drag Rotation Prompt positioned cleanly above the rings and buttons (y: 598)
-      ctx.fillStyle = "#c084fc";
+      ctx.fillStyle = heroCol;
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
       const dragPulse = 0.65 + Math.sin(time * 4) * 0.35;
@@ -11036,11 +11082,12 @@
       ctx.fillText("⟲ 3D MODELNI BURASH UCHUN USHLAB SURING (360°)", pcx, 598);
       ctx.globalAlpha = 1.0;
 
-      // Floating Tactical Action Deck under Megatron (y: 662 to 698, h: 36)
-      this.renderMiniButton(26, 662, 120, 36, "🔄 REJIM", "#00e676");
-      this.renderMiniButton(158, 662, 118, 36, "💥 ZARBA", "#ff1744");
-      this.renderMiniButton(288, 662, 120, 36, "⚡ ENERGON", "#c084fc");
-      this.renderMiniButton(420, 662, 120, 36, "🔍 3D KODEX", "#00e5ff");
+      // Floating Tactical Action Deck under Character (y: 662 to 698, h: 36)
+      this.renderMiniButton(20, 662, 102, 36, "🔄 QAHRAMON", heroCol);
+      this.renderMiniButton(130, 662, 102, 36, "⚙ REJIM", "#00e676");
+      this.renderMiniButton(240, 662, 102, 36, "💥 ZARBA", "#ff1744");
+      this.renderMiniButton(350, 662, 102, 36, "⚡ ENERGON", "#e040fb");
+      this.renderMiniButton(460, 662, 102, 36, "🔍 3D KODEX", "#00e5ff");
       ctx.restore();
 
       // =========================================================================

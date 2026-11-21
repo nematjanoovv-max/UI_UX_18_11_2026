@@ -668,10 +668,12 @@
         const rimViolet = new THREE.PointLight(0xa855f7, 24, 22);
         rimViolet.position.set(3.5, 3.5, -1.8);
         this.scene.add(rimViolet);
+        this.rimViolet = rimViolet;
 
         const groundFill = new THREE.DirectionalLight(0x7e22ce, 2.2);
         groundFill.position.set(0, -3.5, 2.5);
         this.scene.add(groundFill);
+        this.groundFill = groundFill;
 
         const savedSkin = 'MEGATRON';
         this.setSkin(savedSkin);
@@ -715,6 +717,20 @@
         this.mech.root.position.set(-2.10, -0.08, 0);
       }
       if (this.scene) this.scene.add(this.mech.root);
+
+      // Dynamically adapt studio rim and fill lighting to character faction
+      if (this.rimViolet && this.groundFill && T.Color) {
+        if (skinName === 'OPTIMUS') {
+          this.rimViolet.color.setHex(0xff1744); // Crimson Autobot Rim
+          this.groundFill.color.setHex(0x1d4ed8); // Cybertron Blue
+        } else if (skinName === 'BUMBLEBEE') {
+          this.rimViolet.color.setHex(0xffd600); // Stinger Gold Rim
+          this.groundFill.color.setHex(0xca8a04); // Warm Amber Fill
+        } else {
+          this.rimViolet.color.setHex(0xa855f7); // Dark Energon Violet Rim
+          this.groundFill.color.setHex(0x7e22ce); // Decepticon Purple
+        }
+      }
     }
 
     toggleTransform() {

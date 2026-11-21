@@ -264,9 +264,10 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public String getMegatronModelBase64() {
+        public String getModelBase64(String modelName) {
             try {
-                InputStream is = getAssets().open("www/assets/models/megatron.glb");
+                String cleanName = new java.io.File(modelName).getName();
+                InputStream is = getAssets().open("www/assets/models/" + cleanName);
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                 byte[] data = new byte[65536];
                 int nRead;
@@ -276,9 +277,24 @@ public class MainActivity extends Activity {
                 buffer.flush();
                 return android.util.Base64.encodeToString(buffer.toByteArray(), android.util.Base64.NO_WRAP);
             } catch (Exception e) {
-                android.util.Log.e("LastGridBridge", "Error reading megatron.glb via bridge: " + e.getMessage());
+                android.util.Log.e("LastGridBridge", "Error reading " + modelName + " via bridge: " + e.getMessage());
                 return "";
             }
+        }
+
+        @JavascriptInterface
+        public String getMegatronModelBase64() {
+            return getModelBase64("megatron.glb");
+        }
+
+        @JavascriptInterface
+        public String getOptimusModelBase64() {
+            return getModelBase64("optimus.glb");
+        }
+
+        @JavascriptInterface
+        public String getBumblebeeModelBase64() {
+            return getModelBase64("bumblebee.glb");
         }
 
         @JavascriptInterface
