@@ -2919,6 +2919,10 @@
         // Back to Menu
         if (x >= 20 && x <= 160 && y >= 10 && y <= 65) {
           this.state = 'MENU';
+          if (typeof document !== 'undefined') {
+            const c3d = document.getElementById('codex-3d-canvas');
+            if (c3d) c3d.style.display = 'none';
+          }
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
           return;
@@ -11388,6 +11392,15 @@ getCodexDatabase() {
     }
 
     updateCodex(dt) {
+      if (typeof document !== 'undefined') {
+        const c3d = document.getElementById('codex-3d-canvas');
+        if (c3d && c3d.style.display !== 'block') c3d.style.display = 'block';
+        const mh = document.getElementById('mech-hangar-canvas');
+        if (mh && mh.style.display !== 'none') mh.style.display = 'none';
+        const bf = document.getElementById('battlefield-3d-canvas');
+        if (bf && bf.style.display !== 'none') bf.style.display = 'none';
+      }
+
       if (!this.codex3DEngine && typeof window !== 'undefined' && window.Codex3DEngine) {
         this.codex3DEngine = new window.Codex3DEngine();
         this.codex3DEngine.init();
@@ -12127,7 +12140,8 @@ getCodexDatabase() {
       }
 
       // 5. Central Holographic Bay (x: 325, y: 76, w: 450, h: 630)
-      ctx.fillStyle = "rgba(8, 14, 26, 0.95)";
+      const is3DActive = (this.codex3DEngine && this.codex3DEngine.active && this.codex3DEngine.isDOMCanvas);
+      ctx.fillStyle = is3DActive ? "rgba(8, 14, 26, 0.15)" : "rgba(8, 14, 26, 0.95)";
       ctx.fillRect(325, 76, 450, 630);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
       ctx.lineWidth = 1.5;
@@ -12187,8 +12201,10 @@ getCodexDatabase() {
       ctx.lineTo(px + 110, scanY);
       ctx.stroke();
 
-      if (this.codex3DEngine && this.codex3DEngine.active && this.codex3DEngine.canvas) {
-        ctx.drawImage(this.codex3DEngine.canvas, 335, 105, 430, 430);
+      if (this.codex3DEngine && this.codex3DEngine.active) {
+        if (!this.codex3DEngine.isDOMCanvas && this.codex3DEngine.canvas) {
+          ctx.drawImage(this.codex3DEngine.canvas, 335, 105, 430, 430);
+        }
       } else {
         this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
       }

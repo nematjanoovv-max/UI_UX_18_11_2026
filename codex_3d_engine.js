@@ -1259,21 +1259,21 @@
         flyer: 'assets/models/mech_drone.glb',
         gunship: 'assets/models/mech_drone.glb',
 
-        // Boss Titans
+        // Boss Titans (All Distinct & Unique!)
         boss: 'assets/models/boss_juggernaut.glb',
         juggernaut: 'assets/models/boss_juggernaut.glb',
         overseer: 'assets/models/boss_overseer.glb',
         hive_titan: 'assets/models/boss_hive_titan.glb',
-        void_titan: 'assets/models/megatron.glb',
-        chrono_phantom: 'assets/models/enemy_phantom.glb',
-        mecha_colossus: 'assets/models/optimus.glb',
+        void_titan: 'assets/models/boss_void_titan.glb',
+        chrono_phantom: 'assets/models/boss_chrono_phantom.glb',
+        mecha_colossus: 'assets/models/boss_mecha_colossus.glb',
 
-        // Transformers & Mech Apex
+        // Transformers & Mech Apex (All Distinct & Unique!)
         megatron: 'assets/models/megatron.glb',
         optimus: 'assets/models/optimus.glb',
         bumblebee: 'assets/models/bumblebee.glb',
         biped: 'assets/models/biped_robot.glb',
-        siege: 'assets/models/boss_juggernaut.glb'
+        siege: 'assets/models/hero_siege_tank.glb'
       };
     }
 
@@ -1301,7 +1301,10 @@
         clone.traverse((child) => {
           if (child.isMesh) {
             const n = (child.name || '').toLowerCase();
-            if (n.includes('plane') || n.includes('ground') || n.includes('floor') || n.includes('shadow') || n.includes('backdrop')) {
+            const matName = child.material ? (child.material.name || '').toLowerCase() : '';
+            if (n.includes('plane') || n.includes('ground') || n.includes('floor') || n.includes('shadow') || 
+                n.includes('backdrop') || n.includes('scheibe_boden') || n.includes('ice_mountains') || 
+                n.includes('cylinder023') || matName.includes('ground') || matName.includes('boden')) {
               groundMeshes.push(child);
             }
           }
@@ -1310,7 +1313,10 @@
           if (m.parent) m.parent.remove(m);
         });
 
-        // 2. Ensure world matrices are fully up to date
+        // 2. Wrap in centering group
+        const wrapper = new THREE.Group();
+        wrapper.add(clone);
+
         clone.updateMatrixWorld(true);
 
         if (THREE.Box3 && THREE.Vector3) {
@@ -1320,40 +1326,37 @@
           const center = new THREE.Vector3();
           box.getCenter(center);
 
+          // Center geometry relative to wrapper origin (0, 0, 0)
+          clone.position.x -= center.x;
+          clone.position.y -= center.y;
+          clone.position.z -= center.z;
+
           const isFlyer = (id === 'medic' || id === 'kamikaze_drone' || id === 'swarm' || id === 'swarmling' || id === 'gunship' || id === 'flyer' || id === 'overseer');
           const isBoss = (id === 'megatron' || id === 'void_titan' || id === 'mecha_colossus' || id === 'hive_titan' || id === 'juggernaut' || id === 'boss');
 
           let targetDim = 2.4;
-          if (isBoss) targetDim = (id === 'megatron' || id === 'void_titan') ? 3.4 : 3.0;
-          else if (id === 'optimus') targetDim = 2.9;
+          if (isBoss) targetDim = (id === 'megatron' || id === 'void_titan' || id === 'mecha_colossus') ? 3.4 : 3.0;
+          else if (id === 'optimus' || id === 'siege') targetDim = 2.9;
           else if (id === 'bumblebee' || id === 'chrono_phantom') targetDim = 2.6;
           else if (id === 'brute' || id === 'tank' || id === 'shieldbearer' || id === 'shielded' || id === 'phantom') targetDim = 2.6;
-          else if (id === 'sprinter' || id === 'grunt' || id === 'biped') targetDim = 2.2;
-          else if (isFlyer) targetDim = (id === 'overseer') ? 2.8 : 2.2;
+          else if (id === 'sprinter' || id === 'grunt' || id === 'biped') targetDim = 2.3;
+          else if (isFlyer) targetDim = (id === 'overseer') ? 2.8 : 2.3;
           else targetDim = 2.3; // Towers
 
           const maxD = Math.max(size.x, size.y, size.z);
-          const scale = (maxD > 0.001) ? (targetDim / maxD) : 1.0;
-          clone.scale.set(scale, scale, scale);
-
-          // Center horizontally (X and Z)
-          const posX = -center.x * scale;
-          const posZ = -center.z * scale;
-          let posY = 0;
+          const scale = (maxD > 0.0001) ? (targetDim / maxD) : 1.0;
+          wrapper.scale.set(scale, scale, scale);
 
           if (isFlyer) {
             // Drones and aerial units hover prominently in view center
-            posY = 0.35 - (center.y * scale);
+            wrapper.position.set(0, 0.25, 0);
           } else {
-            // Ground units rest cleanly on top of the platform (y = -1.60)
-            const PLATFORM_SURFACE_Y = -1.60;
-            posY = PLATFORM_SURFACE_Y - (box.min.y * scale);
+            // Ground units rest cleanly on top of the turntable platform (surface y = -1.50)
+            wrapper.position.set(0, -1.50 + (size.y * 0.5 * scale), 0);
           }
-
-          clone.position.set(posX, posY, posZ);
         }
 
-        clone.traverse((child) => {
+        wrapper.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
@@ -1374,8 +1377,8 @@
               }
               if (child.material.map) child.material.map.anisotropy = 16;
               if (child.material.normalMap) child.material.normalMap.anisotropy = 16;
-              // Dark Energon glow for Megatron
-              if (id === 'megatron' && child.material.name && child.material.name.toLowerCase().includes('energon')) {
+              // Dark Energon glow for Megatron / Void Titan
+              if ((id === 'megatron' || id === 'void_titan') && child.material.name && child.material.name.toLowerCase().includes('energon')) {
                 child.material.emissive = new THREE.Color(0xa855f7);
                 child.material.emissiveIntensity = 4.2;
               }
@@ -1390,7 +1393,7 @@
           }
         });
 
-        this.modelRoot.add(clone);
+        this.modelRoot.add(wrapper);
 
         if (gltf.animations && gltf.animations.length > 0 && THREE.AnimationMixer) {
           this.activeMixer = new THREE.AnimationMixer(clone);
@@ -1400,10 +1403,10 @@
         }
 
         this.currentModelObj = {
-          root: clone,
+          root: wrapper,
           isGLTF: true,
           mixer: this.activeMixer,
-          recoilObj: clone
+          recoilObj: wrapper
         };
       };
 
@@ -1505,9 +1508,18 @@
       const THREE = window.THREE;
       if (!THREE) return;
 
-      this.canvas = document.createElement('canvas');
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
+      const domCanvas = (typeof document !== 'undefined') ? document.getElementById('codex-3d-canvas') : null;
+      if (domCanvas) {
+        this.canvas = domCanvas;
+        this.width = 1280;
+        this.height = 720;
+        this.isDOMCanvas = true;
+      } else {
+        this.canvas = (typeof document !== 'undefined' && document.createElement) ? document.createElement('canvas') : null;
+        this.width = 512;
+        this.height = 512;
+        this.isDOMCanvas = false;
+      }
 
       try {
         this.renderer = new THREE.WebGLRenderer({
@@ -1537,9 +1549,13 @@
           this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
         } catch(e) {}
       }
-      this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
-      this.camera.position.set(0, 1.8, 7.8);
-      this.camera.lookAt(0, 0, 0);
+      if (this.isDOMCanvas) {
+        this.camera = new THREE.PerspectiveCamera(38, 450 / 630, 0.1, 100);
+      } else {
+        this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
+      }
+      this.camera.position.set(0, 1.4, 7.8);
+      this.camera.lookAt(0, -0.3, 0);
 
       // Studio 3-Point Lighting Rig
       this.hemiLight = new THREE.HemisphereLight(0x7fb8ff, 0x09101c, 0.65);
@@ -1676,7 +1692,7 @@
 
       if (this.camera) {
         this.camera.position.set(0, camY, camZ);
-        this.camera.lookAt(0, 0.1, 0);
+        this.camera.lookAt(0, -0.3, 0);
       }
 
       // Rotate root model
@@ -2037,6 +2053,12 @@
 
       // Render Three.js frame
       if (this.renderer && this.scene && this.camera) {
+        if (this.isDOMCanvas) {
+          // Frame exactly to the Central Holographic Bay on the 1280x720 canvas
+          this.renderer.setViewport(325, 14, 450, 630);
+          this.renderer.setScissor(325, 14, 450, 630);
+          this.renderer.setScissorTest(true);
+        }
         this.renderer.render(this.scene, this.camera);
       }
     }
