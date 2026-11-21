@@ -48,3 +48,4 @@ android_project/test*
 manual_drop/
 __pycache__/
 *.pyc
+transformers_war_for_cybertron_megatron.glb
