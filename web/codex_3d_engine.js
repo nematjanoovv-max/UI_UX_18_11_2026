@@ -927,6 +927,166 @@
 
       this.width = 512;
       this.height = 512;
+
+      this.gltfCache = {};
+      this.activeMixer = null;
+      this.modelMap = {
+        pulse: 'assets/models/turret_scifi.glb',
+        railgun: 'assets/models/turret_scifi.glb',
+        grunt: 'assets/models/biped_robot.glb',
+        brute: 'assets/models/biped_robot.glb',
+        gunship: 'assets/models/mech_drone.glb',
+        juggernaut: 'assets/models/mech_drone.glb',
+        kamikaze_drone: 'assets/models/sphere_bot.glb',
+        overseer: 'assets/models/sphere_bot.glb',
+        megatron: 'assets/models/megatron.glb',
+        optimus: 'assets/models/optimus.glb',
+        bumblebee: 'assets/models/bumblebee.glb'
+      };
+    }
+
+    loadGLTFModel(url, id, mode, branch, fallbackFn) {
+      const THREE = window.THREE || (typeof THREE !== 'undefined' ? THREE : null);
+      if (!THREE || !THREE.GLTFLoader) {
+        if (fallbackFn) fallbackFn();
+        return;
+      }
+
+      const attachGLTF = (gltf) => {
+        if (this.currentId !== id) return;
+        // Clean out placeholder or prior models
+        while (this.modelRoot.children.length > 0) {
+          const obj = this.modelRoot.children[0];
+          this.modelRoot.remove(obj);
+        }
+        this.factory.createPlatform(this.modelRoot, mode);
+
+        const scene = gltf.scene || gltf.scenes[0];
+        const clone = scene.clone ? scene.clone(true) : scene;
+
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const targetHeight = (id === 'pulse' || id === 'railgun') ? 2.1 : ((id === 'kamikaze_drone' || id === 'overseer') ? 1.7 : ((id === 'gunship' || id === 'juggernaut') ? 2.3 : 2.7));
+          const scale = maxD > 0 ? (targetHeight / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          clone.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+        }
+
+        clone.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.envMapIntensity = 2.6;
+              if (child.material.map) {
+                child.material.map.anisotropy = 16;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.normalMap) {
+                child.material.normalMap.anisotropy = 16;
+                child.material.normalMap.needsUpdate = true;
+              }
+              if (child.material.roughnessMap) {
+                child.material.roughnessMap.anisotropy = 16;
+                child.material.roughness = 0.35;
+              }
+              if (child.material.metalnessMap) {
+                child.material.metalnessMap.anisotropy = 16;
+                child.material.metalness = 0.85;
+              }
+              if (mode === 'WIREFRAME') {
+                child.material.wireframe = true;
+              } else if (mode === 'XRAY') {
+                child.material.transparent = true;
+                child.material.opacity = 0.45;
+              }
+              child.material.needsUpdate = true;
+            }
+          }
+        });
+
+        this.modelRoot.add(clone);
+
+        if (gltf.animations && gltf.animations.length > 0 && THREE.AnimationMixer) {
+          this.activeMixer = new THREE.AnimationMixer(clone);
+          const action = this.activeMixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+
+        this.currentModelObj = {
+          root: clone,
+          isGLTF: true,
+          mixer: this.activeMixer,
+          recoilObj: clone
+        };
+      };
+
+      // Check cache first
+      if (this.gltfCache[url]) {
+        attachGLTF(this.gltfCache[url]);
+        return;
+      }
+
+      // AndroidBridge direct Base64 stream support
+      if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getModelBase64 === 'function') {
+        try {
+          const filename = url.split('/').pop();
+          const b64 = window.AndroidBridge.getModelBase64(filename);
+          if (b64 && b64.length > 1000) {
+            const bin = (typeof atob !== 'undefined') ? atob(b64) : Buffer.from(b64, 'base64').toString('binary');
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            const loader = new THREE.GLTFLoader();
+            loader.parse(bytes.buffer, '', (gltf) => {
+              this.gltfCache[url] = gltf;
+              attachGLTF(gltf);
+            }, (e) => {
+              if (fallbackFn) fallbackFn();
+            });
+            return;
+          }
+        } catch(e) {}
+      }
+
+      // Node.js test environment support
+      if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const fullPath = path.resolve(url);
+          if (fs.existsSync(fullPath)) {
+            const buf = fs.readFileSync(fullPath);
+            const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+            const loader = new THREE.GLTFLoader();
+            loader.parse(ab, '', (gltf) => {
+              this.gltfCache[url] = gltf;
+              attachGLTF(gltf);
+            }, (e) => {
+              if (fallbackFn) fallbackFn();
+            });
+            return;
+          }
+        } catch(e) {}
+      }
+
+      // Standard browser fetch with graceful fallback
+      const loader = new THREE.GLTFLoader();
+      try {
+        loader.load(url, (gltf) => {
+          this.gltfCache[url] = gltf;
+          attachGLTF(gltf);
+        }, undefined, (err) => {
+          if (fallbackFn) fallbackFn();
+        });
+      } catch (err) {
+        if (fallbackFn) fallbackFn();
+      }
     }
 
     cycleLightingPreset() {
@@ -1030,6 +1190,11 @@
       this.currentBranch = branch;
       this.renderMode = mode;
 
+      if (this.activeMixer) {
+        this.activeMixer.stopAllAction();
+        this.activeMixer = null;
+      }
+
       // Clear previous model
       while (this.modelRoot.children.length > 0) {
         const obj = this.modelRoot.children[0];
@@ -1039,47 +1204,60 @@
       // Add Platform base
       this.factory.createPlatform(this.modelRoot, mode);
 
-      // Build specific unit
+      // Build specific unit procedural fallback
       const F = this.factory;
       const R = this.modelRoot;
 
-      switch(id) {
-        // Towers
-        case 'pulse': this.currentModelObj = F.buildPulseTower(R, mode, branch); break;
-        case 'mortar': this.currentModelObj = F.buildMortarTower(R, mode); break;
-        case 'cryo': this.currentModelObj = F.buildCryoTower(R, mode); break;
-        case 'tesla': this.currentModelObj = F.buildTeslaTower(R, mode); break;
-        case 'flame': this.currentModelObj = F.buildFlameTower(R, mode); break;
-        case 'railgun': this.currentModelObj = F.buildRailgunTower(R, mode); break;
-        case 'beacon': this.currentModelObj = F.buildBeaconTower(R, mode); break;
-        case 'barricade': this.currentModelObj = F.buildBarricade(R, mode); break;
+      const fallbackFn = () => {
+        switch(id) {
+          // Towers
+          case 'pulse': this.currentModelObj = F.buildPulseTower(R, mode, branch); break;
+          case 'mortar': this.currentModelObj = F.buildMortarTower(R, mode); break;
+          case 'cryo': this.currentModelObj = F.buildCryoTower(R, mode); break;
+          case 'tesla': this.currentModelObj = F.buildTeslaTower(R, mode); break;
+          case 'flame': this.currentModelObj = F.buildFlameTower(R, mode); break;
+          case 'railgun': this.currentModelObj = F.buildRailgunTower(R, mode); break;
+          case 'beacon': this.currentModelObj = F.buildBeaconTower(R, mode); break;
+          case 'barricade': this.currentModelObj = F.buildBarricade(R, mode); break;
 
-        // Enemies
-        case 'grunt': this.currentModelObj = F.buildGrunt(R, mode); break;
-        case 'sprinter': this.currentModelObj = F.buildSprinter(R, mode); break;
-        case 'brute': this.currentModelObj = F.buildBrute(R, mode); break;
-        case 'shieldbearer': this.currentModelObj = F.buildShieldbearer(R, mode); break;
-        case 'medic': this.currentModelObj = F.buildMedic(R, mode); break;
-        case 'splitter': this.currentModelObj = F.buildSplitter(R, mode); break;
-        case 'phantom': this.currentModelObj = F.buildPhantom(R, mode); break;
-        case 'kamikaze_drone': this.currentModelObj = F.buildKamikazeDrone(R, mode); break;
-        case 'gunship': this.currentModelObj = F.buildGunship(R, mode); break;
+          // Enemies
+          case 'grunt': this.currentModelObj = F.buildGrunt(R, mode); break;
+          case 'sprinter': this.currentModelObj = F.buildSprinter(R, mode); break;
+          case 'brute': this.currentModelObj = F.buildBrute(R, mode); break;
+          case 'shieldbearer': this.currentModelObj = F.buildShieldbearer(R, mode); break;
+          case 'medic': this.currentModelObj = F.buildMedic(R, mode); break;
+          case 'splitter': this.currentModelObj = F.buildSplitter(R, mode); break;
+          case 'phantom': this.currentModelObj = F.buildPhantom(R, mode); break;
+          case 'kamikaze_drone': this.currentModelObj = F.buildKamikazeDrone(R, mode); break;
+          case 'gunship': this.currentModelObj = F.buildGunship(R, mode); break;
 
-        // Boss Titans
-        case 'juggernaut': this.currentModelObj = F.buildJuggernaut(R, mode); break;
-        case 'overseer': this.currentModelObj = F.buildOverseer(R, mode); break;
-        case 'hive_titan': this.currentModelObj = F.buildHiveTitan(R, mode); break;
-        case 'void_titan': this.currentModelObj = F.buildVoidTitan(R, mode); break;
-        case 'chrono_phantom': this.currentModelObj = F.buildChronoPhantom(R, mode); break;
-        case 'mecha_colossus': this.currentModelObj = F.buildMechaColossus(R, mode); break;
+          // Boss Titans
+          case 'juggernaut': this.currentModelObj = F.buildJuggernaut(R, mode); break;
+          case 'overseer': this.currentModelObj = F.buildOverseer(R, mode); break;
+          case 'hive_titan': this.currentModelObj = F.buildHiveTitan(R, mode); break;
+          case 'void_titan': this.currentModelObj = F.buildVoidTitan(R, mode); break;
+          case 'chrono_phantom': this.currentModelObj = F.buildChronoPhantom(R, mode); break;
+          case 'mecha_colossus': this.currentModelObj = F.buildMechaColossus(R, mode); break;
 
-        // Hero Mech
-        case 'biped': this.currentModelObj = F.buildApexBiped(R, mode); break;
-        case 'siege': this.currentModelObj = F.buildApexSiege(R, mode); break;
+          // Hero Mech
+          case 'megatron':
+          case 'optimus':
+          case 'bumblebee':
+          case 'biped': this.currentModelObj = F.buildApexBiped(R, mode); break;
+          case 'siege': this.currentModelObj = F.buildApexSiege(R, mode); break;
 
-        default:
-          this.currentModelObj = F.buildPulseTower(R, mode, branch);
-          break;
+          default:
+            this.currentModelObj = F.buildPulseTower(R, mode, branch);
+            break;
+        }
+      };
+
+      // If Sketchfab 3D GLTF asset exists for this unit, load it!
+      if (this.modelMap[id]) {
+        fallbackFn();
+        this.loadGLTFModel(this.modelMap[id], id, mode, branch, fallbackFn);
+      } else {
+        fallbackFn();
       }
     }
 
@@ -1204,7 +1382,22 @@
               rObj.position.z = Math.min(rObj._origZ, rObj.position.z + dt * 3.5);
             }
           }
+
+          // Real 3D GLTF recoil and animation
+          if (m.isGLTF && m.recoilObj) {
+            const ro = m.recoilObj;
+            if (ro._origZ === undefined) ro._origZ = ro.position.z;
+            if (recoil > 0) {
+              ro.position.z = ro._origZ - recoil * 0.35;
+            } else if (ro.position.z < ro._origZ) {
+              ro.position.z = Math.min(ro._origZ, ro.position.z + dt * 3.5);
+            }
+          }
         }
+      }
+
+      if (this.activeMixer) {
+        this.activeMixer.update(dt);
       }
 
       // Render Three.js frame

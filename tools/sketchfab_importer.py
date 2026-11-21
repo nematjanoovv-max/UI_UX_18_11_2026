@@ -75,6 +75,7 @@ def cmd_me():
 
 def cmd_search(query, tag=None, limit=10):
     params = {
+        "type": "models",
         "downloadable": "true",
         "sort_by": "-likeCount"
     }
@@ -84,7 +85,7 @@ def cmd_search(query, tag=None, limit=10):
         params["tags"] = tag
 
     qs = urllib.parse.urlencode(params)
-    data = api_request(f"models?{qs}")
+    data = api_request(f"search?{qs}")
     if not data:
         print("Qidiruvda xatolik yuz berdi.")
         return

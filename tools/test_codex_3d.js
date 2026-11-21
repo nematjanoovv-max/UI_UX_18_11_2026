@@ -83,6 +83,9 @@ const allUnits = [
   { id: 'chrono_phantom', tab: 'BOSSES' },
   { id: 'mecha_colossus', tab: 'BOSSES' },
   // Hero Mech
+  { id: 'megatron', tab: 'MECH' },
+  { id: 'optimus', tab: 'MECH' },
+  { id: 'bumblebee', tab: 'MECH' },
   { id: 'biped', tab: 'MECH' },
   { id: 'siege', tab: 'MECH' }
 ];

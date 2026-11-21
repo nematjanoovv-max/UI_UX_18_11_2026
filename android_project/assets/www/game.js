@@ -2667,38 +2667,35 @@
         return;
       }
       if (this.state === 'MENU') {
-        // 1. Floating Action Deck under Character (y: 658 to 704)
+        // 1. Floating Action Deck under Megatron (y: 658 to 704)
         if (y >= 658 && y <= 704) {
-          if (x >= 18 && x <= 124) {
-            this.cycleNextMechHero();
-            return;
-          }
-          if (x >= 126 && x <= 234) {
+          if (x >= 24 && x <= 150) {
             this.toggleMechTransform();
             this.vibrate([30, 20, 40]);
             audio.click();
             return;
           }
-          if (x >= 236 && x <= 344) {
+          if (x >= 156 && x <= 284) {
             this.triggerMechAction();
             this.vibrate([45, 30, 60]);
             return;
           }
-          if (x >= 346 && x <= 454) {
+          if (x >= 290 && x <= 418) {
             this.toggleMechMatrixChest();
             this.vibrate([40, 25, 50]);
             audio.click();
             return;
           }
-          if (x >= 456 && x <= 566) {
-            try { window.open('preview_transformers.html', '_blank'); } catch(e) {}
+          if (x >= 424 && x <= 554) {
+            this.state = 'MANUAL';
+            if (this.apexSystem) this.apexSystem.hide();
             this.vibrate(20);
             audio.click();
             return;
           }
         }
 
-        // 2. Stage tap on Character 3D Body: Trigger Weapon / Attack
+        // 2. Stage tap on Megatron 3D Body: Trigger Fusion Cannon Blast
         if (x >= 20 && x <= 580 && y >= 70 && y <= 656) {
           this.triggerMechAction();
           return;
@@ -2909,7 +2906,7 @@
         // Left Item List clicks
         if (x >= 32 && x <= 316) {
           const tab = this.codexTab || 'TOWERS';
-          const counts = { TOWERS: 8, ENEMIES: 9, BOSSES: 6, MECH: 2 };
+          const counts = { TOWERS: 8, ENEMIES: 9, BOSSES: 6, MECH: 5 };
           const count = counts[tab] || 8;
           const itemH = Math.min(68, Math.floor(590 / count));
           for (let i = 0; i < count; i++) {
@@ -2919,7 +2916,7 @@
                 TOWERS: ['pulse', 'mortar', 'cryo', 'tesla', 'flame', 'railgun', 'beacon', 'barricade'],
                 ENEMIES: ['grunt', 'sprinter', 'brute', 'shieldbearer', 'medic', 'splitter', 'phantom', 'kamikaze_drone', 'gunship'],
                 BOSSES: ['juggernaut', 'overseer', 'hive_titan', 'void_titan', 'chrono_phantom', 'mecha_colossus'],
-                MECH: ['biped', 'siege']
+                MECH: ['megatron', 'optimus', 'bumblebee', 'biped', 'siege']
               };
               const selList = listMap[tab] || listMap.TOWERS;
               if (selList[i]) {
@@ -10983,32 +10980,15 @@
       ctx.restore();
 
       // =========================================================================
-      // 3. LEFT HERO SHOWCASE: DYNAMIC 3D CHARACTER ARENA (x: 20 to 580)
+      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (x: 20 to 580)
       // =========================================================================
       ctx.save();
-      const activeSkin = this.selectedMechSkin || 'MEGATRON';
-      let heroTitle = "💀 DECEPTICON MEGATRON // SUPREME LEADER";
-      let heroSub = "WAR FOR CYBERTRON • HEAVY SIEGE CLASS";
-      let heroStat = "● DARK ENERGON: 100% // 60 FPS ULTRA PBR";
-      let heroCol = "#c084fc";
-      let heroPedCol = "rgba(192, 132, 252, 0.70)";
-      let heroPedSubCol = "rgba(168, 85, 247, 0.85)";
-
-      if (activeSkin === 'OPTIMUS') {
-        heroTitle = "⭐ AUTOBOT OPTIMUS PRIME // SUPREME COMMANDER";
-        heroSub = "CYBERTRON KNIGHT • MATRIX OF LEADERSHIP";
-        heroStat = "● ENERGON MATRIX: 100% // 60 FPS ULTRA PBR";
-        heroCol = "#ff3355";
-        heroPedCol = "rgba(255, 51, 85, 0.75)";
-        heroPedSubCol = "rgba(0, 229, 255, 0.85)";
-      } else if (activeSkin === 'BUMBLEBEE') {
-        heroTitle = "⚡ AUTOBOT BUMBLEBEE // ELITE SCOUT";
-        heroSub = "THE LAST KNIGHT • STINGER WARRIOR CLASS";
-        heroStat = "● STINGER CHARGE: 100% // 60 FPS ULTRA PBR";
-        heroCol = "#ffd600";
-        heroPedCol = "rgba(255, 214, 0, 0.75)";
-        heroPedSubCol = "rgba(250, 204, 21, 0.85)";
-      }
+      const heroTitle = "💀 DECEPTICON MEGATRON // SUPREME LEADER";
+      const heroSub = "WAR FOR CYBERTRON • HEAVY SIEGE CLASS";
+      const heroStat = "● DARK ENERGON: 100% // 60 FPS ULTRA PBR";
+      const heroCol = "#c084fc";
+      const heroPedCol = "rgba(192, 132, 252, 0.70)";
+      const heroPedSubCol = "rgba(168, 85, 247, 0.85)";
 
       // Stylized Sci-Fi Military HUD Identity Plate (x: 26, y: 68, w: 350, h: 54)
       const hx = 26, hy = 68, hw = 350, hh = 54, hcut = 8;
@@ -11043,7 +11023,7 @@
       ctx.font = "bold 9px monospace";
       ctx.fillText(heroStat, hx + 12, hy + 46);
 
-      // Holographic Floor Pedestal Rings under Character (Center: pcx: 295, pcy: 632)
+      // Holographic Floor Pedestal Rings under Megatron (Center: pcx: 295, pcy: 632)
       const pcx = 295;
       const pcy = 632;
       ctx.strokeStyle = heroPedCol;
@@ -11079,15 +11059,14 @@
       ctx.textAlign = "center";
       const dragPulse = 0.65 + Math.sin(time * 4) * 0.35;
       ctx.globalAlpha = dragPulse;
-      ctx.fillText("⟲ 3D MODELNI BURASH UCHUN USHLAB SURING (360°)", pcx, 598);
+      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 598);
       ctx.globalAlpha = 1.0;
 
-      // Floating Tactical Action Deck under Character (y: 662 to 698, h: 36)
-      this.renderMiniButton(20, 662, 102, 36, "🔄 QAHRAMON", heroCol);
-      this.renderMiniButton(130, 662, 102, 36, "⚙ REJIM", "#00e676");
-      this.renderMiniButton(240, 662, 102, 36, "💥 ZARBA", "#ff1744");
-      this.renderMiniButton(350, 662, 102, 36, "⚡ ENERGON", "#e040fb");
-      this.renderMiniButton(460, 662, 102, 36, "🔍 3D KODEX", "#00e5ff");
+      // Floating Tactical Action Deck under Megatron (y: 662 to 698, h: 36)
+      this.renderMiniButton(26, 662, 122, 36, "🔄 REJIM", "#00e676");
+      this.renderMiniButton(160, 662, 122, 36, "💥 FUSION ZARBA", "#ff1744");
+      this.renderMiniButton(294, 662, 122, 36, "⚡ DARK ENERGON", "#c084fc");
+      this.renderMiniButton(428, 662, 122, 36, "📖 KIBER-KODEX", "#00e5ff");
       ctx.restore();
 
       // =========================================================================
@@ -11541,6 +11520,72 @@ getCodexDatabase() {
         ],
         MECH: [
           {
+            id: "megatron", name: "Megatron (WFC 3D)", icon: "💀", role: "Supreme Decepticon Leader", type: "HERO_DECEPTICON",
+            cost: "Supreme", hp: "1200 HP", dmg: "450 Dark Energon", rate: "1.0/s", dps: "450 DPS", range: "350px", armor: "40 Armor", speed: "110 px/s",
+            eff: { vsShield: "220% (Dark Energon)", vsArmor: "180% (Zirhni yanchadi)", vsSwarm: "Maydoniy zarba", vsBoss: "Kritik 1450" },
+            desc: "Cybertron qudratli Decepticon yetakchisi. 1450 DMG Fusion Cannon va Dark Energon plazmasi bilan qurollangan. Robot va Og'ir Kiber-Tank rejimlariga o'ta oladi.",
+            branchA: {
+              name: "Fusion Cannon Overcharge", cost: "Upgrade", dmg: "850", rate: "1.0/s", dps: "850 DPS",
+              perk: "Massive Penetration & Screen Shake",
+              desc: "Fusion Cannon to'liq Dark Energon bilan to'yintirilib, 1450 gacha kritik maydoniy portlash beradi."
+            },
+            branchB: {
+              name: "Cybertron Siege Tank", cost: "Upgrade", dmg: "500 AoE", rate: "1.2/s", dps: "600 DPS",
+              perk: "Armor +80% & Splash Blast",
+              desc: "Megatron og'ir kiber-tankka aylanib, butun dushman qatorlarini uzluksiz artilleriya o'ti ostida qoldiradi."
+            },
+            lore: {
+              origin: "War for Cybertron Citadel", blueprint: "MEG-WFC-001 / DECEPTICON",
+              history: "Kiber-urushning qudratli yetakchisi. Million yillar davomida kurashgan va Dark Energon kuchini o'zlashtirgan.",
+              advice: "Fusion Cannon bilan eng yirik bosslar va titanlarni bir zarbada yakson qiling."
+            },
+            col: "#c084fc"
+          },
+          {
+            id: "optimus", name: "Optimus Prime (3D)", icon: "⭐", role: "Autobot Supreme Commander", type: "HERO_AUTOBOT",
+            cost: "Supreme", hp: "1000 HP", dmg: "320 Ion Blaster", rate: "1.5/s", dps: "480 DPS", range: "300px", armor: "35 Armor", speed: "130 px/s",
+            eff: { vsShield: "150% (Ion)", vsArmor: "160% (Axe Cleave)", vsSwarm: "Matrix Nova", vsBoss: "Yuqori Barqarorlik" },
+            desc: "Autobotlarning afsonaviy oliy qo'mondoni. Ion Blaster, Energon Boltasi va Matrix of Leadership bilan jihozlangan. Peterbilt transportiga aylana oladi.",
+            branchA: {
+              name: "Matrix of Leadership", cost: "Upgrade", dmg: "700 Holy Light", rate: "Aura", dps: "700 DPS",
+              perk: "Team Buff +100% & Holy Nova",
+              desc: "Matrix of Leadership yadrosi ochilib, xaritadagi barcha mudofaa minoralarini quvvatlantiradi va dushmanlarni yoqadi."
+            },
+            branchB: {
+              name: "Energon Axe Cleave", cost: "Upgrade", dmg: "550 Melee", rate: "2.0/s", dps: "1100 DPS",
+              perk: "100% Armor Pierce",
+              desc: "Yonuvchi Energon boltasi bilan dushmanlarni teng ikkiga bo'lib, har qanday zirhni teshib o'tadi."
+            },
+            lore: {
+              origin: "Autobot High Command", blueprint: "OPT-PRIME-001 / MATRIX",
+              history: "Kiber-shaharlarni himoya qiluvchi afsonaviy ritsar va yetakchi. Ozodlik har bir ongli mavjudotning huquqidir deb hisoblaydi.",
+              advice: "Jang markaziga kirib Energon boltasi va Ion Blaster bilan kombinatsiyalangan zarba bering."
+            },
+            col: "#ff3355"
+          },
+          {
+            id: "bumblebee", name: "Bumblebee TLK (3D)", icon: "⚡", role: "Elite Autobot Scout", type: "HERO_SCOUT",
+            cost: "Supreme", hp: "750 HP", dmg: "180 Plasma Stinger", rate: "4.0/s", dps: "720 DPS", range: "240px", armor: "20 Armor", speed: "175 px/s",
+            eff: { vsShield: "200% (Plasma)", vsArmor: "110% (Oddiy)", vsSwarm: "Rapid Barrage", vsBoss: "Tezkor Shok" },
+            desc: "O'ta chaqqon va chaqmoqdek tezkor razvedkachi. Stinger Plazma to'pi va Cyber-Blade pichoqlari bilan dushmanlar atrofida raqs tushadi.",
+            branchA: {
+              name: "Plasma Stinger Burst", cost: "Upgrade", dmg: "240", rate: "5.0/s", dps: "1200 DPS",
+              perk: "Rapid Stun & EMP",
+              desc: "Uzluksiz plazma o'qlari yomg'iri dushman elektronikasini falaj qilib, to'xtatib qo'yadi."
+            },
+            branchB: {
+              name: "Camaro Speed Drift", cost: "Upgrade", dmg: "350 Dash", rate: "Instant", dps: "Burst",
+              perk: "Evasion +60% & Speed Boost",
+              desc: "Camaro transport rejimida yuqori tezlikda dushmanlarni sudrab o'tadi va orqadan aylanib kelib zarba beradi."
+            },
+            lore: {
+              origin: "Autobot Recon Detachment", blueprint: "BEE-TLK-007 / SCOUT",
+              history: "Jasur razvedkachi qahramon. Eng xavfli topshiriqlarda dushman mudofaasini birinchi bo'lib yorib kirgan.",
+              advice: "Tezkor harakat qilib dushmanlarning orqa chizig'iga kirib boring va Stinger Cannon bilan yo'q qiling."
+            },
+            col: "#ffd600"
+          },
+          {
             id: "biped", name: "Apex-01 (Assault Biped)", icon: "🤖", role: "Field Commander Mech", type: "HERO_BIPED",
             cost: "Commander", hp: "400 HP", dmg: "40 Kinetic", rate: "4.5/s", dps: "180 DPS", range: "175px", armor: "10 Armor", speed: "130 px/s",
             eff: { vsShield: "120% (Tezkor)", vsArmor: "90% (Kinetic)", vsSwarm: "Dash va Gatling", vsBoss: "Cyber-Slash 400 DMG" },
@@ -11675,7 +11720,26 @@ getCodexDatabase() {
           audio.hit();
         }
       } else if (tab === "MECH") {
-        if (item.id === "biped") {
+        if (item.id === "megatron") {
+          dmgVal = br === "BRANCH_A" ? 850 : 450;
+          pSpeed = 8.5;
+          pColor = "#c084fc";
+          pType = "ENERGY";
+          if (audio.mortarFire) audio.mortarFire();
+          this.screenShake = 6;
+        } else if (item.id === "optimus") {
+          dmgVal = br === "BRANCH_B" ? 550 : 320;
+          pSpeed = 7.0;
+          pColor = "#ff3355";
+          pType = "ENERGY";
+          if (audio.mortarFire) audio.mortarFire();
+        } else if (item.id === "bumblebee") {
+          dmgVal = br === "BRANCH_A" ? 240 : 180;
+          pSpeed = 10.0;
+          pColor = "#ffd600";
+          pType = "ENERGY";
+          if (audio.pulseFire) audio.pulseFire();
+        } else if (item.id === "biped") {
           dmgVal = br === "BRANCH_A" ? 52 : 40;
           pSpeed = 6.0;
           pColor = "#00e5ff";
@@ -11688,10 +11752,38 @@ getCodexDatabase() {
           audio.artilleryBlast ? audio.artilleryBlast() : audio.shootMortar();
         }
       } else {
-        dmgVal = tab === "BOSSES" ? 120 : 35;
-        pSpeed = 3.2;
-        pColor = item.col || "#ff1744";
-        audio.hit();
+        if (item.id === "kamikaze_drone") {
+          dmgVal = 120;
+          pSpeed = 5.5;
+          pColor = "#ff1744";
+          audio.leak();
+        } else if (item.id === "gunship") {
+          dmgVal = 65;
+          pSpeed = 7.0;
+          pColor = "#00e5ff";
+          audio.shootPulse();
+        } else if (item.id === "brute") {
+          dmgVal = 95;
+          pSpeed = 4.0;
+          pColor = "#ff007f";
+          audio.hit();
+        } else if (item.id === "juggernaut") {
+          dmgVal = 220;
+          pSpeed = 4.5;
+          pColor = "#ff1744";
+          this.screenShake = 5;
+          audio.explosion();
+        } else if (item.id === "overseer") {
+          dmgVal = 180;
+          pSpeed = 9.0;
+          pColor = "#00e5ff";
+          audio.shootPulse();
+        } else {
+          dmgVal = tab === "BOSSES" ? 140 : 35;
+          pSpeed = 3.5;
+          pColor = item.col || "#ff1744";
+          audio.hit();
+        }
       }
 
       this.codexProjectiles.push({
