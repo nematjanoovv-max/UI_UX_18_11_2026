@@ -89,17 +89,29 @@
       touch-action: none;
       z-index: 1;
     }
+    #battlefield-3d-canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      pointer-events: none;
+      touch-action: none;
+      z-index: 1;
+    }
   </style>
 </head>
 <body>
   <div id="canvas-container">
     <canvas id="mech-hangar-canvas" width="1280" height="720"></canvas>
+    <canvas id="battlefield-3d-canvas" width="1280" height="720"></canvas>
     <canvas id="game-canvas" width="1280" height="720"></canvas>
   </div>
   <script src="libs/three.min.js?v=4.1.0"></script>
   <script src="libs/GLTFLoader.js?v=4.1.0_rev9"></script>
   <script src="transformers_mech.js?v=4.1.0_rev9"></script>
   <script src="apex_mech.js?v=4.1.0_rev9"></script>
+  <script src="battlefield_3d_engine.js?v=4.2.0"></script>
   <script src="codex_3d_engine.js?v=4.1.0_rev9"></script>
   <script src="game.js?v=4.1.0_rev9"></script>
 
