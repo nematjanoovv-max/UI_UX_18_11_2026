@@ -8,7 +8,6 @@ def pack_zip():
     files_to_include = [
         'index.html',
         'game.js',
-        'battlefield_3d_engine.js',
         'codex_3d_engine.js',
         'apex_mech.js',
         'transformers_mech.js',

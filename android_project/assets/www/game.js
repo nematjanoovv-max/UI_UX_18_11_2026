@@ -1318,12 +1318,6 @@
         }
         this.syncMechCanvasPosition();
       }
-      const battleCanvas = document.getElementById('battlefield-3d-canvas');
-      if (battleCanvas && window.Battlefield3DEngine) {
-        this.battle3D = new window.Battlefield3DEngine();
-        const ok = this.battle3D.init(battleCanvas, this);
-        this.view3D = !!ok;
-      }
     }
 
     cycleNextMechHero() {
@@ -1422,15 +1416,10 @@
 
     syncMechCanvasPosition() {
       const mechCanvas = document.getElementById('mech-hangar-canvas');
-      const battleCanvas = document.getElementById('battlefield-3d-canvas');
       if (this.canvas) {
         if (mechCanvas) {
           mechCanvas.style.width = this.canvas.style.width;
           mechCanvas.style.height = this.canvas.style.height;
-        }
-        if (battleCanvas) {
-          battleCanvas.style.width = this.canvas.style.width;
-          battleCanvas.style.height = this.canvas.style.height;
         }
       }
 
@@ -1439,9 +1428,6 @@
 
       if (this.apexSystem && typeof this.apexSystem.resize === 'function') {
         this.apexSystem.resize(rw, rh);
-      }
-      if (this.battle3D && typeof this.battle3D.resize === 'function') {
-        this.battle3D.resize(rw, rh);
       }
     }
 
@@ -2513,9 +2499,6 @@
       this.aimingSkill = null;
       this.state = 'PLAYING';
       this.bakeMapLanes(map);
-      if (this.view3D && this.battle3D) {
-        this.battle3D.currentMapIndex = -1; // trigger terrain rebuild
-      }
       this.addFloatingText(`${map.name.toUpperCase()}`, 640, 200, "#00e5ff", 22);
 
       // Initialize Battlefield Dynamics (Barricades, Airdrops, Red Zones, Radio Comms)
@@ -3296,7 +3279,7 @@
           audio.modal();
         }
         else if (x >= 1092 && x <= 1265) {
-          this.toggle3DView();
+          this.start3DTPSMode();
           return;
         }
         return;
@@ -6140,10 +6123,6 @@
         if (this.state === 'MENU' && !this.showSettingsModal) this.apexSystem.show();
         else this.apexSystem.hide();
       }
-      const battleCanvas = document.getElementById('battlefield-3d-canvas');
-      if (this.state !== 'PLAYING' && this.state !== 'PAUSED') {
-        if (battleCanvas) battleCanvas.style.display = 'none';
-      }
       if (this.state === 'MENU') {
         this.renderMainMenu();
         if (typeof audio !== 'undefined' && audio.ctx && audio.ctx.state === 'suspended') {
@@ -6169,34 +6148,25 @@
       else if (this.state === 'ANALYTICS') this.renderAnalyticsScreen();
       else if (this.state === 'TPS_3D') this.render3DTPS();
       else {
-        const is3DActive = !!(this.view3D && this.battle3D && this.battle3D.active && this.battle3D.renderer);
-        if (is3DActive) {
-          if (battleCanvas) battleCanvas.style.display = 'block';
-          this.battle3D.update(1 / 60);
-          this.battle3D.render();
-          this.ctx.clearRect(0, 0, this.width, this.height);
-        } else {
-          if (battleCanvas) battleCanvas.style.display = 'none';
-          this.renderBackgroundGrid();
-          this.renderLanes();
-          this.renderGroundDecals();
-          this.renderGroundHazards();
-          this.renderRedZones();
-          this.renderBarricades();
-          this.renderUnitShadows();
-          this.renderBaseCore();
-          this.renderTowers();
-          this.renderHero();
-          this.renderEnemies();
-        }
+        this.renderBackgroundGrid();
+        this.renderLanes();
+        this.renderGroundDecals();
+        this.renderGroundHazards();
+        this.renderRedZones();
+        this.renderBarricades();
+        this.renderUnitShadows();
+        this.renderBaseCore();
+        this.renderTowers();
         this.renderAirdrops();
+        this.renderHero();
+        this.renderEnemies();
         this.renderProjectiles();
         this.renderParticles();
         this.renderUpgradePillars();
         this.renderFlyingCoins();
         this.renderSelectedTowerRadialHUD();
         this.renderCriticalLowHPPulse();
-        if (!is3DActive) this.renderDynamicLightingLayer();
+        this.renderDynamicLightingLayer();
         this.renderFloatingText();
         this.renderPlacementGhost();
         this.renderTacticalDragVector();
@@ -8754,35 +8724,7 @@
       this.drawCyberButton(725, 9, 125, 42, "SOZLAMALAR", "#00e5ff", "SETTINGS", "⚙️", false);
       this.drawCyberButton(860, 9, 105, 42, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff", "PAUSE", "⏸", false);
       this.drawCyberButton(975, 9, 110, 42, "← MENYU", "#ff1744", "ABORT", "🚪", false);
-      const is3D = !!(this.view3D);
-      const camMode = (this.battle3D && this.battle3D.cameraMode) ? this.battle3D.cameraMode : 'TACTICAL';
-      const modeLabel = is3D ? (camMode === 'HERO_CHASE' ? "🎥 3D MEGATRON" : "🎥 3D TAKTIK") : "🎥 2D KLASSIK";
-      this.drawCyberButton(1095, 9, 165, 42, modeLabel, is3D ? "#e040fb" : "#00e5ff", is3D ? "VIEW: " + camMode : "FLAT 2.5D", "🎥", is3D);
-    }
-
-    toggle3DView() {
-      const battleCanvas = document.getElementById('battlefield-3d-canvas');
-      if (!this.battle3D) {
-        if (battleCanvas && window.Battlefield3DEngine) {
-          this.battle3D = new window.Battlefield3DEngine();
-          this.battle3D.init(battleCanvas, this);
-        }
-      }
-
-      if (!this.view3D) {
-        this.view3D = true;
-        if (this.battle3D) this.battle3D.setCameraMode('TACTICAL');
-        if (battleCanvas) battleCanvas.style.display = 'block';
-        this.addFloatingText("🎥 3D TAKTIK REJIM YOQILDI!", 640, 120, "#e040fb", 16);
-      } else if (this.battle3D && this.battle3D.cameraMode === 'TACTICAL') {
-        this.battle3D.setCameraMode('HERO_CHASE');
-        this.addFloatingText("🎥 3D MEGATRON ACTION KAMERA!", 640, 120, "#c084fc", 16);
-      } else {
-        this.view3D = false;
-        if (battleCanvas) battleCanvas.style.display = 'none';
-        this.addFloatingText("🎥 2D KLASSIK REJIM", 640, 120, "#00e5ff", 16);
-      }
-      try { audio.click(); this.vibrate(18); } catch(e) {}
+      this.drawCyberButton(1095, 9, 165, 42, "🕹️ 3D PILOT", "#e040fb", "TPS BATTLE", "🎮", false);
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
