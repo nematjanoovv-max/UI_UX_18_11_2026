@@ -193,9 +193,9 @@
           src.start(0);
           return true;
         } else if (s instanceof Audio) {
-          const clone = s.cloneNode();
-          clone.volume = finalVol;
-          clone.play().catch(() => {});
+          s.volume = finalVol;
+          s.currentTime = 0;
+          s.play().catch(() => {});
           return true;
         }
       } catch(e) {}
@@ -3620,16 +3620,16 @@
     updateAirdrops(dt) {
       for (let i = this.airdrops.length - 1; i >= 0; i--) {
         const ad = this.airdrops[i];
-        if (!ad.cargoDropped) {
+        if (ad.planeX < this.width + 160) {
           ad.planeX += ad.planeSpeed * dt;
-          if (Math.random() < 0.45) {
+          if (!ad.cargoDropped && Math.random() < 0.45 && this.particles.length < 250) {
             this.particles.push({
               x: ad.planeX - 35, y: ad.planeY,
               vx: -40, vy: (Math.random() * 6 - 3),
               color: "rgba(200, 230, 255, 0.4)", size: 3, growth: 8, life: 0.4, maxLife: 0.4
             });
           }
-          if (ad.planeX >= ad.targetX) {
+          if (!ad.cargoDropped && ad.planeX >= ad.targetX) {
             ad.cargoDropped = true;
             ad.crateX = ad.targetX;
             ad.crateY = ad.planeY;
@@ -3644,19 +3644,21 @@
             this.screenShake = 5;
             audio.hit();
             for (let k = 0; k < 10; k++) {
-              this.particles.push({
-                x: ad.crateX, y: ad.crateY,
-                vx: (Math.random() * 80 - 40),
-                vy: (Math.random() * 40 - 20),
-                color: "#e2e8f0", size: 3, life: 0.4, maxLife: 0.4
-              });
+              if (this.particles.length < 250) {
+                this.particles.push({
+                  x: ad.crateX, y: ad.crateY,
+                  vx: (Math.random() * 80 - 40),
+                  vy: (Math.random() * 40 - 20),
+                  color: "#e2e8f0", size: 3, life: 0.4, maxLife: 0.4
+                });
+              }
             }
             this.addFloatingText("📦 AIRDROP YERGA TUSHDI!", ad.crateX, ad.crateY - 20, "#ffd600", 15);
           }
         }
         if (ad.landed && !ad.looted) {
           ad.smokeFlareTimer -= dt;
-          if (Math.random() < 0.5) {
+          if (Math.random() < 0.4 && this.particles.length < 250) {
             this.particles.push({
               x: ad.crateX + (Math.random() * 8 - 4),
               y: ad.crateY - 14,
@@ -3668,6 +3670,11 @@
           // Auto-pickup by Hero Mech
           if (Math.hypot(this.hero.x - ad.crateX, this.hero.y - ad.crateY) <= 46) {
             this.lootAirdrop(ad);
+          }
+          // Unlooted supply expires after 40 seconds so it never accumulates
+          if (ad.smokeFlareTimer <= -40) {
+            this.airdrops.splice(i, 1);
+            continue;
           }
         }
         if (ad.looted && ad.smokeFlareTimer <= 0) {
@@ -3870,15 +3877,17 @@
             audio.artilleryBlast();
             this.screenShake = 14;
             this.spawnShockwave(sh.targetX, sh.targetY, 95, "#ff1744");
-            this.scorchMarks.push({ x: sh.targetX, y: sh.targetY, radius: 24, life: 12.0, maxLife: 12.0 });
+            this.spawnScorchMark(sh.targetX, sh.targetY, 24);
             for (let k = 0; k < 16; k++) {
-              this.particles.push({
-                x: sh.targetX, y: sh.targetY,
-                vx: (Math.random() * 180 - 90),
-                vy: (Math.random() * 180 - 90),
-                color: Math.random() < 0.5 ? "#ff3d00" : "#ff9100",
-                size: 3 + Math.random() * 4, growth: 8, life: 0.5, maxLife: 0.5
-              });
+              if (this.particles.length < 250) {
+                this.particles.push({
+                  x: sh.targetX, y: sh.targetY,
+                  vx: (Math.random() * 180 - 90),
+                  vy: (Math.random() * 180 - 90),
+                  color: Math.random() < 0.5 ? "#ff3d00" : "#ff9100",
+                  size: 3 + Math.random() * 4, growth: 8, life: 0.5, maxLife: 0.5
+                });
+              }
             }
             // Damage enemies in 85px radius
             for (const e of this.enemies) {
@@ -4688,7 +4697,7 @@
     startLoop() {
       const step = (timestamp) => {
         if (!this.lastTimestamp) this.lastTimestamp = timestamp;
-        const dt = Math.min(0.1, (timestamp - this.lastTimestamp) / 1000.0);
+        const dt = Math.min(0.05, Math.max(0.001, (timestamp - this.lastTimestamp) / 1000.0));
         this.lastTimestamp = timestamp;
         this.uiTime = (this.uiTime || 0) + dt;
 
@@ -4716,6 +4725,14 @@
     }
 
     update(dt) {
+      // Memory Flatness & Collection Bounds (prevents mobile WebView GC lag spikes)
+      if (this.particles.length > 250) this.particles.splice(0, this.particles.length - 250);
+      if (this.casings.length > 60) this.casings.splice(0, this.casings.length - 60);
+      if (this.footprints.length > 40) this.footprints.splice(0, this.footprints.length - 40);
+      if (this.scorchMarks.length > 35) this.scorchMarks.splice(0, this.scorchMarks.length - 35);
+      if (this.floatingTexts.length > 30) this.floatingTexts.splice(0, this.floatingTexts.length - 30);
+      if (this.groundHazards.length > 15) this.groundHazards.splice(0, this.groundHazards.length - 15);
+
       if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - 20 * dt);
 
       if (this.cinematicBanner && this.cinematicBanner.timer > 0) {
@@ -4952,15 +4969,22 @@
             if (audio) audio.missileLaunch();
             for (let m = 0; m < 2; m++) {
               const targetObj = this.hero || (this.barricades && this.barricades[0]) || { x: e.x + 80, y: e.y };
+              const tx = (targetObj && targetObj.x !== undefined) ? targetObj.x : (e.x + 80);
+              const ty = (targetObj && targetObj.y !== undefined) ? targetObj.y : e.y;
               this.projectiles.push({
                 type: 'missile',
                 x: e.x + (m === 0 ? -15 : 15),
                 y: e.y,
                 vx: (Math.random() - 0.5) * 60,
                 vy: (Math.random() - 0.5) * 60,
+                speed: 340,
+                life: 3.5,
+                splash: 40,
                 damage: 75,
                 radius: 40,
                 target: targetObj,
+                targetX: tx,
+                targetY: ty,
                 color: "#ffd600",
                 homing: true,
                 isEnemyProj: true
@@ -5243,24 +5267,27 @@
             this.projectiles.splice(i, 1);
           }
         } else if (p.type === 'missile') {
-          p.life -= dt;
-          if (p.target && this.enemies.includes(p.target)) {
+          p.life = (p.life !== undefined && !isNaN(p.life)) ? p.life - dt : -1;
+          if (p.target && (this.enemies.includes(p.target) || p.target === this.hero)) {
             p.targetX = p.target.x;
             p.targetY = p.target.y;
           }
+          if (p.targetX === undefined || isNaN(p.targetX)) p.targetX = p.x;
+          if (p.targetY === undefined || isNaN(p.targetY)) p.targetY = p.y;
           const dx = p.targetX - p.x;
           const dy = p.targetY - p.y;
           const dist = Math.hypot(dx, dy);
           const desAng = Math.atan2(dy, dx);
-          p.angle = p.angle || desAng;
+          p.angle = (p.angle !== undefined && !isNaN(p.angle)) ? p.angle : desAng;
           let angDiff = desAng - p.angle;
           while (angDiff < -Math.PI) angDiff += Math.PI * 2;
           while (angDiff > Math.PI) angDiff -= Math.PI * 2;
           p.angle += Math.sign(angDiff) * Math.min(Math.abs(angDiff), dt * 10);
-          p.x += Math.cos(p.angle) * p.speed * dt;
-          p.y += Math.sin(p.angle) * p.speed * dt;
+          const pSpd = p.speed || 380;
+          p.x += Math.cos(p.angle) * pSpd * dt;
+          p.y += Math.sin(p.angle) * pSpd * dt;
 
-          if (Math.random() < 0.45) {
+          if (Math.random() < 0.45 && this.particles.length < 250) {
             this.particles.push({
               x: p.x - Math.cos(p.angle) * 8,
               y: p.y - Math.sin(p.angle) * 8,
@@ -5270,12 +5297,19 @@
             });
           }
 
-          if (dist < 16 || p.life <= 0) {
-            this.spawnShockwave(p.x, p.y, p.splash, "#ff9100");
+          if (dist < 16 || p.life <= 0 || isNaN(p.x) || isNaN(p.y)) {
+            const splashRad = p.splash || p.radius || 40;
+            this.spawnShockwave(p.x, p.y, splashRad, "#ff9100");
             audio.hit();
-            for (const e of this.enemies) {
-              if (Math.hypot(e.x - p.x, e.y - p.y) <= p.splash) {
-                this.applyDamage(e, p.damage, 'EXPLOSIVE', null, 'skills');
+            if (p.isEnemyProj) {
+              if (this.hero && Math.hypot(this.hero.x - p.x, this.hero.y - p.y) <= splashRad) {
+                this.damageHero(p.damage || 50);
+              }
+            } else {
+              for (const e of this.enemies) {
+                if (Math.hypot(e.x - p.x, e.y - p.y) <= splashRad) {
+                  this.applyDamage(e, p.damage, 'EXPLOSIVE', null, 'skills');
+                }
               }
             }
             this.projectiles.splice(i, 1);
@@ -5657,7 +5691,8 @@
         for (const e of targets) {
           const toTargetAng = Math.atan2(e.y - tower.y, e.x - tower.x);
           let diffAng = Math.abs(toTargetAng - tower.angle);
-          while (diffAng > Math.PI) diffAng = Math.abs(diffAng - Math.PI * 2);
+          diffAng = ((diffAng % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          if (diffAng > Math.PI) diffAng = Math.PI * 2 - diffAng;
           if (diffAng <= coneHalf) {
             this.applyDamage(e, finalDmg, 'FIRE', tower, 'flame');
             e.burnDmg = spec.dotDmg || 25;
@@ -6014,6 +6049,7 @@
     }
 
     addFloatingText(text, x, y, color = '#ffffff', size = 13) {
+      if (this.floatingTexts.length > 30) this.floatingTexts.shift();
       this.floatingTexts.push({ text, x, y, color, size, life: 1.0 });
     }
 
@@ -6136,8 +6172,6 @@
         this.renderUnitShadows();
         this.renderBaseCore();
         this.renderTowers();
-        this.renderHero();
-        this.renderEnemies();
         this.renderAirdrops();
         this.renderHero();
         this.renderEnemies();
