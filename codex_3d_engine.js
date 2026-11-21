@@ -1296,32 +1296,61 @@
         const scene = gltf.scene || gltf.scenes[0];
         const clone = scene.clone ? scene.clone(true) : scene;
 
+        // 1. Remove extraneous ground / shadow / backdrop plane meshes from authoring files
+        const groundMeshes = [];
+        clone.traverse((child) => {
+          if (child.isMesh) {
+            const n = (child.name || '').toLowerCase();
+            if (n.includes('plane') || n.includes('ground') || n.includes('floor') || n.includes('shadow') || n.includes('backdrop')) {
+              groundMeshes.push(child);
+            }
+          }
+        });
+        groundMeshes.forEach(m => {
+          if (m.parent) m.parent.remove(m);
+        });
+
+        // 2. Ensure world matrices are fully up to date
+        clone.updateMatrixWorld(true);
+
         if (THREE.Box3 && THREE.Vector3) {
           const box = new THREE.Box3().setFromObject(clone);
           const size = new THREE.Vector3();
           box.getSize(size);
-          const maxD = Math.max(size.x, size.y, size.z);
-          let targetHeight = 2.4;
-          if (id === 'megatron' || id === 'void_titan' || id === 'mecha_colossus') targetHeight = 3.3;
-          else if (id === 'optimus') targetHeight = 3.0;
-          else if (id === 'bumblebee' || id === 'chrono_phantom') targetHeight = 2.6;
-          else if (id === 'hive_titan') targetHeight = 2.8;
-          else if (id === 'juggernaut' || id === 'boss' || id === 'siege') targetHeight = 2.5;
-          else if (id === 'overseer') targetHeight = 2.4;
-          else if (id === 'pulse' || id === 'mortar' || id === 'cryo' || id === 'tesla' || id === 'flame' || id === 'railgun' || id === 'beacon' || id === 'barricade' || id === 'wall') targetHeight = 2.2;
-          else if (id === 'kamikaze_drone' || id === 'swarm' || id === 'swarmling') targetHeight = 1.6;
-          else if (id === 'gunship' || id === 'flyer') targetHeight = 2.2;
-          else if (id === 'sprinter') targetHeight = 1.8;
-          else if (id === 'brute' || id === 'tank' || id === 'shieldbearer' || id === 'shielded') targetHeight = 2.6;
-          else if (id === 'phantom') targetHeight = 2.5;
-          else if (id === 'medic' || id === 'splitter') targetHeight = 2.2;
-
-          const scale = maxD > 0 ? (targetHeight / maxD) : 1.0;
-          clone.scale.set(scale, scale, scale);
-
           const center = new THREE.Vector3();
           box.getCenter(center);
-          clone.position.set(-center.x * scale, -box.min.y * scale - 1.9, -center.z * scale);
+
+          const isFlyer = (id === 'medic' || id === 'kamikaze_drone' || id === 'swarm' || id === 'swarmling' || id === 'gunship' || id === 'flyer' || id === 'overseer');
+          const isBoss = (id === 'megatron' || id === 'void_titan' || id === 'mecha_colossus' || id === 'hive_titan' || id === 'juggernaut' || id === 'boss');
+
+          let targetDim = 2.4;
+          if (isBoss) targetDim = (id === 'megatron' || id === 'void_titan') ? 3.4 : 3.0;
+          else if (id === 'optimus') targetDim = 2.9;
+          else if (id === 'bumblebee' || id === 'chrono_phantom') targetDim = 2.6;
+          else if (id === 'brute' || id === 'tank' || id === 'shieldbearer' || id === 'shielded' || id === 'phantom') targetDim = 2.6;
+          else if (id === 'sprinter' || id === 'grunt' || id === 'biped') targetDim = 2.2;
+          else if (isFlyer) targetDim = (id === 'overseer') ? 2.8 : 2.2;
+          else targetDim = 2.3; // Towers
+
+          const maxD = Math.max(size.x, size.y, size.z);
+          const scale = (maxD > 0.001) ? (targetDim / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+
+          // Center horizontally (X and Z)
+          const posX = -center.x * scale;
+          const posZ = -center.z * scale;
+          let posY = 0;
+
+          if (isFlyer) {
+            // Drones and aerial units hover prominently in view center
+            posY = 0.35 - (center.y * scale);
+          } else {
+            // Ground units rest cleanly on top of the platform (y = -1.60)
+            const PLATFORM_SURFACE_Y = -1.60;
+            posY = PLATFORM_SURFACE_Y - (box.min.y * scale);
+          }
+
+          clone.position.set(posX, posY, posZ);
         }
 
         clone.traverse((child) => {
@@ -1329,17 +1358,16 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.envMapIntensity = 2.6;
+              child.material.side = THREE.DoubleSide; // Ensure all face orientations render visible
+              child.material.envMapIntensity = 2.2;
+              if (child.material.metalness !== undefined) {
+                child.material.metalness = Math.min(child.material.metalness, 0.85);
+              }
+              if (child.material.roughness !== undefined) {
+                child.material.roughness = Math.max(child.material.roughness, 0.25);
+              }
               if (child.material.map) child.material.map.anisotropy = 16;
               if (child.material.normalMap) child.material.normalMap.anisotropy = 16;
-              if (child.material.roughnessMap) {
-                child.material.roughnessMap.anisotropy = 16;
-                child.material.roughness = 0.35;
-              }
-              if (child.material.metalnessMap) {
-                child.material.metalnessMap.anisotropy = 16;
-                child.material.metalness = 0.85;
-              }
               // Dark Energon glow for Megatron
               if (id === 'megatron' && child.material.name && child.material.name.toLowerCase().includes('energon')) {
                 child.material.emissive = new THREE.Color(0xa855f7);

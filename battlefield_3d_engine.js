@@ -167,10 +167,25 @@
         optimus: 'assets/models/optimus.glb',
         bumblebee: 'assets/models/bumblebee.glb',
         turret: 'assets/models/turret_scifi.glb',
+        mortar: 'assets/models/turret_mortar.glb',
+        cryo: 'assets/models/turret_cryo.glb',
+        tesla: 'assets/models/turret_tesla.glb',
+        flame: 'assets/models/turret_flame.glb',
         railgun: 'assets/models/turret_railgun.glb',
+        beacon: 'assets/models/turret_beacon.glb',
+        barricade: 'assets/models/turret_barricade.glb',
         grunt: 'assets/models/biped_robot.glb',
+        sprinter: 'assets/models/enemy_sprinter.glb',
+        brute: 'assets/models/enemy_brute.glb',
+        shieldbearer: 'assets/models/enemy_shieldbearer.glb',
+        medic: 'assets/models/enemy_medic.glb',
+        splitter: 'assets/models/enemy_splitter.glb',
+        phantom: 'assets/models/enemy_phantom.glb',
+        kamikaze: 'assets/models/sphere_bot.glb',
         gunship: 'assets/models/mech_drone.glb',
-        kamikaze: 'assets/models/sphere_bot.glb'
+        juggernaut: 'assets/models/boss_juggernaut.glb',
+        overseer: 'assets/models/boss_overseer.glb',
+        hive_titan: 'assets/models/boss_hive_titan.glb'
       };
 
       for (const [key, path] of Object.entries(modelMap)) {
@@ -785,9 +800,33 @@
       headGroup.add(collar);
 
       // Weapon Barrels by Type or Real 3D Turret Model
-      if (this.gltfCache && this.gltfCache.has('railgun') && (t.type === 'laser' || t.type === 'tesla' || t.branch === 'BRANCH_A')) {
-        const gltf = this.gltfCache.get('railgun');
+      const towerTypeMap = {
+        railgun: 'railgun',
+        laser: 'railgun',
+        mortar: 'mortar',
+        cryo: 'cryo',
+        tesla: 'tesla',
+        flame: 'flame',
+        beacon: 'beacon',
+        wall: 'barricade',
+        barricade: 'barricade'
+      };
+      const modelKey = towerTypeMap[t.type] || (t.branch === 'BRANCH_A' ? 'railgun' : 'turret');
+      if (this.gltfCache && this.gltfCache.has(modelKey)) {
+        const gltf = this.gltfCache.get(modelKey);
         const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+        // Remove floor planes
+        const rm = [];
+        clone.traverse(c => {
+          if (c.isMesh) {
+            c.material.side = THREE.DoubleSide;
+            const nm = (c.name || '').toLowerCase();
+            if (nm.includes('plane') || nm.includes('ground') || nm.includes('floor') || nm.includes('shadow')) rm.push(c);
+          }
+        });
+        rm.forEach(c => { if (c.parent) c.parent.remove(c); });
+        clone.updateMatrixWorld(true);
+
         if (THREE.Box3 && THREE.Vector3) {
           const box = new THREE.Box3().setFromObject(clone);
           const size = new THREE.Vector3();
@@ -796,21 +835,7 @@
           const scale = maxD > 0 ? (32 / maxD) : 1.0;
           clone.scale.set(scale, scale, scale);
           clone.rotation.x = Math.PI / 2;
-          clone.position.z = 4;
-        }
-        headGroup.add(clone);
-      } else if (this.gltfCache && this.gltfCache.has('turret')) {
-        const gltf = this.gltfCache.get('turret');
-        const clone = (gltf.scene || gltf.scenes[0]).clone(true);
-        if (THREE.Box3 && THREE.Vector3) {
-          const box = new THREE.Box3().setFromObject(clone);
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          const maxD = Math.max(size.x, size.y, size.z);
-          const scale = maxD > 0 ? (28 / maxD) : 1.0;
-          clone.scale.set(scale, scale, scale);
-          clone.rotation.x = Math.PI / 2;
-          clone.position.z = 2;
+          clone.position.z = 3;
         }
         headGroup.add(clone);
       } else if (t.type === 'pulse') {
@@ -892,94 +917,64 @@
       const group = new THREE.Group();
       const col = e.color ? new THREE.Color(e.color) : new THREE.Color(0x00e5ff);
 
-      if (e.isFlyer) {
-        // VTOL Aerial Gunship (Real 3D GLTF Mech Drone or Procedural)
-        if (this.gltfCache && this.gltfCache.has('gunship')) {
-          const gltf = this.gltfCache.get('gunship');
-          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
-          if (THREE.Box3 && THREE.Vector3) {
-            const box = new THREE.Box3().setFromObject(clone);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxD = Math.max(size.x, size.y, size.z);
-            const scale = maxD > 0 ? (38 / maxD) : 1.0;
-            clone.scale.set(scale, scale, scale);
-            clone.rotation.x = Math.PI / 2;
-          }
-          group.add(clone);
-          return group;
-        }
-
-        const bodyGeo = new THREE.ConeGeometry(14, 38, 6);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.8 });
-        const body = new THREE.Mesh(bodyGeo, bodyMat);
-        body.rotation.z = -Math.PI / 2;
-        group.add(body);
-
-        // Wings
-        const wingGeo = new THREE.BoxGeometry(8, 48, 2);
-        const wingMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
-        const wings = new THREE.Mesh(wingGeo, wingMat);
-        group.add(wings);
-
-        // 2 Rotor Discs
-        const r1Geo = new THREE.CylinderGeometry(14, 14, 0.5, 8);
-        const rMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.65 });
-        const r1 = new THREE.Mesh(r1Geo, rMat); r1.position.set(0, -24, 2); r1.rotation.x = Math.PI / 2;
-        const r2 = new THREE.Mesh(r1Geo, rMat); r2.position.set(0, 24, 2); r2.rotation.x = Math.PI / 2;
-        group.add(r1); group.add(r2);
-        group.rotors = [r1, r2];
-
-      } else if (e.type === 'kamikaze') {
-        // Skittering Spider-Mine Sphere (Real 3D GLTF Sphere Bot or Procedural)
-        if (this.gltfCache && this.gltfCache.has('kamikaze')) {
-          const gltf = this.gltfCache.get('kamikaze');
-          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
-          if (THREE.Box3 && THREE.Vector3) {
-            const box = new THREE.Box3().setFromObject(clone);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxD = Math.max(size.x, size.y, size.z);
-            const scale = maxD > 0 ? (22 / maxD) : 1.0;
-            clone.scale.set(scale, scale, scale);
-            clone.rotation.x = Math.PI / 2;
-            clone.position.z = 9;
-          }
-          group.add(clone);
-          return group;
-        }
-
-        const sGeo = new THREE.SphereGeometry(9, 16, 16);
-        const sMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.8 });
-        const s = new THREE.Mesh(sGeo, sMat);
-        s.position.z = 9;
-        group.add(s);
-
-        const ledGeo = new THREE.SphereGeometry(4, 12, 12);
-        const ledMat = new THREE.MeshBasicMaterial({ color: 0xff1744 });
-        const led = new THREE.Mesh(ledGeo, ledMat);
-        led.position.set(4, 0, 11);
-        group.add(led);
-
+      // Map enemy type to exact 3D model in cache
+      let eModelKey = 'grunt';
+      if (e.isBoss) {
+        if (e.bossId === 'overseer' || e.type === 'overseer') eModelKey = 'overseer';
+        else if (e.bossId === 'hive_titan' || e.type === 'hive_titan') eModelKey = 'hive_titan';
+        else if (e.bossId === 'void_titan' || e.type === 'void_titan') eModelKey = 'megatron';
+        else eModelKey = 'juggernaut';
+      } else if (e.isFlyer) {
+        eModelKey = (e.type === 'medic') ? 'medic' : 'gunship';
+      } else if (e.type === 'kamikaze' || e.type === 'swarm' || e.type === 'swarmling') {
+        eModelKey = 'kamikaze';
+      } else if (e.type === 'sprinter') {
+        eModelKey = 'sprinter';
+      } else if (e.type === 'brute' || e.type === 'tank') {
+        eModelKey = 'brute';
+      } else if (e.type === 'shieldbearer' || e.type === 'shielded') {
+        eModelKey = 'shieldbearer';
+      } else if (e.type === 'splitter') {
+        eModelKey = 'splitter';
+      } else if (e.type === 'phantom') {
+        eModelKey = 'phantom';
+      } else if (e.type === 'medic') {
+        eModelKey = 'medic';
       } else {
-        // Biped Soldier / Brute Mech (Real 3D GLTF Robot or Procedural)
-        if (this.gltfCache && this.gltfCache.has('grunt')) {
-          const gltf = this.gltfCache.get('grunt');
-          const clone = (gltf.scene || gltf.scenes[0]).clone(true);
-          if (THREE.Box3 && THREE.Vector3) {
-            const box = new THREE.Box3().setFromObject(clone);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxD = Math.max(size.x, size.y, size.z);
-            const sz = e.isBoss ? 55 : (e.type === 'brute' ? 36 : 26);
-            const scale = maxD > 0 ? (sz / maxD) : 1.0;
-            clone.scale.set(scale, scale, scale);
-            clone.rotation.x = Math.PI / 2;
-            clone.position.z = sz * 0.5;
+        eModelKey = 'grunt';
+      }
+
+      if (this.gltfCache && this.gltfCache.has(eModelKey)) {
+        const gltf = this.gltfCache.get(eModelKey);
+        const clone = (gltf.scene || gltf.scenes[0]).clone(true);
+        // Remove floor planes
+        const rm = [];
+        clone.traverse(c => {
+          if (c.isMesh) {
+            c.material.side = THREE.DoubleSide;
+            const nm = (c.name || '').toLowerCase();
+            if (nm.includes('plane') || nm.includes('ground') || nm.includes('floor') || nm.includes('shadow')) rm.push(c);
           }
-          group.add(clone);
-          return group;
+        });
+        rm.forEach(c => { if (c.parent) c.parent.remove(c); });
+        clone.updateMatrixWorld(true);
+
+        if (THREE.Box3 && THREE.Vector3) {
+          const box = new THREE.Box3().setFromObject(clone);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxD = Math.max(size.x, size.y, size.z);
+          const sz = e.isBoss ? 55 : (e.type === 'brute' || e.type === 'shieldbearer' ? 36 : (e.type === 'sprinter' ? 28 : (e.isFlyer ? 32 : 24)));
+          const scale = maxD > 0 ? (sz / maxD) : 1.0;
+          clone.scale.set(scale, scale, scale);
+          clone.rotation.x = Math.PI / 2;
+          clone.position.z = sz * 0.4;
         }
+        group.add(clone);
+        return group;
+      }
+
+      if (e.isFlyer) {
         // Biped Soldier / Brute Mech
         const sz = e.isBoss ? 2.2 : (e.type === 'brute' ? 1.4 : 1.0);
         const bGeo = new THREE.BoxGeometry(12 * sz, 16 * sz, 18 * sz);
