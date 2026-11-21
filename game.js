@@ -1164,10 +1164,10 @@
       this.codexSelectedId = 'pulse';
       this.codexSubTab = 'SPECS';
       this.codexBranch = 'BASE';
-      this.codexYaw = 0.45;
-      this.codexPitch = 0.28;
+      this.codexYaw = 0.25;
+      this.codexPitch = 0.20;
       this.codexZoom = 1.0;
-      this.codexAutoRotate = true;
+      this.codexAutoRotate = false;
       this.codexRenderMode = 'SHADED';
       this.codexDragging = false;
       this.codexDragStart = { x: 0, y: 0 };
@@ -2950,10 +2950,10 @@
 
         // Top Turntable HUD Controls (Reset & Lighting)
         if (y >= 80 && y <= 112) {
-          // [⟲ RESET]
-          if (x >= 485 && x <= 562) {
-            this.codexYaw = 0.45;
-            this.codexPitch = 0.28;
+          // [⟲ MARKAZGA]
+          if (x >= 470 && x <= 595) {
+            this.codexYaw = 0.25;
+            this.codexPitch = 0.20;
             this.codexZoom = 1.0;
             this.codexYawVel = 0;
             audio.click();
@@ -2961,7 +2961,7 @@
             return;
           }
           // [💡 LIGHTING PRESET]
-          if (x >= 568 && x <= 770) {
+          if (x >= 598 && x <= 770) {
             if (this.codex3DEngine) {
               const newPreset = this.codex3DEngine.cycleLightingPreset();
               this.addFloatingText(`💡 YORUG'LIK: ${newPreset}`, 550, 140, "#00e5ff", 14);
@@ -2972,54 +2972,34 @@
           }
         }
 
-        // Turntable Control Buttons (Row 1)
-        if (y >= 544 && y <= 580) {
-          // [↺ AVTO]
-          if (x >= 330 && x <= 415) { this.codexAutoRotate = !this.codexAutoRotate; audio.click(); this.vibrate(12); return; }
-          // [◀]
-          if (x >= 420 && x <= 465) { this.codexYaw = (this.codexYaw || 0) - 0.35; audio.click(); return; }
-          // [▶]
-          if (x >= 470 && x <= 515) { this.codexYaw = (this.codexYaw || 0) + 0.35; audio.click(); return; }
-          // [+]
-          if (x >= 520 && x <= 565) { this.codexZoom = Math.min(1.8, (this.codexZoom || 1.0) + 0.15); audio.click(); return; }
-          // [-]
-          if (x >= 570 && x <= 615) { this.codexZoom = Math.max(0.6, (this.codexZoom || 1.0) - 0.15); audio.click(); return; }
-          // [REJIM: SOYA / SIM / RENTGEN]
-          if (x >= 620 && x <= 772) {
-            const modes = ['SHADED', 'WIREFRAME', 'XRAY'];
-            const curIdx = modes.indexOf(this.codexRenderMode || 'SHADED');
-            this.codexRenderMode = modes[(curIdx + 1) % modes.length];
-            audio.click();
-            this.vibrate(15);
-            return;
-          }
+        // Action Demo Button (⚔️ JANG HARAKATINI KO'RISH)
+        if (x >= 330 && x <= 770 && y >= 585 && y <= 642) {
+          this.triggerCodexActionDemo();
+          return;
         }
 
-        // Combat Simulator Controls (Row 2)
-        if (y >= 584 && y <= 624) {
-          // [💥 TEST ATISH (1x)]
-          if (x >= 330 && x <= 480) {
-            this.fireCodexSimShot();
-            this.vibrate(22);
+        // Quick Zoom & Reset Angle Controls (Row at y: 662 to 700)
+        if (y >= 662 && y <= 702) {
+          // [🔍 ZOOM +]
+          if (x >= 330 && x <= 470) {
+            this.codexZoom = Math.min(1.8, (this.codexZoom || 1.0) + 0.15);
+            audio.click();
             return;
           }
-          // [⚡ AVTO-ATISH: ON/OFF]
-          if (x >= 485 && x <= 635) {
-            this.codexSimActive = !this.codexSimActive;
+          // [🔎 ZOOM -]
+          if (x >= 478 && x <= 622) {
+            this.codexZoom = Math.max(0.6, (this.codexZoom || 1.0) - 0.15);
             audio.click();
-            this.vibrate(18);
             return;
           }
-          // [🎯 NISHON ALMASHTIRISH]
-          if (x >= 640 && x <= 772) {
-            const targets = ['STANDARD', 'ARMORED', 'SHIELDED'];
-            const tIdx = (targets.indexOf(this.codexSimTargetType || 'STANDARD') + 1) % targets.length;
-            this.codexSimTargetType = targets[tIdx];
-            if (this.codexSimTargetType === 'STANDARD') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 0; this.codexDummyMaxShield = 0; }
-            else if (this.codexSimTargetType === 'ARMORED') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 0; this.codexDummyMaxShield = 0; }
-            else if (this.codexSimTargetType === 'SHIELDED') { this.codexDummyHp = 1000; this.codexDummyMaxHp = 1000; this.codexDummyShield = 500; this.codexDummyMaxShield = 500; }
+          // [⟲ BURCHAK]
+          if (x >= 628 && x <= 770) {
+            this.codexYaw = 0.25;
+            this.codexPitch = 0.20;
+            this.codexZoom = 1.0;
+            this.codexYawVel = 0;
             audio.click();
-            this.vibrate(15);
+            this.vibrate(12);
             return;
           }
         }
@@ -11323,6 +11303,36 @@ getCodexDatabase() {
       }
     }
 
+    triggerCodexActionDemo() {
+      this.codexRecoil = 1.0;
+      this.vibrate([30, 25, 45]);
+      const codexData = this.getCodexDatabase();
+      const tab = this.codexTab || "TOWERS";
+      const list = codexData[tab] || codexData.TOWERS;
+      const activeItem = list.find(i => i.id === this.codexSelectedId) || list[0];
+
+      if (typeof audio !== 'undefined' && audio) {
+        if (tab === 'TOWERS') {
+          if (activeItem.id === 'mortar') audio.mortarFire();
+          else if (activeItem.id === 'cryo') audio.freeze();
+          else if (activeItem.id === 'tesla') audio.tesla();
+          else if (activeItem.id === 'flame') audio.flame();
+          else if (activeItem.id === 'railgun') audio.railgun();
+          else audio.laserShoot();
+        } else if (tab === 'MECH') {
+          if (activeItem.id === 'megatron') { audio.mortarFire(); audio.playSample('mortar_fire', 0.8); }
+          else if (activeItem.id === 'siege') { audio.mortarFire(); }
+          else audio.heroSlash();
+        } else if (tab === 'BOSSES') {
+          audio.bossRoar();
+        } else {
+          audio.hit();
+        }
+      }
+
+      this.addFloatingText(`⚔️ ${activeItem.name.toUpperCase()} // JANG HARAKATI!`, 550, 180, activeItem.col || "#00e5ff", 18);
+    }
+
     updateCodex(dt) {
       if (typeof document !== 'undefined') {
         const mh = document.getElementById('mech-hangar-canvas');
@@ -11335,7 +11345,7 @@ getCodexDatabase() {
       }
       if (this.codex3DEngine && this.codex3DEngine.active) {
         this.codex3DEngine.loadUnit(this.codexSelectedId, this.codexTab, this.codexBranch, this.codexRenderMode);
-        this.codex3DEngine.update(dt, this.codexYaw || 0.45, this.codexPitch !== undefined ? this.codexPitch : 0.28, this.codexZoom || 1.0, this.codexRecoil || 0);
+        this.codex3DEngine.update(dt, this.codexYaw !== undefined ? this.codexYaw : 0.25, this.codexPitch !== undefined ? this.codexPitch : 0.20, this.codexZoom || 1.0, this.codexRecoil || 0);
       }
 
       if (this.codexAutoRotate) {
@@ -12077,25 +12087,25 @@ getCodexDatabase() {
       const px = 550;
       const py = 350;
       const scale = 2.4 * (this.codexZoom || 1.0);
-      const yaw = this.codexYaw || 0.45;
-      const pitch = (this.codexPitch !== undefined ? this.codexPitch : 0.28);
+      const yaw = this.codexYaw !== undefined ? this.codexYaw : 0.25;
+      const pitch = (this.codexPitch !== undefined ? this.codexPitch : 0.20);
       const mode = this.codexRenderMode || "SHADED";
       const branch = this.codexBranch || "BASE";
 
       // Top Turntable HUD Controls (Badge, Reset & Lighting)
       ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
-      ctx.fillRect(332, 82, 140, 26);
+      ctx.fillRect(332, 82, 130, 26);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1;
-      ctx.strokeRect(332, 82, 140, 26);
+      ctx.strokeRect(332, 82, 130, 26);
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("⚡ 3D PBR // 60 FPS", 402, 99);
+      ctx.fillText("⚡ 3D PBR HD", 397, 99);
 
-      this.drawCyberButton(485, 82, 75, 26, "⟲ RESET", "#ffd600", "", "");
+      this.drawCyberButton(472, 82, 120, 26, "⟲ MARKAZGA", "#ffd600", "", "");
       const lightName = this.codex3DEngine ? this.codex3DEngine.getLightingPresetName() : "CS2 HANGAR";
-      this.drawCyberButton(568, 82, 198, 26, `💡 ${lightName}`, "#00e5ff", "", "");
+      this.drawCyberButton(600, 82, 168, 26, `💡 ${lightName}`, "#00e5ff", "", "");
 
       // Holographic Turntable Base & Animated Scanner Rings
       ctx.save();
@@ -12134,134 +12144,39 @@ getCodexDatabase() {
         this.drawCodex3DUnit(ctx, activeItem, tab, t, yaw, pitch, scale, px, py + 30, mode, branch, this.codexRecoil);
       }
 
-      if (this.codexProjectiles) {
-        for (const p of this.codexProjectiles) {
-          ctx.save();
-          ctx.shadowColor = p.color;
-          ctx.shadowBlur = 12;
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.arc ? 5 : 4, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-      }
+      ctx.restore();
 
-      if (this.codexParticles) {
-        for (const pt of this.codexParticles) {
-          ctx.fillStyle = pt.color;
-          ctx.globalAlpha = Math.max(0, pt.alpha);
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1.0;
-      }
-
-      // Target Dummy
-      const dx = 665, dy = 280;
-      const targetType = this.codexSimTargetType || "STANDARD";
-      const dFlash = this.codexDummyFlash || 0;
-
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      // Bottom Cyber Control & Role Action Bar
+      // 1. Role & Specialty Plate (y: 546, h: 36)
+      ctx.fillStyle = "rgba(10, 18, 34, 0.85)";
+      ctx.fillRect(332, 546, 436, 36);
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.ellipse(dx, dy + 45, 45, 16, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.save();
-      ctx.fillStyle = dFlash > 0.1 ? "#ffffff" : (targetType === "SHIELDED" ? "#0284c7" : (targetType === "ARMORED" ? "#475569" : "#1e293b"));
-      ctx.strokeStyle = targetType === "SHIELDED" ? "#00e5ff" : (targetType === "ARMORED" ? "#cbd5e1" : "#ffd600");
-      ctx.lineWidth = 1.5;
-      if (dFlash > 0.1) {
-        ctx.shadowColor = "#ffffff";
-        ctx.shadowBlur = 15;
-      }
-      ctx.beginPath();
-      ctx.arc(dx, dy - 18, 12, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      ctx.fillRect(dx - 14, dy - 6, 28, 32);
-      ctx.strokeRect(dx - 14, dy - 6, 28, 32);
-      ctx.restore();
-
-      if (targetType === "SHIELDED") {
-        const sPct = Math.max(0, (this.codexDummyShield || 0) / (this.codexDummyMaxShield || 500));
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-        ctx.fillRect(dx - 35, dy - 42, 70, 6);
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillRect(dx - 35, dy - 42, 70 * sPct, 6);
-        ctx.strokeStyle = "#00b0ff";
-        ctx.strokeRect(dx - 35, dy - 42, 70, 6);
-      }
-
-      const hpPct = Math.max(0, (this.codexDummyHp || 0) / (this.codexDummyMaxHp || 1000));
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-      ctx.fillRect(dx - 35, dy - 34, 70, 6);
-      ctx.fillStyle = hpPct > 0.3 ? "#00e676" : "#ff1744";
-      ctx.fillRect(dx - 35, dy - 34, 70 * hpPct, 6);
-      ctx.strokeStyle = "#374151";
-      ctx.strokeRect(dx - 35, dy - 34, 70, 6);
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 9px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(`TARGET: ${targetType}`, dx, dy + 62);
-
-      if (this.codexDmgTexts) {
-        for (const txt of this.codexDmgTexts) {
-          ctx.save();
-          ctx.globalAlpha = Math.max(0, txt.alpha);
-          ctx.fillStyle = txt.color;
-          ctx.font = `900 ${Math.round(12 * (txt.scale || 1.0))}px 'Segoe UI', monospace`;
-          ctx.shadowColor = txt.color;
-          ctx.shadowBlur = 6;
-          ctx.textAlign = "center";
-          ctx.fillText(txt.text, txt.x, txt.y);
-          ctx.restore();
-        }
-      }
-
-      ctx.restore();
-
-      // Row 1: Turntable Controls (y: 546)
-      const autoCol = this.codexAutoRotate ? "#00e5ff" : "#455a64";
-      this.drawCyberButton(330, 546, 85, 34, "↺ AVTO", autoCol, "", "", this.codexAutoRotate);
-      this.drawCyberButton(420, 546, 45, 34, "◀", "#00e5ff", "", "");
-      this.drawCyberButton(470, 546, 45, 34, "▶", "#00e5ff", "", "");
-      this.drawCyberButton(520, 546, 45, 34, "+", "#ffd600", "", "");
-      this.drawCyberButton(570, 546, 45, 34, "-", "#ffd600", "", "");
-      this.drawCyberButton(620, 546, 150, 34, `REJIM: ${mode}`, "#00e676", "", "");
-
-      // Row 2: Combat Simulator Controls (y: 586)
-      this.drawCyberButton(330, 586, 150, 36, "💥 TEST ATISH", "#ff1744", "1x Shot", "", true);
-      const simCol = this.codexSimActive ? "#00e676" : "#455a64";
-      this.drawCyberButton(485, 586, 150, 36, `⚡ AVTO: ${this.codexSimActive ? 'YOQIQ' : 'OCHIQ'}`, simCol, "Simulatsiya", "", this.codexSimActive);
-      this.drawCyberButton(640, 586, 130, 36, `🎯 ${targetType}`, "#ffd600", "Target", "");
-
-      // Row 3: Real-time DPS & Telemetry Bar (x: 330, y: 628, w: 440, h: 70)
-      ctx.fillStyle = "rgba(14, 24, 42, 0.95)";
-      ctx.fillRect(330, 628, 440, 70);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.3)";
-      ctx.strokeRect(330, 628, 440, 70);
-
-      let rollingDmg = 0;
-      if (this.codexDmgHistory && this.codexDmgHistory.length > 0) {
-        for (const h of this.codexDmgHistory) rollingDmg += h.dmg;
-      }
-      const rollingDPS = (rollingDmg / 3.0).toFixed(1);
+      ctx.strokeRect(332, 546, 436, 36);
 
       ctx.textAlign = "left";
-      ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 13px monospace";
-      ctx.fillText(`⚡ REAL-TIME DPS: ${rollingDPS} DMG/S`, 342, 650);
-
-      ctx.fillStyle = "#ffd600";
+      ctx.fillStyle = activeItem.col || "#00e5ff";
       ctx.font = "bold 11px monospace";
-      ctx.fillText(`🎯 NISHON HP: ${this.codexDummyHp}/${this.codexDummyMaxHp} ${targetType === "SHIELDED" ? `| QALQON: ${this.codexDummyShield}/${this.codexDummyMaxShield}` : ""}`, 342, 670);
+      ctx.fillText(`⚡ VAZIFASI: ${activeItem.role.toUpperCase()}`, 345, 568);
 
-      ctx.fillStyle = "#94a3b8";
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 10px monospace";
+      ctx.fillText(`REJIM: ${activeItem.type || 'HARBIY'}`, 756, 568);
+
+      // 2. Action Demo Button (y: 590, h: 46)
+      this.drawCyberButton(332, 590, 436, 46, "⚔️ JANG HARAKATINI KO'RISH", "#00e5ff", "Qurol & Mudofaa Harakati", "⚡", true);
+
+      // 3. User Gesture Hint (y: 650)
+      ctx.fillStyle = "#64748b";
       ctx.font = "10px monospace";
-      ctx.fillText(`TELEMETRIYA: YAW ${(yaw * 57.3).toFixed(0)}° | PITCH ${(pitch * 57.3).toFixed(0)}° | ZOOM ${(this.codexZoom || 1.0).toFixed(1)}x`, 342, 688);
+      ctx.textAlign = "center";
+      ctx.fillText("👆 Barmoq bilan surib 360° ko'rishingiz mumkin", px, 650);
+
+      // 4. Quick Zoom Controls (y: 666, h: 32)
+      this.drawCyberButton(332, 666, 138, 32, "🔍 ZOOM +", "#ffd600", "", "");
+      this.drawCyberButton(481, 666, 138, 32, "🔎 ZOOM -", "#ffd600", "", "");
+      this.drawCyberButton(630, 666, 138, 32, "⟲ BURCHAK", "#00e676", "", "");
 
       // 6. Right Tactical Dossier Bay (x: 785, y: 76, w: 470, h: 630)
       ctx.fillStyle = "rgba(8, 14, 26, 0.95)";

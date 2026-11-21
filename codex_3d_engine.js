@@ -1404,9 +1404,14 @@
 
         this.currentModelObj = {
           root: wrapper,
+          clone: clone,
+          id: id,
+          tab: tab,
           isGLTF: true,
           mixer: this.activeMixer,
-          recoilObj: wrapper
+          recoilObj: wrapper,
+          baseY: wrapper.position.y,
+          isFlyer: isFlyer
         };
       };
 
@@ -1697,6 +1702,84 @@
         if (m) {
           if (m.mechInstance && typeof m.mechInstance.update === 'function') {
             m.mechInstance.update(dt);
+          }
+
+          // === GLTF PHOTOREALISTIC ROLE-SPECIFIC DYNAMIC ACTIONS ===
+          if (m.isGLTF && m.clone) {
+            const t = this.time;
+            const baseY = m.baseY !== undefined ? m.baseY : (m.isFlyer ? 0.25 : -1.50);
+            const id = m.id || this.currentId;
+
+            // 1. DEFENSIVE TOWERS: TARGET SCANNING & HYDRAULIC RECOIL
+            const isTower = (m.tab === 'TOWERS' || id === 'pulse' || id === 'mortar' || id === 'cryo' || 
+                             id === 'tesla' || id === 'flame' || id === 'railgun' || id === 'beacon' || id === 'barricade');
+            if (isTower) {
+              m.root.position.y = baseY;
+
+              // Active target acquisition sweep (searching ±18° left/right)
+              const scanAngle = Math.sin(t * 1.5) * 0.30;
+              m.clone.rotation.y = scanAngle;
+              m.clone.rotation.x = Math.sin(t * 0.9) * 0.035;
+
+              // Recoil punch on fire
+              const isRecoilPulse = (recoil > 0) ? recoil * 0.18 : (Math.sin(t * 4.0) > 0.93 ? 0.08 : 0);
+              m.clone.position.z = -isRecoilPulse;
+
+              // Beacon radar dish rotation if any child matches
+              m.clone.traverse(ch => {
+                if (ch.isMesh && ch.name && (ch.name.toLowerCase().includes('dish') || ch.name.toLowerCase().includes('radar'))) {
+                  ch.rotation.y += dt * 3.0;
+                }
+              });
+            }
+            // 2. AIRBORNE DRONES & FLYERS: SMOOTH THRUSTER HOVER & STABILIZATION
+            else if (m.isFlyer) {
+              m.root.position.y = baseY + Math.sin(t * 2.5) * 0.12;
+              m.root.rotation.z = Math.sin(t * 2.0) * 0.05;
+              m.root.rotation.x = Math.sin(t * 2.3) * 0.04;
+              m.clone.rotation.y = Math.sin(t * 1.1) * 0.22;
+
+              if (recoil > 0) {
+                m.clone.position.z = -recoil * 0.14;
+              } else {
+                m.clone.position.z += (0 - m.clone.position.z) * dt * 8;
+              }
+            }
+            // 3. GROUND TROOPS, TITANS & HEROES: COMBAT IDLE & WEAPON READY
+            else {
+              if (!m.mixer) {
+                const breath = Math.sin(t * 2.2);
+                m.root.position.y = baseY + Math.abs(breath) * 0.04;
+                m.clone.rotation.z = breath * 0.018;
+                m.clone.rotation.x = Math.sin(t * 1.8) * 0.02;
+                m.clone.rotation.y = Math.sin(t * 1.2) * 0.12;
+
+                if (recoil > 0) {
+                  m.clone.position.z = -recoil * 0.15;
+                  m.clone.rotation.x = -recoil * 0.08;
+                } else {
+                  m.clone.position.z += (0 - m.clone.position.z) * dt * 8;
+                  m.clone.rotation.x += (0 - m.clone.rotation.x) * dt * 8;
+                }
+              } else {
+                m.root.position.y = baseY;
+                if (recoil > 0) {
+                  m.clone.position.z = -recoil * 0.10;
+                } else {
+                  m.clone.position.z += (0 - m.clone.position.z) * dt * 8;
+                }
+              }
+
+              // Special hero / boss Dark Energon pulsing
+              if (id === 'megatron' || id === 'void_titan') {
+                const ePulse = 3.5 + Math.sin(t * 5.0) * 1.5 + (recoil * 2.0);
+                m.clone.traverse(ch => {
+                  if (ch.isMesh && ch.material && ch.material.name && ch.material.name.toLowerCase().includes('energon')) {
+                    ch.material.emissiveIntensity = ePulse;
+                  }
+                });
+              }
+            }
           }
 
           // --- 1. TOWERS ROLE-SPECIFIC KINEMATICS ---
