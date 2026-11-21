@@ -1673,22 +1673,22 @@
       // Section 3: Haptic Feedback
       ctx.fillStyle = "#ffffff";
       ctx.fillText("📳 TEBRANISH:", mx + 40, my + 235);
-      this.drawCyberButton(mx + 240, my + 212, 240, 36, "YONIQ 🟢 (HAPTICS ON)", this.settings.haptics ? "#00e676" : "#455a64", "", "", this.settings.haptics);
+      this.drawCyberButton(mx + 240, my + 212, 240, 36, "YONIQ 🟢 (HAPTICS)", this.settings.haptics ? "#00e676" : "#455a64", "", "", this.settings.haptics);
       this.drawCyberButton(mx + 500, my + 212, 240, 36, "O'CHIQ 🔴 (OFF)", !this.settings.haptics ? "#ff1744" : "#455a64", "", "", !this.settings.haptics);
 
       // Section 4: Screen Fit Mode
       ctx.fillStyle = "#ffffff";
       ctx.fillText("📱 EKRAN REJIMI:", mx + 40, my + 295);
       const isFit = this.settings.screenFit === 'FIT';
-      this.drawCyberButton(mx + 240, my + 272, 240, 36, "FIT (16:9 NISBAT)", isFit ? "#00e5ff" : "#455a64", "ORIGINAL PROPORTION", "", isFit);
-      this.drawCyberButton(mx + 500, my + 272, 240, 36, "FILL (TO'LIQ CHEKKAGACHA)", !isFit ? "#00e5ff" : "#455a64", "EDGE-TO-EDGE 20:9", "", !isFit);
+      this.drawCyberButton(mx + 240, my + 272, 240, 36, "FIT (16:9 NISBAT)", isFit ? "#00e5ff" : "#455a64", "STANDART 16:9", "", isFit);
+      this.drawCyberButton(mx + 500, my + 272, 240, 36, "FILL (TO'LIQ EKRAN)", !isFit ? "#00e5ff" : "#455a64", "20:9 KENG EKRAN", "", !isFit);
 
       // Section 5: FPS Mode
       ctx.fillStyle = "#ffffff";
       ctx.fillText("⚡ FPS REJIMI:", mx + 40, my + 355);
       const is60 = this.settings.fpsLimit === 60;
-      this.drawCyberButton(mx + 240, my + 332, 240, 36, "60 FPS (SILLIQ ULTRA)", is60 ? "#ffd600" : "#455a64", "SMOOTH COMBAT", "", is60);
-      this.drawCyberButton(mx + 500, my + 332, 240, 36, "30 FPS (BATAREYA TEJASH)", !is60 ? "#ffd600" : "#455a64", "BATTERY SAVER", "", !is60);
+      this.drawCyberButton(mx + 240, my + 332, 240, 36, "60 FPS (SILLIQ)", is60 ? "#ffd600" : "#455a64", "ULTRA 60 FPS", "", is60);
+      this.drawCyberButton(mx + 500, my + 332, 240, 36, "30 FPS (TEJAMKOR)", !is60 ? "#ffd600" : "#455a64", "BATAREYA TEJASH", "", !is60);
 
       // Section 6: Language
       ctx.fillStyle = "#ffffff";
@@ -1706,7 +1706,7 @@
       // Bottom Row: Close/Save & Main Menu
       this.drawCyberButton(mx + 60, my + 540, 320, 50, "← SAQLASH VA YOPISH", "#00e676", "APPLY & RESUME", "✔", true);
       const isIngame = (this.settingsReturnState === 'PLAYING' || this.settingsReturnState === 'PAUSED');
-      this.drawCyberButton(mx + 420, my + 540, 320, 50, isIngame ? "🚪 ASOSIY MENYUGA QAYTISH" : "ASOSIY MENYUDA QOLISH", "#ff1744", isIngame ? "QUIT COMBAT" : "BACK", "←", false);
+      this.drawCyberButton(mx + 420, my + 540, 320, 50, isIngame ? "🚪 ASOSIY MENYUGA" : "ASOSIY MENYUDA QOLISH", "#ff1744", isIngame ? "JANGNI TUGATISH" : "ORQAGA", "←", false);
 
       ctx.restore();
     }
@@ -9124,11 +9124,18 @@
       ctx.stroke();
 
       ctx.fillStyle = isHovered ? "#ffffff" : color;
-      ctx.font = "bold 11px monospace";
+      let fontSize = Math.min(12, Math.max(9, Math.floor(bh * 0.38)));
+      ctx.font = `bold ${fontSize}px monospace`;
+      let textW = ctx.measureText ? ctx.measureText(text).width : 60;
+      const maxW = bw - 8;
+      if (textW > maxW && maxW > 0) {
+        fontSize = Math.max(8, Math.floor(fontSize * (maxW / textW)));
+        ctx.font = `bold ${fontSize}px monospace`;
+      }
       ctx.textAlign = "center";
       ctx.shadowColor = "rgba(0,0,0,0.9)";
       ctx.shadowBlur = 3;
-      ctx.fillText(text, bx + bw / 2, by + bh / 2 + 4);
+      ctx.fillText(text, bx + bw / 2, by + bh / 2 + Math.round(fontSize * 0.35));
       ctx.restore();
     }
 
@@ -9265,7 +9272,7 @@
       ctx.arc(bx + cut + 5, by + 5, 2.0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 10. High-contrast Typography with Drop Shadow
+      // 10. High-contrast Typography with Drop Shadow & Overflow Prevention
       ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
       ctx.shadowBlur = 5;
       ctx.shadowOffsetY = 1;
@@ -9298,37 +9305,56 @@
         ctx.textBaseline = "alphabetic";
 
         const textStartX = badgeX + badgeR + 14;
+        const maxTextW = bw - (textStartX - bx) - 12;
+
         ctx.textAlign = "left";
         ctx.fillStyle = (isHighlighted || isHovered) ? "#ffffff" : color;
         let fontSize = 14;
         ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
+        let textW = ctx.measureText ? ctx.measureText(text).width : 60;
+        if (textW > maxTextW && maxTextW > 0) {
+          fontSize = Math.max(10, Math.floor(fontSize * (maxTextW / textW)));
+          ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
+        }
         ctx.fillText(text, textStartX, by + bh * 0.44);
 
         if (hasSub) {
           ctx.fillStyle = (isHighlighted || isHovered) ? "#cfd8dc" : "#94a3b8";
-          ctx.font = "bold 10px 'Segoe UI', monospace";
+          let subFontSize = 10;
+          ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
+          let subW = ctx.measureText ? ctx.measureText(subtext).width : 60;
+          if (subW > maxTextW && maxTextW > 0) {
+            subFontSize = Math.max(8, Math.floor(subFontSize * (maxTextW / subW)));
+            ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
+          }
           ctx.fillText(subtext, textStartX, by + bh * 0.74);
         }
       } else {
-        // Crisp Centered Compact Layout for Grid and Action Buttons
+        // Crisp Centered Compact Layout with Auto-fitting for Grid and Action Buttons
         const titleY = hasSub ? by + bh * 0.42 : by + bh * 0.5 + 4;
 
         ctx.fillStyle = (isHighlighted || isHovered) ? "#ffffff" : color;
-        let fontSize = 13;
+        let fontSize = Math.min(13, Math.max(9, Math.floor(bh * 0.32)));
         ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
         ctx.textAlign = "center";
         const fullTitle = icon ? `${icon} ${text}` : text;
-        const textW = ctx.measureText(fullTitle).width;
-        const maxW = bw - 14;
-        if (textW > maxW) {
-          fontSize = Math.max(9, Math.floor(fontSize * (maxW / textW)));
+        const maxW = bw - 12;
+        let textW = ctx.measureText ? ctx.measureText(fullTitle).width : 60;
+        if (textW > maxW && maxW > 0) {
+          fontSize = Math.max(8.5, Math.floor(fontSize * (maxW / textW)));
           ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
         }
         ctx.fillText(fullTitle, bx + bw / 2, titleY);
 
         if (hasSub) {
           ctx.fillStyle = (isHighlighted || isHovered) ? "#cfd8dc" : "#78909c";
-          ctx.font = "bold 9px 'Segoe UI', monospace";
+          let subFontSize = Math.min(9.5, Math.max(7.5, Math.floor(bh * 0.22)));
+          ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
+          let subW = ctx.measureText ? ctx.measureText(subtext).width : 50;
+          if (subW > maxW && maxW > 0) {
+            subFontSize = Math.max(7, Math.floor(subFontSize * (maxW / subW)));
+            ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
+          }
           ctx.fillText(subtext, bx + bw / 2, by + bh * 0.78);
         }
       }
@@ -9663,19 +9689,19 @@
           const bB = def.branches.B;
           const canA = this.gold >= bA.cost;
           const canB = this.gold >= bB.cost;
-          this.drawCyberButton(495, 630, 142, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.toUpperCase()}`, "⚡", canA);
-          this.drawCyberButton(645, 630, 142, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.toUpperCase()}`, "🔥", canB);
+          this.drawCyberButton(495, 630, 142, 72, `[A] ${bA.name}`, canA ? bA.color : "#455a64", `${bA.cost}g • ${bA.perk.slice(0, 18).toUpperCase()}`, "⚡", canA);
+          this.drawCyberButton(645, 630, 142, 72, `[B] ${bB.name}`, canB ? bB.color : "#455a64", `${bB.cost}g • ${bB.perk.slice(0, 18).toUpperCase()}`, "🔥", canB);
         } else if (t.tier === 1) {
           const upCost = spec.upCost;
           const canUpgrade = this.gold >= upCost;
-          this.drawCyberButton(500, 630, 285, 72, `[▲] TIER 2 GA OSHIRISH`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g • (+45% DPS & +20px RNG)`, "⚡", canUpgrade);
+          this.drawCyberButton(500, 630, 285, 72, `[▲] TIER 2 GA OSHIRISH`, canUpgrade ? "#00e676" : "#455a64", `NARXI: ${upCost}g • (+45% DPS)`, "⚡", canUpgrade);
         } else {
-          this.drawCyberButton(500, 630, 285, 72, "MAX TIER 3 (ELITE)", "#ffd600", "MAX TOWER SPECIALIZATION REACHED", "★", false);
+          this.drawCyberButton(500, 630, 285, 72, "MAX TIER 3 (ELITE)", "#ffd600", "MAKSIMAL DARAJA", "★", false);
         }
 
         // Sell button
         const refund = Math.floor(t.totalInvested * 0.70);
-        this.drawCyberButton(795, 630, 115, 72, `SOTISH`, "#ff1744", `+${refund}g QAYTADI`, "🗑️", true);
+        this.drawCyberButton(795, 630, 115, 72, `SOTISH`, "#ff1744", `+${refund}g QAYTARISH`, "🗑️", true);
 
         // Priority button
         this.drawCyberButton(920, 630, 120, 72, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
@@ -10296,27 +10322,11 @@
       // 1. Transparent Clear with Deep Space Sci-Fi Radial Atmosphere
       ctx.clearRect(0, 0, this.width, this.height);
       const bgGrad = ctx.createRadialGradient(this.width * 0.36, this.height * 0.48, 120, this.width * 0.5, this.height * 0.5, this.width * 0.88);
-      bgGrad.addColorStop(0, "rgba(8, 16, 32, 0.08)");
-      bgGrad.addColorStop(0.45, "rgba(5, 12, 26, 0.35)");
-      bgGrad.addColorStop(1, "rgba(2, 4, 10, 0.85)");
+      bgGrad.addColorStop(0, "rgba(8, 16, 32, 0.05)");
+      bgGrad.addColorStop(0.45, "rgba(5, 12, 26, 0.25)");
+      bgGrad.addColorStop(1, "rgba(2, 4, 10, 0.75)");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, this.width, this.height);
-
-      // Perspective Cyber Floor Grid (Horizon at y: 520)
-      ctx.save();
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.045)";
-      ctx.lineWidth = 1;
-      const horizonY = 520;
-      for (let y = horizonY; y <= this.height; y += Math.pow((y - horizonY + 20) * 0.14, 1.35)) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.width, y); ctx.stroke();
-      }
-      for (let x = -200; x <= this.width + 200; x += 110) {
-        ctx.beginPath();
-        ctx.moveTo(this.width * 0.5 + (x - this.width * 0.5) * 0.35, horizonY);
-        ctx.lineTo(x, this.height);
-        ctx.stroke();
-      }
-      ctx.restore();
 
       // Floating Energon Sparks & Cyber Motes
       if (!this.mainMenuParticles) {
@@ -10459,43 +10469,43 @@
       ctx.font = "bold 9px monospace";
       ctx.fillText(heroStat, hx + 12, hy + 46);
 
-      // Holographic Floor Pedestal Rings under Megatron (Center: pcx: 295, pcy: 632)
+      // Holographic Floor Alignment Ring under Megatron Dock (Center: pcx: 295, pcy: 648)
       const pcx = 295;
-      const pcy = 632;
-      ctx.strokeStyle = heroPedCol;
-      ctx.lineWidth = 1.6;
+      const pcy = 648;
+      ctx.strokeStyle = "rgba(192, 132, 252, 0.45)";
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 155, 46, 0, 0, Math.PI * 2);
+      ctx.ellipse(pcx, pcy, 150, 36, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      ctx.strokeStyle = heroPedSubCol;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.60)";
+      ctx.lineWidth = 1.0;
       ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 115, 32, 0, 0, Math.PI * 2);
+      ctx.ellipse(pcx, pcy, 110, 26, 0, 0, Math.PI * 2);
       ctx.stroke();
 
       // Rotating tick marks
       const rotAngle = time * 0.8;
       for (let a = 0; a < 12; a++) {
         const ang = rotAngle + a * (Math.PI / 6);
-        const tx1 = pcx + Math.cos(ang) * 146;
-        const ty1 = pcy + Math.sin(ang) * 43;
-        const tx2 = pcx + Math.cos(ang) * 158;
-        const ty2 = pcy + Math.sin(ang) * 47;
-        ctx.strokeStyle = (a % 3 === 0) ? heroCol : "rgba(148, 163, 184, 0.35)";
+        const tx1 = pcx + Math.cos(ang) * 142;
+        const ty1 = pcy + Math.sin(ang) * 34;
+        const tx2 = pcx + Math.cos(ang) * 154;
+        const ty2 = pcy + Math.sin(ang) * 37;
+        ctx.strokeStyle = (a % 3 === 0) ? heroCol : "rgba(148, 163, 184, 0.25)";
         ctx.beginPath();
         ctx.moveTo(tx1, ty1);
         ctx.lineTo(tx2, ty2);
         ctx.stroke();
       }
 
-      // Drag Rotation Prompt positioned cleanly above the rings and buttons (y: 598)
+      // Drag Rotation Prompt positioned cleanly above the dock and action deck (y: 612)
       ctx.fillStyle = heroCol;
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
       const dragPulse = 0.65 + Math.sin(time * 4) * 0.35;
       ctx.globalAlpha = dragPulse;
-      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 598);
+      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 612);
       ctx.globalAlpha = 1.0;
 
       // Floating Tactical Action Deck under Megatron (y: 662 to 698, h: 36)
@@ -13101,7 +13111,7 @@ getCodexDatabase() {
       // Bottom Control Action Bar (y: 605, h: 56)
       this.drawCyberButton(140, 605, 230, 56, "BOSH MENYU", "#00e5ff", "MAIN MENU", "◀", false);
       this.drawCyberButton(400, 605, 230, 56, "YANGILASH", "#00e676", "SYNC SCORES", "🔄", true);
-      this.drawCyberButton(660, 605, 230, 56, "NIKNI O'ZGARTIRISH", "#ffd600", "EDIT HANDLE", "✏️", false);
+      this.drawCyberButton(660, 605, 230, 56, "NIKNI O'ZGARTIR", "#ffd600", "EDIT HANDLE", "✏️", false);
       this.drawCyberButton(920, 605, 230, 56, "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
     }
 
@@ -13143,7 +13153,7 @@ getCodexDatabase() {
 
       this.drawCyberButton(440, 340, 400, 50, "DAVOM ETISH", "#00e676", "RESUME COMBAT", "▶", true);
       this.drawCyberButton(440, 405, 400, 50, "SOZLAMALAR", "#00e5ff", "AUDIO & SCREEN SETTINGS", "⚙️", false);
-      this.drawCyberButton(440, 470, 400, 50, "ASOSIY MENYUGA QAYTISH", "#ff1744", "ABORT MISSION", "←", false);
+      this.drawCyberButton(440, 470, 400, 50, "ASOSIY MENYUGA", "#ff1744", "ABORT MISSION", "←", false);
     }
 
     renderVictoryModal() {
@@ -13301,7 +13311,7 @@ getCodexDatabase() {
       this.drawCyberButton(550, 410, 180, 52, "STATISTIKA", "#ffd600", "BATTLE REPORT", "📊", false);
       this.drawCyberButton(760, 410, 180, 52, this.t("mainMenu"), "#00e5ff", "COMMAND HQ", "←", false);
 
-      this.drawCyberButton(340, 475, 600, 50, "♾️ CHEKSIZ REJIMDA DAVOM ETISH", "#e040fb", "KEEP TOWERS & FACE INFINITE HORDE", "⚡", true);
+      this.drawCyberButton(340, 475, 600, 50, "♾️ CHEKSIZ REJIMDA DAVOM ETISH", "#e040fb", "CHEKSIZ TO'LQINLAR BILAN DAVOM ETISH", "⚡", true);
       ctx.restore();
     }
 

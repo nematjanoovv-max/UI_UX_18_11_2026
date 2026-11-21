@@ -643,6 +643,15 @@
         }
 
         this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x050711);
+        if (THREE.FogExp2) {
+          this.scene.fog = new THREE.FogExp2(0x050711, 0.026);
+        }
+        if (this.renderer && THREE.PCFSoftShadowMap) {
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        }
+
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
           this.scene.environment = window.createStudioEnvironment(THREE, 'NEON');
         }
@@ -652,9 +661,15 @@
         this.camera.lookAt(0, 0.0, 0);
 
         // Cinematic Decepticon Key + Rim + Dark Energon Lighting (Front Specular Focus)
-        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.2));
-        const key = new THREE.DirectionalLight(0xfff8ee, 3.8);
-        key.position.set(2.0, 3.5, 5.0);
+        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.4));
+        const key = new THREE.DirectionalLight(0xfff8ee, 4.2);
+        key.position.set(2.0, 4.5, 4.5);
+        key.castShadow = true;
+        if (key.shadow) {
+          key.shadow.mapSize.width = 1024;
+          key.shadow.mapSize.height = 1024;
+          key.shadow.bias = -0.001;
+        }
         this.scene.add(key);
 
         const frontFill = new THREE.DirectionalLight(0xdbeafe, 2.2);
@@ -685,6 +700,251 @@
       } catch (e) {
         console.warn("WebGL initialization failed:", e);
         return false;
+      }
+    }
+
+    createGroundDeckTexture(THREE) {
+      if (typeof document === 'undefined') return null;
+      try {
+        const can = document.createElement('canvas');
+        can.width = 512;
+        can.height = 512;
+        const ctx = can.getContext('2d');
+        if (!ctx || !ctx.fillRect) return null;
+
+        // Heavy steel armor plating base
+        ctx.fillStyle = '#0a0e18';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Modular floor tiles (4 x 4 = 16 panels of 128x128)
+        for (let x = 0; x < 512; x += 128) {
+          for (let y = 0; y < 512; y += 128) {
+            const grad = ctx.createLinearGradient ? ctx.createLinearGradient(x, y, x + 128, y + 128) : null;
+            if (grad && grad.addColorStop) {
+              grad.addColorStop(0, '#161f30');
+              grad.addColorStop(0.5, '#0e1422');
+              grad.addColorStop(1, '#090d16');
+              ctx.fillStyle = grad;
+            } else {
+              ctx.fillStyle = '#0e1422';
+            }
+            ctx.fillRect(x + 2, y + 2, 124, 124);
+
+            ctx.strokeStyle = '#223048';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x + 2, y + 2, 124, 124);
+
+            // Fine diamond grip pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+            for (let gx = x + 12; gx < x + 116; gx += 16) {
+              for (let gy = y + 12; gy < y + 116; gy += 16) {
+                ctx.fillRect(gx, gy, 4, 4);
+              }
+            }
+
+            // Corner industrial rivets
+            ctx.fillStyle = '#374768';
+            [[x + 8, y + 8], [x + 120, y + 8], [x + 8, y + 120], [x + 120, y + 120]].forEach(([rx, ry]) => {
+              ctx.beginPath();
+              ctx.arc(rx, ry, 2.5, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          }
+        }
+
+        // Decepticon violet & amber glowing conduit seams
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 256); ctx.lineTo(512, 256);
+        ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+        ctx.stroke();
+
+        // Yellow & black hazard stripes strip along top & bottom edge
+        const stripeH = 14;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, 512, stripeH);
+        ctx.fillStyle = '#ca8a04';
+        for (let s = -20; s < 532; s += 24) {
+          ctx.beginPath();
+          ctx.moveTo(s, 0);
+          ctx.lineTo(s + 12, 0);
+          ctx.lineTo(s + 2, stripeH);
+          ctx.lineTo(s - 10, stripeH);
+          ctx.fill();
+        }
+
+        const tex = new THREE.CanvasTexture(can);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(10, 10);
+        return tex;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    createContactShadowTexture(THREE) {
+      if (typeof document === 'undefined') return null;
+      try {
+        const can = document.createElement('canvas');
+        can.width = 256;
+        can.height = 256;
+        const ctx = can.getContext('2d');
+        if (!ctx || !ctx.fillRect) return null;
+
+        const grad = ctx.createRadialGradient ? ctx.createRadialGradient(128, 128, 12, 128, 128, 124) : null;
+        if (grad && grad.addColorStop) {
+          grad.addColorStop(0.0, 'rgba(0, 0, 0, 0.96)');
+          grad.addColorStop(0.30, 'rgba(0, 0, 0, 0.82)');
+          grad.addColorStop(0.60, 'rgba(0, 0, 0, 0.45)');
+          grad.addColorStop(0.85, 'rgba(0, 0, 0, 0.12)');
+          grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+          ctx.fillStyle = grad;
+        } else {
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        }
+        ctx.fillRect(0, 0, 256, 256);
+
+        return new THREE.CanvasTexture(can);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    createCyberPanoramaTexture(THREE) {
+      if (typeof document === 'undefined') return null;
+      try {
+        const can = document.createElement('canvas');
+        can.width = 1024;
+        can.height = 512;
+        const ctx = can.getContext('2d');
+        if (!ctx || !ctx.fillRect) return null;
+
+        // 1. Deep Celestial Space Nebula Gradient
+        const bgGrad = ctx.createLinearGradient ? ctx.createLinearGradient(0, 0, 0, 512) : null;
+        if (bgGrad && bgGrad.addColorStop) {
+          bgGrad.addColorStop(0.0, '#03050c');
+          bgGrad.addColorStop(0.35, '#0b1126');
+          bgGrad.addColorStop(0.65, '#1e0c38');
+          bgGrad.addColorStop(0.88, '#120b22');
+          bgGrad.addColorStop(1.0, '#050711');
+          ctx.fillStyle = bgGrad;
+        } else {
+          ctx.fillStyle = '#050711';
+        }
+        ctx.fillRect(0, 0, 1024, 512);
+
+        // 2. Cosmic Nebula Clouds (Cyan & Dark Energon Violet)
+        if (ctx.createRadialGradient) {
+          const neb1 = ctx.createRadialGradient(280, 140, 20, 280, 140, 260);
+          neb1.addColorStop(0, 'rgba(168, 85, 247, 0.28)');
+          neb1.addColorStop(0.5, 'rgba(147, 51, 234, 0.12)');
+          neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = neb1;
+          ctx.fillRect(0, 0, 1024, 512);
+
+          const neb2 = ctx.createRadialGradient(720, 180, 30, 720, 180, 290);
+          neb2.addColorStop(0, 'rgba(0, 229, 255, 0.22)');
+          neb2.addColorStop(0.5, 'rgba(30, 58, 138, 0.10)');
+          neb2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = neb2;
+          ctx.fillRect(0, 0, 1024, 512);
+        }
+
+        // 3. Dense Cybertronian Starfield (240 stars)
+        for (let i = 0; i < 240; i++) {
+          const sx = Math.sin(i * 997.3) * 512 + 512;
+          const sy = Math.abs(Math.cos(i * 433.7)) * 360;
+          const r = 0.5 + Math.abs(Math.sin(i * 123.1)) * 1.6;
+          const alpha = 0.35 + Math.abs(Math.sin(i * 45.7)) * 0.65;
+          const colType = i % 5;
+          ctx.fillStyle = colType === 0 ? `rgba(192, 132, 252, ${alpha})` : (colType === 1 ? `rgba(56, 189, 248, ${alpha})` : `rgba(255, 255, 255, ${alpha})`);
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 4. Shattered Cybertron Moon / Giant Planetary Ring Arc
+        ctx.save();
+        ctx.translate(560, 190);
+        ctx.rotate(-0.24);
+
+        if (ctx.createRadialGradient) {
+          const moonGrad = ctx.createRadialGradient(-30, -30, 10, 0, 0, 100);
+          moonGrad.addColorStop(0, '#475569');
+          moonGrad.addColorStop(0.7, '#1e293b');
+          moonGrad.addColorStop(1, 'rgba(15, 23, 42, 0.4)');
+          ctx.fillStyle = moonGrad;
+        } else {
+          ctx.fillStyle = '#1e293b';
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, 95, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.85)';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        if (ctx.ellipse) ctx.ellipse(0, 0, 240, 48, 0, 0, Math.PI * 2);
+        else ctx.arc(0, 0, 180, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 214, 0, 0.7)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        if (ctx.ellipse) ctx.ellipse(0, 0, 252, 52, 0, 0, Math.PI * 2);
+        else ctx.arc(0, 0, 190, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // 5. Far Distant Cybertron Metropolis Silhouette (Kaon Citadel & Spire Horizon)
+        ctx.fillStyle = '#070b16';
+        ctx.beginPath();
+        ctx.moveTo(0, 512);
+        ctx.lineTo(0, 390);
+
+        const horizonPoints = [
+          [0, 390], [60, 370], [110, 340], [130, 260], [140, 250], [150, 345],
+          [210, 360], [270, 320], [300, 230], [315, 220], [330, 330],
+          [400, 350], [450, 290], [480, 210], [500, 200], [520, 310],
+          [580, 340], [640, 300], [680, 240], [700, 230], [720, 335],
+          [790, 355], [840, 310], [870, 250], [890, 240], [910, 340],
+          [970, 370], [1024, 385], [1024, 512]
+        ];
+        horizonPoints.forEach(([hx, hy], idx) => {
+          if (idx === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        });
+        ctx.closePath();
+        ctx.fill();
+
+        // Spire Glowing Neon Circuit Windows & Vertical Data Beams
+        ctx.fillStyle = 'rgba(0, 229, 255, 0.65)';
+        [140, 315, 500, 700, 890].forEach(bx => {
+          for (let wy = 270; wy < 350; wy += 12) {
+            ctx.fillRect(bx - 3, wy, 6, 4);
+          }
+        });
+        ctx.fillStyle = 'rgba(192, 132, 252, 0.75)';
+        [220, 420, 610, 810].forEach(bx => {
+          for (let wy = 320; wy < 380; wy += 10) {
+            ctx.fillRect(bx - 2, wy, 4, 3);
+          }
+        });
+
+        // 6. Volumetric Atmospheric Fog Horizon Blending
+        if (ctx.createLinearGradient) {
+          const hazeGrad = ctx.createLinearGradient(0, 340, 0, 512);
+          hazeGrad.addColorStop(0, 'rgba(5, 7, 17, 0)');
+          hazeGrad.addColorStop(0.5, 'rgba(5, 7, 17, 0.7)');
+          hazeGrad.addColorStop(1, 'rgba(5, 7, 17, 1.0)');
+          ctx.fillStyle = hazeGrad;
+          ctx.fillRect(0, 340, 1024, 172);
+        }
+
+        return new THREE.CanvasTexture(can);
+      } catch (e) {
+        return null;
       }
     }
 
@@ -720,33 +980,70 @@
         roughness: 0.55
       });
 
-      // 1. Shattered Citadel War Monument Pedestal (Octagonal with Broken Chunks)
-      const baseGeo = new THREE.CylinderGeometry(2.8, 3.3, 0.45, 8);
-      const baseMesh = new THREE.Mesh(baseGeo, matDarkSteel);
-      baseMesh.position.set(0, -1.85, 0);
-      this.hangarGroup.add(baseMesh);
+      // 1. Continuous Metallic Ground Deck (Plane spans across entire field at Y = -1.655)
+      const floorTex = this.createGroundDeckTexture(THREE);
+      const floorMat = new THREE.MeshStandardMaterial({
+        map: floorTex || undefined,
+        color: floorTex ? 0x90a0be : 0x0e1422,
+        metalness: 0.85,
+        roughness: 0.38
+      });
+      const floorGeo = new THREE.PlaneGeometry(80, 80);
+      const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.position.set(0, -1.655, 0);
+      floorMesh.receiveShadow = true;
+      this.scene.add(floorMesh);
 
-      // Cracked Dark Energon Magma Fissure Conduits
-      const ringGeo = new THREE.TorusGeometry(2.6, 0.05, 8, 32);
+      // 2. Heavy Hexagonal Docking Platform (Flush with floor: top at Y = -1.655)
+      // Height = 0.14, placed at y = -1.725 so top surface is at -1.725 + 0.07 = -1.655
+      const dockGeo = new THREE.CylinderGeometry(3.3, 3.8, 0.14, 6);
+      const dockMesh = new THREE.Mesh(dockGeo, matDarkSteel);
+      dockMesh.position.set(0, -1.725, 0);
+      dockMesh.receiveShadow = true;
+      this.hangarGroup.add(dockMesh);
+
+      // Outer chamfered trim ring
+      const dockTrimGeo = new THREE.CylinderGeometry(3.8, 4.2, 0.08, 6);
+      const dockTrimMesh = new THREE.Mesh(dockTrimGeo, matMetal);
+      dockTrimMesh.position.set(0, -1.745, 0);
+      this.hangarGroup.add(dockTrimMesh);
+
+      // Recessed Dark Energon glowing conduits flush with platform surface
+      const ringGeo = new THREE.TorusGeometry(3.1, 0.038, 8, 36);
       const ringMesh = new THREE.Mesh(ringGeo, matEnergon);
       ringMesh.rotation.x = Math.PI / 2;
-      ringMesh.position.set(0, -1.62, 0);
+      ringMesh.position.set(0, -1.652, 0);
       this.hangarGroup.add(ringMesh);
 
-      const innerRingGeo = new THREE.TorusGeometry(1.85, 0.04, 8, 32);
+      const innerRingGeo = new THREE.TorusGeometry(2.0, 0.032, 8, 36);
       const innerRingMesh = new THREE.Mesh(innerRingGeo, matFireMagma);
       innerRingMesh.rotation.x = Math.PI / 2;
-      innerRingMesh.position.set(0, -1.62, 0);
+      innerRingMesh.position.set(0, -1.652, 0);
       this.hangarGroup.add(innerRingMesh);
 
       // Broken Slanted Slab Fragment on the Pedestal
       const slabGeo = new THREE.BoxGeometry(1.2, 0.25, 0.8);
       const slabMesh = new THREE.Mesh(slabGeo, matRuinWall);
-      slabMesh.position.set(-1.4, -1.70, 0.9);
+      slabMesh.position.set(-1.4, -1.62, 0.9);
       slabMesh.rotation.set(0.1, 0.4, 0.15);
       this.hangarGroup.add(slabMesh);
 
-      // 2. Distant Ruined Cybertron Skyscrapers / Spires (Background: z = -2.8 to -5.0)
+      // 3. Cinematic Cybertron Celestial Panorama Backdrop
+      const panoTex = this.createCyberPanoramaTexture(THREE);
+      if (panoTex) {
+        const panoGeo = new THREE.CylinderGeometry(28, 28, 20, 32, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
+        const panoMat = new THREE.MeshBasicMaterial({
+          map: panoTex,
+          side: THREE.BackSide,
+          depthWrite: false
+        });
+        const panoMesh = new THREE.Mesh(panoGeo, panoMat);
+        panoMesh.position.set(0, 3.5, -10);
+        this.scene.add(panoMesh);
+      }
+
+      // 4. Distant Ruined Cybertron Skyscrapers / Spires (Background: z = -3.5 to -6.0)
       const ruinSpires = [
         { x: -3.8, y: 1.8, z: -3.5, w: 1.4, h: 7.2, d: 1.4, rotZ: 0.08 },
         { x: -1.8, y: 2.6, z: -4.5, w: 1.8, h: 9.0, d: 1.8, rotZ: -0.05 },
@@ -768,7 +1065,7 @@
         this.hangarGroup.add(winMesh);
       });
 
-      // 3. Collapsed Leaning Steel Girders & Rebar (War Debris)
+      // 5. Collapsed Leaning Steel Girders & Rebar (War Debris)
       [-2.4, 2.4].forEach((xPos, idx) => {
         const girderGeo = new THREE.BoxGeometry(0.35, 6.2, 0.35);
         const girder = new THREE.Mesh(girderGeo, matMetal);
@@ -776,7 +1073,6 @@
         girder.rotation.z = (idx === 0 ? 0.35 : -0.38);
         this.hangarGroup.add(girder);
 
-        // Leaning cross truss
         const crossGeo = new THREE.CylinderGeometry(0.06, 0.06, 4.0, 8);
         const cross = new THREE.Mesh(crossGeo, matDarkSteel);
         cross.position.set(xPos * 0.7, 0.4, -1.6);
@@ -784,13 +1080,13 @@
         this.hangarGroup.add(cross);
       });
 
-      // 4. Burning Energon Fissures & Fire Pits
+      // 6. Burning Energon Fissures & Fire Pits
       const pitGeo = new THREE.CylinderGeometry(0.8, 1.1, 0.2, 12);
       const pitMesh = new THREE.Mesh(pitGeo, matFireMagma);
-      pitMesh.position.set(1.8, -1.88, 0.8);
+      pitMesh.position.set(1.8, -1.74, 0.8);
       this.hangarGroup.add(pitMesh);
 
-      // 5. 96 Floating 3D Dark Energon & Fiery Ember Particles
+      // 7. 96 Floating 3D Dark Energon & Fiery Ember Particles
       const pCount = 96;
       const pGeo = new THREE.BufferGeometry();
       const pPos = new Float32Array(pCount * 3);
@@ -854,6 +1150,7 @@
       }
       if (this.mech && this.mech.root) {
         this.mech.root.position.set(-2.10, -0.08, 0);
+        this.attachGroundContactShadows(T);
       }
       if (this.scene) this.scene.add(this.mech.root);
 
@@ -870,6 +1167,51 @@
           this.groundFill.color.setHex(0x7e22ce); // Decepticon Purple
         }
       }
+    }
+
+    attachGroundContactShadows(T) {
+      if (!this.mech || !this.mech.root || !T || !T.PlaneGeometry || !T.MeshBasicMaterial || !T.Mesh) return;
+      if (!this.contactShadowTex) {
+        this.contactShadowTex = this.createContactShadowTexture(T);
+      }
+      if (!this.contactShadowTex) return;
+
+      const shadowMat = new T.MeshBasicMaterial({
+        map: this.contactShadowTex,
+        transparent: true,
+        opacity: 0.85,
+        depthWrite: false
+      });
+
+      // 1. Overall Body AO Ground Contact Shadow Decal
+      const bodyShadow = new T.Mesh(new T.PlaneGeometry(3.6, 2.8), shadowMat);
+      bodyShadow.rotation.x = -Math.PI / 2;
+      bodyShadow.position.set(0, -1.572, 0);
+      this.mech.root.add(bodyShadow);
+
+      // 2. High-contrast Left Boot Contact Shadow Decal
+      const bootMatL = new T.MeshBasicMaterial({
+        map: this.contactShadowTex,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false
+      });
+      const bootL = new T.Mesh(new T.PlaneGeometry(0.85, 1.4), bootMatL);
+      bootL.rotation.x = -Math.PI / 2;
+      bootL.position.set(-0.42, -1.570, 0.08);
+      this.mech.root.add(bootL);
+
+      // 3. High-contrast Right Boot Contact Shadow Decal
+      const bootMatR = new T.MeshBasicMaterial({
+        map: this.contactShadowTex,
+        transparent: true,
+        opacity: 0.95,
+        depthWrite: false
+      });
+      const bootR = new T.Mesh(new T.PlaneGeometry(0.85, 1.4), bootMatR);
+      bootR.rotation.x = -Math.PI / 2;
+      bootR.position.set(0.42, -1.570, -0.06);
+      this.mech.root.add(bootR);
     }
 
     toggleTransform() {
