@@ -1052,7 +1052,7 @@
         sfxVol: parseFloat(localStorage.getItem('lg_sfx_vol') || '1.0'),
         bgmVol: parseFloat(localStorage.getItem('lg_bgm_vol') || '0.7'),
         haptics: localStorage.getItem('lg_haptics') !== 'false',
-        screenFit: localStorage.getItem('lg_screen_fit') || 'FIT',
+        screenFit: localStorage.getItem('lg_screen_fit') || 'FILL',
         fpsLimit: parseInt(localStorage.getItem('lg_fps_limit') || '60'),
         lang: localStorage.getItem('last_grid_lang') || 'uz'
       };
@@ -1870,7 +1870,7 @@
     resizeCanvas() {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const screenFit = (this.settings && this.settings.screenFit) || localStorage.getItem('lg_screen_fit') || 'FIT';
+      const screenFit = (this.settings && this.settings.screenFit) || localStorage.getItem('lg_screen_fit') || 'FILL';
 
       let cssW = w;
       let cssH = h;
@@ -6355,8 +6355,10 @@
       const ctx = this.ctx;
       const map = (this.gameMode === 'CUSTOM') ? { biome: "cyber" } : MAPS[this.currentMapIndex];
       const biome = (map && map.biome) ? map.biome : "cyber";
+      const pbr = this.pbrPatterns || {};
+      const tNow = performance.now();
 
-      // Background gradient based on biome
+      // 1. Base Layer with Real PBR Pattern or Biome Gradient
       const bgGrad = ctx.createLinearGradient(0, 0, 0, this.height);
       if (biome === 'lava') {
         bgGrad.addColorStop(0, "#150403");
@@ -6371,22 +6373,49 @@
         bgGrad.addColorStop(0.5, "#080e1e");
         bgGrad.addColorStop(1, "#04060d");
       }
-      if (this.bgImages && this.bgImages[biome]) {
-        try {
-          ctx.drawImage(this.bgImages[biome], 0, 0, this.width, this.height);
-        } catch(e) {
-          ctx.fillStyle = bgGrad;
-          ctx.fillRect(0, 0, this.width, this.height);
-        }
-      } else {
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, this.width, this.height);
-      }
 
-      // Photorealistic Interlocking Steel Decking & Expansion Seams
-      const seamStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.16)" :
-                         (biome === 'cryo') ? "rgba(128, 222, 234, 0.18)" :
-                         "rgba(0, 229, 255, 0.12)";
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      // PBR Texture Underlay with Photorealistic Blending
+      ctx.save();
+      if (biome === 'lava' && pbr.volcanicBasalt) {
+        ctx.fillStyle = pbr.volcanicBasalt;
+        ctx.globalAlpha = 0.60;
+        ctx.fillRect(0, 60, this.width, 560);
+        // Animated Pulsing Magma Cracks
+        ctx.globalAlpha = 0.28 + Math.sin(tNow * 0.002) * 0.15;
+        ctx.strokeStyle = "#ff3d00";
+        ctx.lineWidth = 1.8;
+        for (let x = 64; x < this.width; x += 192) {
+          ctx.beginPath();
+          ctx.moveTo(x, 60); ctx.lineTo(x + 24, 200); ctx.lineTo(x - 18, 380); ctx.lineTo(x + 12, 620);
+          ctx.stroke();
+        }
+      } else if (biome === 'cryo' && pbr.cryoFrost) {
+        ctx.fillStyle = pbr.cryoFrost;
+        ctx.globalAlpha = 0.55;
+        ctx.fillRect(0, 60, this.width, 560);
+        // Crystalline Frost Fractures
+        ctx.globalAlpha = 0.25;
+        ctx.strokeStyle = "#00f0ff";
+        ctx.lineWidth = 1.4;
+        for (let x = 96; x < this.width; x += 220) {
+          ctx.beginPath();
+          ctx.moveTo(x, 90); ctx.lineTo(x + 35, 240); ctx.lineTo(x + 10, 420); ctx.lineTo(x + 40, 580);
+          ctx.stroke();
+        }
+      } else if (pbr.brushedTitanium) {
+        ctx.fillStyle = pbr.brushedTitanium;
+        ctx.globalAlpha = 0.42;
+        ctx.fillRect(0, 60, this.width, 560);
+      }
+      ctx.restore();
+
+      // 2. Photorealistic Interlocking Steel Decking & Expansion Seams (64x64)
+      const seamStroke = (biome === 'lava') ? "rgba(255, 87, 34, 0.22)" :
+                         (biome === 'cryo') ? "rgba(128, 222, 234, 0.24)" :
+                         "rgba(0, 229, 255, 0.16)";
       ctx.strokeStyle = seamStroke;
       ctx.lineWidth = 1.2;
       for (let x = 0; x <= this.width; x += 64) {
@@ -6403,6 +6432,18 @@
         }
       }
 
+      // Sub-floor Energon Ventilation Grids (at strategic sector coordinates)
+      if (pbr.industrialGrate) {
+        ctx.save();
+        ctx.fillStyle = pbr.industrialGrate;
+        ctx.globalAlpha = 0.65;
+        for (let x = 128; x < this.width - 64; x += 256) {
+          ctx.fillRect(x + 12, 188, 40, 40);
+          ctx.fillRect(x + 12, 444, 40, 40);
+        }
+        ctx.restore();
+      }
+
       // Outer Perimeter Defense Hazard Stripes
       this.drawHazardStripes(ctx, 4, 60, this.width - 8, 5, 6);
       this.drawHazardStripes(ctx, 4, 615, this.width - 8, 5, 6);
@@ -6415,6 +6456,7 @@
       const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
       const ctx = this.ctx;
       const time = performance.now() * 0.003;
+      const pbr = this.pbrPatterns || {};
 
       for (const lane of map.lanes) {
         if (!lane || lane.length < 2) continue;
@@ -6423,32 +6465,51 @@
         ctx.beginPath();
         ctx.moveTo(lane[0].x, lane[0].y);
         for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
-        ctx.strokeStyle = "#060a12";
-        ctx.lineWidth = 54;
+        ctx.strokeStyle = "#04070e";
+        ctx.lineWidth = 56;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.stroke();
 
-        // 2. Concrete Curb Edge Lines with Specular Bevel
-        ctx.strokeStyle = "rgba(71, 85, 105, 0.85)";
-        ctx.lineWidth = 48;
+        // 2. Concrete/Steel Curb Edge Lines with Specular Bevel
+        ctx.strokeStyle = "rgba(71, 85, 105, 0.88)";
+        ctx.lineWidth = 50;
         ctx.stroke();
 
-        // 3. Inner Dark Asphalt / Weathered Metal Roadbed
+        // 3. Inner Weathered Roadbed with Tread Rutting
         ctx.strokeStyle = "#0c1424";
-        ctx.lineWidth = 42;
+        ctx.lineWidth = 44;
         ctx.stroke();
 
-        // 4. Animated Tactical Guidance Dashed Centerline
+        // 4. Directional Conveyor Chevrons / Animated Guidance Dashes
         ctx.save();
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.9)";
-        ctx.lineWidth = 2.5;
-        ctx.lineDashOffset = -time * 28;
-        ctx.setLineDash([16, 12]);
+        ctx.strokeStyle = "rgba(0, 229, 255, 0.85)";
+        ctx.lineWidth = 2.8;
+        ctx.lineDashOffset = -time * 30;
+        ctx.setLineDash([16, 14]);
         ctx.beginPath();
         ctx.moveTo(lane[0].x, lane[0].y);
         for (let i = 1; i < lane.length; i++) ctx.lineTo(lane[i].x, lane[i].y);
         ctx.stroke();
+        ctx.restore();
+
+        // 5. Tactical Cat-Eye LED Pathway Beacons along the curbs
+        ctx.save();
+        for (let i = 0; i < lane.length - 1; i++) {
+          const p1 = lane[i], p2 = lane[i + 1];
+          const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          const steps = Math.floor(dist / 48);
+          for (let s = 1; s < steps; s++) {
+            const tVal = s / steps;
+            const px = p1.x + (p2.x - p1.x) * tVal;
+            const py = p1.y + (p2.y - p1.y) * tVal;
+            const nx = -(p2.y - p1.y) / dist;
+            const ny = (p2.x - p1.x) / dist;
+            ctx.fillStyle = "rgba(0, 229, 255, 0.75)";
+            ctx.beginPath(); ctx.arc(px + nx * 22, py + ny * 22, 1.8, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(px - nx * 22, py - ny * 22, 1.8, 0, Math.PI * 2); ctx.fill();
+          }
+        }
         ctx.restore();
       }
 
@@ -6459,29 +6520,39 @@
         ctx.save();
         ctx.translate(sp.x, sp.y);
 
-        // Rotating hazard ring
+        // Rotating Magnetic Hazard Rings
         ctx.rotate(time * 1.6);
         ctx.strokeStyle = "#ff1744";
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        ctx.arc(0, 0, 26, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Pulsing hazard arcs
-        ctx.strokeStyle = "rgba(255, 23, 68, 0.7)";
-        ctx.lineWidth = 1.8;
-        for (let i = 0; i < 3; i++) {
-          const a = (Math.PI * 2 / 3) * i;
+        ctx.strokeStyle = "#ffd600";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(0, 0, 20, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Pulsing Quantum Induction Arcs
+        ctx.strokeStyle = "rgba(255, 23, 68, 0.75)";
+        ctx.lineWidth = 2.0;
+        for (let i = 0; i < 4; i++) {
+          const a = (Math.PI / 2) * i - time * 2;
           ctx.beginPath();
-          ctx.arc(0, 0, 30, a, a + Math.PI / 4);
+          ctx.arc(0, 0, 32, a, a + Math.PI / 6);
           ctx.stroke();
         }
         ctx.restore();
 
-        // Spawn Gate Core
-        ctx.fillStyle = "rgba(255, 23, 68, 0.9)";
+        // Spawn Gate Core & Event Horizon
+        const coreGrad = ctx.createRadialGradient(sp.x, sp.y, 2, sp.x, sp.y, 16);
+        coreGrad.addColorStop(0, "#ffffff");
+        coreGrad.addColorStop(0.4, "#ff1744");
+        coreGrad.addColorStop(1, "#7f1d1d");
+        ctx.fillStyle = coreGrad;
         ctx.beginPath();
-        ctx.arc(sp.x, sp.y, 14, 0, Math.PI * 2);
+        ctx.arc(sp.x, sp.y, 15, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = "#ffffff";
@@ -6813,12 +6884,90 @@
           }
         }
 
+        // 5. Cast Gunmetal Heavy Iron Armor (64x64)
+        const gunC = document.createElement('canvas'); gunC.width = gunC.height = 64;
+        const gCtx = gunC.getContext('2d');
+        gCtx.fillStyle = '#0b1120'; gCtx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 110; i++) {
+          const gx = rnd() * 64, gy = rnd() * 64;
+          gCtx.fillStyle = rnd() > 0.5 ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.38)';
+          gCtx.fillRect(gx, gy, 1.5, 1.5);
+        }
+
+        // 6. Volcanic Basalt Magma Rock with Glowing Fissures (64x64)
+        const lavaC = document.createElement('canvas'); lavaC.width = lavaC.height = 64;
+        const lCtx = lavaC.getContext('2d');
+        lCtx.fillStyle = '#150503'; lCtx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 80; i++) {
+          const lx = rnd() * 64, ly = rnd() * 64;
+          lCtx.fillStyle = rnd() > 0.65 ? 'rgba(255, 87, 34, 0.25)' : 'rgba(0, 0, 0, 0.45)';
+          lCtx.fillRect(lx, ly, 2, 2);
+        }
+        for (let f = 0; f < 5; f++) {
+          lCtx.strokeStyle = 'rgba(255, 61, 0, 0.45)';
+          lCtx.lineWidth = 1.2;
+          lCtx.beginPath();
+          let fx = rnd() * 64, fy = rnd() * 64;
+          lCtx.moveTo(fx, fy);
+          for (let step = 0; step < 4; step++) {
+            fx += (rnd() - 0.5) * 16; fy += (rnd() - 0.5) * 16;
+            lCtx.lineTo(fx, fy);
+          }
+          lCtx.stroke();
+        }
+
+        // 7. Cryo Permafrost Glacial Ice with Cyan Shimmer (64x64)
+        const cryoC = document.createElement('canvas'); cryoC.width = cryoC.height = 64;
+        const crCtx = cryoC.getContext('2d');
+        crCtx.fillStyle = '#061527'; crCtx.fillRect(0, 0, 64, 64);
+        for (let i = 0; i < 75; i++) {
+          const cx = rnd() * 64, cy = rnd() * 64;
+          crCtx.fillStyle = rnd() > 0.5 ? 'rgba(0, 229, 255, 0.16)' : 'rgba(255, 255, 255, 0.12)';
+          crCtx.fillRect(cx, cy, 2, 1);
+        }
+        for (let c = 0; c < 6; c++) {
+          crCtx.strokeStyle = 'rgba(128, 222, 234, 0.35)';
+          crCtx.lineWidth = 0.9;
+          crCtx.beginPath();
+          let cx = rnd() * 64, cy = rnd() * 64;
+          crCtx.moveTo(cx, cy);
+          for (let step = 0; step < 3; step++) {
+            cx += (rnd() - 0.5) * 18; cy += (rnd() - 0.5) * 18;
+            crCtx.lineTo(cx, cy);
+          }
+          crCtx.stroke();
+        }
+
+        // 8. Industrial Diamond Catwalk Grate (32x32)
+        const grateC = document.createElement('canvas'); grateC.width = grateC.height = 32;
+        const grCtx = grateC.getContext('2d');
+        grCtx.fillStyle = '#050912'; grCtx.fillRect(0, 0, 32, 32);
+        grCtx.strokeStyle = 'rgba(71, 85, 105, 0.42)';
+        grCtx.lineWidth = 1.2;
+        for (let d = -32; d < 64; d += 8) {
+          grCtx.beginPath(); grCtx.moveTo(d, 0); grCtx.lineTo(d + 32, 32); grCtx.stroke();
+          grCtx.beginPath(); grCtx.moveTo(d, 32); grCtx.lineTo(d + 32, 0); grCtx.stroke();
+        }
+
+        // 9. Caterpillar Heavy Tank Tread Links (32x32)
+        const treadC = document.createElement('canvas'); treadC.width = treadC.height = 32;
+        const trCtx = treadC.getContext('2d');
+        trCtx.fillStyle = '#080c14'; trCtx.fillRect(0, 0, 32, 32);
+        trCtx.fillStyle = '#1e293b'; trCtx.fillRect(2, 2, 28, 12); trCtx.fillRect(2, 18, 28, 12);
+        trCtx.fillStyle = 'rgba(255, 255, 255, 0.12)'; trCtx.fillRect(3, 3, 26, 2); trCtx.fillRect(3, 19, 26, 2);
+        trCtx.fillStyle = '#000000'; trCtx.fillRect(2, 14, 28, 4);
+
         if (this.ctx && this.ctx.createPattern) {
           this.pbrPatterns = {
             brushedTitanium: this.ctx.createPattern(titC, 'repeat'),
             carbonFiber: this.ctx.createPattern(carbC, 'repeat'),
             hazardPlate: this.ctx.createPattern(hazC, 'repeat'),
-            bioChitin: this.ctx.createPattern(bioC, 'repeat')
+            bioChitin: this.ctx.createPattern(bioC, 'repeat'),
+            castGunmetal: this.ctx.createPattern(gunC, 'repeat'),
+            volcanicBasalt: this.ctx.createPattern(lavaC, 'repeat'),
+            cryoFrost: this.ctx.createPattern(cryoC, 'repeat'),
+            industrialGrate: this.ctx.createPattern(grateC, 'repeat'),
+            caterpillarTread: this.ctx.createPattern(treadC, 'repeat')
           };
         }
       } catch(e) {
@@ -7493,11 +7642,12 @@
         // 2. Heavy Cast-Titanium Octagonal Pedestal Base with PBR Bevels
         this.drawUnitContactShadow(ctx, 28, 28, 0.65);
 
+        const pbr = this.pbrPatterns || {};
         const baseGrad = ctx.createLinearGradient(t.x - 25, t.y - 25, t.x + 25, t.y + 25);
         baseGrad.addColorStop(0, "#475569");
         baseGrad.addColorStop(0.4, "#1e293b");
         baseGrad.addColorStop(1, "#090d16");
-        ctx.fillStyle = baseGrad;
+        ctx.fillStyle = pbr.castGunmetal || baseGrad;
         ctx.strokeStyle = color;
         ctx.lineWidth = t.branch ? 3 : 2;
 
@@ -7626,20 +7776,66 @@
             this.drawTemperedBarrel(ctx, 0, -4, 34, 8);
             ctx.fillStyle = "#ffd600"; ctx.fillRect(11, -7, 4, 14); ctx.fillRect(21, -7, 4, 14);
           }
+        } else if (t.type === 'flame') {
+          // Dual Pressurized Napalm Canisters & Pilot Flame
+          this.drawBevelPlate(ctx, -9, -12, 22, 24, pbr.castGunmetal || "#334155", "#ff5722", 3);
+          ctx.fillStyle = "#d97706";
+          ctx.fillRect(-14, -10, 6, 20);
+          this.drawTemperedBarrel(ctx, 4, -4, 20, 8);
+          const pFlicker = Math.sin(performance.now() * 0.03) * 2;
+          ctx.fillStyle = "#ff9100";
+          ctx.beginPath(); ctx.arc(25 + pFlicker, 0, 4, 0, Math.PI * 2); ctx.fill();
         } else if (t.type === 'beacon') {
-          // Tactical Radar / Overcharge Arc
-          const spGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 16);
+          // Revolving Tactical Radar Sweep Dish
+          const sweepA = performance.now() * 0.003;
+          ctx.save();
+          ctx.rotate(sweepA);
+          ctx.strokeStyle = "rgba(179, 136, 255, 0.85)";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, 16, -Math.PI / 3, Math.PI / 3);
+          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(16, 0); ctx.stroke();
+          ctx.restore();
+
+          const spGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 12);
           spGrad.addColorStop(0, "#ffffff"); spGrad.addColorStop(0.5, "#b388ff"); spGrad.addColorStop(1, "#651fff");
           ctx.fillStyle = spGrad;
-          ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
-          ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 2; ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = "#ffd600"; ctx.lineWidth = 1.5; ctx.stroke();
         } else if (t.type === 'tesla') {
-          // Induction Coil Stack & Spherical Electrode
-          this.drawBevelPlate(ctx, -9, -11, 18, 22, "#334155", "#ffd600", 3);
+          // Induction Coil Stack & Spherical Electrode with Dancing Sparks
+          this.drawBevelPlate(ctx, -9, -11, 18, 22, pbr.castGunmetal || "#334155", "#ffd600", 3);
           const tGrad = ctx.createRadialGradient(10, 0, 1, 10, 0, 9);
           tGrad.addColorStop(0, "#ffffff"); tGrad.addColorStop(0.5, "#ffd600"); tGrad.addColorStop(1, "#b45309");
           ctx.fillStyle = tGrad;
           ctx.beginPath(); ctx.arc(10, 0, 8.5, 0, Math.PI * 2); ctx.fill();
+
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 214, 0, 0.85)";
+          ctx.lineWidth = 1.4;
+          const sparkT = performance.now() * 0.02;
+          for (let s = 0; s < 3; s++) {
+            const sa = sparkT + s * (Math.PI * 2 / 3);
+            ctx.beginPath();
+            ctx.moveTo(10, 0);
+            ctx.lineTo(10 + Math.cos(sa) * 14, Math.sin(sa) * 14);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // Dynamic Recoil Muzzle Flash Burst when firing
+        if (t.recoil && t.recoil > 0.05) {
+          ctx.save();
+          const flashSize = 6 + t.recoil * 14;
+          const flashGrad = ctx.createRadialGradient(30, 0, 1, 30, 0, flashSize);
+          flashGrad.addColorStop(0, "#ffffff");
+          flashGrad.addColorStop(0.35, color);
+          flashGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+          ctx.fillStyle = flashGrad;
+          ctx.beginPath(); ctx.arc(30, 0, flashSize, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
         }
 
         ctx.restore();
@@ -7656,6 +7852,9 @@
       const ctx = this.ctx;
       const tNow = performance.now();
       const pbr = this.pbrPatterns || {};
+      const metalPat = pbr.castGunmetal || "#334155";
+      const carbonPat = pbr.carbonFiber || "#1e293b";
+      const treadPat = pbr.caterpillarTread || "#090d16";
 
       for (const e of this.enemies) {
         ctx.save();
@@ -7666,12 +7865,12 @@
             // VTOL Heavy Aerial Attack Gunship
             this.drawUnitContactShadow(ctx, 24, 13, 0.45);
             ctx.rotate(e.angle);
-            const rotorSpin = tNow * 0.05;
+            const rotorSpin = tNow * 0.055;
 
-            // Swept Composite Stealth Wings
-            this.drawBevelPlate(ctx, -7, -24, 9, 48, "#334155", "#64748b", 2);
+            // Swept Composite Stealth Wings with Carbon-Fiber PBR
+            this.drawBevelPlate(ctx, -7, -24, 9, 48, carbonPat, "#64748b", 2);
 
-            // Dual Tilting Tilt-Rotor Nacelles
+            // Dual Tilting Tilt-Rotor Nacelles with Chrome Hydraulic Pivots
             this.drawChromePiston(ctx, -5, -28, 10, 8);
             this.drawChromePiston(ctx, -5, 20, 10, 8);
 
@@ -7703,8 +7902,15 @@
             ctx.fillStyle = cGrad;
             ctx.beginPath(); ctx.ellipse(10, 0, 7.5, 4, 0, 0, Math.PI * 2); ctx.fill();
 
-            // Underslung Chin 30mm Autocannon
+            // Underslung Chin 30mm Rotary Autocannon with Recoil & Muzzle Flash
             this.drawTemperedBarrel(ctx, 17, -1.5, 10, 3);
+            const gunRecoil = (Math.sin(tNow * 0.04) > 0.7);
+            if (gunRecoil) {
+              ctx.fillStyle = "#ffffff";
+              ctx.beginPath(); ctx.arc(28, 0, 4, 0, Math.PI * 2); ctx.fill();
+              ctx.fillStyle = "rgba(255, 214, 0, 0.75)";
+              ctx.beginPath(); ctx.arc(29, 0, 8, 0, Math.PI * 2); ctx.fill();
+            }
 
             // Floating HP
             ctx.rotate(-e.angle);
@@ -7753,32 +7959,56 @@
           // Cyborg Shock-Trooper
           ctx.rotate(e.angle);
           const walk = Math.sin(e.walkAnim || 0) * 5;
-          ctx.fillStyle = "#0f172a"; ctx.fillRect(-10 + walk, -9, 8, 4.5); ctx.fillRect(-10 - walk, 4.5, 8, 4.5);
+          // Leg pistons & boots
+          ctx.fillStyle = "#0f172a";
+          ctx.fillRect(-10 + walk, -9, 8, 4.5);
+          ctx.fillRect(-10 - walk, 4.5, 8, 4.5);
+          this.drawChromePiston(ctx, -7 + walk, -8, 5, 2.5);
+          this.drawChromePiston(ctx, -7 - walk, 5.5, 5, 2.5);
 
-          // Ballistic Kevlar Chest Rig
-          this.drawBevelPlate(ctx, -8, -8, 16, 16, "#334155", e.color || "#00e5ff", 3);
+          // Ballistic Kevlar Chest Rig with Cast Gunmetal
+          this.drawBevelPlate(ctx, -8, -8, 16, 16, metalPat, e.color || "#00e5ff", 3);
+          this.drawRivet(ctx, -6, -6); this.drawRivet(ctx, 6, -6);
+          this.drawRivet(ctx, -6, 6); this.drawRivet(ctx, 6, 6);
+
           // Combat Helmet & Glowing NVG Visor
           ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(4, 0, 5.5, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = "#00e5ff"; ctx.fillRect(6, -2.5, 4, 5);
           ctx.fillStyle = "#ffffff"; ctx.fillRect(8, -1.2, 1.8, 2.4);
-          // Assault Carbine
-          this.drawTemperedBarrel(ctx, 7, 3, 14, 3.5);
+
+          // Assault Carbine with Dynamic Recoil & Muzzle Flash
+          const firing = (Math.sin(tNow * 0.03 + e.x) > 0.65);
+          this.drawTemperedBarrel(ctx, 7 - (firing ? 2 : 0), 3, 14, 3.5);
+          if (firing) {
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath(); ctx.arc(22, 3, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "rgba(0, 229, 255, 0.75)";
+            ctx.beginPath(); ctx.arc(23, 3, 6, 0, Math.PI * 2); ctx.fill();
+          }
 
         } else if (e.type === "sprinter") {
           // Quadruped Predator Cyber-Hound
           ctx.rotate(e.angle);
           const runFore = Math.sin(e.walkAnim || 0) * 7;
           const runHind = Math.sin((e.walkAnim || 0) + 1.2) * 7;
+          // Articulated Gallop Legs with Chrome Hydraulic Pistons
           ctx.fillStyle = "#1e293b";
           ctx.fillRect(4 + runFore, -12, 7, 4.5); ctx.fillRect(4 - runFore, 7.5, 7, 4.5);
           ctx.fillRect(-12 - runHind, -11, 7, 5); ctx.fillRect(-12 + runHind, 6, 7, 5);
+          this.drawChromePiston(ctx, 5 + runFore, -10.5, 5, 2.2);
+          this.drawChromePiston(ctx, 5 - runFore, 8.5, 5, 2.2);
 
-          // Flexible Carbon Chassis
-          this.drawBevelPlate(ctx, -13, -8, 26, 16, "#451a03", e.color || "#ffd600", 4);
+          // Flexible Carbon Chassis with Carbon-Fiber PBR
+          this.drawBevelPlate(ctx, -13, -8, 26, 16, carbonPat, e.color || "#ffd600", 4);
+          // Heat dissipation spine vents
+          ctx.fillStyle = "#ff5722";
+          ctx.fillRect(-6, -1.5, 3, 3); ctx.fillRect(0, -1.5, 3, 3);
+
           // Cyber Skull & Glowing Crimson Optics
           ctx.fillStyle = "#0f172a";
           ctx.beginPath(); ctx.moveTo(9, -4.5); ctx.lineTo(18, 0); ctx.lineTo(9, 4.5); ctx.closePath(); ctx.fill();
           ctx.fillStyle = "#ff1744"; ctx.fillRect(13, -2, 4, 4);
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(15, -1, 2, 2);
 
         } else if (e.type === "brute") {
           // 4-Meter War-Mech Juggernaut
@@ -7786,14 +8016,22 @@
           const stomp = Math.sin(e.walkAnim || 0) * 4.5;
           ctx.fillStyle = "#090d16";
           ctx.fillRect(-18 + stomp, -19, 12, 9); ctx.fillRect(-18 - stomp, 10, 12, 9);
+          this.drawChromePiston(ctx, -16 + stomp, -16, 8, 4);
+          this.drawChromePiston(ctx, -16 - stomp, 13, 8, 4);
 
-          // Bolted Glacis Armor & Hazard Stripes
-          this.drawBevelPlate(ctx, -16, -17, 30, 34, "#334155", e.color || "#ff007f", 4);
+          // Bolted Glacis Armor & Hazard Stripes with Cast Gunmetal
+          this.drawBevelPlate(ctx, -16, -17, 30, 34, metalPat, e.color || "#ff007f", 4);
           this.drawHazardStripes(ctx, -14, -14, 6, 28, 4);
+          this.drawRivet(ctx, -14, -15); this.drawRivet(ctx, 11, -15);
+          this.drawRivet(ctx, -14, 15); this.drawRivet(ctx, 11, 15);
 
           // Twin Exhaust Smokestacks spewing soot & ember sparks
           ctx.fillStyle = "#1e293b"; ctx.fillRect(-19, -15, 5, 8); ctx.fillRect(-19, 7, 5, 8);
           ctx.fillStyle = "#ff3d00"; ctx.fillRect(-20, -14, 2, 6); ctx.fillRect(-20, 8, 2, 6);
+          const sparkOffset = Math.sin(tNow * 0.05) * 3;
+          ctx.fillStyle = "rgba(255, 87, 34, 0.8)";
+          ctx.beginPath(); ctx.arc(-24 + sparkOffset, -11, 2.5, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(-24 - sparkOffset, 11, 2.5, 0, Math.PI * 2); ctx.fill();
 
           // Hydraulic Ram Power-Fists
           this.drawChromePiston(ctx, 9, -21, 17, 8);
@@ -7814,7 +8052,7 @@
           ctx.moveTo(5, 6); ctx.lineTo(12, 14 + kWalk);
           ctx.stroke();
 
-          // High-Explosive Spherical Payload
+          // High-Explosive Spherical Payload with Metallic Cast Alloy
           const kGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, 10);
           kGrad.addColorStop(0, "#cbd5e1"); kGrad.addColorStop(0.5, "#475569"); kGrad.addColorStop(1, "#090d16");
           ctx.fillStyle = kGrad; ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill();
@@ -7823,6 +8061,8 @@
           const kStrobe = Math.sin(tNow * 0.025) * 0.5 + 0.5;
           ctx.fillStyle = `rgba(255, 23, 68, ${0.5 + kStrobe * 0.5})`;
           ctx.beginPath(); ctx.arc(0, 0, 5 + kStrobe * 2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill();
 
         } else if (e.type === "swarmling") {
           // Nano-Arachnid Bio-Drone
@@ -7838,22 +8078,28 @@
             ctx.moveTo(2, ly); ctx.lineTo(8, ly - st); ctx.lineTo(14, ly - st * 1.5); ctx.stroke();
           }
 
-          // Armored Chitin Carapace
-          this.drawBevelPlate(ctx, -10, -7, 18, 14, "#0f172a", "#ffab00", 3);
+          // Armored Chitin Carapace with Carbon-Fiber PBR
+          this.drawBevelPlate(ctx, -10, -7, 18, 14, carbonPat, "#ffab00", 3);
           ctx.fillStyle = "#ff1744"; ctx.fillRect(4, -2.5, 4, 5);
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(6, -1.2, 1.8, 2.4);
 
         } else if (e.type === "shieldbearer") {
           // Aegis Paladin Mech with Hex-Pavise Shield
           ctx.rotate(e.angle);
-          this.drawBevelPlate(ctx, -13, -12, 18, 24, "#1e293b", "#00b0ff", 4);
+          this.drawBevelPlate(ctx, -13, -12, 18, 24, metalPat, "#00b0ff", 4);
           ctx.fillStyle = "#00e5ff"; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
 
-          // Curved Holographic Hex Shield
+          // Curved Holographic Hex Shield with Dynamic Energy Ripple
           ctx.save();
           ctx.strokeStyle = "rgba(0, 176, 255, 0.95)";
           ctx.fillStyle = "rgba(0, 229, 255, 0.35)";
           ctx.lineWidth = 3.5;
           ctx.beginPath(); ctx.arc(13, 0, 24, -Math.PI / 2.2, Math.PI / 2.2); ctx.stroke(); ctx.fill();
+          // Shimmering Hex Grid Deflector Line
+          const shieldPulse = Math.sin(tNow * 0.01) * 2;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(13 + shieldPulse, 0, 21, -Math.PI / 2.5, Math.PI / 2.5); ctx.stroke();
           ctx.restore();
 
         } else if (e.type === "medic") {
@@ -7866,8 +8112,13 @@
           ctx.fillStyle = "#ffffff";
           ctx.fillRect(-1.5, bob - 5.5, 3, 11); ctx.fillRect(-5.5, bob - 1.5, 11, 3);
 
+          // Oscillating Nano-Repair Laser Emitter
+          const repairGlow = Math.sin(tNow * 0.02) * 0.4 + 0.6;
+          ctx.fillStyle = `rgba(0, 230, 118, ${repairGlow})`;
+          ctx.beginPath(); ctx.arc(12, bob, 3, 0, Math.PI * 2); ctx.fill();
+
         } else if (e.type === "phantom") {
-          // Stealth Spectre with Chromatic Aberration
+          // Stealth Spectre with Active-Camo Chromatic Aberration
           ctx.rotate(e.angle);
           const shimmer = Math.sin(tNow * 0.015) * 3.5;
           ctx.fillStyle = "rgba(255, 0, 127, 0.35)"; ctx.fillRect(-10 + shimmer, -8, 16, 16);
@@ -7881,23 +8132,35 @@
           ctx.rotate(e.angle);
           const walkB = Math.sin(e.walkAnim || 0) * 5;
 
-          // 4 Independent Heavy Caterpillar Tread Assemblies
-          ctx.fillStyle = "#090d16";
+          // 4 Independent Heavy Caterpillar Tread Assemblies with Tread Pattern
+          ctx.fillStyle = treadPat;
           ctx.fillRect(-28 + walkB, -30, 20, 14); ctx.fillRect(-28 - walkB, 16, 20, 14);
           ctx.fillRect(8 - walkB, -30, 20, 14); ctx.fillRect(8 + walkB, 16, 20, 14);
           ctx.strokeStyle = "#ff1744"; ctx.lineWidth = 1.8;
           ctx.strokeRect(-28 + walkB, -30, 20, 14); ctx.strokeRect(-28 - walkB, 16, 20, 14);
           ctx.strokeRect(8 - walkB, -30, 20, 14); ctx.strokeRect(8 + walkB, 16, 20, 14);
 
-          // Sloped Reactive Fortress Armor Glacis
-          this.drawBevelPlate(ctx, -24, -24, 48, 48, "#334155", "#ff1744", 6);
+          // Sloped Reactive Fortress Armor Glacis with Cast Gunmetal
+          this.drawBevelPlate(ctx, -24, -24, 48, 48, metalPat, "#ff1744", 6);
           this.drawHazardStripes(ctx, -20, -20, 8, 40, 5);
+          this.drawRivet(ctx, -20, -20); this.drawRivet(ctx, 20, -20);
+          this.drawRivet(ctx, -20, 20); this.drawRivet(ctx, 20, 20);
 
-          // Dual Heavy Siege Howitzer Barrels
-          this.drawTemperedBarrel(ctx, 16, -11, 26, 8);
-          this.drawTemperedBarrel(ctx, 16, 3, 26, 8);
-          this.drawSlottedMuzzleBrake(ctx, 38, -12.5, 6, 11, 2);
-          this.drawSlottedMuzzleBrake(ctx, 38, 1.5, 6, 11, 2);
+          // Dual Heavy Siege Howitzer Barrels with Recoil & Muzzle Flash
+          const bossRecoil = (Math.sin(tNow * 0.02) > 0.8);
+          const bOffset = bossRecoil ? 4 : 0;
+          this.drawTemperedBarrel(ctx, 16 - bOffset, -11, 26, 8);
+          this.drawTemperedBarrel(ctx, 16 - bOffset, 3, 26, 8);
+          this.drawSlottedMuzzleBrake(ctx, 38 - bOffset, -12.5, 6, 11, 2);
+          this.drawSlottedMuzzleBrake(ctx, 38 - bOffset, 1.5, 6, 11, 2);
+          if (bossRecoil) {
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath(); ctx.arc(46, -7, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(46, 7, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "rgba(255, 23, 68, 0.75)";
+            ctx.beginPath(); ctx.arc(48, -7, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(48, 7, 12, 0, Math.PI * 2); ctx.fill();
+          }
 
           // Center Rotating Command Cupola
           ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
@@ -7905,7 +8168,7 @@
           ctx.fillStyle = "#ff1744"; ctx.beginPath(); ctx.arc(4, 0, 4, 0, Math.PI * 2); ctx.fill();
 
         } else {
-          this.drawBevelPlate(ctx, -e.size, -e.size, e.size * 2, e.size * 2, "#1e293b", e.color || "#00e5ff", 3);
+          this.drawBevelPlate(ctx, -e.size, -e.size, e.size * 2, e.size * 2, metalPat, e.color || "#00e5ff", 3);
         }
 
         // Colorblind Indicator Icon

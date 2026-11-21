@@ -675,6 +675,8 @@
         this.scene.add(groundFill);
         this.groundFill = groundFill;
 
+        this.buildCyberHangarEnvironment(THREE);
+
         const savedSkin = 'MEGATRON';
         this.setSkin(savedSkin);
 
@@ -684,6 +686,109 @@
         console.warn("WebGL initialization failed:", e);
         return false;
       }
+    }
+
+    buildCyberHangarEnvironment(THREE) {
+      if (!this.scene) return;
+      this.hangarGroup = new THREE.Group();
+
+      const matMetal = new THREE.MeshStandardMaterial({
+        color: 0x141a29,
+        metalness: 0.85,
+        roughness: 0.35
+      });
+      const matDarkSteel = new THREE.MeshStandardMaterial({
+        color: 0x090d16,
+        metalness: 0.92,
+        roughness: 0.28
+      });
+      const matEnergon = new THREE.MeshStandardMaterial({
+        color: 0x4a044e,
+        emissive: 0xa855f7,
+        emissiveIntensity: 3.2,
+        roughness: 0.2
+      });
+      const matCyan = new THREE.MeshStandardMaterial({
+        color: 0x082f49,
+        emissive: 0x00e5ff,
+        emissiveIntensity: 2.4,
+        roughness: 0.2
+      });
+
+      // 1. Heavy Turntable Pedestal Base (Octagonal)
+      const baseGeo = new THREE.CylinderGeometry(2.8, 3.2, 0.45, 8);
+      const baseMesh = new THREE.Mesh(baseGeo, matDarkSteel);
+      baseMesh.position.set(0, -1.85, 0);
+      this.hangarGroup.add(baseMesh);
+
+      // Glowing Dark Energon Conduit Rings
+      const ringGeo = new THREE.TorusGeometry(2.6, 0.045, 8, 32);
+      const ringMesh = new THREE.Mesh(ringGeo, matEnergon);
+      ringMesh.rotation.x = Math.PI / 2;
+      ringMesh.position.set(0, -1.62, 0);
+      this.hangarGroup.add(ringMesh);
+
+      const innerRingGeo = new THREE.TorusGeometry(1.8, 0.035, 8, 32);
+      const innerRingMesh = new THREE.Mesh(innerRingGeo, matCyan);
+      innerRingMesh.rotation.x = Math.PI / 2;
+      innerRingMesh.position.set(0, -1.62, 0);
+      this.hangarGroup.add(innerRingMesh);
+
+      // 2. Twin Industrial Gantry Columns (Framing Megatron's pedestal)
+      [-2.2, 2.2].forEach((xPos) => {
+        const colGeo = new THREE.BoxGeometry(0.55, 7.5, 0.55);
+        const col = new THREE.Mesh(colGeo, matMetal);
+        col.position.set(xPos, 1.2, -1.5);
+        this.hangarGroup.add(col);
+
+        // Diagonal Truss Bracing
+        const trussGeo = new THREE.CylinderGeometry(0.08, 0.08, 3.2, 8);
+        const truss = new THREE.Mesh(trussGeo, matDarkSteel);
+        truss.rotation.z = (xPos > 0 ? 1 : -1) * 0.65;
+        truss.position.set(xPos * 0.82, 0.2, -1.5);
+        this.hangarGroup.add(truss);
+
+        // Vertical Conduit Tubes (Pulsing Dark Energon)
+        const tubeGeo = new THREE.CylinderGeometry(0.06, 0.06, 7.0, 8);
+        const tube = new THREE.Mesh(tubeGeo, matEnergon);
+        tube.position.set(xPos + (xPos > 0 ? -0.35 : 0.35), 1.2, -1.4);
+        this.hangarGroup.add(tube);
+      });
+
+      // 3. Overhead Gantry Beam
+      const overheadGeo = new THREE.BoxGeometry(4.8, 0.45, 0.65);
+      overhead.position.set(0, 4.6, -1.5);
+      this.hangarGroup.add(overhead);
+
+      // 4. Floating 3D Dark Energon Atmospheric Particles
+      const pCount = 64;
+      const pGeo = new THREE.BufferGeometry();
+      const pPos = new Float32Array(pCount * 3);
+      for (let i = 0; i < pCount; i++) {
+        pPos[i * 3] = (Math.random() - 0.5) * 4.4;
+        pPos[i * 3 + 1] = -1.6 + Math.random() * 5.5;
+        pPos[i * 3 + 2] = -2.5 + Math.random() * 4.5;
+      }
+      pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+      const pMat = new THREE.PointsMaterial({
+        color: 0xc084fc,
+        size: 0.08,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending
+      });
+      this.hangarParticles = new THREE.Points(pGeo, pMat);
+      this.hangarGroup.add(this.hangarParticles);
+
+      // Pedestal Upward Point Light
+      this.pedestalLight = new THREE.PointLight(0xa855f7, 8.0, 6.0);
+      this.pedestalLight.position.set(0, -1.5, 0.5);
+      this.hangarGroup.add(this.pedestalLight);
+
+      // Center Hangar Group directly under Megatron (x: -2.10)
+      this.hangarGroup.position.set(-2.10, 0, 0);
+
+      this.scene.add(this.hangarGroup);
     }
 
     resize(cssW, cssH) {
@@ -912,6 +1017,20 @@
           this.mech.yaw += dt * 0.32;
         }
         this.mech.update(dt);
+      }
+      if (this.hangarParticles && this.hangarParticles.geometry) {
+        const pos = this.hangarParticles.geometry.attributes.position;
+        if (pos) {
+          for (let i = 0; i < pos.count; i++) {
+            let y = pos.getY(i) + dt * 0.45;
+            if (y > 4.2) y = -1.6;
+            pos.setY(i, y);
+          }
+          pos.needsUpdate = true;
+        }
+      }
+      if (this.pedestalLight) {
+        this.pedestalLight.intensity = 7.0 + Math.sin(now * 0.003) * 2.5;
       }
       if (this.renderer && this.scene && this.camera) {
         this.renderer.render(this.scene, this.camera);
