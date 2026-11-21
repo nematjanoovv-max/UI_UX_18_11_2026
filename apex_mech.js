@@ -644,25 +644,29 @@
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
           this.scene.environment = window.createStudioEnvironment(THREE, 'CS2');
         }
-        this.camera = new THREE.PerspectiveCamera(36, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0.2, 1.25, 7.2);
-        this.camera.lookAt(0, 0.35, 0);
+        this.camera = new THREE.PerspectiveCamera(34, this.canvas.width / this.canvas.height, 0.1, 80);
+        this.camera.position.set(0, 0.1, 8.5);
+        this.camera.lookAt(0, 0.05, 0);
 
-        // Cyber Studio Lighting
-        this.scene.add(new THREE.HemisphereLight(0x7fb8ff, 0x070e1e, 0.8));
-        const key = new THREE.DirectionalLight(0xfff8ee, 2.2);
-        key.position.set(5, 8, 6);
+        // Cyber Studio Lighting - Decepticon Dark Energon Atmosphere
+        this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x070e1e, 0.95));
+        const key = new THREE.DirectionalLight(0xfff8ee, 2.6);
+        key.position.set(4, 7, 7);
         this.scene.add(key);
 
-        const rimCyan = new THREE.PointLight(0x00e5ff, 14, 16);
-        rimCyan.position.set(-4, 3, -3);
+        const rimCyan = new THREE.PointLight(0x00e5ff, 12, 18);
+        rimCyan.position.set(-5, 2, -3);
         this.scene.add(rimCyan);
 
-        const rimViolet = new THREE.PointLight(0xa855f7, 14, 16);
-        rimViolet.position.set(4, 2, -4);
+        const rimViolet = new THREE.PointLight(0xa855f7, 18, 20);
+        rimViolet.position.set(3, 3, -2);
         this.scene.add(rimViolet);
 
-        const savedSkin = (typeof localStorage !== 'undefined' && localStorage.getItem('lg_mech_skin_v42')) || 'MEGATRON';
+        const groundFill = new THREE.DirectionalLight(0x6b21a8, 1.2);
+        groundFill.position.set(0, -5, 4);
+        this.scene.add(groundFill);
+
+        const savedSkin = 'MEGATRON';
         this.setSkin(savedSkin);
 
         this.bindEvents();
@@ -701,7 +705,7 @@
         this.mech = new Apex01Mech(T);
       }
       if (this.mech && this.mech.root) {
-        this.mech.root.position.set(-1.8, 0, 0);
+        this.mech.root.position.set(-2.65, -0.05, 0);
       }
       if (this.scene) this.scene.add(this.mech.root);
     }
@@ -812,7 +816,8 @@
         this.pointerActive = false;
         if (down && !down.moved && this.mech) {
           if (typeof this.mech.hit === 'function') this.mech.hit();
-          const name = (this.currentSkin === 'OPTIMUS') ? "OPTIMUS PRIME" : (this.currentSkin === 'BUMBLEBEE' ? "BUMBLEBEE" : "APEX-01");
+          const name = (this.currentSkin === 'MEGATRON') ? "MEGATRON (DECEPTICON LEADER)" : ((this.currentSkin === 'OPTIMUS') ? "OPTIMUS PRIME" : (this.currentSkin === 'BUMBLEBEE' ? "BUMBLEBEE" : "APEX-01"));
+          const col = (this.currentSkin === 'MEGATRON') ? "#c084fc" : "#00e5ff";
           if (window.audio) {
             try {
               window.audio.heroSlash();
@@ -821,7 +826,7 @@
           }
           if (window.lastGridEngine) {
             window.lastGridEngine.vibrate([25, 20, 45]);
-            window.lastGridEngine.addFloatingText(`⚡ ${name} ONLINE!`, 235, 280, "#00e5ff", 16);
+            window.lastGridEngine.addFloatingText(`⚡ ${name} ONLINE!`, 268, 280, col, 16);
           }
         }
         down = null;

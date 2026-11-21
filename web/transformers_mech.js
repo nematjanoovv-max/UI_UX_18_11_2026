@@ -2138,7 +2138,7 @@
       }
       if (typeof window !== 'undefined' && window.lastGridEngine) {
         window.lastGridEngine.vibrate([45, 30, 60]);
-        window.lastGridEngine.addFloatingText("💥 FUSION CANNON: 1450 DMG!", 235, 270, "#a855f7", 16);
+        window.lastGridEngine.addFloatingText("💥 FUSION CANNON: 1450 DMG!", 268, 270, "#a855f7", 16);
       }
       if (typeof audio !== 'undefined') {
         try { audio.mortarFire(); audio.playSample('mortar_fire', 1.0); } catch(e) {}
@@ -2172,14 +2172,14 @@
         this.energonLight.intensity = 12.0;
       }
       if (typeof window !== 'undefined' && window.lastGridEngine) {
-        window.lastGridEngine.addFloatingText("⚡ DARK ENERGON OVERDRIVE!", 235, 270, "#c084fc", 16);
+        window.lastGridEngine.addFloatingText("⚡ DARK ENERGON OVERDRIVE!", 268, 270, "#c084fc", 16);
       }
       return true;
     }
 
     triggerDieselSmoke(burstCount) {
       if (typeof window !== 'undefined' && window.lastGridEngine) {
-        window.lastGridEngine.addFloatingText("💨 DARK ENERGON PLASMA PURGE!", 235, 270, "#a855f7", 16);
+        window.lastGridEngine.addFloatingText("💨 DARK ENERGON PLASMA PURGE!", 268, 270, "#a855f7", 16);
       }
       this.fireWeapon();
     }
