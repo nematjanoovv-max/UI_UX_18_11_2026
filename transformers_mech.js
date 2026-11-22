@@ -1361,17 +1361,25 @@
         this.body.visible = false;
 
         if (T.Box3 && T.Vector3) {
-          const box = new T.Box3().setFromObject(m);
-          const size = new T.Vector3();
-          box.getSize(size);
-          const maxD = Math.max(size.x, size.y, size.z);
           const targetHeight = 3.15;
+          const box0 = new T.Box3().setFromObject(m);
+          const size0 = new T.Vector3();
+          box0.getSize(size0);
+          const maxD = Math.max(size0.x, size0.y, size0.z);
           const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
-          const center = new T.Vector3();
-          box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
+          const center0 = new T.Vector3();
+          box0.getCenter(center0);
+          m.position.x = -center0.x * scale;
+          m.position.z = -center0.z * scale;
+          m.position.y = 0;
+          m.updateMatrixWorld(true);
+
+          const box = new T.Box3().setFromObject(m);
+          const podiumTopY = -1.355;
+          m.position.y = podiumTopY - box.min.y;
+          m.updateMatrixWorld(true);
         }
 
         m.traverse((child) => {
@@ -1409,8 +1417,16 @@
 
         if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
           this.mixer = new T.AnimationMixer(m);
-          const action = this.mixer.clipAction(gltf.animations[0]);
-          action.play();
+          this.actions = [];
+          for (let i = 0; i < gltf.animations.length; i++) {
+            const clip = gltf.animations[i];
+            const action = this.mixer.clipAction(clip);
+            action.setLoop(T.LoopRepeat !== undefined ? T.LoopRepeat : 2201, Infinity);
+            action.clampWhenFinished = false;
+            action.enabled = true;
+            action.play();
+            this.actions.push(action);
+          }
         }
 
         if (onDone) onDone(gltf);
@@ -1941,17 +1957,25 @@
         this.body.visible = false;
 
         if (T.Box3 && T.Vector3) {
-          const box = new T.Box3().setFromObject(m);
-          const size = new T.Vector3();
-          box.getSize(size);
-          const maxD = Math.max(size.x, size.y, size.z);
           const targetHeight = 3.15;
+          const box0 = new T.Box3().setFromObject(m);
+          const size0 = new T.Vector3();
+          box0.getSize(size0);
+          const maxD = Math.max(size0.x, size0.y, size0.z);
           const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
-          const center = new T.Vector3();
-          box.getCenter(center);
-          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
+          const center0 = new T.Vector3();
+          box0.getCenter(center0);
+          m.position.x = -center0.x * scale;
+          m.position.z = -center0.z * scale;
+          m.position.y = 0;
+          m.updateMatrixWorld(true);
+
+          const box = new T.Box3().setFromObject(m);
+          const podiumTopY = -1.355;
+          m.position.y = podiumTopY - box.min.y;
+          m.updateMatrixWorld(true);
         }
 
         m.traverse((child) => {
@@ -1989,8 +2013,16 @@
 
         if (gltf.animations && gltf.animations.length > 0 && T.AnimationMixer) {
           this.mixer = new T.AnimationMixer(m);
-          const action = this.mixer.clipAction(gltf.animations[0]);
-          action.play();
+          this.actions = [];
+          for (let i = 0; i < gltf.animations.length; i++) {
+            const clip = gltf.animations[i];
+            const action = this.mixer.clipAction(clip);
+            action.setLoop(T.LoopRepeat !== undefined ? T.LoopRepeat : 2201, Infinity);
+            action.clampWhenFinished = false;
+            action.enabled = true;
+            action.play();
+            this.actions.push(action);
+          }
         }
 
         if (onDone) onDone(gltf);
@@ -2180,19 +2212,27 @@
         this.externalMesh = m;
 
         if (T.Box3 && T.Vector3) {
-          const box = new T.Box3().setFromObject(m);
-          const size = new T.Vector3();
-          box.getSize(size);
-          const maxD = Math.max(size.x, size.y, size.z);
-          // Heroic balanced scale: 3.15m height fits entire helmet, shoulders, body and feet into viewport
           const targetHeight = 3.15;
+          const box0 = new T.Box3().setFromObject(m);
+          const size0 = new T.Vector3();
+          box0.getSize(size0);
+          const maxD = Math.max(size0.x, size0.y, size0.z);
           const scale = (maxD > 0) ? (targetHeight / maxD) : 1.0;
           m.scale.set(scale, scale, scale);
 
-          const center = new T.Vector3();
-          box.getCenter(center);
-          // Center X and Z, and place vertical span exactly from -targetHeight/2 to +targetHeight/2
-          m.position.set(-center.x * scale, -box.min.y * scale - (targetHeight * 0.5), -center.z * scale);
+          const center0 = new T.Vector3();
+          box0.getCenter(center0);
+          m.position.x = -center0.x * scale;
+          m.position.z = -center0.z * scale;
+          m.position.y = 0;
+          m.updateMatrixWorld(true);
+
+          // Calculate exact box.min.y of the scaled model
+          const box = new T.Box3().setFromObject(m);
+          const podiumTopY = -1.355;
+          // Position model so its lowest point (soles of boots) rests PRECISELY on the podium surface:
+          m.position.y = podiumTopY - box.min.y;
+          m.updateMatrixWorld(true);
         }
 
         m.traverse((child) => {
@@ -2240,8 +2280,9 @@
           this.mixer = new T.AnimationMixer(m);
           this.actions = [];
           for (let i = 0; i < gltf.animations.length; i++) {
-            const action = this.mixer.clipAction(gltf.animations[i]);
-            action.setLoop(T.LoopRepeat || 2201);
+            const clip = gltf.animations[i];
+            const action = this.mixer.clipAction(clip);
+            action.setLoop(T.LoopRepeat !== undefined ? T.LoopRepeat : 2201, Infinity);
             action.clampWhenFinished = false;
             action.enabled = true;
             action.play();
