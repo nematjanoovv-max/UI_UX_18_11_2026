@@ -101,13 +101,13 @@
     /* =========================================================================
        MAIN MENU (v4.2.0 Clean Cyber Deck Layout)
        ========================================================================= */
-    #menu{position:fixed;inset:0;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;gap:clamp(6px,1.6vh,14px);padding:max(env(safe-area-inset-top),8px) max(env(safe-area-inset-right),12px) max(env(safe-area-inset-bottom),8px) max(env(safe-area-inset-left),12px);font-family:"Orbitron","Rajdhani",system-ui,sans-serif;color:var(--text);background:radial-gradient(ellipse at 25% 55%,#10213d 0%,#070c18 55%,#03050a 100%);user-select:none;z-index:10}
+    #menu{position:fixed;inset:0;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;gap:clamp(6px,1.6vh,14px);padding:max(env(safe-area-inset-top),24px) max(env(safe-area-inset-right),48px) max(env(safe-area-inset-bottom),12px) max(env(safe-area-inset-left),24px);font-family:"Orbitron","Rajdhani",system-ui,sans-serif;color:var(--text);background:radial-gradient(ellipse at 25% 55%,#10213d 0%,#070c18 55%,#03050a 100%);user-select:none;z-index:10}
     .status{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:clamp(4px,1vh,8px);border-bottom:1px solid #1c2a40;font-size:clamp(9px,2.1vh,13px);letter-spacing:.06em;color:var(--sub);white-space:nowrap}
     .status b{color:var(--text);font-weight:700}
     .status .right{display:flex;gap:clamp(8px,2vw,18px);align-items:center;overflow:hidden}
     .dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:#37e08a;margin-right:.5em}
     .stage{display:grid;grid-template-columns:40% 1fr;gap:clamp(8px,2vw,24px);min-height:0}
-    .hero{position:relative;min-height:0}
+    .hero{position:relative;width:100%;height:100%;min-height:200px;display:flex;align-items:center;justify-content:center}
     #robotCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
     #robotFallback{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
     .modes{display:flex;flex-direction:column;justify-content:center;gap:clamp(8px,2vh,16px);min-height:0}
@@ -235,217 +235,269 @@
     });
   </script>
 
-  <!-- Main Menu 3D Robot Scene -->
-  <script type="module">
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  <!-- Main Menu 3D Robot Scene (Direct UMD Execution for 100% WebView & Offline Compatibility) -->
+  <script>
+    (function () {
+      const MODEL_URL = 'assets/models/megatron.glb';
+      const FALLBACK_MODEL_URL = 'assets/models/robot.glb';
 
-    const MODEL_URL = 'assets/models/megatron.glb';
-
-    function initMainMenu3D(THREE_LIB, GLTFLoader_LIB) {
-      const T = THREE_LIB || THREE;
-      const LoaderClass = GLTFLoader_LIB || GLTFLoader;
-      const canvas = document.getElementById('robotCanvas');
-      const fallback = document.getElementById('robotFallback');
-      if (!canvas) return;
-      const host = canvas.parentElement;
-
-      let renderer;
-      try {
-        renderer = new T.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.setClearColor(0x000000, 0);
-        if (T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
-        if (T.ACESFilmicToneMapping) renderer.toneMapping = T.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
-      } catch(e) {
-        if (canvas) canvas.hidden = true;
-        if (fallback) fallback.hidden = false;
-        return;
-      }
-
-      const scene = new T.Scene();
-      const camera = new T.PerspectiveCamera(35, 1, 0.1, 100);
-      camera.position.set(0, 1.9, 7.2);
-      camera.lookAt(0, 1.5, 0);
-
-      scene.add(new T.HemisphereLight(0x9fb8ff, 0x140a22, 0.7));
-      const key = new T.DirectionalLight(0x6fd8ff, 2.2);
-      key.position.set(3, 4, 5);
-      scene.add(key);
-      const rim = new T.DirectionalLight(0xb57bff, 2.6);
-      rim.position.set(-4, 3, -4);
-      scene.add(rim);
-      const spot = new T.SpotLight(0xbfe9ff, 60, 14, 0.5, 0.6, 1.5);
-      spot.position.set(0, 7, 0.5);
-      spot.target.position.set(0, 0, 0);
-      scene.add(spot, spot.target);
-
-      const stand = new T.Group();
-      scene.add(stand);
-
-      const disc = new T.Mesh(
-        new T.CylinderGeometry(1.9, 2.0, 0.14, 64),
-        new T.MeshStandardMaterial({ color: 0x0c1220, metalness: 0.8, roughness: 0.35 })
-      );
-      disc.position.y = -0.07;
-      stand.add(disc);
-
-      const ringBlue = new T.Mesh(
-        new T.RingGeometry(1.62, 1.78, 96),
-        new T.MeshBasicMaterial({ color: 0x4cc9f0, side: T.DoubleSide })
-      );
-      ringBlue.rotation.x = -Math.PI / 2;
-      ringBlue.position.y = 0.01;
-      const ringViolet = new T.Mesh(
-        new T.RingGeometry(1.15, 1.27, 96),
-        new T.MeshBasicMaterial({ color: 0xb57bff, side: T.DoubleSide })
-      );
-      ringViolet.rotation.x = -Math.PI / 2;
-      ringViolet.position.y = 0.012;
-      stand.add(ringBlue, ringViolet);
-
-      const beam = new T.Mesh(
-        new T.CylinderGeometry(0.7, 1.8, 6, 40, 1, true),
-        new T.MeshBasicMaterial({ color: 0x4cc9f0, transparent: true, opacity: 0.07, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })
-      );
-      beam.position.y = 3;
-      stand.add(beam);
-
-      const P = 30;
-      const pPos = new Float32Array(P * 3);
-      const pSpeed = new Float32Array(P);
-      for (let i = 0; i < P; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 0.4 + Math.random() * 1.8;
-        pPos[i * 3] = Math.cos(a) * r;
-        pPos[i * 3 + 1] = Math.random() * 5;
-        pPos[i * 3 + 2] = Math.sin(a) * r;
-        pSpeed[i] = 0.2 + Math.random() * 0.4;
-      }
-      const pGeo = new T.BufferGeometry();
-      pGeo.setAttribute('position', new T.BufferAttribute(pPos, 3));
-      const particles = new T.Points(
-        pGeo,
-        new T.PointsMaterial({ color: 0x8fe3ff, size: 0.05, transparent: true, opacity: 0.8, depthWrite: false })
-      );
-      stand.add(particles);
-
-      const robotRoot = new T.Group();
-      stand.add(robotRoot);
-      let model = null;
-      let mixer = null;
-
-      new LoaderClass().load(
-        MODEL_URL,
-        function (gltf) {
-          model = gltf.scene;
-          let box = new T.Box3().setFromObject(model);
-          const size = box.getSize(new T.Vector3());
-          model.scale.setScalar(3.3 / Math.max(size.y, 0.0001));
-          box = new T.Box3().setFromObject(model);
-          const center = box.getCenter(new T.Vector3());
-          model.position.x -= center.x;
-          model.position.z -= center.z;
-          model.position.y -= box.min.y;
-          robotRoot.add(model);
-          if (gltf.animations && gltf.animations.length) {
-            mixer = new T.AnimationMixer(model);
-            const idle = gltf.animations.find(function (c) { return /idle/i.test(c.name); }) || gltf.animations[0];
-            const action = mixer.clipAction(idle);
-            if (T.LoopRepeat !== undefined) action.setLoop(T.LoopRepeat, Infinity);
-            action.play();
-          }
-        },
-        undefined,
-        function (err) {
-          console.error('GLB yuklanmadi:', MODEL_URL, err);
-          if (canvas) canvas.hidden = true;
-          if (fallback) fallback.hidden = false;
+      function showFallbackImage() {
+        const c = document.getElementById('robotCanvas');
+        const fb = document.getElementById('robotFallback');
+        if (c) c.style.display = 'none';
+        if (fb) {
+          fb.hidden = false;
+          fb.style.display = 'block';
         }
-      );
-
-      function resize() {
-        if (!host) return;
-        const w = host.clientWidth;
-        const h = host.clientHeight;
-        if (!w || !h) return;
-        renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
       }
-      const ro = new ResizeObserver(resize);
-      ro.observe(host);
-      resize();
 
-      const clock = new T.Clock();
-      let raf = 0;
-      let running = false;
+      function initMainMenu3D() {
+        const T = window.THREE;
+        const LoaderClass = window.GLTFLoader || (T && T.GLTFLoader);
+        const canvas = document.getElementById('robotCanvas');
+        const fallback = document.getElementById('robotFallback');
+        if (!canvas) return;
+        const host = canvas.parentElement;
 
-      function frame() {
-        raf = requestAnimationFrame(frame);
-        const dt = Math.min(clock.getDelta(), 0.05);
-        const t = clock.elapsedTime;
-        if (mixer) mixer.update(dt);
-        robotRoot.rotation.y += 0.004 * (dt * 60);
-        robotRoot.position.y = 0.04 + Math.sin(t * 1.4) * 0.05;
-        ringBlue.rotation.z += 0.004 * (dt * 60);
-        ringViolet.rotation.z -= 0.007 * (dt * 60);
-        const arr = pGeo.attributes.position.array;
+        if (!T || !LoaderClass) {
+          console.warn('[MainMenu3D] Three.js or GLTFLoader not found, displaying fallback image.');
+          showFallbackImage();
+          return;
+        }
+
+        let renderer;
+        try {
+          renderer = new T.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.setClearColor(0x000000, 0);
+          if (T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
+          if (T.ACESFilmicToneMapping) renderer.toneMapping = T.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.25;
+        } catch (e) {
+          console.error('[MainMenu3D] WebGL init error:', e);
+          showFallbackImage();
+          return;
+        }
+
+        const scene = new T.Scene();
+        const camera = new T.PerspectiveCamera(35, 1, 0.1, 100);
+        camera.position.set(0, 1.9, 7.2);
+        camera.lookAt(0, 1.5, 0);
+
+        // Cyber Lighting Setup
+        scene.add(new T.AmbientLight(0xffffff, 1.2));
+        scene.add(new T.HemisphereLight(0x9fb8ff, 0x140a22, 1.0));
+        const key = new T.DirectionalLight(0x6fd8ff, 2.5);
+        key.position.set(3, 4, 5);
+        scene.add(key);
+        const rim = new T.DirectionalLight(0xb57bff, 2.8);
+        rim.position.set(-4, 3, -4);
+        scene.add(rim);
+        const frontFill = new T.DirectionalLight(0xffffff, 1.5);
+        frontFill.position.set(0, 2, 6);
+        scene.add(frontFill);
+        const spot = new T.SpotLight(0xbfe9ff, 70, 15, 0.5, 0.6, 1.5);
+        spot.position.set(0, 7, 0.5);
+        spot.target.position.set(0, 0, 0);
+        scene.add(spot, spot.target);
+
+        // Cyber Hologram Platform (Neon Cyber-Podium)
+        const stand = new T.Group();
+        scene.add(stand);
+
+        const disc = new T.Mesh(
+          new T.CylinderGeometry(1.9, 2.0, 0.14, 64),
+          new T.MeshStandardMaterial({ color: 0x0c1220, metalness: 0.8, roughness: 0.35 })
+        );
+        disc.position.y = -0.07;
+        stand.add(disc);
+
+        const ringBlue = new T.Mesh(
+          new T.RingGeometry(1.62, 1.78, 96),
+          new T.MeshBasicMaterial({ color: 0x4cc9f0, side: T.DoubleSide })
+        );
+        ringBlue.rotation.x = -Math.PI / 2;
+        ringBlue.position.y = 0.01;
+
+        const ringViolet = new T.Mesh(
+          new T.RingGeometry(1.15, 1.27, 96),
+          new T.MeshBasicMaterial({ color: 0xb57bff, side: T.DoubleSide })
+        );
+        ringViolet.rotation.x = -Math.PI / 2;
+        ringViolet.position.y = 0.012;
+        stand.add(ringBlue, ringViolet);
+
+        const beam = new T.Mesh(
+          new T.CylinderGeometry(0.7, 1.8, 6, 40, 1, true),
+          new T.MeshBasicMaterial({ color: 0x4cc9f0, transparent: true, opacity: 0.07, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })
+        );
+        beam.position.y = 3;
+        stand.add(beam);
+
+        // Neon Particles
+        const P = 30;
+        const pPos = new Float32Array(P * 3);
+        const pSpeed = new Float32Array(P);
         for (let i = 0; i < P; i++) {
-          arr[i * 3 + 1] += pSpeed[i] * dt;
-          if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = 0;
+          const a = Math.random() * Math.PI * 2;
+          const r = 0.4 + Math.random() * 1.8;
+          pPos[i * 3] = Math.cos(a) * r;
+          pPos[i * 3 + 1] = Math.random() * 5;
+          pPos[i * 3 + 2] = Math.sin(a) * r;
+          pSpeed[i] = 0.2 + Math.random() * 0.4;
         }
-        pGeo.attributes.position.needsUpdate = true;
-        renderer.render(scene, camera);
-      }
+        const pGeo = new T.BufferGeometry();
+        pGeo.setAttribute('position', new T.BufferAttribute(pPos, 3));
+        const particles = new T.Points(
+          pGeo,
+          new T.PointsMaterial({ color: 0x8fe3ff, size: 0.05, transparent: true, opacity: 0.8, depthWrite: false })
+        );
+        stand.add(particles);
 
-      function start() {
-        if (running) return;
-        running = true;
-        clock.start();
-        frame();
-      }
-      function stop() {
-        running = false;
-        cancelAnimationFrame(raf);
-      }
-      function dispose() {
-        stop();
-        ro.disconnect();
-        scene.traverse(function (o) {
-          if (o.geometry) o.geometry.dispose();
-          if (o.material) {
-            const mats = Array.isArray(o.material) ? o.material : [o.material];
-            mats.forEach(function (m) {
-              for (const k in m) { if (m[k] && m[k].isTexture) m[k].dispose(); }
-              m.dispose();
-            });
+        const robotRoot = new T.Group();
+        stand.add(robotRoot);
+        let model = null;
+        let mixer = null;
+
+        function applyModel(gltf, sourceUrl) {
+          try {
+            model = gltf.scene;
+            let box = new T.Box3().setFromObject(model);
+            const size = box.getSize(new T.Vector3());
+            console.log('[MainMenu3D] Loaded ' + sourceUrl + ' box size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
+            const maxDim = Math.max(size.x, size.y, size.z, 0.0001);
+            const scaleFactor = 3.3 / (size.y > 0 ? size.y : maxDim);
+            model.scale.setScalar(scaleFactor);
+
+            box = new T.Box3().setFromObject(model);
+            const center = box.getCenter(new T.Vector3());
+            model.position.x -= center.x;
+            model.position.z -= center.z;
+            model.position.y -= box.min.y; // Feet sit flush on top of the podium disc
+            robotRoot.add(model);
+
+            if (gltf.animations && gltf.animations.length) {
+              mixer = new T.AnimationMixer(model);
+              const idle = gltf.animations.find(function (c) { return /idle/i.test(c.name); }) || gltf.animations[0];
+              const action = mixer.clipAction(idle);
+              if (T.LoopRepeat !== undefined) action.setLoop(T.LoopRepeat, Infinity);
+              action.clampWhenFinished = false;
+              action.play();
+            }
+          } catch (err) {
+            console.error('[MainMenu3D] Error applying model scene:', err);
+            showFallbackImage();
+          }
+        }
+
+        const loader = new LoaderClass();
+        loader.load(
+          MODEL_URL,
+          function (gltf) {
+            applyModel(gltf, MODEL_URL);
+          },
+          undefined,
+          function (err) {
+            console.warn('[MainMenu3D] Failed loading ' + MODEL_URL + ', trying fallback model: ' + FALLBACK_MODEL_URL, err);
+            loader.load(
+              FALLBACK_MODEL_URL,
+              function (gltf2) {
+                applyModel(gltf2, FALLBACK_MODEL_URL);
+              },
+              undefined,
+              function (err2) {
+                console.error('[MainMenu3D] Both GLB files failed, switching to robot.webp image fallback:', err2);
+                showFallbackImage();
+              }
+            );
+          }
+        );
+
+        function resize() {
+          if (!host) return;
+          const w = host.clientWidth || host.offsetWidth || (window.innerWidth ? Math.round(window.innerWidth * 0.4) : 400);
+          const h = host.clientHeight || host.offsetHeight || (window.innerHeight ? Math.round(window.innerHeight * 0.8) : 500);
+          if (!w || !h) return;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        }
+        const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(resize) : null;
+        if (ro && host) ro.observe(host);
+        window.addEventListener('resize', resize);
+        resize();
+
+        const clock = new T.Clock();
+        let raf = 0;
+        let running = false;
+
+        function frame() {
+          raf = requestAnimationFrame(frame);
+          const dt = Math.min(clock.getDelta(), 0.05);
+          const t = clock.elapsedTime;
+          if (mixer) mixer.update(dt);
+          robotRoot.rotation.y += 0.004 * (dt * 60);
+          robotRoot.position.y = 0.04 + Math.sin(t * 1.4) * 0.05;
+          ringBlue.rotation.z += 0.004 * (dt * 60);
+          ringViolet.rotation.z -= 0.007 * (dt * 60);
+          const arr = pGeo.attributes.position.array;
+          for (let i = 0; i < P; i++) {
+            arr[i * 3 + 1] += pSpeed[i] * dt;
+            if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = 0;
+          }
+          pGeo.attributes.position.needsUpdate = true;
+          renderer.render(scene, camera);
+        }
+
+        function start() {
+          if (running) return;
+          running = true;
+          clock.start();
+          frame();
+        }
+        function stop() {
+          running = false;
+          cancelAnimationFrame(raf);
+        }
+        function dispose() {
+          stop();
+          if (ro) ro.disconnect();
+          window.removeEventListener('resize', resize);
+          scene.traverse(function (o) {
+            if (o.geometry) o.geometry.dispose();
+            if (o.material) {
+              const mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(function (m) {
+                for (const k in m) { if (m[k] && m[k].isTexture) m[k].dispose(); }
+                m.dispose();
+              });
+            }
+          });
+          renderer.dispose();
+          if (typeof renderer.forceContextLoss === 'function') renderer.forceContextLoss();
+        }
+
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) {
+            stop();
+          } else if (canvas && canvas.style.display !== 'none' && !canvas.hidden) {
+            start();
           }
         });
-        renderer.dispose();
-        renderer.forceContextLoss();
+
+        window.MainMenu3D = { start: start, stop: stop, dispose: dispose, renderer: renderer, scene: scene, camera: camera };
+        start();
       }
 
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden) { stop(); } else if (canvas && !canvas.hidden) { start(); }
-      });
+      window.initMainMenu3D = initMainMenu3D;
 
-      window.MainMenu3D = { start: start, stop: stop, dispose: dispose };
-      start();
-    }
-
-    window.__initMainMenu3D = initMainMenu3D;
-    initMainMenu3D(THREE, GLTFLoader);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMainMenu3D);
+      } else {
+        initMainMenu3D();
+      }
+    })();
   </script>
-
-  <!-- Non-module fallback script for webviews where ES modules over file:// are restricted -->
-  <script>
-    window.addEventListener('load', function() {
-      if (!window.MainMenu3D && typeof window.__initMainMenu3D === 'function' && window.THREE && (window.GLTFLoader || (window.THREE && window.THREE.GLTFLoader))) {
-        window.__initMainMenu3D(window.THREE, window.GLTFLoader || window.THREE.GLTFLoader);
-      }
-    });
 
     const unlockWebAudio = () => {
       if (window.audio) {

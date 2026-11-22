@@ -44,6 +44,15 @@ public class MainActivity extends Activity {
 
         setImmersiveMode();
 
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
+            @Override
+            public void onSystemUiVisibilityChange(int visibility) {
+                if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
+                    setImmersiveMode();
+                }
+            }
+        });
+
         try {
             vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         } catch (Exception e) {}
@@ -88,7 +97,9 @@ public class MainActivity extends Activity {
                         String assetPath = null;
                         if (path.startsWith("/android_asset/")) {
                             assetPath = path.substring("/android_asset/".length());
-                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".glb") || path.endsWith(".wasm") || path.endsWith(".webp") || path.endsWith(".pck") || path.endsWith(".woff2") || path.endsWith(".woff")) {
+                        } else if (path.startsWith("/www/")) {
+                            assetPath = path.substring(1);
+                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".ogg") || path.endsWith(".glb") || path.endsWith(".gltf") || path.endsWith(".bin") || path.endsWith(".wasm") || path.endsWith(".webp") || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".pck") || path.endsWith(".woff2") || path.endsWith(".woff")) {
                             assetPath = "www" + (path.startsWith("/") ? path : "/" + path);
                             if (assetPath.equals("www/")) assetPath = "www/index.html";
                         }
@@ -103,9 +114,13 @@ public class MainActivity extends Activity {
                             else if (assetPath.endsWith(".svg")) mime = "image/svg+xml";
                             else if (assetPath.endsWith(".mp3")) mime = "audio/mpeg";
                             else if (assetPath.endsWith(".wav")) mime = "audio/wav";
+                            else if (assetPath.endsWith(".ogg")) mime = "audio/ogg";
                             else if (assetPath.endsWith(".glb")) mime = "model/gltf-binary";
+                            else if (assetPath.endsWith(".gltf")) mime = "model/gltf+json";
+                            else if (assetPath.endsWith(".bin")) mime = "application/octet-stream";
                             else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
                             else if (assetPath.endsWith(".webp")) mime = "image/webp";
+                            else if (assetPath.endsWith(".jpg") || assetPath.endsWith(".jpeg")) mime = "image/jpeg";
                             else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
                             else if (assetPath.endsWith(".woff2")) mime = "font/woff2";
                             else if (assetPath.endsWith(".woff")) mime = "font/woff";
@@ -151,6 +166,18 @@ public class MainActivity extends Activity {
     }
 
     private void setImmersiveMode() {
+        if (Build.VERSION.SDK_INT >= 30) {
+            try {
+                Object controller = getWindow().getClass().getMethod("getInsetsController").invoke(getWindow());
+                if (controller != null) {
+                    Class<?> typeClass = Class.forName("android.view.WindowInsets$Type");
+                    int statusBars = (Integer) typeClass.getMethod("statusBars").invoke(null);
+                    int navigationBars = (Integer) typeClass.getMethod("navigationBars").invoke(null);
+                    controller.getClass().getMethod("hide", int.class).invoke(controller, statusBars | navigationBars);
+                    controller.getClass().getMethod("setSystemBarsBehavior", int.class).invoke(controller, 2); // BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
+            } catch (Throwable ignored) {}
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
