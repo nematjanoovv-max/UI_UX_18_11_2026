@@ -134,16 +134,19 @@
       if (this.samplesLoaded) return;
       this.samplesLoaded = true;
       const sfxList = {
-        click: 'assets/audio/sfx/click.mp3',
-        laser: 'assets/audio/sfx/laser.mp3',
-        explosion: 'assets/audio/sfx/artillery_blast.wav',
-        zap: 'assets/audio/sfx/plasma_burn.wav',
-        wave_clear: 'assets/audio/voice/hq_wave_cleared.wav',
-        cannon: 'assets/audio/sfx/gatling_heavy.wav',
-        modal: 'assets/audio/sfx/modal.mp3',
-        build: 'assets/audio/sfx/build.mp3',
+        click: 'assets/audio/sfx/click.wav',
+        laser: 'assets/audio/sfx/laser.wav',
+        explosion: 'assets/audio/sfx/explosion.wav',
+        zap: 'assets/audio/sfx/zap.wav',
+        wave_clear: 'assets/audio/sfx/wave_clear.wav',
+        cannon: 'assets/audio/sfx/cannon.wav',
+        modal: 'assets/audio/sfx/modal.wav',
+        build: 'assets/audio/sfx/build.wav',
         stomp: 'assets/audio/sfx/titan_stomp.wav',
         siren: 'assets/audio/sfx/emergency_siren.wav',
+        artillery: 'assets/audio/sfx/artillery_blast.wav',
+        gatling: 'assets/audio/sfx/gatling_heavy.wav',
+        plasma: 'assets/audio/sfx/plasma_burn.wav',
         hq_online: 'assets/audio/voice/hq_grid_online.wav',
         hq_boss: 'assets/audio/voice/hq_boss_detected.wav',
         hq_airdrop: 'assets/audio/voice/hq_airdrop_inbound.wav',
@@ -533,16 +536,16 @@
       if (!this.playSample('build', 0.6)) this.upgrade();
     }
     shootPulse() {
-      if (!this.playSample('laser', 0.35)) this.playTone(850, 'sawtooth', 0.08, 0.06, 200);
+      if (!this.playSample('laser', 0.55)) this.playTone(850, 'sawtooth', 0.08, 0.06, 200);
     }
     shootMortar() {
-      if (!this.playSample('cannon', 0.55)) this.playTone(180, 'triangle', 0.35, 0.15, 35);
+      if (!this.playSample('cannon', 0.70)) this.playTone(180, 'triangle', 0.35, 0.15, 35);
     }
     shootCryo() {
-      if (!this.playSample('zap', 0.45)) this.playTone(650, 'sine', 0.22, 0.08, 1100);
+      if (!this.playSample('zap', 0.60)) this.playTone(650, 'sine', 0.22, 0.08, 1100);
     }
     shootRailgun() {
-      if (!this.playSample('laser', 0.65)) {
+      if (!this.playSample('plasma', 0.75) && !this.playSample('laser', 0.65)) {
         this.playTone(120, 'sawtooth', 0.3, 0.18, 40);
         this.playTone(1200, 'square', 0.15, 0.08, 300);
       }
@@ -584,20 +587,25 @@
       [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.18, 0.12), i * 70));
     }
     bossSiren() {
-      // 2-tone cycling high-urgency emergency tactical alert siren
-      [580, 880, 580, 880, 520, 780].forEach((f, i) => {
-        setTimeout(() => this.playTone(f, 'sawtooth', 0.28, 0.25, f * 0.8), i * 250);
-      });
+      if (!this.playSample('siren', 0.85)) {
+        // 2-tone cycling high-urgency emergency tactical alert siren
+        [580, 880, 580, 880, 520, 780].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'sawtooth', 0.28, 0.25, f * 0.8), i * 250);
+        });
+      }
     }
     redZoneSiren() {
       this.playTone(600, 'sawtooth', 0.35, 0.18, 300);
       setTimeout(() => this.playTone(750, 'sawtooth', 0.35, 0.18, 400), 200);
     }
     artilleryBlast() {
-      if (!this.playSample('explosion', 0.7)) {
+      if (!this.playSample('explosion', 0.85) && !this.playSample('artillery', 0.85)) {
         this.playTone(70, 'sawtooth', 0.45, 0.25, 30);
         this.playTone(140, 'triangle', 0.3, 0.2, 40);
       }
+    }
+    titanStomp() {
+      if (!this.playSample('stomp', 0.85)) this.artilleryBlast();
     }
     barricadeHit() {
       this.playTone(110, 'square', 0.08, 0.12, 50);
@@ -2700,36 +2708,8 @@
         return;
       }
       if (this.state === 'MENU') {
-        // 1. Floating Action Deck under Megatron (y: 658 to 704)
-        if (y >= 658 && y <= 704) {
-          if (x >= 24 && x <= 150) {
-            this.toggleMechTransform();
-            this.vibrate([30, 20, 40]);
-            audio.click();
-            return;
-          }
-          if (x >= 156 && x <= 284) {
-            this.triggerMechAction();
-            this.vibrate([45, 30, 60]);
-            return;
-          }
-          if (x >= 290 && x <= 418) {
-            this.toggleMechMatrixChest();
-            this.vibrate([40, 25, 50]);
-            audio.click();
-            return;
-          }
-          if (x >= 424 && x <= 554) {
-            this.state = 'MANUAL';
-            if (this.apexSystem) this.apexSystem.hide();
-            this.vibrate(20);
-            audio.click();
-            return;
-          }
-        }
-
-        // 2. Stage tap on Megatron 3D Body: Trigger Fusion Cannon Blast
-        if (x >= 20 && x <= 580 && y >= 70 && y <= 656) {
+        // Stage tap on Megatron 3D Body: Trigger Fusion Cannon Blast
+        if (x >= 20 && x <= 580 && y >= 70 && y <= 680) {
           this.triggerMechAction();
           return;
         }
@@ -5080,7 +5060,7 @@
           if (e.stompTimer >= 5.5) {
             e.stompTimer = 0;
             this.screenShake = 12;
-            audio.artilleryBlast();
+            audio.titanStomp();
             this.spawnShockwave(e.x, e.y, 160, "#7c4dff");
             this.spawnScorchMark(e.x, e.y, 60);
             this.addFloatingText("🗿 GROUND STOMP!", e.x, e.y - 35, "#7c4dff", 18);
@@ -10509,50 +10489,15 @@
       ctx.font = "bold 9px monospace";
       ctx.fillText(heroStat, hx + 12, hy + 46);
 
-      // Holographic Floor Alignment Ring under Megatron Dock (Center: pcx: 295, pcy: 648)
-      const pcx = 295;
-      const pcy = 648;
-      ctx.strokeStyle = "rgba(192, 132, 252, 0.45)";
-      ctx.lineWidth = 1.4;
-      ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 150, 36, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(168, 85, 247, 0.60)";
-      ctx.lineWidth = 1.0;
-      ctx.beginPath();
-      ctx.ellipse(pcx, pcy, 110, 26, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Rotating tick marks
-      const rotAngle = time * 0.8;
-      for (let a = 0; a < 12; a++) {
-        const ang = rotAngle + a * (Math.PI / 6);
-        const tx1 = pcx + Math.cos(ang) * 142;
-        const ty1 = pcy + Math.sin(ang) * 34;
-        const tx2 = pcx + Math.cos(ang) * 154;
-        const ty2 = pcy + Math.sin(ang) * 37;
-        ctx.strokeStyle = (a % 3 === 0) ? heroCol : "rgba(148, 163, 184, 0.25)";
-        ctx.beginPath();
-        ctx.moveTo(tx1, ty1);
-        ctx.lineTo(tx2, ty2);
-        ctx.stroke();
-      }
-
-      // Drag Rotation Prompt positioned cleanly above the dock and action deck (y: 612)
+      // 3D Megatron interactive rotation prompt positioned cleanly at bottom (y: 696)
+      const pcx = 275;
       ctx.fillStyle = heroCol;
-      ctx.font = "bold 10px monospace";
+      ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      const dragPulse = 0.65 + Math.sin(time * 4) * 0.35;
+      const dragPulse = 0.70 + Math.sin(time * 3.5) * 0.30;
       ctx.globalAlpha = dragPulse;
-      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 612);
+      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 696);
       ctx.globalAlpha = 1.0;
-
-      // Floating Tactical Action Deck under Megatron (y: 662 to 698, h: 36)
-      this.renderMiniButton(26, 662, 122, 36, "🔄 REJIM", "#00e676");
-      this.renderMiniButton(160, 662, 122, 36, "💥 FUSION ZARBA", "#ff1744");
-      this.renderMiniButton(294, 662, 122, 36, "⚡ DARK ENERGON", "#c084fc");
-      this.renderMiniButton(428, 662, 122, 36, "📖 KIBER-KODEX", "#00e5ff");
       ctx.restore();
 
       // =========================================================================

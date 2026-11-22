@@ -655,9 +655,9 @@
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
           this.scene.environment = window.createStudioEnvironment(THREE, 'NEON');
         }
-        // Cinematic Balanced Character Camera (Focal depth: 6.4m, FOV: 38 deg)
+        // Cinematic Balanced Character Camera (Focal depth: 6.1m, FOV: 38 deg)
         this.camera = new THREE.PerspectiveCamera(38, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0, 0.12, 6.4);
+        this.camera.position.set(0, 0.10, 6.1);
         this.camera.lookAt(0, 0.0, 0);
 
         // Cinematic Decepticon Key + Rim + Dark Energon Lighting (Front Specular Focus)
@@ -675,6 +675,11 @@
         const frontFill = new THREE.DirectionalLight(0xdbeafe, 2.2);
         frontFill.position.set(-2.0, 1.0, 4.0);
         this.scene.add(frontFill);
+
+        // Atmospheric Sci-Fi Hangar Bay Illumination
+        const bayFill = new THREE.PointLight(0x00e5ff, 8.0, 25.0);
+        bayFill.position.set(0, 4.5, -6.0);
+        this.scene.add(bayFill);
 
         const rimCyan = new THREE.PointLight(0x00e5ff, 18, 20);
         rimCyan.position.set(-4, 2.8, -2);
@@ -1022,71 +1027,44 @@
       innerRingMesh.position.set(0, -1.652, 0);
       this.hangarGroup.add(innerRingMesh);
 
-      // Broken Slanted Slab Fragment on the Pedestal
-      const slabGeo = new THREE.BoxGeometry(1.2, 0.25, 0.8);
-      const slabMesh = new THREE.Mesh(slabGeo, matRuinWall);
-      slabMesh.position.set(-1.4, -1.62, 0.9);
-      slabMesh.rotation.set(0.1, 0.4, 0.15);
-      this.hangarGroup.add(slabMesh);
-
-      // 3. Cinematic Cybertron Celestial Panorama Backdrop
-      const panoTex = this.createCyberPanoramaTexture(THREE);
-      if (panoTex) {
-        const panoGeo = new THREE.CylinderGeometry(28, 28, 20, 32, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
-        const panoMat = new THREE.MeshBasicMaterial({
-          map: panoTex,
-          side: THREE.BackSide,
-          depthWrite: false
-        });
-        const panoMesh = new THREE.Mesh(panoGeo, panoMat);
-        panoMesh.position.set(0, 3.5, -10);
-        this.scene.add(panoMesh);
+      // 3. Realistic 3D Sci-Fi Military Hangar Environment (Sketchfab GLB Model)
+      const loaderClass = (THREE && THREE.GLTFLoader) || (typeof window !== 'undefined' && window.GLTFLoader);
+      if (loaderClass) {
+        try {
+          const loader = new loaderClass();
+          loader.load('assets/models/hangar_bg.glb', (gltf) => {
+            if (!gltf || !gltf.scene) return;
+            const hangar = gltf.scene;
+            // Dimensions: width: 1279.18, height: 798.87, depth: 2223.92, floor: y = 0.6267
+            // Target width ~ 24.0 units gives scale = 0.01876
+            const scale = 0.01876;
+            hangar.scale.set(scale, scale, scale);
+            // Perfectly align hangar interior floor with Megatron soles at y = -1.655
+            hangar.position.set(0.0, -1.655 - (0.6267 * scale), -4.0);
+            hangar.traverse((node) => {
+              if (node.isMesh) {
+                node.castShadow = false;
+                node.receiveShadow = true;
+                if (node.material) {
+                  node.material.roughness = 0.45;
+                  node.material.metalness = 0.82;
+                  if (node.material.map && THREE.sRGBEncoding) {
+                    node.material.map.encoding = THREE.sRGBEncoding;
+                  }
+                }
+              }
+            });
+            this.hangarGlb = hangar;
+            this.scene.add(hangar);
+          }, undefined, (err) => {
+            console.warn("Sketchfab hangar model loading fallback:", err);
+          });
+        } catch (e) {
+          console.warn("GLTFLoader exception:", e);
+        }
       }
 
-      // 4. Distant Ruined Cybertron Skyscrapers / Spires (Background: z = -3.5 to -6.0)
-      const ruinSpires = [
-        { x: -3.8, y: 1.8, z: -3.5, w: 1.4, h: 7.2, d: 1.4, rotZ: 0.08 },
-        { x: -1.8, y: 2.6, z: -4.5, w: 1.8, h: 9.0, d: 1.8, rotZ: -0.05 },
-        { x: 1.5, y: 2.2, z: -4.0, w: 1.5, h: 8.0, d: 1.5, rotZ: 0.04 },
-        { x: 3.6, y: 1.5, z: -3.2, w: 1.2, h: 6.5, d: 1.2, rotZ: -0.07 }
-      ];
-      ruinSpires.forEach((sp) => {
-        const spireGeo = new THREE.BoxGeometry(sp.w, sp.h, sp.d);
-        const spireMesh = new THREE.Mesh(spireGeo, matRuinWall);
-        spireMesh.position.set(sp.x, sp.y, sp.z);
-        spireMesh.rotation.z = sp.rotZ;
-        this.hangarGroup.add(spireMesh);
-
-        // Glowing Cyber-Circuit Windows on the Spire
-        const winGeo = new THREE.BoxGeometry(sp.w * 0.45, sp.h * 0.6, 0.05);
-        const winMesh = new THREE.Mesh(winGeo, Math.abs(sp.x) > 2 ? matEnergon : matFireMagma);
-        winMesh.position.set(sp.x, sp.y * 0.8, sp.z + sp.d * 0.52);
-        winMesh.rotation.z = sp.rotZ;
-        this.hangarGroup.add(winMesh);
-      });
-
-      // 5. Collapsed Leaning Steel Girders & Rebar (War Debris)
-      [-2.4, 2.4].forEach((xPos, idx) => {
-        const girderGeo = new THREE.BoxGeometry(0.35, 6.2, 0.35);
-        const girder = new THREE.Mesh(girderGeo, matMetal);
-        girder.position.set(xPos, 1.2, -1.8);
-        girder.rotation.z = (idx === 0 ? 0.35 : -0.38);
-        this.hangarGroup.add(girder);
-
-        const crossGeo = new THREE.CylinderGeometry(0.06, 0.06, 4.0, 8);
-        const cross = new THREE.Mesh(crossGeo, matDarkSteel);
-        cross.position.set(xPos * 0.7, 0.4, -1.6);
-        cross.rotation.z = (idx === 0 ? -0.55 : 0.6);
-        this.hangarGroup.add(cross);
-      });
-
-      // 6. Burning Energon Fissures & Fire Pits
-      const pitGeo = new THREE.CylinderGeometry(0.8, 1.1, 0.2, 12);
-      const pitMesh = new THREE.Mesh(pitGeo, matFireMagma);
-      pitMesh.position.set(1.8, -1.74, 0.8);
-      this.hangarGroup.add(pitMesh);
-
-      // 7. 96 Floating 3D Dark Energon & Fiery Ember Particles
+      // 4. 96 Floating 3D Dark Energon & Fiery Ember Particles
       const pCount = 96;
       const pGeo = new THREE.BufferGeometry();
       const pPos = new Float32Array(pCount * 3);
@@ -1115,8 +1093,8 @@
       this.fireLight.position.set(1.8, -1.2, 1.0);
       this.hangarGroup.add(this.fireLight);
 
-      // Center Ruined Cybertron Group directly under Megatron (x: -2.10)
-      this.hangarGroup.position.set(-2.10, 0, 0);
+      // Center Ruined Cybertron Group directly under Megatron (x: -2.15)
+      this.hangarGroup.position.set(-2.15, 0, 0);
 
       this.scene.add(this.hangarGroup);
     }
@@ -1149,7 +1127,7 @@
         this.mech = new Apex01Mech(T);
       }
       if (this.mech && this.mech.root) {
-        this.mech.root.position.set(-2.10, -0.08, 0);
+        this.mech.root.position.set(-2.15, -0.08, 0);
         this.attachGroundContactShadows(T);
       }
       if (this.scene) this.scene.add(this.mech.root);
