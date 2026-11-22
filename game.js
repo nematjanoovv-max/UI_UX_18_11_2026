@@ -147,13 +147,24 @@
         artillery: 'assets/audio/sfx/artillery_blast.wav',
         gatling: 'assets/audio/sfx/gatling_heavy.wav',
         plasma: 'assets/audio/sfx/plasma_burn.wav',
+        sell: 'assets/audio/sfx/sell.wav',
+        hit: 'assets/audio/sfx/hit.wav',
+        leak: 'assets/audio/sfx/leak.wav',
+        hero_slash: 'assets/audio/sfx/hero_slash.wav',
+        hero_dash: 'assets/audio/sfx/hero_dash.wav',
+        emp: 'assets/audio/sfx/emp.wav',
+        orbital: 'assets/audio/sfx/orbital.wav',
+        shield_dome: 'assets/audio/sfx/shield_dome.wav',
+        teleport: 'assets/audio/sfx/teleport.wav',
+        missile_launch: 'assets/audio/sfx/missile_launch.wav',
+        flame: 'assets/audio/sfx/flame.wav',
+        kamikaze_beep: 'assets/audio/sfx/kamikaze_beep.wav',
+        victory: 'assets/audio/sfx/victory.wav',
+        defeat: 'assets/audio/sfx/defeat.wav',
         hq_online: 'assets/audio/voice/hq_grid_online.wav',
         hq_boss: 'assets/audio/voice/hq_boss_detected.wav',
         hq_airdrop: 'assets/audio/voice/hq_airdrop_inbound.wav',
-        hq_core: 'assets/audio/voice/hq_core_critical.wav',
-        hero_dash: 'assets/audio/voice/hero_dash.wav',
-        hero_ult: 'assets/audio/voice/hero_ult.wav',
-        hero_kill: 'assets/audio/voice/hero_kill.wav'
+        hq_core: 'assets/audio/voice/hq_core_critical.wav'
       };
       for (const [key, path] of Object.entries(sfxList)) {
         try {
@@ -557,34 +568,50 @@
       }
     }
     sell() {
-      this.playTone(700, 'sine', 0.08, 0.1, 950);
-      setTimeout(() => this.playTone(950, 'sine', 0.12, 0.1, 1200), 70);
+      if (!this.playSample('sell', 0.65)) {
+        this.playTone(700, 'sine', 0.08, 0.1, 950);
+        setTimeout(() => this.playTone(950, 'sine', 0.12, 0.1, 1200), 70);
+      }
     }
-    hit() { this.playTone(140, 'square', 0.05, 0.04, 60); }
-    leak() { this.playTone(220, 'sawtooth', 0.3, 0.2, 90); }
+    hit() {
+      if (!this.playSample('hit', 0.50)) this.playTone(140, 'square', 0.05, 0.04, 60);
+    }
+    leak() {
+      if (!this.playSample('leak', 0.75)) this.playTone(220, 'sawtooth', 0.3, 0.2, 90);
+    }
     heroSlash() {
-      this.playTone(400, 'sawtooth', 0.2, 0.15, 80);
-      this.playTone(900, 'triangle', 0.25, 0.12, 200);
+      if (!this.playSample('hero_slash', 0.70)) {
+        this.playTone(400, 'sawtooth', 0.2, 0.15, 80);
+        this.playTone(900, 'triangle', 0.25, 0.12, 200);
+      }
     }
     emp() {
-      this.playTone(1200, 'sawtooth', 0.4, 0.2, 80);
-      this.playTone(300, 'square', 0.5, 0.15, 60);
+      if (!this.playSample('emp', 0.75)) {
+        this.playTone(1200, 'sawtooth', 0.4, 0.2, 80);
+        this.playTone(300, 'square', 0.5, 0.15, 60);
+      }
     }
     orbital() {
-      this.playTone(80, 'sawtooth', 0.6, 0.25, 40);
-      this.playTone(1500, 'sawtooth', 0.5, 0.2, 200);
+      if (!this.playSample('orbital', 0.85)) {
+        this.playTone(80, 'sawtooth', 0.6, 0.25, 40);
+        this.playTone(1500, 'sawtooth', 0.5, 0.2, 200);
+      }
     }
     victory() {
-      if (!this.playSample('wave_clear', 0.75)) {
+      if (!this.playSample('victory', 0.85) && !this.playSample('wave_clear', 0.75)) {
         [440, 554, 659, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.15), i * 120));
       }
     }
     airdropFlyby() {
-      this.playTone(90, 'triangle', 0.8, 0.12, 160);
-      setTimeout(() => this.playTone(160, 'triangle', 0.8, 0.1, 80), 300);
+      if (!this.playSample('missile_launch', 0.60)) {
+        this.playTone(90, 'triangle', 0.8, 0.12, 160);
+        setTimeout(() => this.playTone(160, 'triangle', 0.8, 0.1, 80), 300);
+      }
     }
     airdropLoot() {
-      [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.18, 0.12), i * 70));
+      if (!this.playSample('build', 0.70)) {
+        [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'square', 0.18, 0.12), i * 70));
+      }
     }
     bossSiren() {
       if (!this.playSample('siren', 0.85)) {
@@ -595,11 +622,13 @@
       }
     }
     redZoneSiren() {
-      this.playTone(600, 'sawtooth', 0.35, 0.18, 300);
-      setTimeout(() => this.playTone(750, 'sawtooth', 0.35, 0.18, 400), 200);
+      if (!this.playSample('siren', 0.75)) {
+        this.playTone(600, 'sawtooth', 0.35, 0.18, 300);
+        setTimeout(() => this.playTone(750, 'sawtooth', 0.35, 0.18, 400), 200);
+      }
     }
     artilleryBlast() {
-      if (!this.playSample('explosion', 0.85) && !this.playSample('artillery', 0.85)) {
+      if (!this.playSample('artillery', 0.85) && !this.playSample('explosion', 0.85)) {
         this.playTone(70, 'sawtooth', 0.45, 0.25, 30);
         this.playTone(140, 'triangle', 0.3, 0.2, 40);
       }
@@ -608,11 +637,13 @@
       if (!this.playSample('stomp', 0.85)) this.artilleryBlast();
     }
     barricadeHit() {
-      this.playTone(110, 'square', 0.08, 0.12, 50);
+      if (!this.playSample('hit', 0.60)) this.playTone(110, 'square', 0.08, 0.12, 50);
     }
     barricadeBreak() {
-      this.playTone(180, 'sawtooth', 0.4, 0.25, 45);
-      this.playTone(90, 'square', 0.5, 0.2, 30);
+      if (!this.playSample('explosion', 0.75)) {
+        this.playTone(180, 'sawtooth', 0.4, 0.25, 45);
+        this.playTone(90, 'square', 0.5, 0.2, 30);
+      }
     }
     radioBeep() {
       this.playTone(880, 'sine', 0.05, 0.08);
@@ -652,38 +683,54 @@
       }
     }
     defeat() {
-      [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
+      if (!this.playSample('defeat', 0.85)) {
+        [330, 293, 261, 196].forEach((f, i) => setTimeout(() => this.playTone(f, 'sawtooth', 0.35, 0.2, 80), i * 150));
+      }
     }
     mechTransform() {
-      this.playTone(350, 'sawtooth', 0.18, 0.18, 120);
-      setTimeout(() => this.playTone(180, 'square', 0.22, 0.20, 60), 80);
-      setTimeout(() => this.playTone(550, 'triangle', 0.15, 0.15, 800), 180);
+      if (!this.playSample('modal', 0.65) && !this.playSample('build', 0.60)) {
+        this.playTone(350, 'sawtooth', 0.18, 0.18, 120);
+        setTimeout(() => this.playTone(180, 'square', 0.22, 0.20, 60), 80);
+        setTimeout(() => this.playTone(550, 'triangle', 0.15, 0.15, 800), 180);
+      }
     }
     shootTesla() {
-      this.playTone(1400, 'sawtooth', 0.12, 0.14, 250);
-      this.playNoise(0.10, 0.08);
+      if (!this.playSample('zap', 0.65)) {
+        this.playTone(1400, 'sawtooth', 0.12, 0.14, 250);
+        this.playNoise(0.10, 0.08);
+      }
     }
     shootFlame() {
-      this.playNoise(0.22, 0.12);
-      this.playTone(120, 'sawtooth', 0.18, 0.08, 60);
+      if (!this.playSample('flame', 0.70)) {
+        this.playNoise(0.22, 0.12);
+        this.playTone(120, 'sawtooth', 0.18, 0.08, 60);
+      }
     }
     missileLaunch() {
-      this.playTone(280, 'sawtooth', 0.25, 0.15, 950);
-      this.playNoise(0.18, 0.06);
+      if (!this.playSample('missile_launch', 0.70)) {
+        this.playTone(280, 'sawtooth', 0.25, 0.15, 950);
+        this.playNoise(0.18, 0.06);
+      }
     }
     shieldDome() {
-      this.playTone(440, 'sine', 0.45, 0.18, 880);
-      setTimeout(() => this.playTone(880, 'sine', 0.35, 0.12, 1320), 120);
+      if (!this.playSample('shield_dome', 0.70)) {
+        this.playTone(440, 'sine', 0.45, 0.18, 880);
+        setTimeout(() => this.playTone(880, 'sine', 0.35, 0.12, 1320), 120);
+      }
     }
     kamikazeBeep() {
-      this.playTone(1800, 'square', 0.05, 0.15);
+      if (!this.playSample('kamikaze_beep', 0.65)) this.playTone(1800, 'square', 0.05, 0.15);
     }
-    heroDash() { this.playTone(320, 'sawtooth', 0.15, 0.15, 600); }
+    heroDash() {
+      if (!this.playSample('hero_dash', 0.65)) this.playTone(320, 'sawtooth', 0.15, 0.15, 600);
+    }
     mortarFire() { this.shootMortar(); }
     pulseFire() { this.shootPulse(); }
     emergencySiren() { this.bossSiren(); }
     zap() { this.shootTesla(); }
-    teleport() { this.playTone(800, 'sine', 0.18, 0.15, 200); }
+    teleport() {
+      if (!this.playSample('teleport', 0.70)) this.playTone(800, 'sine', 0.18, 0.15, 200);
+    }
     explosion() { this.artilleryBlast(); }
     freeze() { this.shootCryo(); }
     tesla() { this.shootTesla(); }
@@ -10490,7 +10537,7 @@
       ctx.fillText(heroStat, hx + 12, hy + 46);
 
       // 3D Megatron interactive rotation prompt positioned cleanly at bottom (y: 696)
-      const pcx = 275;
+      const pcx = 265;
       ctx.fillStyle = heroCol;
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";

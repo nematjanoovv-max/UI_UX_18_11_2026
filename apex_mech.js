@@ -655,10 +655,10 @@
         if (typeof window !== 'undefined' && window.createStudioEnvironment) {
           this.scene.environment = window.createStudioEnvironment(THREE, 'NEON');
         }
-        // Cinematic Balanced Character Camera (Focal depth: 6.1m, FOV: 38 deg)
+        // Cinematic Imposing Character Camera: Zoomed in closer (Focal depth: 5.4m, FOV: 38 deg)
         this.camera = new THREE.PerspectiveCamera(38, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0, 0.10, 6.1);
-        this.camera.lookAt(0, 0.0, 0);
+        this.camera.position.set(0, 0.22, 5.4);
+        this.camera.lookAt(0, 0.12, 0);
 
         // Cinematic Decepticon Key + Rim + Dark Energon Lighting (Front Specular Focus)
         this.scene.add(new THREE.HemisphereLight(0x9333ea, 0x050814, 1.4));
@@ -1000,32 +1000,143 @@
       floorMesh.receiveShadow = true;
       this.scene.add(floorMesh);
 
-      // 2. Heavy Hexagonal Docking Platform (Flush with floor: top at Y = -1.655)
-      // Height = 0.14, placed at y = -1.725 so top surface is at -1.725 + 0.07 = -1.655
-      const dockGeo = new THREE.CylinderGeometry(3.3, 3.8, 0.14, 6);
-      const dockMesh = new THREE.Mesh(dockGeo, matDarkSteel);
-      dockMesh.position.set(0, -1.725, 0);
-      dockMesh.receiveShadow = true;
-      this.hangarGroup.add(dockMesh);
+      // 2. Realistic 3D Cybertronian Command Dais / Recharging Pedestal
+      // Elevated heavy-duty industrial platform (Rises 0.32 units from y = -1.655 to -1.335)
+      const matDaisBase = new THREE.MeshStandardMaterial({
+        color: 0x0c1322,
+        metalness: 0.94,
+        roughness: 0.28
+      });
+      const matDaisPlate = new THREE.MeshStandardMaterial({
+        color: 0x162238,
+        metalness: 0.90,
+        roughness: 0.32
+      });
+      const matDaisDeck = new THREE.MeshStandardMaterial({
+        color: 0x1e2c44,
+        metalness: 0.85,
+        roughness: 0.40
+      });
+      const matHazardStrip = new THREE.MeshStandardMaterial({
+        color: 0xfacc15,
+        emissive: 0x854d0e,
+        emissiveIntensity: 0.8,
+        roughness: 0.30
+      });
+      const matChromeHydraulic = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        metalness: 0.98,
+        roughness: 0.10
+      });
+      const matVentGlow = new THREE.MeshStandardMaterial({
+        color: 0x00e5ff,
+        emissive: 0x00e5ff,
+        emissiveIntensity: 3.2,
+        roughness: 0.20
+      });
+      const matEnergonConduit = new THREE.MeshStandardMaterial({
+        color: 0xa855f7,
+        emissive: 0xa855f7,
+        emissiveIntensity: 4.0,
+        roughness: 0.18
+      });
 
-      // Outer chamfered trim ring
-      const dockTrimGeo = new THREE.CylinderGeometry(3.8, 4.2, 0.08, 6);
-      const dockTrimMesh = new THREE.Mesh(dockTrimGeo, matMetal);
-      dockTrimMesh.position.set(0, -1.745, 0);
-      this.hangarGroup.add(dockTrimMesh);
+      // Tier 1: Heavy Beveled Octagonal Foundation Base (y: -1.655 to -1.535, h: 0.12, r: 2.6 -> 2.95)
+      const baseGeo = new THREE.CylinderGeometry(2.6, 2.95, 0.12, 8);
+      const baseMesh = new THREE.Mesh(baseGeo, matDaisBase);
+      baseMesh.position.set(0, -1.595, 0);
+      baseMesh.receiveShadow = true;
+      this.hangarGroup.add(baseMesh);
 
-      // Recessed Dark Energon glowing conduits flush with platform surface
-      const ringGeo = new THREE.TorusGeometry(3.1, 0.038, 8, 36);
-      const ringMesh = new THREE.Mesh(ringGeo, matEnergon);
-      ringMesh.rotation.x = Math.PI / 2;
-      ringMesh.position.set(0, -1.652, 0);
-      this.hangarGroup.add(ringMesh);
+      // Chamfered steel trim ring on Tier 1
+      const baseTrimGeo = new THREE.TorusGeometry(2.78, 0.045, 8, 32);
+      const baseTrim = new THREE.Mesh(baseTrimGeo, matDaisPlate);
+      baseTrim.rotation.x = Math.PI / 2;
+      baseTrim.position.set(0, -1.535, 0);
+      this.hangarGroup.add(baseTrim);
 
-      const innerRingGeo = new THREE.TorusGeometry(2.0, 0.032, 8, 36);
-      const innerRingMesh = new THREE.Mesh(innerRingGeo, matFireMagma);
-      innerRingMesh.rotation.x = Math.PI / 2;
-      innerRingMesh.position.set(0, -1.652, 0);
-      this.hangarGroup.add(innerRingMesh);
+      // Tier 2: Intermediate Armored Chassis (Octagonal, y: -1.535 to -1.415, h: 0.12, r: 2.2 -> 2.55)
+      const midGeo = new THREE.CylinderGeometry(2.2, 2.55, 0.12, 8);
+      const midMesh = new THREE.Mesh(midGeo, matDaisPlate);
+      midMesh.position.set(0, -1.475, 0);
+      midMesh.receiveShadow = true;
+      this.hangarGroup.add(midMesh);
+
+      // Hazard caution perimeter blocks on Tier 2 chamfers
+      for (let h = 0; h < 8; h++) {
+        const ang = h * (Math.PI / 4) + (Math.PI / 8);
+        const hx = Math.cos(ang) * 2.36;
+        const hz = Math.sin(ang) * 2.36;
+        const hBlockGeo = new THREE.BoxGeometry(0.58, 0.08, 0.14);
+        const hBlock = new THREE.Mesh(hBlockGeo, (h % 2 === 0) ? matHazardStrip : matDaisBase);
+        hBlock.position.set(hx, -1.475, hz);
+        hBlock.rotation.y = -ang + Math.PI / 2;
+        this.hangarGroup.add(hBlock);
+      }
+
+      // Tier 3: Reinforced Titanium Standing Deck (y: -1.415 to -1.335, h: 0.08, r: 1.85 -> 2.10)
+      const deckGeo = new THREE.CylinderGeometry(1.85, 2.10, 0.08, 12);
+      const deckMesh = new THREE.Mesh(deckGeo, matDaisDeck);
+      deckMesh.position.set(0, -1.375, 0);
+      deckMesh.receiveShadow = true;
+      this.hangarGroup.add(deckMesh);
+
+      // Recessed Dark Energon & Cyber Conduits on top deck (Surface at y = -1.335)
+      const conduitOuter = new THREE.TorusGeometry(1.72, 0.038, 8, 36);
+      const conduitOuterMesh = new THREE.Mesh(conduitOuter, matEnergonConduit);
+      conduitOuterMesh.rotation.x = Math.PI / 2;
+      conduitOuterMesh.position.set(0, -1.332, 0);
+      this.hangarGroup.add(conduitOuterMesh);
+
+      const conduitInner = new THREE.TorusGeometry(1.08, 0.030, 8, 36);
+      const conduitInnerMesh = new THREE.Mesh(conduitInner, matVentGlow);
+      conduitInnerMesh.rotation.x = Math.PI / 2;
+      conduitInnerMesh.position.set(0, -1.332, 0);
+      this.hangarGroup.add(conduitInnerMesh);
+
+      // 6 Heavy-Duty Hydraulic Piston Shock Struts (Angled at 45° from chassis into the floor)
+      for (let p = 0; p < 6; p++) {
+        const pAng = p * (Math.PI / 3);
+        const px = Math.cos(pAng);
+        const pz = Math.sin(pAng);
+
+        const strutGroup = new THREE.Group();
+        strutGroup.position.set(px * 2.18, -1.535, pz * 2.18);
+
+        // Cylinder piston body
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.32, 10), matDaisBase);
+        barrel.rotation.z = 0.52;
+        barrel.rotation.y = -pAng;
+        strutGroup.add(barrel);
+
+        // Chrome rod
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.048, 0.28, 8), matChromeHydraulic);
+        rod.rotation.z = 0.52;
+        rod.rotation.y = -pAng;
+        rod.position.set(px * 0.08, -0.06, pz * 0.08);
+        strutGroup.add(rod);
+
+        // Floor anchor foot
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.24), matDaisBase);
+        foot.position.set(px * 0.28, -0.11, pz * 0.28);
+        strutGroup.add(foot);
+
+        this.hangarGroup.add(strutGroup);
+      }
+
+      // 4 Perimeter Deck Uplights pointing upward at Megatron
+      for (let u = 0; u < 4; u++) {
+        const uAng = u * (Math.PI / 2) + (Math.PI / 4);
+        const ux = Math.cos(uAng) * 1.78;
+        const uz = Math.sin(uAng) * 1.78;
+        const lightFixture = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.08, 10), matDaisBase);
+        lightFixture.position.set(ux, -1.335, uz);
+        this.hangarGroup.add(lightFixture);
+
+        const lens = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), matVentGlow);
+        lens.position.set(ux, -1.325, uz);
+        this.hangarGroup.add(lens);
+      }
 
       // 3. Realistic 3D Sci-Fi Military Hangar Environment (Sketchfab GLB Model)
       const loaderClass = (THREE && THREE.GLTFLoader) || (typeof window !== 'undefined' && window.GLTFLoader);
@@ -1093,8 +1204,8 @@
       this.fireLight.position.set(1.8, -1.2, 1.0);
       this.hangarGroup.add(this.fireLight);
 
-      // Center Ruined Cybertron Group directly under Megatron (x: -2.15)
-      this.hangarGroup.position.set(-2.15, 0, 0);
+      // Center Command Dais & Energon Lighting directly under Megatron (x: -1.95)
+      this.hangarGroup.position.set(-1.95, 0, 0);
 
       this.scene.add(this.hangarGroup);
     }
@@ -1127,7 +1238,7 @@
         this.mech = new Apex01Mech(T);
       }
       if (this.mech && this.mech.root) {
-        this.mech.root.position.set(-2.15, -0.08, 0);
+        this.mech.root.position.set(-1.95, 0.24, 0);
         this.attachGroundContactShadows(T);
       }
       if (this.scene) this.scene.add(this.mech.root);
