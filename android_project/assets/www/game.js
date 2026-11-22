@@ -621,6 +621,11 @@
       if (sampleKey && this.playSample(sampleKey, 0.95)) {
         return;
       }
+      // On mobile or Android WebView, speechSynthesis can deadlock or freeze the rendering thread
+      const isMobileOrAndroid = typeof navigator !== 'undefined' && (/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '') || (typeof window !== 'undefined' && !!window.AndroidBridge));
+      if (isMobileOrAndroid) {
+        return; // Military chirp is already sounded, avoiding mobile TTS thread hang
+      }
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         try {
           window.speechSynthesis.cancel();
@@ -665,9 +670,32 @@
     kamikazeBeep() {
       this.playTone(1800, 'square', 0.05, 0.15);
     }
+    heroDash() { this.playTone(320, 'sawtooth', 0.15, 0.15, 600); }
+    mortarFire() { this.shootMortar(); }
+    pulseFire() { this.shootPulse(); }
+    emergencySiren() { this.bossSiren(); }
+    zap() { this.shootTesla(); }
+    teleport() { this.playTone(800, 'sine', 0.18, 0.15, 200); }
+    explosion() { this.artilleryBlast(); }
+    freeze() { this.shootCryo(); }
+    tesla() { this.shootTesla(); }
+    flame() { this.shootFlame(); }
+    railgun() { this.shootRailgun(); }
+    laserShoot() { this.shootRailgun(); }
+    bossRoar() { this.bossSiren(); }
   }
 
-  const audio = new SoundSynth();
+  const rawAudio = new SoundSynth();
+  const audio = (typeof Proxy !== 'undefined') ? new Proxy(rawAudio, {
+    get(target, prop) {
+      if (prop in target) {
+        const val = target[prop];
+        if (typeof val === 'function') return val.bind(target);
+        return val;
+      }
+      return (...args) => {};
+    }
+  }) : rawAudio;
   window.audio = audio;
 
   // --- MAP DEFINITIONS ---
@@ -2529,7 +2557,7 @@
           segments.push({ p1, p2, start: total, length: dist });
           total += dist;
         }
-        return { totalLength: total, segments, waypoints: lane };
+        return { totalLength: total, segments, waypoints: lane, points: lane };
       });
     }
 
@@ -4666,6 +4694,7 @@
       const enemy = {
         uid: this.nextUid++,
         type: type,
+        name: def.name || type,
         laneIdx: laneIdx,
         progress: 0,
         hp: def.hp * hpMult,
@@ -4711,15 +4740,20 @@
           }
         }
 
-        if (this.state === 'PLAYING') {
-          for (let i = 0; i < this.speed; i++) this.update(dt);
-        } else if (this.state === 'TPS_3D') {
-          this.update3DTPS(dt);
-        } else if (this.state === 'MANUAL') {
-          this.updateCodex(dt);
+        try {
+          if (this.state === 'PLAYING') {
+            for (let i = 0; i < this.speed; i++) this.update(dt);
+          } else if (this.state === 'TPS_3D') {
+            this.update3DTPS(dt);
+          } else if (this.state === 'MANUAL') {
+            this.updateCodex(dt);
+          }
+          this.render();
+        } catch (err) {
+          console.error("Game loop execution caught error:", err);
+        } finally {
+          requestAnimationFrame(step);
         }
-        this.render();
-        requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
     }
@@ -4732,6 +4766,7 @@
       if (this.scorchMarks.length > 35) this.scorchMarks.splice(0, this.scorchMarks.length - 35);
       if (this.floatingTexts.length > 30) this.floatingTexts.splice(0, this.floatingTexts.length - 30);
       if (this.groundHazards.length > 15) this.groundHazards.splice(0, this.groundHazards.length - 15);
+      if (this.projectiles.length > 150) this.projectiles.splice(0, this.projectiles.length - 150);
 
       if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - 20 * dt);
 
@@ -5107,7 +5142,8 @@
         const lane = this.bakedLanes[e.laneIdx] || this.bakedLanes[0];
         if (e.isFlyer) {
           // Aerial drone bypasses barricades and flies straight to Core
-          const endPt = lane.points[lane.points.length - 1];
+          const pts = (lane && (lane.points || lane.waypoints)) || [{ x: 1216, y: 320 }];
+          const endPt = pts[pts.length - 1] || { x: 1216, y: 320 };
           const fdx = endPt.x - e.x;
           const fdy = endPt.y - e.y;
           const fdist = Math.hypot(fdx, fdy);
@@ -5116,6 +5152,8 @@
           if (fdist > 8) {
             e.x += Math.cos(e.angle) * effSpeed * dt;
             e.y += Math.sin(e.angle) * effSpeed * dt;
+          } else {
+            e.progress = (lane && lane.totalLength) ? lane.totalLength : 9999;
           }
           if (Math.random() < 0.25) {
             this.particles.push({
@@ -5279,9 +5317,8 @@
           const dist = Math.hypot(dx, dy);
           const desAng = Math.atan2(dy, dx);
           p.angle = (p.angle !== undefined && !isNaN(p.angle)) ? p.angle : desAng;
-          let angDiff = desAng - p.angle;
-          while (angDiff < -Math.PI) angDiff += Math.PI * 2;
-          while (angDiff > Math.PI) angDiff -= Math.PI * 2;
+          let angDiff = Math.atan2(Math.sin(desAng - p.angle), Math.cos(desAng - p.angle));
+          if (isNaN(angDiff)) angDiff = 0;
           p.angle += Math.sign(angDiff) * Math.min(Math.abs(angDiff), dt * 10);
           const pSpd = p.speed || 380;
           p.x += Math.cos(p.angle) * pSpd * dt;
@@ -5837,6 +5874,7 @@
           this.enemies.push({
             uid: this.nextUid++,
             type: 'swarmling',
+            name: 'Swarmling',
             laneIdx: enemy.laneIdx,
             progress: Math.max(0, enemy.progress + i * 20),
             hp: 25, maxHp: 25, shield: 0, maxShield: 0, armor: 0,
@@ -5846,12 +5884,13 @@
         }
       }
 
+      const eName = (enemy.name || (ENEMY_DEFS[enemy.type] && ENEMY_DEFS[enemy.type].name) || enemy.type || "ENEMY").toUpperCase();
       if (enemy.isBoss) {
-        this.addCombatFeed("TITAN DESTROYED", `${enemy.name.toUpperCase()} (+${enemy.bounty}G)`, "#ff1744", "💀");
+        this.addCombatFeed("TITAN DESTROYED", `${eName} (+${enemy.bounty || 100}G)`, "#ff1744", "💀");
         this.screenShake = 12;
         audio.victory();
-      } else if (['gunship', 'brute', 'phantom', 'kamikaze_drone'].includes(enemy.type)) {
-        this.addCombatFeed("ELITE DOWN", `${enemy.name.toUpperCase()} (+${enemy.bounty}G)`, "#00e5ff", "💥");
+      } else if (['gunship', 'brute', 'phantom', 'kamikaze', 'kamikaze_drone', 'siege_breaker'].includes(enemy.type)) {
+        this.addCombatFeed("ELITE DOWN", `${eName} (+${enemy.bounty || 15}G)`, "#00e5ff", "💥");
       }
 
       const now = Date.now();
@@ -8718,11 +8757,12 @@
         ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
         ctx.lineWidth = 1.5;
         for (const lane of this.bakedLanes) {
-          if (!lane || lane.length === 0 || !lane[0]) continue;
+          const pts = lane ? (lane.waypoints || lane.points || (Array.isArray(lane) ? lane : null)) : null;
+          if (!pts || pts.length === 0 || !pts[0]) continue;
           ctx.beginPath();
-          ctx.moveTo(ix + lane[0].x * sx, iy + lane[0].y * sy);
-          for (let p = 1; p < lane.length; p++) {
-            if (lane[p]) ctx.lineTo(ix + lane[p].x * sx, iy + lane[p].y * sy);
+          ctx.moveTo(ix + pts[0].x * sx, iy + pts[0].y * sy);
+          for (let p = 1; p < pts.length; p++) {
+            if (pts[p]) ctx.lineTo(ix + pts[p].x * sx, iy + pts[p].y * sy);
           }
           ctx.stroke();
         }
@@ -14295,9 +14335,7 @@ getCodexDatabase() {
       ];
 
       for (let d = -180; d <= 540; d += 15) {
-        let diff = d - curYawDeg;
-        while (diff < -180) diff += 360;
-        while (diff > 180) diff -= 360;
+        let diff = ((d - curYawDeg + 540) % 360) - 180;
         if (Math.abs(diff) <= 65) {
           const tickX = compX + compW / 2 + diff * degScale;
           const card = cardinals.find(c => Math.abs(c.deg - ((d % 360 + 360) % 360)) < 1);
@@ -14318,9 +14356,7 @@ getCodexDatabase() {
 
       // Compass Blip: Base Core (0, 0, -35)
       const coreAng = (Math.atan2(t.core.x - p.x, -(t.core.z - p.z)) * 180 / Math.PI + 360) % 360;
-      let coreDiff = coreAng - curYawDeg;
-      while (coreDiff < -180) coreDiff += 360;
-      while (coreDiff > 180) coreDiff -= 360;
+      let coreDiff = ((coreAng - curYawDeg + 540) % 360) - 180;
       if (Math.abs(coreDiff) <= 60) {
         const blipX = compX + compW / 2 + coreDiff * degScale;
         ctx.fillStyle = "#00e5ff";
@@ -14332,9 +14368,7 @@ getCodexDatabase() {
       // Compass Blips: Active Enemies
       for (const e of t.enemies) {
         const eAng = (Math.atan2(e.x - p.x, -(e.z - p.z)) * 180 / Math.PI + 360) % 360;
-        let eDiff = eAng - curYawDeg;
-        while (eDiff < -180) eDiff += 360;
-        while (eDiff > 180) eDiff -= 360;
+        let eDiff = ((eAng - curYawDeg + 540) % 360) - 180;
         if (Math.abs(eDiff) <= 60) {
           const blipX = compX + compW / 2 + eDiff * degScale;
           ctx.fillStyle = e.isBoss ? "#ff1744" : "#ffd600";
