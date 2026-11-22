@@ -88,7 +88,7 @@ public class MainActivity extends Activity {
                         String assetPath = null;
                         if (path.startsWith("/android_asset/")) {
                             assetPath = path.substring("/android_asset/".length());
-                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".glb") || path.endsWith(".wasm") || path.endsWith(".webp") || path.endsWith(".pck")) {
+                        } else if (path.equals("/") || path.endsWith(".html") || path.endsWith(".js") || path.endsWith(".json") || path.endsWith(".png") || path.endsWith(".svg") || path.endsWith(".css") || path.endsWith(".mp3") || path.endsWith(".wav") || path.endsWith(".glb") || path.endsWith(".wasm") || path.endsWith(".webp") || path.endsWith(".pck") || path.endsWith(".woff2") || path.endsWith(".woff")) {
                             assetPath = "www" + (path.startsWith("/") ? path : "/" + path);
                             if (assetPath.equals("www/")) assetPath = "www/index.html";
                         }
@@ -107,6 +107,8 @@ public class MainActivity extends Activity {
                             else if (assetPath.endsWith(".wasm")) mime = "application/wasm";
                             else if (assetPath.endsWith(".webp")) mime = "image/webp";
                             else if (assetPath.endsWith(".pck")) mime = "application/octet-stream";
+                            else if (assetPath.endsWith(".woff2")) mime = "font/woff2";
+                            else if (assetPath.endsWith(".woff")) mime = "font/woff";
                             String encoding = (assetPath.endsWith(".html") || assetPath.endsWith(".js") || assetPath.endsWith(".css") || assetPath.endsWith(".json")) ? "UTF-8" : null;
                             WebResourceResponse response = new WebResourceResponse(mime, encoding, is);
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

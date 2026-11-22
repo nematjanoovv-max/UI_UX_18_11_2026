@@ -9,6 +9,7 @@ echo "=== 1. Syncing assets ==="
 mkdir -p "$DIR/assets/www"
 cp -r "$ROOT_DIR/assets" "$DIR/assets/www/"
 cp "$ROOT_DIR/index.html" "$DIR/assets/www/"
+cp "$ROOT_DIR/main-menu.html" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/preview_transformers.html" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/preview_character.html" "$DIR/assets/www/" 2>/dev/null || true
 cp "$ROOT_DIR/game.js" "$DIR/assets/www/"

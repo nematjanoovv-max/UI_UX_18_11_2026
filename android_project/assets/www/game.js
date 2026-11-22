@@ -4786,6 +4786,7 @@
     }
 
     update(dt) {
+      this.updateMenuVisibility();
       // Memory Flatness & Collection Bounds (prevents mobile WebView GC lag spikes)
       if (this.particles.length > 250) this.particles.splice(0, this.particles.length - 250);
       if (this.casings.length > 60) this.casings.splice(0, this.casings.length - 60);
@@ -6198,10 +6199,9 @@
         this.ctx.translate(shakeX, shakeY);
       }
 
-      // Hide 3D mech when Settings modal is open or when not in MENU
+      // Keep legacy hangar canvas hidden so MainMenu3D on #robotCanvas has full GPU budget
       if (this.apexSystem) {
-        if (this.state === 'MENU' && !this.showSettingsModal) this.apexSystem.show();
-        else this.apexSystem.hide();
+        this.apexSystem.hide();
       }
 
       if (this.state === 'MENU') {
@@ -10382,198 +10382,35 @@
       this.drawCyberButton(660, 595, 380, 65, "JANGNI QAYTA BOSHLASH", "#00e676", "REDEPLOY MISSION", "🚀", true);
     }
 
+    updateMenuVisibility() {
+      if (typeof document === 'undefined') return;
+      const menuEl = document.getElementById('menu');
+      if (!menuEl || !menuEl.style) return;
+      if (this.state === 'MENU' && !this.showSettingsModal) {
+        if (menuEl.style.display !== 'grid') {
+          menuEl.style.display = 'grid';
+          if (typeof window !== 'undefined' && window.MainMenu3D && typeof window.MainMenu3D.start === 'function') {
+            window.MainMenu3D.start();
+          }
+        }
+        const cmdEl = document.getElementById('cmdName');
+        if (cmdEl && this.playerName) {
+          cmdEl.textContent = this.playerName.toUpperCase();
+        }
+      } else {
+        if (menuEl.style.display !== 'none') {
+          menuEl.style.display = 'none';
+          if (typeof window !== 'undefined' && window.MainMenu3D && typeof window.MainMenu3D.stop === 'function') {
+            window.MainMenu3D.stop();
+          }
+        }
+      }
+    }
+
     renderMainMenu() {
-      const ctx = this.ctx;
-      const time = performance.now() * 0.002;
-
-      // 1. Crystal-Clear 3D Viewport (Left 0-540 is 100% transparent; Right 540-1280 has sleek glass panel for UI buttons)
-      ctx.clearRect(0, 0, this.width, this.height);
-      const bgGrad = ctx.createLinearGradient(520, 0, this.width, 0);
-      bgGrad.addColorStop(0, "rgba(3, 7, 18, 0.0)");
-      bgGrad.addColorStop(0.20, "rgba(3, 7, 18, 0.45)");
-      bgGrad.addColorStop(0.55, "rgba(2, 6, 16, 0.80)");
-      bgGrad.addColorStop(1, "rgba(2, 4, 12, 0.90)");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(520, 0, this.width - 520, this.height);
-
-      // Floating Energon Sparks & Cyber Motes on right-side UI panel
-      if (!this.mainMenuParticles) {
-        this.mainMenuParticles = [];
-        for (let i = 0; i < 28; i++) {
-          this.mainMenuParticles.push({
-            x: 580 + Math.random() * 660,
-            y: 80 + Math.random() * 600,
-            vy: 0.25 + Math.random() * 0.65,
-            vx: (Math.random() - 0.5) * 0.3,
-            size: 1.0 + Math.random() * 2.2,
-            alpha: 0.25 + Math.random() * 0.65,
-            color: (i % 3 === 0) ? "#c084fc" : ((i % 3 === 1) ? "#00e5ff" : "#ffd600")
-          });
-        }
-      }
-      for (const p of this.mainMenuParticles) {
-        p.y -= p.vy;
-        p.x += p.vx;
-        if (p.y < 70) {
-          p.y = 690;
-          p.x = 580 + Math.random() * 660;
-        }
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha * (0.6 + Math.sin(time * 3 + p.x) * 0.4);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-      }
-
-      // Sci-Fi Corner HUD Brackets
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-      ctx.lineWidth = 1.5;
-      const cPad = 12;
-      const cLen = 22;
-      // Top-Left
-      ctx.beginPath(); ctx.moveTo(cPad, cPad + cLen); ctx.lineTo(cPad, cPad); ctx.lineTo(cPad + cLen, cPad); ctx.stroke();
-      // Top-Right
-      ctx.beginPath(); ctx.moveTo(this.width - cPad - cLen, cPad); ctx.lineTo(this.width - cPad, cPad); ctx.lineTo(this.width - cPad, cPad + cLen); ctx.stroke();
-      // Bottom-Left
-      ctx.beginPath(); ctx.moveTo(cPad, this.height - cPad - cLen); ctx.lineTo(cPad, this.height - cPad); ctx.lineTo(cPad + cLen, this.height - cPad); ctx.stroke();
-      // Bottom-Right
-      ctx.beginPath(); ctx.moveTo(this.width - cPad - cLen, this.height - cPad); ctx.lineTo(this.width - cPad, this.height - cPad); ctx.lineTo(this.width - cPad, this.height - cPad - cLen); ctx.stroke();
-
-      // 2. Top Aerospace Header Bar (Sleek Glassmorphism with Live Waveform)
-      ctx.save();
-      const topH = 54;
-      ctx.fillStyle = "rgba(8, 15, 28, 0.72)";
-      ctx.fillRect(0, 0, this.width, topH);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(0, 0, this.width, topH);
-
-      // Glowing Title
-      ctx.shadowColor = "rgba(0, 229, 255, 0.85)";
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 19px 'Segoe UI', monospace";
-      ctx.textAlign = "left";
-      const titleStr = "⚡ TOWER DEFENSE: LAST GRID";
-      ctx.fillText(titleStr, 32, 36);
-      const titleWidth = ctx.measureText(titleStr).width;
-      ctx.shadowBlur = 0;
-
-      // Version in separate pill badge
-      const badgeX = Math.round(32 + titleWidth + 16);
-      this.renderMiniButton(badgeX, 16, 75, 26, "v4.2.0", "#e040fb");
-
-      // Live Telemetry Signal Waveform
-      const waveX = badgeX + 92;
-      ctx.fillStyle = "#00e676";
-      ctx.beginPath();
-      ctx.arc(waveX, 29, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#00e676";
-      ctx.font = "bold 10px monospace";
-      ctx.fillText("GRID ONLINE", waveX + 10, 33);
-      for (let bar = 0; bar < 4; bar++) {
-        const barH = 4 + Math.abs(Math.sin(time * 6 + bar * 1.2)) * 12;
-        ctx.fillStyle = "rgba(0, 230, 118, 0.8)";
-        ctx.fillRect(waveX + 90 + bar * 5, 29 - barH / 2, 3, barH);
-      }
-
-      // Commander Name & Status
-      const cmdX = waveX + 125;
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 11px monospace";
-      ctx.fillText(`KOMANDIR: ${this.playerName.toUpperCase()} [★★★]`, cmdX, 33);
-
-      // Web Controls in Top Header: Fullscreen & Audio & Language
-      const isFull = !!(typeof document !== 'undefined' && (document.fullscreenElement || document.webkitFullscreenElement));
-      this.renderMiniButton(880, 14, 90, 30, isFull ? "⛶ WINDOW" : "⛶ FULL", "#00e5ff");
-      const isMuted = audio.sfxMuted && audio.bgmMuted;
-      this.renderMiniButton(980, 14, 95, 30, isMuted ? "🔇 MUTE" : "🔊 OVOZ", isMuted ? "#ff5252" : "#00e676");
-      this.renderMiniButton(1085, 14, 155, 30, `🌐 LANG: ${this.lang.toUpperCase()}`, "#ffd600");
-      ctx.restore();
-
-      // =========================================================================
-      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (Clean unobstructed view)
-      // =========================================================================
-
-      // =========================================================================
-      // 4. RIGHT COMMAND DECK: SPACIOUS & UNCLUTTERED (x: 590 to 1260, w: 670)
-      // =========================================================================
-      // Row 1: Primary Hero Mission Cards (y: 68 to 182, h: 114)
-      this.drawCyberButton(590, 68, 328, 114, this.t("campaign"), "#00e5ff", "10 TA KIBER-SEKTOR • 3 TA BIOM", "🚀", true);
-      const record = localStorage.getItem('lg_endless_wave') || "0";
-      this.drawCyberButton(932, 68, 328, 114, this.t("endless"), "#e040fb", `CHEKSIZ TO'LQINLAR • W${record}`, "⚡", true);
-
-      // Row 2: Tactical Operations (y: 196 to 278, h: 82)
-      this.drawCyberButton(590, 196, 214, 82, this.t("sectorSelect"), "#00e5ff", "STRATEGIK BIOM", "🗺️", false);
-      this.drawCyberButton(818, 196, 214, 82, this.t("bossRush"), "#ff1744", "10 TA ELITA TITAN", "💀", false);
-      this.drawCyberButton(1046, 196, 214, 82, this.t("mapEditor"), "#00e676", "MAXSUS XARITALAR", "🛠️", false);
-
-      // Row 3: Codex, Records & Achievements (y: 290 to 372, h: 82)
-      this.drawCyberButton(590, 290, 214, 82, this.t("fieldManual"), "#ffd600", "3D MINORALAR & BAZA", "📖", false);
-      this.drawCyberButton(818, 290, 214, 82, this.t("leaderboard"), "#00e5ff", "GLOBAL LIDERLAR", "🏆", false);
-      this.drawCyberButton(1046, 290, 214, 82, "YUTUQLAR", "#e040fb", "20 TA UNVON", "🎖️", false);
-
-      // Section 4: Commander Tactical Telemetry Dossier Panel (Bottom Right: y: 384 to 698, h: 314)
-      ctx.save();
-      const dx = 590, dy = 384, dw = 670, dh = 314;
-      ctx.fillStyle = "rgba(10, 18, 32, 0.92)";
-      ctx.fillRect(dx, dy, dw, dh);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(dx, dy, dw, dh);
-
-      ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 13px 'Segoe UI', monospace";
-      ctx.textAlign = "left";
-      ctx.fillText("📊 MEGATRON HARBIY TELEMETRIYASI & QO'MONDONLIK SHTABI", dx + 18, dy + 22);
-
-      // Live LED Status indicator
-      ctx.fillStyle = "#00e676";
-      ctx.beginPath();
-      ctx.arc(dx + dw - 150, dy + 18, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = "bold 9px monospace";
-      ctx.fillText("TIZIM ONLAYN // v4.2.0", dx + dw - 140, dy + 22);
-
-      // Live 3-Metrics Bar (y: 418 to 494, h: 76)
-      const totalStars = Object.values(this.saveData.stars || {}).reduce((a, b) => a + b, 0);
-      const statBoxes = [
-        { label: "★ FATH ETILGAN", val: `★ ${totalStars} / 30`, col: "#ffd600" },
-        { label: "⚡ CHEKSIZ REKORD", val: `Wave ${record}`, col: "#e040fb" },
-        { label: "🛡️ HARBIY REYTINQ", val: `${this.saveData.highScores?.campaign || 0} PTS`, col: "#00e5ff" }
-      ];
-
-      for (let i = 0; i < 3; i++) {
-        const bx = dx + 14 + i * 220;
-        const by = dy + 34;
-        ctx.fillStyle = "rgba(16, 26, 44, 0.88)";
-        ctx.fillRect(bx, by, 206, 76);
-        ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
-        ctx.strokeRect(bx, by, 206, 76);
-
-        ctx.fillStyle = "#90a4ae";
-        ctx.font = "bold 10px monospace";
-        ctx.fillText(statBoxes[i].label, bx + 12, by + 24);
-
-        ctx.fillStyle = statBoxes[i].col;
-        ctx.font = "bold 20px 'Segoe UI', monospace";
-        ctx.fillText(statBoxes[i].val, bx + 12, by + 56);
-      }
-
-      // Quick System Action Buttons inside Dossier (y: 506 to 580, h: 74)
-      this.drawCyberButton(dx + 14, dy + 122, 206, 74, "SOZLAMALAR", "#38bdf8", "AUDIO & GRAFIKA", "⚙️", false);
-      this.drawCyberButton(dx + 234, dy + 122, 206, 74, "ANDROID APK", "#00e676", "OFLAYN v4.2.0 (63MB)", "📱", false);
-      this.drawCyberButton(dx + 454, dy + 122, 206, 74, "JANG TAHLILI", "#a855f7", "MVP & TELEMETRIYA", "📈", false);
-
-      // Micro status footer ticker
-      ctx.fillStyle = "#64748b";
-      ctx.font = "bold 10px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("● DECEPTICON CORE SYNCHRONIZED // 60 FPS ULTRA PBR // ALL COMBAT SYSTEMS OPERATIONAL", dx + dw / 2, dy + 292);
-
-      ctx.restore();
+      // Clear 2D canvas for clean viewport; Main Menu is displayed by the clean #menu HTML/WebGL layout
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.updateMenuVisibility();
     }
 
     renderMenuButton(x, y, w, h, text, bg, fg, border) {
