@@ -2031,7 +2031,7 @@
             this.codexDragging = true;
             this.codexDragStart = { x: this.mousePos.x, y: this.mousePos.y };
           }
-          if (this.state === 'MENU' && this.mousePos.x >= 20 && this.mousePos.x <= 580 && this.mousePos.y >= 70 && this.mousePos.y <= 656) {
+          if (this.state === 'MENU' && this.mousePos.x >= 20 && this.mousePos.x <= 580 && this.mousePos.y >= 20 && this.mousePos.y <= 700) {
             this.mechDragging = true;
             this.mechDragStart = { x: this.mousePos.x, y: this.mousePos.y, lx: this.mousePos.x, moved: false };
             if (this.apexSystem) this.apexSystem.pointerActive = true;
@@ -2113,7 +2113,7 @@
         if (tPos) {
           this.mousePos = tPos;
           this.buttonRipples.push({ x: tPos.x, y: tPos.y, r: 4, maxR: 52, alpha: 0.9, color: "#00e5ff" });
-          if (this.state === 'MENU' && tPos.x >= 20 && tPos.x <= 580 && tPos.y >= 70 && tPos.y <= 656) {
+          if (this.state === 'MENU' && tPos.x >= 20 && tPos.x <= 580 && tPos.y >= 20 && tPos.y <= 700) {
             this.mechDragging = true;
             this.mechDragStart = { x: tPos.x, y: tPos.y, lx: tPos.x, moved: false };
             if (this.apexSystem) this.apexSystem.pointerActive = true;
@@ -10386,21 +10386,22 @@
       const ctx = this.ctx;
       const time = performance.now() * 0.002;
 
-      // 1. Transparent Clear with Deep Space Sci-Fi Radial Atmosphere
+      // 1. Crystal-Clear 3D Viewport (Left 0-540 is 100% transparent; Right 540-1280 has sleek glass panel for UI buttons)
       ctx.clearRect(0, 0, this.width, this.height);
-      const bgGrad = ctx.createRadialGradient(this.width * 0.36, this.height * 0.48, 120, this.width * 0.5, this.height * 0.5, this.width * 0.88);
-      bgGrad.addColorStop(0, "rgba(8, 16, 32, 0.05)");
-      bgGrad.addColorStop(0.45, "rgba(5, 12, 26, 0.25)");
-      bgGrad.addColorStop(1, "rgba(2, 4, 10, 0.75)");
+      const bgGrad = ctx.createLinearGradient(520, 0, this.width, 0);
+      bgGrad.addColorStop(0, "rgba(3, 7, 18, 0.0)");
+      bgGrad.addColorStop(0.20, "rgba(3, 7, 18, 0.45)");
+      bgGrad.addColorStop(0.55, "rgba(2, 6, 16, 0.80)");
+      bgGrad.addColorStop(1, "rgba(2, 4, 12, 0.90)");
       ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.fillRect(520, 0, this.width - 520, this.height);
 
-      // Floating Energon Sparks & Cyber Motes
+      // Floating Energon Sparks & Cyber Motes on right-side UI panel
       if (!this.mainMenuParticles) {
         this.mainMenuParticles = [];
         for (let i = 0; i < 28; i++) {
           this.mainMenuParticles.push({
-            x: 30 + Math.random() * 1220,
+            x: 580 + Math.random() * 660,
             y: 80 + Math.random() * 600,
             vy: 0.25 + Math.random() * 0.65,
             vx: (Math.random() - 0.5) * 0.3,
@@ -10415,7 +10416,7 @@
         p.x += p.vx;
         if (p.y < 70) {
           p.y = 690;
-          p.x = 30 + Math.random() * 1220;
+          p.x = 580 + Math.random() * 660;
         }
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.alpha * (0.6 + Math.sin(time * 3 + p.x) * 0.4);
@@ -10441,11 +10442,11 @@
 
       // 2. Top Aerospace Header Bar (Sleek Glassmorphism with Live Waveform)
       ctx.save();
-      const topH = 58;
-      ctx.fillStyle = "rgba(8, 15, 28, 0.88)";
+      const topH = 54;
+      ctx.fillStyle = "rgba(8, 15, 28, 0.72)";
       ctx.fillRect(0, 0, this.width, topH);
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.45)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
+      ctx.lineWidth = 1.2;
       ctx.strokeRect(0, 0, this.width, topH);
 
       // Glowing Title

@@ -657,15 +657,15 @@
         }
         // Natural Crisp Studio Character Lighting (Neutral, crystal-clear, authentic gunmetal definition)
         this.camera = new THREE.PerspectiveCamera(38, this.canvas.width / this.canvas.height, 0.1, 80);
-        this.camera.position.set(0, 0.18, 4.95);
-        this.camera.lookAt(0, 0.10, 0);
+        this.camera.position.set(0, 0.35, 5.20);
+        this.camera.lookAt(-0.55, 0.25, 0);
 
         // Neutral Ambient/Hemisphere: Crisp dark steel fill
-        this.scene.add(new THREE.HemisphereLight(0xe2e8f0, 0x1e293b, 1.2));
+        this.scene.add(new THREE.HemisphereLight(0xe2e8f0, 0x1e293b, 1.3));
 
         // Primary Key Light: High-definition crisp direct sunlight / hangar floodlight
-        const key = new THREE.DirectionalLight(0xffffff, 4.2);
-        key.position.set(3.0, 5.0, 4.5);
+        const key = new THREE.DirectionalLight(0xffffff, 4.5);
+        key.position.set(3.0, 5.2, 4.5);
         key.castShadow = true;
         if (key.shadow) {
           key.shadow.mapSize.width = 2048;
@@ -675,19 +675,23 @@
         this.scene.add(key);
 
         // Soft Neutral Fill Light from left
-        const frontFill = new THREE.DirectionalLight(0xf1f5f9, 2.0);
-        frontFill.position.set(-3.0, 2.0, 3.5);
+        const frontFill = new THREE.DirectionalLight(0xf1f5f9, 2.2);
+        frontFill.position.set(-3.0, 2.5, 3.8);
         this.scene.add(frontFill);
 
         // Clean Cool-White Specular Rim Lights (Separating character from dark background)
-        const rimLeft = new THREE.DirectionalLight(0xdbeafe, 1.8);
-        rimLeft.position.set(-4.0, 3.0, -3.0);
+        const rimLeft = new THREE.DirectionalLight(0xdbeafe, 2.0);
+        rimLeft.position.set(-4.0, 3.2, -3.0);
         this.scene.add(rimLeft);
 
-        const rimRight = new THREE.DirectionalLight(0xfff8ee, 2.2);
-        rimRight.position.set(4.0, 3.5, -2.5);
+        const rimRight = new THREE.DirectionalLight(0xfff8ee, 2.4);
+        rimRight.position.set(4.2, 3.8, -2.5);
         this.scene.add(rimRight);
-        this.groundFill = groundFill;
+
+        // Ground Deck Bounce Light: Illuminating underside of armor & feet from below
+        const deckBounce = new THREE.DirectionalLight(0x94a3b8, 1.4);
+        deckBounce.position.set(-1.78, -2.2, 1.0);
+        this.scene.add(deckBounce);
 
         this.buildCyberHangarEnvironment(THREE);
 
@@ -711,38 +715,45 @@
         const ctx = can.getContext('2d');
         if (!ctx || !ctx.fillRect) return null;
 
-        // Heavy steel armor plating base
-        ctx.fillStyle = '#0a0e18';
+        // Base industrial steel deck plate
+        ctx.fillStyle = '#1e293b';
         ctx.fillRect(0, 0, 512, 512);
 
-        // Modular floor tiles (4 x 4 = 16 panels of 128x128)
+        // 4x4 Modular Floor Panels (128x128 each)
         for (let x = 0; x < 512; x += 128) {
           for (let y = 0; y < 512; y += 128) {
+            // Panel background with subtle gradient
             const grad = ctx.createLinearGradient ? ctx.createLinearGradient(x, y, x + 128, y + 128) : null;
             if (grad && grad.addColorStop) {
-              grad.addColorStop(0, '#161f30');
-              grad.addColorStop(0.5, '#0e1422');
-              grad.addColorStop(1, '#090d16');
+              grad.addColorStop(0, '#283548');
+              grad.addColorStop(0.5, '#1e293b');
+              grad.addColorStop(1, '#151f2e');
               ctx.fillStyle = grad;
             } else {
-              ctx.fillStyle = '#0e1422';
+              ctx.fillStyle = '#1e293b';
             }
             ctx.fillRect(x + 2, y + 2, 124, 124);
 
-            ctx.strokeStyle = '#223048';
+            // Bevel edges
+            ctx.strokeStyle = '#38495f';
             ctx.lineWidth = 1.5;
             ctx.strokeRect(x + 2, y + 2, 124, 124);
 
-            // Fine diamond grip pattern
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
-            for (let gx = x + 12; gx < x + 116; gx += 16) {
-              for (let gy = y + 12; gy < y + 116; gy += 16) {
+            // Inner dark expansion groove
+            ctx.strokeStyle = '#0a0f18';
+            ctx.lineWidth = 2.0;
+            ctx.strokeRect(x, y, 128, 128);
+
+            // Non-slip diamond steel tread grip pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            for (let gx = x + 14; gx < x + 114; gx += 16) {
+              for (let gy = y + 14; gy < y + 114; gy += 16) {
                 ctx.fillRect(gx, gy, 4, 4);
               }
             }
 
-            // Corner industrial rivets
-            ctx.fillStyle = '#374768';
+            // Four corner heavy structural bolts
+            ctx.fillStyle = '#64748b';
             [[x + 8, y + 8], [x + 120, y + 8], [x + 8, y + 120], [x + 120, y + 120]].forEach(([rx, ry]) => {
               ctx.beginPath();
               ctx.arc(rx, ry, 2.5, 0, Math.PI * 2);
@@ -751,27 +762,27 @@
           }
         }
 
-        // Decepticon violet & amber glowing conduit seams
-        ctx.strokeStyle = 'rgba(168, 85, 247, 0.45)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 256); ctx.lineTo(512, 256);
-        ctx.moveTo(256, 0); ctx.lineTo(256, 512);
-        ctx.stroke();
-
-        // Yellow & black hazard stripes strip along top & bottom edge
-        const stripeH = 14;
-        ctx.fillStyle = '#0a0a0a';
+        // High-visibility yellow/black hazard warning chevrons on top/bottom edges
+        const stripeH = 16;
+        ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, 512, stripeH);
-        ctx.fillStyle = '#ca8a04';
-        for (let s = -20; s < 532; s += 24) {
+        ctx.fillRect(0, 512 - stripeH, 512, stripeH);
+        ctx.fillStyle = '#f59e0b';
+        for (let s = -24; s < 536; s += 24) {
           ctx.beginPath();
-          ctx.moveTo(s, 0);
-          ctx.lineTo(s + 12, 0);
-          ctx.lineTo(s + 2, stripeH);
-          ctx.lineTo(s - 10, stripeH);
+          ctx.moveTo(s, 0); ctx.lineTo(s + 12, 0); ctx.lineTo(s + 2, stripeH); ctx.lineTo(s - 10, stripeH);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(s, 512 - stripeH); ctx.lineTo(s + 12, 512 - stripeH); ctx.lineTo(s + 2, 512); ctx.lineTo(s - 10, 512);
           ctx.fill();
         }
+
+        // Glowing Cyan Floor Guideway Stripes (Strong 3D linear perspective cues)
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.65)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+        ctx.stroke();
 
         const tex = new THREE.CanvasTexture(can);
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -951,55 +962,31 @@
       if (!this.scene) return;
       this.hangarGroup = new THREE.Group();
 
-      const matMetal = new THREE.MeshStandardMaterial({
-        color: 0x141a29,
-        metalness: 0.85,
-        roughness: 0.35
-      });
-      const matDarkSteel = new THREE.MeshStandardMaterial({
-        color: 0x090d16,
-        metalness: 0.92,
-        roughness: 0.28
-      });
-      const matEnergon = new THREE.MeshStandardMaterial({
-        color: 0x4a044e,
-        emissive: 0xa855f7,
-        emissiveIntensity: 3.8,
-        roughness: 0.2
-      });
-      const matFireMagma = new THREE.MeshStandardMaterial({
-        color: 0x7c2d12,
-        emissive: 0xff3d00,
-        emissiveIntensity: 3.5,
-        roughness: 0.25
-      });
-      const matRuinWall = new THREE.MeshStandardMaterial({
-        color: 0x0a0f1d,
-        metalness: 0.75,
-        roughness: 0.55
-      });
+      // Ensure Contact Shadow Texture is generated upfront
+      if (!this.contactShadowTex) {
+        this.contactShadowTex = this.createContactShadowTexture(THREE);
+      }
 
-      // 1. Continuous Metallic Ground Deck (Plane spans across entire field at Y = -1.655)
+      // 1. Continuous Metallic Industrial Ground Deck (Y = -1.655)
       const floorTex = this.createGroundDeckTexture(THREE);
       const floorMat = new THREE.MeshStandardMaterial({
         map: floorTex || undefined,
-        color: floorTex ? 0x90a0be : 0x0e1422,
-        metalness: 0.85,
+        color: 0x94a3b8,
+        metalness: 0.65,
         roughness: 0.38
       });
-      const floorGeo = new THREE.PlaneGeometry(80, 80);
+      const floorGeo = new THREE.PlaneGeometry(60, 45);
       const floorMesh = new THREE.Mesh(floorGeo, floorMat);
       floorMesh.rotation.x = -Math.PI / 2;
       floorMesh.position.set(0, -1.655, 0);
       floorMesh.receiveShadow = true;
       this.scene.add(floorMesh);
 
-      // 2. Realistic 3D Cybertronian Command Dais / Recharging Pedestal
-      // Elevated heavy-duty industrial military platform (Rises 0.30 units from y = -1.655 to -1.355)
+      // 2. High-Tech Cybertronian Command Dais / Recharging Station (At x: -1.78, directly under Megatron)
       const matDaisBase = new THREE.MeshStandardMaterial({
         color: 0x0f172a,
-        metalness: 0.95,
-        roughness: 0.25
+        metalness: 0.94,
+        roughness: 0.28
       });
       const matDaisPlate = new THREE.MeshStandardMaterial({
         color: 0x1e293b,
@@ -1009,12 +996,12 @@
       const matDaisDeck = new THREE.MeshStandardMaterial({
         color: 0x334155,
         metalness: 0.88,
-        roughness: 0.35
+        roughness: 0.32
       });
       const matDaisTrim = new THREE.MeshStandardMaterial({
         color: 0x475569,
-        metalness: 0.92,
-        roughness: 0.20
+        metalness: 0.95,
+        roughness: 0.18
       });
       const matChromeHydraulic = new THREE.MeshStandardMaterial({
         color: 0xf1f5f9,
@@ -1024,71 +1011,90 @@
       const matDecepticonRed = new THREE.MeshStandardMaterial({
         color: 0x991b1b,
         emissive: 0xdc2626,
-        emissiveIntensity: 1.4,
+        emissiveIntensity: 1.8,
         roughness: 0.25
       });
 
-      // Tier 1: Heavy Beveled Octagonal Foundation Base (y: -1.655 to -1.545, h: 0.11, r: 2.6 -> 2.95)
-      const baseGeo = new THREE.CylinderGeometry(2.6, 2.95, 0.11, 8);
+      // Tier 1: Heavy Foundation Base (y: -1.655 to -1.555, h: 0.10, r: 2.70 -> 3.05)
+      const baseGeo = new THREE.CylinderGeometry(2.70, 3.05, 0.10, 24);
       const baseMesh = new THREE.Mesh(baseGeo, matDaisBase);
-      baseMesh.position.set(0, -1.600, 0);
+      baseMesh.position.set(0, -1.605, 0);
       baseMesh.receiveShadow = true;
       this.hangarGroup.add(baseMesh);
 
       // Chamfered steel trim ring on Tier 1
-      const baseTrimGeo = new THREE.TorusGeometry(2.78, 0.045, 8, 32);
+      const baseTrimGeo = new THREE.TorusGeometry(2.88, 0.045, 8, 36);
       const baseTrim = new THREE.Mesh(baseTrimGeo, matDaisTrim);
       baseTrim.rotation.x = Math.PI / 2;
-      baseTrim.position.set(0, -1.545, 0);
+      baseTrim.position.set(0, -1.555, 0);
       this.hangarGroup.add(baseTrim);
 
-      // Tier 2: Intermediate Armored Chassis (Octagonal, y: -1.545 to -1.435, h: 0.11, r: 2.2 -> 2.55)
-      const midGeo = new THREE.CylinderGeometry(2.2, 2.55, 0.11, 8);
+      // Tier 2: Intermediate Armored Chassis (y: -1.555 to -1.455, h: 0.10, r: 2.35 -> 2.65)
+      const midGeo = new THREE.CylinderGeometry(2.35, 2.65, 0.10, 24);
       const midMesh = new THREE.Mesh(midGeo, matDaisPlate);
-      midMesh.position.set(0, -1.490, 0);
+      midMesh.position.set(0, -1.505, 0);
       midMesh.receiveShadow = true;
       this.hangarGroup.add(midMesh);
 
-      // Perimeter armor plates on Tier 2 chamfers
+      // 8 Perimeter armor blocks on Tier 2
       for (let h = 0; h < 8; h++) {
         const ang = h * (Math.PI / 4) + (Math.PI / 8);
-        const hx = Math.cos(ang) * 2.36;
-        const hz = Math.sin(ang) * 2.36;
+        const hx = Math.cos(ang) * 2.48;
+        const hz = Math.sin(ang) * 2.48;
         const hBlockGeo = new THREE.BoxGeometry(0.58, 0.08, 0.14);
         const hBlock = new THREE.Mesh(hBlockGeo, (h % 2 === 0) ? matDaisTrim : matDaisBase);
-        hBlock.position.set(hx, -1.490, hz);
+        hBlock.position.set(hx, -1.505, hz);
         hBlock.rotation.y = -ang + Math.PI / 2;
         this.hangarGroup.add(hBlock);
       }
 
-      // Tier 3: Reinforced Titanium Standing Deck (y: -1.435 to -1.355, h: 0.08, r: 1.85 -> 2.10)
-      const deckGeo = new THREE.CylinderGeometry(1.85, 2.10, 0.08, 12);
+      // Tier 3: Reinforced Titanium Standing Deck (y: -1.455 to -1.355, h: 0.10, r: 1.95 -> 2.25)
+      // Top surface of the deck is EXACTLY at y = -1.355, matching Megatron's soles!
+      const deckGeo = new THREE.CylinderGeometry(1.95, 2.25, 0.10, 32);
       const deckMesh = new THREE.Mesh(deckGeo, matDaisDeck);
-      deckMesh.position.set(0, -1.395, 0);
+      deckMesh.position.set(0, -1.405, 0);
       deckMesh.receiveShadow = true;
       this.hangarGroup.add(deckMesh);
 
-      // Recessed Decepticon Crimson Energy Conduit on top deck (Surface at y = -1.355)
-      const conduitOuter = new THREE.TorusGeometry(1.72, 0.032, 8, 36);
+      // Recessed Decepticon Crimson Energy Conduit on top deck (Surface at y = -1.352)
+      const conduitOuter = new THREE.TorusGeometry(1.78, 0.035, 8, 48);
       const conduitOuterMesh = new THREE.Mesh(conduitOuter, matDecepticonRed);
       conduitOuterMesh.rotation.x = Math.PI / 2;
       conduitOuterMesh.position.set(0, -1.352, 0);
       this.hangarGroup.add(conduitOuterMesh);
 
-      const conduitInner = new THREE.TorusGeometry(1.08, 0.024, 8, 36);
+      const conduitInner = new THREE.TorusGeometry(1.10, 0.025, 8, 40);
       const conduitInnerMesh = new THREE.Mesh(conduitInner, matDaisTrim);
       conduitInnerMesh.rotation.x = Math.PI / 2;
       conduitInnerMesh.position.set(0, -1.352, 0);
       this.hangarGroup.add(conduitInnerMesh);
 
-      // 6 Heavy-Duty Hydraulic Piston Shock Struts (Angled at 45° from chassis into the floor)
+      // 2 Heavy Magnetic Foot Docking Clamps flanking boots on the deck
+      const clampGeo = new THREE.BoxGeometry(0.24, 0.12, 0.70);
+      const clampL = new THREE.Mesh(clampGeo, matDaisBase);
+      clampL.position.set(-0.95, -1.30, 0.0);
+      this.hangarGroup.add(clampL);
+      const clampR = new THREE.Mesh(clampGeo, matDaisBase);
+      clampR.position.set(0.95, -1.30, 0.0);
+      this.hangarGroup.add(clampR);
+
+      // Status indicator lights on clamps
+      const ledGeo = new THREE.SphereGeometry(0.03, 8, 8);
+      const ledL = new THREE.Mesh(ledGeo, matDecepticonRed);
+      ledL.position.set(-0.95, -1.23, 0.25);
+      this.hangarGroup.add(ledL);
+      const ledR = new THREE.Mesh(ledGeo, matDecepticonRed);
+      ledR.position.set(0.95, -1.23, 0.25);
+      this.hangarGroup.add(ledR);
+
+      // 6 Heavy-Duty Hydraulic Piston Shock Struts (Angled into the floor)
       for (let p = 0; p < 6; p++) {
         const pAng = p * (Math.PI / 3);
         const px = Math.cos(pAng);
         const pz = Math.sin(pAng);
 
         const strutGroup = new THREE.Group();
-        strutGroup.position.set(px * 2.18, -1.545, pz * 2.18);
+        strutGroup.position.set(px * 2.22, -1.545, pz * 2.22);
 
         // Cylinder piston body
         const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.32, 10), matDaisBase);
@@ -1111,11 +1117,11 @@
         this.hangarGroup.add(strutGroup);
       }
 
-      // 4 Perimeter Deck Uplight Fixtures (Natural clean white lighting)
+      // 4 Perimeter Deck Uplight Fixtures
       for (let u = 0; u < 4; u++) {
         const uAng = u * (Math.PI / 2) + (Math.PI / 4);
-        const ux = Math.cos(uAng) * 1.78;
-        const uz = Math.sin(uAng) * 1.78;
+        const ux = Math.cos(uAng) * 1.82;
+        const uz = Math.sin(uAng) * 1.82;
         const lightFixture = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.08, 10), matDaisBase);
         lightFixture.position.set(ux, -1.355, uz);
         this.hangarGroup.add(lightFixture);
@@ -1125,82 +1131,99 @@
         this.hangarGroup.add(lens);
       }
 
-      // 3. Realistic 3D Sci-Fi Military Hangar Environment (Sketchfab GLB Model)
-      const loaderClass = (THREE && THREE.GLTFLoader) || (typeof window !== 'undefined' && window.GLTFLoader);
-      if (loaderClass) {
-        try {
-          const loader = new loaderClass();
-          loader.load('assets/models/hangar_bg.glb', (gltf) => {
-            if (!gltf || !gltf.scene) return;
-            const hangar = gltf.scene;
-            // Dimensions: width: 1279.18, height: 798.87, depth: 2223.92, floor: y = 0.6267
-            // Target width ~ 24.0 units gives scale = 0.01876
-            const scale = 0.01876;
-            hangar.scale.set(scale, scale, scale);
-            // Perfectly align hangar interior floor with Megatron soles at y = -1.655
-            hangar.position.set(0.0, -1.655 - (0.6267 * scale), -4.0);
-            hangar.traverse((node) => {
-              if (node.isMesh) {
-                node.castShadow = false;
-                node.receiveShadow = true;
-                if (node.material) {
-                  node.material.roughness = 0.45;
-                  node.material.metalness = 0.82;
-                  if (node.material.map && THREE.sRGBEncoding) {
-                    node.material.map.encoding = THREE.sRGBEncoding;
-                  }
-                }
-              }
-            });
-            this.hangarGlb = hangar;
-            this.scene.add(hangar);
-          }, undefined, (err) => {
-            console.warn("Sketchfab hangar model loading fallback:", err);
-          });
-        } catch (e) {
-          console.warn("GLTFLoader exception:", e);
-        }
+      // Dais Top Deck Ambient Occlusion Decal (Grounding the stance surface)
+      if (this.contactShadowTex) {
+        const deckShadowMat = new THREE.MeshBasicMaterial({
+          map: this.contactShadowTex,
+          transparent: true,
+          opacity: 0.90,
+          depthWrite: false
+        });
+        const deckShadow = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 3.2), deckShadowMat);
+        deckShadow.rotation.x = -Math.PI / 2;
+        deckShadow.position.set(0, -1.353, 0);
+        this.hangarGroup.add(deckShadow);
+
+        // Sub-Dais Floor Contact Shadow Decal
+        const daisFloorShadow = new THREE.Mesh(new THREE.PlaneGeometry(6.6, 6.6), deckShadowMat);
+        daisFloorShadow.rotation.x = -Math.PI / 2;
+        daisFloorShadow.position.set(0, -1.650, 0);
+        this.hangarGroup.add(daisFloorShadow);
       }
 
+      // 3. 3D Architectural Hangar Bulkheads & Columns (Provides unmistakable depth)
+      const matColumn = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        metalness: 0.85,
+        roughness: 0.35
+      });
+      const matWall = new THREE.MeshStandardMaterial({
+        color: 0x0f172a,
+        metalness: 0.80,
+        roughness: 0.45
+      });
+      const matStatusCyan = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        emissive: 0x00e5ff,
+        emissiveIntensity: 1.5,
+        roughness: 0.2
+      });
+
+      // Left Heavy Structural I-Beam Column
+      const colL = new THREE.Mesh(new THREE.BoxGeometry(0.70, 7.5, 0.70), matColumn);
+      colL.position.set(-4.8, 2.0, -1.6);
+      this.scene.add(colL);
+
+      // Right Heavy Structural Column
+      const colR = new THREE.Mesh(new THREE.BoxGeometry(0.70, 7.5, 0.70), matColumn);
+      colR.position.set(4.2, 2.0, -2.5);
+      this.scene.add(colR);
+
+      // Rear Industrial Bulkhead Wall (z = -5.2)
+      const rearWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 9.0), matWall);
+      rearWall.position.set(0, 2.8, -5.2);
+      this.scene.add(rearWall);
+
+      // Status panels & horizontal rib on rear wall
+      const wallRib = new THREE.Mesh(new THREE.BoxGeometry(28, 0.18, 0.12), matDaisTrim);
+      wallRib.position.set(0, 2.2, -5.14);
+      this.scene.add(wallRib);
+
+      const panel1 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.9), matStatusCyan);
+      panel1.position.set(-2.8, 2.9, -5.15);
+      this.scene.add(panel1);
+
+      const panel2 = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.9), matDecepticonRed);
+      panel2.position.set(2.2, 2.9, -5.15);
+      this.scene.add(panel2);
+
+      // Overhead Gantry Cross-Beam (y = 4.8)
+      const gantry = new THREE.Mesh(new THREE.BoxGeometry(30, 0.45, 0.80), matColumn);
+      gantry.position.set(0, 4.8, -2.0);
+      this.scene.add(gantry);
+
       // 4. Subtle Atmospheric Hangar Dust Particles
-      const pCount = 64;
+      const pCount = 56;
       const pGeo = new THREE.BufferGeometry();
       const pPos = new Float32Array(pCount * 3);
       for (let i = 0; i < pCount; i++) {
-        pPos[i * 3] = (Math.random() - 0.5) * 5.5;
-        pPos[i * 3 + 1] = -1.6 + Math.random() * 5.8;
-        pPos[i * 3 + 2] = -3.5 + Math.random() * 5.0;
+        pPos[i * 3] = (Math.random() - 0.5) * 6.5;
+        pPos[i * 3 + 1] = -1.5 + Math.random() * 5.5;
+        pPos[i * 3 + 2] = -3.5 + Math.random() * 4.5;
       }
       pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
       const pMat = new THREE.PointsMaterial({
         color: 0x94a3b8,
-        size: 0.06,
+        size: 0.05,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.60,
         blending: THREE.AdditiveBlending
       });
       this.hangarParticles = new THREE.Points(pGeo, pMat);
       this.hangarGroup.add(this.hangarParticles);
 
-      // Clean Sub-Dais Floor Shadow Decal
-      if (this.contactShadowTex) {
-        const daisShadowMat = new THREE.MeshBasicMaterial({
-          map: this.contactShadowTex,
-          transparent: true,
-          opacity: 0.85,
-          depthWrite: false
-        });
-        const daisShadow = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 6.4), daisShadowMat);
-        daisShadow.rotation.x = -Math.PI / 2;
-        daisShadow.position.set(0, -1.650, 0);
-        this.hangarGroup.add(daisShadow);
-      }
-
       // Center Command Dais directly under Megatron (x: -1.78)
       this.hangarGroup.position.set(-1.78, 0, 0);
-
-      this.scene.add(this.hangarGroup);
-
       this.scene.add(this.hangarGroup);
     }
 
@@ -1248,7 +1271,7 @@
       const shadowMat = new T.MeshBasicMaterial({
         map: this.contactShadowTex,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.90,
         depthWrite: false
       });
 
@@ -1258,28 +1281,28 @@
       bodyShadow.position.set(0, -1.572, 0);
       this.mech.root.add(bodyShadow);
 
-      // 2. High-contrast Left Boot Contact Shadow Decal
+      // 2. High-contrast Left Boot Contact Shadow Decal (Dark AO pressed directly to deck surface)
       const bootMatL = new T.MeshBasicMaterial({
         map: this.contactShadowTex,
         transparent: true,
-        opacity: 0.95,
+        opacity: 0.98,
         depthWrite: false
       });
-      const bootL = new T.Mesh(new T.PlaneGeometry(0.85, 1.4), bootMatL);
+      const bootL = new T.Mesh(new T.PlaneGeometry(0.75, 1.25), bootMatL);
       bootL.rotation.x = -Math.PI / 2;
-      bootL.position.set(-0.42, -1.570, 0.08);
+      bootL.position.set(-0.42, -1.571, 0.08);
       this.mech.root.add(bootL);
 
       // 3. High-contrast Right Boot Contact Shadow Decal
       const bootMatR = new T.MeshBasicMaterial({
         map: this.contactShadowTex,
         transparent: true,
-        opacity: 0.95,
+        opacity: 0.98,
         depthWrite: false
       });
-      const bootR = new T.Mesh(new T.PlaneGeometry(0.85, 1.4), bootMatR);
+      const bootR = new T.Mesh(new T.PlaneGeometry(0.75, 1.25), bootMatR);
       bootR.rotation.x = -Math.PI / 2;
-      bootR.position.set(0.42, -1.570, -0.06);
+      bootR.position.set(0.42, -1.571, -0.06);
       this.mech.root.add(bootR);
     }
 
@@ -1457,9 +1480,11 @@
       this.lastTime = now;
 
       if (this.mech) {
-        // Slow idle turntable rotation when hands are off
-        if (!this.pointerActive && Math.abs(this.mech.yawVel) < 0.002) {
-          this.mech.yaw += dt * 0.32;
+        // Hero combat stance: Stable and grounded posture without endless turntable spin.
+        // Touch drag smoothly rotates him 360° on user command.
+        if (this.mech.yawVel !== undefined && Math.abs(this.mech.yawVel) > 0.0001) {
+          this.mech.yaw += this.mech.yawVel;
+          this.mech.yawVel *= 0.90;
         }
         this.mech.update(dt);
       }

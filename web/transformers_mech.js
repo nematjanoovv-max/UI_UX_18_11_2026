@@ -2117,7 +2117,7 @@
       this.mode = 'ROBOT';
       this.time = 0;
       this.recoil = 0;
-      this.yaw = 0;
+      this.yaw = 0.22;
       this.yawVel = 0;
       this.externalMesh = null;
       this.mixer = null;
