@@ -2123,9 +2123,9 @@
       this.mixer = null;
       this.loaded = false;
 
-      // Dark Energon Purple Aura
-      this.energonLight = new THREE.PointLight(0xa855f7, 4.0, 9);
-      this.energonLight.position.set(0, 1.4, 0.6);
+      // Subtle Decepticon Red Eye Optics Glow (Authentic, no purple tinting)
+      this.energonLight = new THREE.PointLight(0xdc2626, 1.2, 4.0);
+      this.energonLight.position.set(0, 1.4, 0.4);
       this.root.add(this.energonLight);
 
       this.buildPlaceholder();
@@ -2200,34 +2200,34 @@
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.envMapIntensity = 2.8;
+              child.material.envMapIntensity = 1.0;
               // High-fidelity 16x anisotropic filtering on all PBR texture channels
               if (child.material.map) {
                 child.material.map.anisotropy = 16;
                 child.material.map.generateMipmaps = true;
+                if (T.sRGBEncoding) child.material.map.encoding = T.sRGBEncoding;
                 if (T.LinearMipmapLinearFilter) child.material.map.minFilter = T.LinearMipmapLinearFilter;
                 if (T.LinearFilter) child.material.map.magFilter = T.LinearFilter;
                 child.material.map.needsUpdate = true;
               }
               if (child.material.normalMap) {
                 child.material.normalMap.anisotropy = 16;
-                if (T.Vector2) child.material.normalScale = new T.Vector2(1.5, 1.5);
+                if (T.Vector2) child.material.normalScale = new T.Vector2(1.0, 1.0);
                 child.material.normalMap.needsUpdate = true;
               }
               if (child.material.roughnessMap) {
                 child.material.roughnessMap.anisotropy = 16;
-                // Realistic metallic roughness: 0.35 creates sharp specular highlights and reveals surface scratches
-                child.material.roughness = 0.35;
               }
               if (child.material.metalnessMap) {
                 child.material.metalnessMap.anisotropy = 16;
-                // 0.85 metalness retains rich metallic gloss while preserving base albedo definition
-                child.material.metalness = 0.85;
               }
               if (child.material.emissiveMap) {
                 child.material.emissiveMap.anisotropy = 16;
-                if (T.Color) child.material.emissive = new T.Color(0xa855f7);
-                child.material.emissiveIntensity = 2.8;
+                // Preserve model's authentic optics or subtle red glow for Decepticon energon
+                if (child.material.name && child.material.name.includes('Energon') && T.Color) {
+                  child.material.emissive = new T.Color(0xdc2626);
+                  child.material.emissiveIntensity = 1.5;
+                }
               }
               child.material.needsUpdate = true;
             }

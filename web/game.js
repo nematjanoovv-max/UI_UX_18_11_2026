@@ -2756,7 +2756,7 @@
       }
       if (this.state === 'MENU') {
         // Stage tap on Megatron 3D Body: Trigger Fusion Cannon Blast
-        if (x >= 20 && x <= 580 && y >= 70 && y <= 680) {
+        if (x >= 20 && x <= 580 && y >= 30 && y <= 700) {
           this.triggerMechAction();
           return;
         }
@@ -10493,59 +10493,8 @@
       ctx.restore();
 
       // =========================================================================
-      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (x: 20 to 580)
+      // 3. LEFT HERO SHOWCASE: MEGATRON CINEMATIC 3D ARENA (Clean unobstructed view)
       // =========================================================================
-      ctx.save();
-      const heroTitle = "💀 DECEPTICON MEGATRON // SUPREME LEADER";
-      const heroSub = "VAYRON BO'LGAN CYBERTRON XAROBALARI • CITADEL";
-      const heroStat = "● DARK ENERGON: 100% // 60 FPS ULTRA PBR";
-      const heroCol = "#c084fc";
-      const heroPedCol = "rgba(192, 132, 252, 0.70)";
-      const heroPedSubCol = "rgba(168, 85, 247, 0.85)";
-
-      // Stylized Sci-Fi Military HUD Identity Plate (x: 26, y: 68, w: 350, h: 54)
-      const hx = 26, hy = 68, hw = 350, hh = 54, hcut = 8;
-      ctx.beginPath();
-      ctx.moveTo(hx + hcut, hy);
-      ctx.lineTo(hx + hw, hy);
-      ctx.lineTo(hx + hw, hy + hh - hcut);
-      ctx.lineTo(hx + hw - hcut, hy + hh);
-      ctx.lineTo(hx, hy + hh);
-      ctx.lineTo(hx, hy + hcut);
-      ctx.closePath();
-      ctx.fillStyle = "rgba(8, 16, 32, 0.85)";
-      ctx.fill();
-      ctx.strokeStyle = heroCol;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-
-      // Accent color strip
-      ctx.fillStyle = heroCol;
-      ctx.fillRect(hx, hy + hcut, 3.5, hh - hcut * 2);
-
-      ctx.fillStyle = heroCol;
-      ctx.font = "bold 13px 'Segoe UI', monospace";
-      ctx.textAlign = "left";
-      ctx.fillText(heroTitle, hx + 12, hy + 18);
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 9px monospace";
-      ctx.fillText(heroSub, hx + 12, hy + 32);
-
-      ctx.fillStyle = "#00e676";
-      ctx.font = "bold 9px monospace";
-      ctx.fillText(heroStat, hx + 12, hy + 46);
-
-      // 3D Megatron interactive rotation prompt positioned cleanly at bottom (y: 696)
-      const pcx = 265;
-      ctx.fillStyle = heroCol;
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      const dragPulse = 0.70 + Math.sin(time * 3.5) * 0.30;
-      ctx.globalAlpha = dragPulse;
-      ctx.fillText("⟲ 3D MEGATRONNI BURASH UCHUN USHLAB SURING (360°)", pcx, 696);
-      ctx.globalAlpha = 1.0;
-      ctx.restore();
 
       // =========================================================================
       // 4. RIGHT COMMAND DECK: SPACIOUS & UNCLUTTERED (x: 590 to 1260, w: 670)
