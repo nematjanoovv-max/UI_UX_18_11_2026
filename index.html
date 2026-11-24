@@ -189,48 +189,7 @@
       filter: drop-shadow(0 0 3px currentColor);
     }
 
-    /* Floating Fullscreen Button for in-game & sub-menus */
-    .floating-fs-btn {
-      position: fixed;
-      top: max(env(safe-area-inset-top), 10px);
-      right: max(env(safe-area-inset-right), 12px);
-      z-index: 99999;
-      width: clamp(38px, 6vh, 46px);
-      height: clamp(38px, 6vh, 46px);
-      border-radius: 8px;
-      border: 1.8px solid #00e5ff;
-      background: rgba(7, 14, 28, 0.92);
-      box-shadow: 0 0 14px rgba(0, 229, 255, 0.4), inset 0 0 8px rgba(0, 229, 255, 0.2);
-      backdrop-filter: blur(8px);
-      color: #00e5ff;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.18s ease-in-out;
-      user-select: none;
-      -webkit-user-select: none;
-      animation: neonPulse 2.5s infinite ease-in-out;
-    }
-    .floating-fs-btn:hover {
-      background: rgba(0, 229, 255, 0.3);
-      box-shadow: 0 0 20px rgba(0, 229, 255, 0.7);
-      color: #ffffff;
-      transform: scale(1.08);
-    }
-    .floating-fs-btn:active {
-      transform: scale(0.94);
-    }
-    .floating-fs-btn svg {
-      width: 58%;
-      height: 58%;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 3px currentColor);
-    }
+
 
     @media (max-width: 960px) {
       .cmd-info-badge { display: none !important; }
@@ -488,12 +447,6 @@
     </nav>
   </div>
 
-  <!-- Persistent Floating Web Fullscreen Toggle Button (Visible during gameplay & sub-screens) -->
-  <button id="floating-fs-btn" class="floating-fs-btn" title="To'liq ekranni yoqish/o'chirish (F)" aria-label="To'liq ekran">
-    <svg class="fs-icon-enter" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-    <svg class="fs-icon-exit" viewBox="0 0 24 24" style="display:none;"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-  </button>
-
   <script src="libs/three.min.js?v=4.2.0"></script>
   <script src="libs/GLTFLoader.js?v=4.2.0"></script>
   <script src="assets/models/megatron_clips.js?v=4.2.0"></script>
@@ -553,33 +506,30 @@
         engine.updateMenuVisibility();
       }
     });
+  </script>
 
-    // Web Fullscreen Button Controller & Synchronization
+  <!-- Web Fullscreen Button Controller & Synchronization -->
+  <script>
     (function () {
       const fsBtn = document.getElementById('web-fullscreen-btn');
-      const floatBtn = document.getElementById('floating-fs-btn');
 
-      function updateFloatingVisibility() {
-        const menuEl = document.getElementById('menu');
-        const isMenuVisible = menuEl && menuEl.style.display !== 'none';
-        if (floatBtn) {
-          floatBtn.style.display = isMenuVisible ? 'none' : 'flex';
-        }
+      // On Android APK, the app is already native immersive fullscreen; hide web fullscreen button
+      if (typeof window !== 'undefined' && window.AndroidBridge) {
+        if (fsBtn) fsBtn.style.display = 'none';
+        return;
       }
 
       function syncFullscreenState() {
         const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-        [fsBtn, floatBtn].forEach((btn) => {
-          if (!btn) return;
-          const enterIcon = btn.querySelector('.fs-icon-enter');
-          const exitIcon = btn.querySelector('.fs-icon-exit');
-          const label = btn.querySelector('.fs-label');
+        if (fsBtn) {
+          const enterIcon = fsBtn.querySelector('.fs-icon-enter');
+          const exitIcon = fsBtn.querySelector('.fs-icon-exit');
+          const label = fsBtn.querySelector('.fs-label');
           if (enterIcon) enterIcon.style.display = isFS ? 'none' : 'block';
           if (exitIcon) exitIcon.style.display = isFS ? 'block' : 'none';
           if (label) label.textContent = isFS ? 'CHIQISH' : 'FULL EKRAN';
-          btn.setAttribute('title', isFS ? "To'liq ekrandan chiqish (Esc / F)" : "To'liq ekranga o'tish (F)");
-        });
-        updateFloatingVisibility();
+          fsBtn.setAttribute('title', isFS ? "To'liq ekrandan chiqish (Esc / F)" : "To'liq ekranga o'tish (F)");
+        }
         if (window.lastGridEngine && typeof window.lastGridEngine.resizeCanvas === 'function') {
           window.lastGridEngine.resizeCanvas();
         }
@@ -606,13 +556,9 @@
       }
 
       if (fsBtn) fsBtn.addEventListener('click', handleFullscreenToggle);
-      if (floatBtn) floatBtn.addEventListener('click', handleFullscreenToggle);
-
       document.addEventListener('fullscreenchange', syncFullscreenState);
       document.addEventListener('webkitfullscreenchange', syncFullscreenState);
-
-      // Periodically keep floating button state in sync with game menu visibility
-      setInterval(updateFloatingVisibility, 250);
+      syncFullscreenState();
     })();
   </script>
 
@@ -658,9 +604,9 @@
         }
 
         const scene = new T.Scene();
-        const camera = new T.PerspectiveCamera(38, 1, 0.1, 100);
-        camera.position.set(0, 1.95, 6.45);
-        camera.lookAt(0, 1.85, 0);
+        const camera = new T.PerspectiveCamera(36, 1, 0.1, 100);
+        camera.position.set(0, 1.80, 6.05);
+        camera.lookAt(0, 1.72, 0);
 
         // Procedural Studio Reflection Map: Balanced industrial studio reflections
         if (T.PMREMGenerator) {
@@ -989,6 +935,7 @@
             model.updateMatrixWorld(true);
             robotRoot.add(model);
             robotRoot.rotation.y = -Math.PI / 2; // Always faces directly forward at player/camera
+            if (typeof updateCameraFraming === 'function') updateCameraFraming();
 
             if (gltf.animations && gltf.animations.length) {
               mixer = new T.AnimationMixer(model);
@@ -1469,24 +1416,54 @@
 
         startLoading();
 
-        function resize() {
+        let defaultCameraZ = 6.05;
+
+        function updateCameraFraming() {
           const w = (canvas && canvas.clientWidth) ? canvas.clientWidth : (host && host.clientWidth ? host.clientWidth : (window.innerWidth ? Math.round(window.innerWidth * 0.55) : 400));
           const h = (canvas && canvas.clientHeight) ? canvas.clientHeight : (host && host.clientHeight ? host.clientHeight : (window.innerHeight ? Math.round(window.innerHeight * 0.8) : 500));
           if (!w || !h) return;
           renderer.setSize(w, h, false);
           camera.aspect = w / h;
 
-          // Adaptive horizontal FOV compensation: guarantees full visibility of extended weapon tip on any screen
-          const targetAspect = 1.25;
-          const baseFovRad = 38 * Math.PI / 180;
-          if (camera.aspect < targetAspect) {
-            const hFov = 2 * Math.atan(Math.tan(baseFovRad / 2) * targetAspect);
-            camera.fov = 2 * Math.atan(Math.tan(hFov / 2) / camera.aspect) * (180 / Math.PI);
-          } else {
-            camera.fov = 38;
+          // Flattering cinematic FOV (clean perspective, zero wide-angle fish-eye warping)
+          const baseFov = 36;
+          camera.fov = baseFov;
+          const radHalfFov = (baseFov / 2) * Math.PI / 180;
+          const tanHalf = Math.tan(radHalfFov);
+
+          // Character bounding dimensions (Megatron: targetHeight = 3.55, width ~ 2.45 with bazooka)
+          const charH = 3.55;
+          const charW = 2.45;
+
+          // Desired vertical coverage: 90% vertical fill on standard/desktop, 91.5% on wide screens (like APK)
+          let targetCovY = 0.90;
+          if (camera.aspect >= 1.25) {
+            targetCovY = Math.min(0.93, 0.90 + (camera.aspect - 1.25) * 0.08);
           }
+
+          // Distance required to fit character height with target coverage
+          const reqVisH = charH / targetCovY;
+          const zHeight = (reqVisH / 2) / tanHalf;
+
+          // Distance required to fit character width with safe margin (covX <= 0.82)
+          const reqVisW = charW / 0.82;
+          const zWidth = (reqVisW / 2) / (tanHalf * Math.max(camera.aspect, 0.45));
+
+          // The optimal distance frames BOTH height and width with perfection
+          const optimalZ = Math.max(zHeight, zWidth);
+
+          // Safe bounds: between 5.20 (heroic close-up) and 6.55 (narrow viewports)
+          const finalZ = Math.max(5.20, Math.min(6.55, optimalZ));
+          defaultCameraZ = finalZ;
+
+          // Centering lookAt and camera Y: character base is at y = 0, head at y = 3.55.
+          // Center is y = 1.775. Camera slightly elevated at y = 1.80 looking at y = 1.72
+          camera.position.set(0, 1.80, finalZ);
+          camera.lookAt(0, 1.72, 0);
           camera.updateProjectionMatrix();
         }
+
+        const resize = updateCameraFraming;
         const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(resize) : null;
         if (ro && host) ro.observe(host);
         if (ro && canvas) ro.observe(canvas);
@@ -1535,7 +1512,8 @@
               targetRotY = DEFAULT_ROT_Y;
               dragVelocity = 0;
               lastTapTime = 0;
-              camera.position.set(0, 1.95, 6.45);
+              camera.position.set(0, 1.80, defaultCameraZ);
+              camera.lookAt(0, 1.72, 0);
             } else {
               lastTapTime = now;
             }
@@ -1545,13 +1523,13 @@
         // Wheel zoom (Desktop/Mouse)
         canvas.addEventListener('wheel', function (e) {
           e.preventDefault();
-          const zoomDelta = e.deltaY * 0.004;
-          camera.position.z = Math.max(5.0, Math.min(8.5, camera.position.z + zoomDelta));
+          const zoomDelta = e.deltaY * 0.0035;
+          camera.position.z = Math.max(defaultCameraZ - 1.4, Math.min(defaultCameraZ + 1.8, camera.position.z + zoomDelta));
         }, { passive: false });
 
         // Touch pinch-to-zoom (Mobile)
         let initialPinchDist = 0;
-        let initialCamZ = 6.45;
+        let initialCamZ = defaultCameraZ;
 
         canvas.addEventListener('touchstart', function (e) {
           if (e.touches.length === 2) {
@@ -1571,7 +1549,7 @@
               e.touches[0].clientY - e.touches[1].clientY
             );
             const factor = initialPinchDist / (currentDist || 1);
-            camera.position.z = Math.max(5.0, Math.min(8.5, initialCamZ * factor));
+            camera.position.z = Math.max(defaultCameraZ - 1.4, Math.min(defaultCameraZ + 1.8, initialCamZ * factor));
           }
         }, { passive: true });
 

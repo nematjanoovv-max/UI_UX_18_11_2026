@@ -3495,30 +3495,53 @@
       }
       // Right Island: Tactical Controls (x: 994 to 1266, y: 8 to 58)
       if (y >= 8 && y <= 58) {
-        if (x >= 994 && x <= 1052) {
-          // Fullscreen Toggle Capsule
-          this.toggleFullscreen();
-          this.vibrate(20);
-          if (audio) audio.click();
-          return;
-        } else if (x >= 1056 && x <= 1128) {
-          // Speed toggle
-          this.cycleSpeed();
-          this.vibrate(20);
-          return;
-        } else if (x >= 1130 && x <= 1196) {
-          // Settings modal
-          this.showSettingsModal = true;
-          this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
-          if (this.apexSystem) this.apexSystem.hide();
-          if (audio) audio.click();
-          this.vibrate(20);
-          return;
-        } else if (x >= 1198 && x <= 1266) {
-          // Tactical Pause
-          this.togglePause();
-          this.vibrate(25);
-          return;
+        const isWeb = typeof window !== 'undefined' && !window.AndroidBridge;
+        if (isWeb) {
+          if (x >= 996 && x <= 1066) {
+            // Speed toggle
+            this.cycleSpeed();
+            this.vibrate(20);
+            return;
+          } else if (x >= 1068 && x <= 1132) {
+            // Settings modal
+            this.showSettingsModal = true;
+            this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
+            if (this.apexSystem) this.apexSystem.hide();
+            if (audio) audio.click();
+            this.vibrate(20);
+            return;
+          } else if (x >= 1134 && x <= 1200) {
+            // Integrated Web Fullscreen Toggle
+            this.toggleFullscreen();
+            this.vibrate(20);
+            if (audio) audio.click();
+            return;
+          } else if (x >= 1202 && x <= 1268) {
+            // Tactical Pause
+            this.togglePause();
+            this.vibrate(25);
+            return;
+          }
+        } else {
+          if (x >= 1056 && x <= 1128) {
+            // Speed toggle
+            this.cycleSpeed();
+            this.vibrate(20);
+            return;
+          } else if (x >= 1130 && x <= 1196) {
+            // Settings modal
+            this.showSettingsModal = true;
+            this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
+            if (this.apexSystem) this.apexSystem.hide();
+            if (audio) audio.click();
+            this.vibrate(20);
+            return;
+          } else if (x >= 1198 && x <= 1266) {
+            // Tactical Pause
+            this.togglePause();
+            this.vibrate(25);
+            return;
+          }
         }
       }
 
@@ -9763,29 +9786,47 @@
       // ==========================================
       // ISLAND 3: TACTICAL CONTROL CONSOLE (RIGHT)
       // ==========================================
-      // Standalone Fullscreen Toggle Capsule for Web Players (x: 994, y: 10, w: 56, h: 46)
+      const isWeb = typeof window !== 'undefined' && !window.AndroidBridge;
       const isFS = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-      this.renderCyberIslandFrame(994, 10, 56, 46, isFS ? "rgba(255, 214, 0, 0.45)" : "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
-      this.drawCyberButton(998, 14, 48, 38, isFS ? "CHIQ" : "FULL", isFS ? "#ffd600" : "#00e5ff", "", "⛶", isFS);
-
-      const i3x = 1056, i3y = 10, i3w = 210, i3h = 46;
-      this.renderCyberIslandFrame(i3x, i3y, i3w, i3h, "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
-
-      // 1. Tempo / Speed Capsule (Single bold centered line, no squishing)
+      const isPaused = (this.state === 'PAUSED');
       const isHighSpeed = this.speed > 1;
       const speedIcon = this.speed > 2 ? "🔥" : (this.speed > 1 ? "⚡" : "⏩");
-      this.drawCyberButton(i3x + 6, i3y + 4, 64, 38, `${this.speed}x`, isHighSpeed ? "#ffd600" : "#00e5ff", "", speedIcon, isHighSpeed);
-
-      // 2. Settings Capsule (Single bold centered line)
       const sozWord = (this.lang === 'ru') ? "НАСТР" : ((this.lang === 'uz') ? "SOZ" : "SET");
-      this.drawCyberButton(i3x + 74, i3y + 4, 64, 38, sozWord, "#00e5ff", "", "⚙️", false);
-
-      // 3. Pause Capsule (Single bold centered line)
-      const isPaused = (this.state === 'PAUSED');
       const pauseLabel = isPaused ?
         ((this.lang === 'ru') ? "ПУСК" : ((this.lang === 'uz') ? "DAVOM" : "PLAY")) :
         ((this.lang === 'ru') ? "ПАУЗА" : ((this.lang === 'uz') ? "PAUZA" : "PAUSE"));
-      this.drawCyberButton(i3x + 142, i3y + 4, 62, 38, pauseLabel, isPaused ? "#ffd600" : "#00e5ff", "", isPaused ? "▶" : "⏸", isPaused);
+
+      if (isWeb) {
+        // Unified 4-capsule cyber console on Web: [Speed] [Settings] [Fullscreen] [Pause]
+        // Smoothly integrated into one harmonious Island frame (x: 996, y: 10, w: 270, h: 46)
+        const i3x = 996, i3y = 10, i3w = 270, i3h = 46;
+        this.renderCyberIslandFrame(i3x, i3y, i3w, i3h, "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
+
+        // 1. Tempo / Speed Capsule (x: 1002, w: 62)
+        this.drawCyberButton(i3x + 6, i3y + 4, 62, 38, `${this.speed}x`, isHighSpeed ? "#ffd600" : "#00e5ff", "", speedIcon, isHighSpeed);
+
+        // 2. Settings Capsule (x: 1068, w: 62)
+        this.drawCyberButton(i3x + 72, i3y + 4, 62, 38, sozWord, "#00e5ff", "", "⚙️", false);
+
+        // 3. Integrated Fullscreen Capsule (x: 1134, w: 64) - Cyber Neon, perfectly aligned, zero screen obstruction
+        this.drawCyberButton(i3x + 138, i3y + 4, 64, 38, isFS ? "CHIQ" : "FULL", isFS ? "#ffd600" : "#00e5ff", "", "⛶", isFS);
+
+        // 4. Pause Capsule (x: 1202, w: 60)
+        this.drawCyberButton(i3x + 206, i3y + 4, 60, 38, pauseLabel, isPaused ? "#ffd600" : "#00e5ff", "", isPaused ? "▶" : "⏸", isPaused);
+      } else {
+        // Standard 3-capsule cyber console on Android APK (Fullscreen omitted as APK is native immersive)
+        const i3x = 1056, i3y = 10, i3w = 210, i3h = 46;
+        this.renderCyberIslandFrame(i3x, i3y, i3w, i3h, "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
+
+        // 1. Speed (x: 1062, w: 64)
+        this.drawCyberButton(i3x + 6, i3y + 4, 64, 38, `${this.speed}x`, isHighSpeed ? "#ffd600" : "#00e5ff", "", speedIcon, isHighSpeed);
+
+        // 2. Settings (x: 1130, w: 64)
+        this.drawCyberButton(i3x + 74, i3y + 4, 64, 38, sozWord, "#00e5ff", "", "⚙️", false);
+
+        // 3. Pause (x: 1198, w: 62)
+        this.drawCyberButton(i3x + 142, i3y + 4, 62, 38, pauseLabel, isPaused ? "#ffd600" : "#00e5ff", "", isPaused ? "▶" : "⏸", isPaused);
+      }
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
@@ -10569,9 +10610,11 @@
       this.renderMiniButton(860, 14, 120, 42, "◀ 1-SAHIFA", curPage === 0 ? "#ffd600" : "#78909c");
       this.renderMiniButton(990, 14, 120, 42, "2-SAHIFA ▶", curPage === 1 ? "#ffd600" : "#78909c");
 
-      // Fullscreen Toggle in Achievements
-      const isFSAch = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-      this.renderMiniButton(1130, 14, 85, 42, isFSAch ? "CHIQ" : "⛶ FULL", isFSAch ? "#ffd600" : "#00e5ff");
+      // Fullscreen Toggle in Achievements (Web only)
+      if (typeof window !== 'undefined' && !window.AndroidBridge) {
+        const isFSAch = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+        this.renderMiniButton(1130, 14, 85, 42, isFSAch ? "CHIQ" : "⛶ FULL", isFSAch ? "#ffd600" : "#00e5ff");
+      }
 
       // Achievement Cards (10 per page, 2 columns x 5 rows)
       const pageList = allList.slice(curPage * 10, curPage * 10 + 10);
@@ -13040,9 +13083,11 @@ getCodexDatabase() {
         ctx.fillText(d, dx + 52, 42);
       });
 
-      // Fullscreen Toggle Capsule in Map Select
-      const isFSMap = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-      this.renderMiniButton(1160, 20, 80, 34, isFSMap ? "CHIQ" : "⛶ FULL", isFSMap ? "#ffd600" : "#00e5ff");
+      // Fullscreen Toggle Capsule in Map Select (Web only)
+      if (typeof window !== 'undefined' && !window.AndroidBridge) {
+        const isFSMap = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+        this.renderMiniButton(1160, 20, 80, 34, isFSMap ? "CHIQ" : "⛶ FULL", isFSMap ? "#ffd600" : "#00e5ff");
+      }
 
       // 4. 10 Sector Cards
       for (let i = 0; i < MAPS.length; i++) {
@@ -13492,9 +13537,11 @@ getCodexDatabase() {
 
       this.renderMiniButton(1040, 14, 200, 38, `👤 NIK: ${this.playerName}`, "#ffd600");
 
-      // Fullscreen Toggle in Leaderboard
-      const isFSLB = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-      this.renderMiniButton(950, 14, 75, 38, isFSLB ? "CHIQ" : "⛶ FULL", isFSLB ? "#ffd600" : "#00e5ff");
+      // Fullscreen Toggle in Leaderboard (Web only)
+      if (typeof window !== 'undefined' && !window.AndroidBridge) {
+        const isFSLB = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+        this.renderMiniButton(950, 14, 75, 38, isFSLB ? "CHIQ" : "⛶ FULL", isFSLB ? "#ffd600" : "#00e5ff");
+      }
 
       // Commander Personal Best Banner (x: 40, y: 75, w: 1200, h: 48)
       const bx = 40, by = 75, bw = 1200, bh = 48;
