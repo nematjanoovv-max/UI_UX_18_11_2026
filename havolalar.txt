@@ -1,20 +1,20 @@
 ================================================================================
 LOYIHA NOMI:
 Tower Defense: Last Grid & APEX-01 Transformer Mech Studio
-Versiya: v4.1.0 (AAA Fotorealistik Reliz)
-Sana: 2026-11-19
+Versiya: v4.2.0 (Clean Cyber Deck, 3D Megatron & Web Fullscreen Reliz)
+Sana: 2026-11-24
 ================================================================================
 
-1. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
-https://last-grid-td.vercel.app/TowerDefense_LastGrid_v4.1.0.apk
+1. VERCEL LIVE (BRAUZERDA O'YNACH UCHUN ASOSIY WEB HAVOLA):
+👉 https://last-grid-td.vercel.app
+
+2. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
+https://last-grid-td.vercel.app/TowerDefense_LastGrid_v4.2.0.apk
 Qisqa universal havola:
 https://last-grid-td.vercel.app/last-grid.apk
 
-2. GITHUB REPOZITORIY HAVOLASI:
+3. GITHUB REPOZITORIY HAVOLASI:
 https://github.com/nematjanoovv-max/UI_UX_18_11_2026
-
-3. VERCEL LIVE (ASOSIY O'YIN):
-https://last-grid-td.vercel.app
 
 4. 3D APEX-01 TRANSFORMER MECH STUDIYA (360°):
 https://last-grid-td.vercel.app/preview_character
@@ -23,22 +23,9 @@ https://last-grid-td.vercel.app/preview_character
 https://last-grid-td.vercel.app/last-grid-offline-v2.zip
 
 ================================================================================
-ASOSIY IMKONIYATLAR (v4.1.0):
-
-1. 🤖 APEX-01 Transformer Mech (3D Fotorealistik):
-   - 1024x1024 PBR Normal xaritalar, panel choklari va bo'yoq qirilishi (Edge Wear).
-   - Dinamik teleskopik gidravlik porshenlar (qadam tashlashda real vaqtda kirib-chiqadi).
-   - 3 trubkali aylanma Gatling to'plari va otilgan jez gilzalar fizikasi.
-   - UnrealBloomPass HDR nurlanishi va studiya yoritish rejimlari.
-   - Har qanday telefon ekraniga 100% moslashuvchan zum va D-PAD boshqaruvi.
-
-2. 🎮 Tower Defense & 3D TPS Arena:
-   - 10 ta sektor, 3 ta biom, Roguelike kartalar va kuchaytirishlar.
-   - Cheksiz omon qolish rejimi va Boss Rush.
-   - Qahramonni to'g'ridan-to'g'ri boshqarish (Kinetic Dash, Orbital Lazer).
-
-3. 📲 Android APK:
-   - 100% oflayn — internet talab qilinmaydi.
-   - Rasmiy Google apksigner (v1 + v2 + v3) bilan imzolangan.
-   - Fon rejimida quvvat tejovchi avto-muzlatish tizimi.
+ASOSIY IMKONIYATLAR (v4.2.0):
+- 🌐 To'liq ekran (Fullscreen) rejimi — bitta tugma bilan polniy ekran qamrab olinadi.
+- 🤖 Yangi 3D Megatron kiber-dekoratsiya va silliq skeletal animatsiyalar.
+- 🎮 10 ta sektor, 5 ta minora, 8 dushman turi, 3D Mex roboti va real vaqtli tahlil tizimi.
+- 📲 PWA & Offline kesh — internet uzilganda ham o'yin to'xtovsiz ishlaydi.
 ================================================================================

@@ -42,6 +42,32 @@ public class MainActivity extends Activity {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
         }
 
+        // Unlock maximum refresh rate for high-FPS displays (90Hz, 120Hz, 144Hz)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                android.view.Display display = getWindowManager().getDefaultDisplay();
+                if (display != null) {
+                    android.view.Display.Mode[] modes = display.getSupportedModes();
+                    android.view.Display.Mode bestMode = null;
+                    float maxRate = 60.0f;
+                    for (android.view.Display.Mode m : modes) {
+                        if (m.getRefreshRate() > maxRate) {
+                            maxRate = m.getRefreshRate();
+                            bestMode = m;
+                        }
+                    }
+                    if (bestMode != null) {
+                        WindowManager.LayoutParams lp = getWindow().getAttributes();
+                        lp.preferredDisplayModeId = bestMode.getModeId();
+                        getWindow().setAttributes(lp);
+                        android.util.Log.d("LastGrid", "Display refresh rate unlocked to " + maxRate + "Hz (mode " + bestMode.getModeId() + ")");
+                    }
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("LastGrid", "Failed to unlock high refresh rate: " + t.getMessage());
+            }
+        }
+
         setImmersiveMode();
 
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
@@ -71,8 +97,7 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-        settings.setRenderPriority(WebSettings.RenderPriority.HIGH);
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -161,8 +186,9 @@ public class MainActivity extends Activity {
 
         webView.addJavascriptInterface(new WebAppInterface(), "AndroidBridge");
 
-        // Load 100% offline local assets
-        webView.loadUrl("file:///android_asset/www/index.html");
+        // Load 100% offline local assets with fresh cache-busting
+        webView.clearCache(true);
+        webView.loadUrl("file:///android_asset/www/index.html?v=" + System.currentTimeMillis());
     }
 
     private void setImmersiveMode() {
@@ -294,9 +320,25 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getModelBase64(String modelName) {
+            InputStream is = null;
             try {
                 String cleanName = new java.io.File(modelName).getName();
-                InputStream is = getAssets().open("www/assets/models/" + cleanName);
+                String[] candidatePaths = {
+                    "www/assets/models/" + cleanName,
+                    "assets/models/" + cleanName,
+                    "models/" + cleanName,
+                    cleanName
+                };
+                for (String p : candidatePaths) {
+                    try {
+                        is = getAssets().open(p);
+                        if (is != null) break;
+                    } catch (Exception ignored) {}
+                }
+                if (is == null) {
+                    android.util.Log.e("LastGridBridge", "Model not found in assets: " + modelName);
+                    return "";
+                }
                 ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                 byte[] data = new byte[65536];
                 int nRead;
@@ -304,10 +346,16 @@ public class MainActivity extends Activity {
                     buffer.write(data, 0, nRead);
                 }
                 buffer.flush();
-                return android.util.Base64.encodeToString(buffer.toByteArray(), android.util.Base64.NO_WRAP);
+                byte[] bytes = buffer.toByteArray();
+                android.util.Log.d("LastGridBridge", "Successfully loaded " + cleanName + ", size=" + bytes.length);
+                return android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP);
             } catch (Exception e) {
                 android.util.Log.e("LastGridBridge", "Error reading " + modelName + " via bridge: " + e.getMessage());
                 return "";
+            } finally {
+                if (is != null) {
+                    try { is.close(); } catch (Exception ignored) {}
+                }
             }
         }
 

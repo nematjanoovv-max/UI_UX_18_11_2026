@@ -1,11 +1,9 @@
 // Tower Defense: Last Grid - Service Worker for Offline PWA
 // Bumped cache revision to force automatic purge of old assets
-const CACHE_NAME = 'last-grid-cache-v4.1.0-rev9';
+const CACHE_NAME = 'last-grid-cache-v4.2.0-web';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './preview_transformers.html',
-  './preview_character.html',
   './game.js',
   './transformers_mech.js',
   './apex_mech.js',
@@ -13,14 +11,18 @@ const ASSETS_TO_CACHE = [
   './manifest.json',
   './icon.svg',
   './libs/three.min.js',
-  './libs/GLTFLoader.js'
+  './libs/GLTFLoader.js',
+  './assets/models/megatron_clips.js',
+  './assets/fonts/Orbitron.woff2'
 ];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(() => {});
+      return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
+        console.warn('[SW] Cache addAll warning:', err);
+      });
     })
   );
 });
@@ -43,6 +45,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
+  if (!url.protocol.startsWith('http')) return;
 
   // HTML, JS, JSON: Always try network first, fallback to cache if offline
   if (
@@ -66,7 +69,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static media & libs: Cache first with network fallback
+  // Static media, fonts & libs: Cache first with network fallback
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;

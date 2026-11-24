@@ -5,80 +5,356 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Tower Defense: Last Grid</title>
 <script type="importmap">
-{ "imports": { "three": "./assets/lib/three.module.js", "three/addons/": "./assets/lib/" } }
-</script>
-<style>
-@font-face{font-family:"Orbitron";src:url("assets/fonts/Orbitron.woff2") format("woff2");font-weight:400 900;font-display:swap}
-:root{--blue:#4cc9f0;--violet:#b57bff;--orange:#ff9040;--bg:#050810;--panel:#0b1324;--text:#eaf6ff;--sub:#8fa8c4}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);overflow:hidden}
-#menu{position:fixed;inset:0;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;gap:clamp(6px,1.6vh,14px);padding:max(env(safe-area-inset-top),24px) max(env(safe-area-inset-right),48px) max(env(safe-area-inset-bottom),12px) max(env(safe-area-inset-left),24px);font-family:"Orbitron","Rajdhani",system-ui,sans-serif;color:var(--text);background:radial-gradient(ellipse at 25% 55%,#10213d 0%,#070c18 55%,#03050a 100%);user-select:none}
-.status{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:clamp(4px,1vh,8px);border-bottom:1px solid #1c2a40;font-size:clamp(9px,2.1vh,13px);letter-spacing:.06em;color:var(--sub);white-space:nowrap}
-.status b{color:var(--text);font-weight:700}
-.status .right{display:flex;gap:clamp(8px,2vw,18px);align-items:center;overflow:hidden}
-.dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:#37e08a;margin-right:.5em}
-.stage{display:grid;grid-template-columns:40% 1fr;gap:clamp(8px,2vw,24px);min-height:0}
-.hero{position:relative;width:100%;height:100%;min-height:200px;display:flex;align-items:center;justify-content:center}
-#robotCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#robotFallback{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-.modes{display:flex;flex-direction:column;justify-content:center;gap:clamp(8px,2vh,16px);min-height:0}
-.mode{--c:var(--blue);position:relative;flex:1 1 0;max-height:clamp(64px,22vh,120px);min-height:48px;display:flex;align-items:center;gap:clamp(10px,2vw,18px);padding:0 clamp(12px,2.4vw,24px);border:2px solid var(--c);border-radius:10px;background:linear-gradient(100deg,color-mix(in srgb,var(--c) 22%,transparent),color-mix(in srgb,var(--c) 6%,transparent));color:var(--text);font:inherit;text-align:left;cursor:pointer;box-shadow:0 0 14px color-mix(in srgb,var(--c) 45%,transparent),inset 0 0 18px color-mix(in srgb,var(--c) 18%,transparent);transition:transform .12s,filter .12s}
-.mode::before,.mode::after{content:"";position:absolute;width:14px;height:14px;border:3px solid var(--c)}
-.mode::before{top:-3px;left:-3px;border-right:0;border-bottom:0;border-radius:8px 0 0 0}
-.mode::after{bottom:-3px;right:-3px;border-left:0;border-top:0;border-radius:0 0 8px 0}
-.mode.violet{--c:var(--violet)}
-.mode.orange{--c:var(--orange)}
-.mode:active{transform:scale(.97);filter:brightness(1.35)}
-.mode svg{flex:0 0 auto;width:clamp(26px,6.5vh,44px);height:clamp(26px,6.5vh,44px);stroke:var(--c);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.mode .t{display:block;font-weight:800;letter-spacing:.07em;font-size:clamp(14px,3.6vh,24px)}
-.mode .s{display:block;margin-top:.25em;color:var(--sub);font-size:clamp(9px,2vh,13px);letter-spacing:.05em}
-.dock{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid #22344f;border-radius:10px;background:var(--panel);overflow:hidden}
-.dock button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(2px,.7vh,6px);min-height:max(48px,11vh);padding:6px 2px;border:0;background:transparent;color:var(--sub);font:inherit;font-size:clamp(8px,1.9vh,12px);letter-spacing:.05em;cursor:pointer;transition:background .12s,color .12s}
-.dock button+button{border-left:1px solid #1a2a42}
-.dock button:active{background:#13233f;color:var(--text)}
-.dock svg{width:clamp(18px,4.6vh,30px);height:clamp(18px,4.6vh,30px);stroke:var(--text);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-</style>
+  { "imports": { "three": "./assets/lib/three.module.js", "three/addons/": "./assets/lib/" } }
+  </script>
+
+  <style>
+    @font-face{font-family:"Orbitron";src:url("assets/fonts/Orbitron.woff2") format("woff2");font-weight:400 900;font-display:swap}
+    :root{--blue:#4cc9f0;--violet:#b57bff;--orange:#ff9040;--bg:#050810;--panel:#0b1324;--text:#eaf6ff;--sub:#8fa8c4}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: #00e5ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, monospace, sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+    #canvas-container {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #02040a;
+      overflow: hidden;
+      border: none;
+      box-shadow: none;
+      z-index: 1;
+    }
+    #game-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      cursor: crosshair;
+      z-index: 2;
+    }
+    #mech-hangar-canvas {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      pointer-events: none;
+      touch-action: none;
+      z-index: 1;
+    }
+
+        /* =========================================================================
+       MAIN MENU (v4.2.0 Clean Cyber Deck Layout - Target High-Fidelity HUD)
+       ========================================================================= */
+    #menu {
+      position: fixed;
+      inset: 0;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: clamp(6px, 1.6vh, 14px);
+      padding: max(env(safe-area-inset-top), 18px) max(env(safe-area-inset-right), 36px) max(env(safe-area-inset-bottom), 12px) max(env(safe-area-inset-left), 14px);
+      font-family: "Orbitron", "Rajdhani", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(to top, rgba(0, 229, 255, 0.08) 0%, transparent 35%),
+        repeating-linear-gradient(90deg, rgba(0, 229, 255, 0.025) 0px, rgba(0, 229, 255, 0.025) 1px, transparent 1px, transparent 55px),
+        radial-gradient(ellipse at 28% 58%, #0f223f 0%, #070e1c 55%, #03050a 100%);
+      user-select: none;
+      z-index: 10;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: clamp(4px, 1vh, 8px);
+      border-bottom: 1px solid #1a2f4c;
+      font-size: clamp(9px, 2.1vh, 13px);
+      letter-spacing: .06em;
+      color: var(--sub);
+      white-space: nowrap;
+    }
+    .status b { color: var(--text); font-weight: 700; text-shadow: 0 0 4px rgba(0, 229, 255, 0.4); }
+    .status .right { display: flex; gap: clamp(8px, 2vw, 18px); align-items: center; overflow: hidden; }
+    .dot { display: inline-block; width: .6em; height: .6em; border-radius: 50%; background: #37e08a; margin-right: .5em; box-shadow: 0 0 6px #37e08a; }
+    .stage {
+      display: grid;
+      grid-template-columns: 52% 1fr;
+      gap: clamp(10px, 2vw, 24px);
+      min-height: 0;
+    }
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+    #robotCanvas {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(-1 * max(env(safe-area-inset-left), 14px));
+      width: calc(100% + max(env(safe-area-inset-left), 14px));
+      height: 100%;
+      display: block;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #robotCanvas:active { cursor: grabbing; }
+    /* pure 3D hero - seamless open cyberspace */
+    .modes {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(10px, 2.2vh, 18px);
+      min-height: 0;
+    }
+    .mode {
+      --c: var(--blue);
+      position: relative;
+      flex: 1 1 0;
+      max-height: clamp(64px, 22vh, 110px);
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 2.2vw, 22px);
+      padding: 0 clamp(14px, 2.4vw, 26px);
+      border: 1.5px solid var(--c);
+      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      background: linear-gradient(95deg, color-mix(in srgb, var(--c) 22%, #081120) 0%, color-mix(in srgb, var(--c) 7%, #040914) 100%);
+      color: var(--text);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 0 16px color-mix(in srgb, var(--c) 35%, transparent), inset 0 0 14px color-mix(in srgb, var(--c) 15%, transparent);
+      transition: transform .12s, filter .12s;
+    }
+    .mode::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      pointer-events: none;
+    }
+    .mode.violet { --c: var(--violet); }
+    .mode.orange { --c: var(--orange); }
+    .mode:active { transform: scale(.98); filter: brightness(1.3); }
+
+    .medallion {
+      flex: 0 0 auto;
+      width: clamp(42px, 8.8vh, 58px);
+      height: clamp(42px, 8.8vh, 58px);
+      border-radius: 50%;
+      border: 2px solid var(--c);
+      background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--c) 30%, #060e1c), #030812 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 14px color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 8px color-mix(in srgb, var(--c) 35%, transparent);
+    }
+    .medallion svg {
+      width: 58%;
+      height: 58%;
+      stroke: var(--c);
+      fill: none;
+      stroke-width: 1.8;
+      filter: drop-shadow(0 0 4px var(--c));
+    }
+    .mode-text {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+    .mode-text .t {
+      display: block;
+      font-weight: 800;
+      letter-spacing: .08em;
+      font-size: clamp(14px, 3.4vh, 23px);
+      text-shadow: 0 0 4px color-mix(in srgb, var(--c) 50%, transparent), 0 1px 2px rgba(0, 0, 0, 0.9);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mode-text .s {
+      display: block;
+      margin-top: .2em;
+      color: var(--sub);
+      font-size: clamp(9px, 2vh, 12px);
+      letter-spacing: .06em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tech-tag {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-left: 8px;
+      opacity: 0.65;
+    }
+    .tech-tag span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--c);
+      box-shadow: 0 0 6px var(--c);
+    }
+
+    .dock {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border: 1.5px solid #1a3354;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #0d1a2d 0%, #060c18 100%);
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.12), inset 0 0 12px rgba(0, 229, 255, 0.05);
+      overflow: hidden;
+    }
+    .dock button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(2px, .6vh, 6px);
+      min-height: max(48px, 11vh);
+      padding: 6px 2px;
+      border: 0;
+      background: transparent;
+      color: var(--sub);
+      font: inherit;
+      font-size: clamp(8px, 1.8vh, 11.5px);
+      letter-spacing: .06em;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .dock button + button { border-left: 1px solid #162740; }
+    .dock button:active { background: #142846; color: #00f0ff; }
+    .dock svg {
+      width: clamp(18px, 4.4vh, 28px);
+      height: clamp(18px, 4.4vh, 28px);
+      stroke: #7296be;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke .12s, filter .12s;
+    }
+    .dock button:active svg {
+      stroke: #00f0ff;
+      filter: drop-shadow(0 0 5px #00f0ff);
+    }
+  </style>
+</head>
+<body>
+  
 </head>
 <body>
 <div id="menu">
-  <header class="status">
-    <b>TOWER DEFENSE: LAST GRID</b>
-    <div class="right">
-      <span>v4.2.0</span>
-      <span><i class="dot"></i>GRID ONLINE</span>
-      <span>KOMANDIR: <b id="cmdName">CYBERCOMMANDER</b> ★★★</span>
-    </div>
-  </header>
+    <header class="status">
+      <b>TOWER DEFENSE: LAST GRID</b>
+      <div class="right">
+        <span>v4.2.0</span>
+        <span><i class="dot"></i>GRID ONLINE</span>
+        <span>KOMANDIR: <b id="cmdName">CYBERCOMMANDER</b> ★★★</span>
+      </div>
+    </header>
 
-  <main class="stage">
-    <section class="hero">
-      <canvas id="robotCanvas"></canvas>
-      <img id="robotFallback" src="assets/robot.webp" alt="" hidden>
-    </section>
-    <section class="modes">
-      <button class="mode" data-action="campaign">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 2 5 5 5 9l-2 3H9l-2-3c0-4 2-7 5-9z"/><path d="M9 15l-3 4M15 15l3 4"/><circle cx="12" cy="9.5" r="1.5"/></svg>
-        <span><span class="t">KAMPANIYA</span><span class="s">10 TA XARITA</span></span>
-      </button>
-      <button class="mode violet" data-action="endless">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
-        <span><span class="t">CHEKSIZ REJIM</span><span class="s">TO'LQINLAR TUGAMAYDI</span></span>
-      </button>
-      <button class="mode orange" data-action="bossrush">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 0 0-8 8c0 3 1.5 4.5 3 5.5V20h10v-2.5c1.5-1 3-2.5 3-5.5a8 8 0 0 0-8-8z"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><path d="M11 20v-2M13 20v-2"/></svg>
-        <span><span class="t">BOSS RUSH DUEL</span><span class="s">FAQAT BOSSLAR</span></span>
-      </button>
-    </section>
-  </main>
+    <main class="stage">
+      <section class="hero">
+        <canvas id="robotCanvas"></canvas>
+        <div id="robotError" style="display:none; color: #ef4444; font-family: monospace; font-size: 13px; letter-spacing: 0.1em; text-align: center; text-shadow: 0 0 8px rgba(239,68,68,0.6); pointer-events: none; z-index: 5;">⚠️ MODEL YUKLANMADI</div>
+      </section>
+      <section class="modes">
+        <button class="mode" data-action="campaign">
+          <div class="medallion">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3 2 5 5 5 9l-2 3H9l-2-3c0-4 2-7 5-9z"/><path d="M9 15l-3 4M15 15l3 4"/><circle cx="12" cy="9.5" r="1.5"/></svg>
+          </div>
+          <div class="mode-text">
+            <span class="t">KAMPANIYA</span>
+            <span class="s">10 TA XARITA</span>
+          </div>
+          <div class="tech-tag" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </button>
+        <button class="mode violet" data-action="endless">
+          <div class="medallion">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
+          </div>
+          <div class="mode-text">
+            <span class="t">CHEKSIZ REJIM</span>
+            <span class="s">TO'LQINLAR TUGAMAYDI</span>
+          </div>
+          <div class="tech-tag" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </button>
+        <button class="mode orange" data-action="bossrush">
+          <div class="medallion">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l3 5h10l3-5"/><path d="M7 9v6l5 5 5-5V9"/><circle cx="9.5" cy="13.5" r="1.5"/><circle cx="14.5" cy="13.5" r="1.5"/><path d="M11 17h2"/></svg>
+          </div>
+          <div class="mode-text">
+            <span class="t">BOSS RUSH DUEL</span>
+            <span class="s">FAQAT BOSSLAR</span>
+          </div>
+          <div class="tech-tag" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </button>
+      </section>
+    </main>
 
-  <nav class="dock">
-    <button data-action="map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>XARITA</button>
-    <button data-action="leaderboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/></svg>REYTING</button>
-    <button data-action="achievements"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>YUTUQLAR</button>
-    <button data-action="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>SOZLAMALAR</button>
-    <button data-action="apk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 10a4 4 0 0 1 8 0M9 4l1 2M15 4l-1 2"/></svg>APK</button>
-  </nav>
-</div>
+    <nav class="dock">
+      <button data-action="map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>XARITA</button>
+      <button data-action="leaderboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/></svg>REYTING</button>
+      <button data-action="achievements"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9 14l-2 8 5-3 5 3-2-8"/></svg>YUTUQLAR</button>
+      <button data-action="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>SOZLAMALAR</button>
+      <button data-action="apk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 10a4 4 0 0 1 8 0M9 4l1 2M15 4l-1 2"/></svg>APK</button>
+    </nav>
+  </div>
 
 <script>
 document.querySelectorAll('[data-action]').forEach(function (el) {
@@ -92,267 +368,947 @@ document.querySelectorAll('[data-action]').forEach(function (el) {
 <script src="libs/GLTFLoader.js"></script>
 
 <!-- Main Menu 3D Robot Scene (Direct UMD Execution for 100% WebView & Offline Compatibility) -->
-<script>
-(function () {
-  const MODEL_URL = 'assets/models/megatron.glb';
-  const FALLBACK_MODEL_URL = 'assets/models/robot.glb';
+  <script>
+    (function () {
+      const MODEL_URL = 'assets/models/megatron.glb';
+      const FALLBACK_MODEL_URL = 'assets/models/biped_robot.glb';
 
-  function showFallbackImage() {
-    const c = document.getElementById('robotCanvas');
-    const fb = document.getElementById('robotFallback');
-    if (c) c.style.display = 'none';
-    if (fb) {
-      fb.hidden = false;
-      fb.style.display = 'block';
-    }
-  }
+      function showModelError(err) {
+        console.error('[MainMenu3D] MODEL YUKLANMADI:', err);
+        const fb = document.getElementById('robotError');
+        if (fb) fb.style.display = 'block';
+      }
 
-  function initMainMenu3D() {
-    const T = window.THREE;
-    const LoaderClass = window.GLTFLoader || (T && T.GLTFLoader);
-    const canvas = document.getElementById('robotCanvas');
-    const fallback = document.getElementById('robotFallback');
-    if (!canvas) return;
-    const host = canvas.parentElement;
+      function initMainMenu3D() {
+        const T = window.THREE;
+        const LoaderClass = window.GLTFLoader || (T && T.GLTFLoader);
+        const canvas = document.getElementById('robotCanvas');
+        const fallback = document.getElementById('robotFallback');
+        if (!canvas) return;
+        const host = canvas.parentElement;
 
-    if (!T || !LoaderClass) {
-      console.warn('[MainMenu3D] Three.js or GLTFLoader not found, displaying fallback image.');
-      showFallbackImage();
-      return;
-    }
-
-    let renderer;
-    try {
-      renderer = new T.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setClearColor(0x000000, 0);
-      if (T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
-      if (T.ACESFilmicToneMapping) renderer.toneMapping = T.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.25;
-    } catch (e) {
-      console.error('[MainMenu3D] WebGL init error:', e);
-      showFallbackImage();
-      return;
-    }
-
-    const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.set(0, 1.9, 7.2);
-    camera.lookAt(0, 1.5, 0);
-
-    // Cyber Lighting Setup
-    scene.add(new T.AmbientLight(0xffffff, 1.2));
-    scene.add(new T.HemisphereLight(0x9fb8ff, 0x140a22, 1.0));
-    const key = new T.DirectionalLight(0x6fd8ff, 2.5);
-    key.position.set(3, 4, 5);
-    scene.add(key);
-    const rim = new T.DirectionalLight(0xb57bff, 2.8);
-    rim.position.set(-4, 3, -4);
-    scene.add(rim);
-    const frontFill = new T.DirectionalLight(0xffffff, 1.5);
-    frontFill.position.set(0, 2, 6);
-    scene.add(frontFill);
-    const spot = new T.SpotLight(0xbfe9ff, 70, 15, 0.5, 0.6, 1.5);
-    spot.position.set(0, 7, 0.5);
-    spot.target.position.set(0, 0, 0);
-    scene.add(spot, spot.target);
-
-    // Cyber Hologram Platform (Neon Cyber-Podium)
-    const stand = new T.Group();
-    scene.add(stand);
-
-    const disc = new T.Mesh(
-      new T.CylinderGeometry(1.9, 2.0, 0.14, 64),
-      new T.MeshStandardMaterial({ color: 0x0c1220, metalness: 0.8, roughness: 0.35 })
-    );
-    disc.position.y = -0.07;
-    stand.add(disc);
-
-    const ringBlue = new T.Mesh(
-      new T.RingGeometry(1.62, 1.78, 96),
-      new T.MeshBasicMaterial({ color: 0x4cc9f0, side: T.DoubleSide })
-    );
-    ringBlue.rotation.x = -Math.PI / 2;
-    ringBlue.position.y = 0.01;
-
-    const ringViolet = new T.Mesh(
-      new T.RingGeometry(1.15, 1.27, 96),
-      new T.MeshBasicMaterial({ color: 0xb57bff, side: T.DoubleSide })
-    );
-    ringViolet.rotation.x = -Math.PI / 2;
-    ringViolet.position.y = 0.012;
-    stand.add(ringBlue, ringViolet);
-
-    const beam = new T.Mesh(
-      new T.CylinderGeometry(0.7, 1.8, 6, 40, 1, true),
-      new T.MeshBasicMaterial({ color: 0x4cc9f0, transparent: true, opacity: 0.07, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending })
-    );
-    beam.position.y = 3;
-    stand.add(beam);
-
-    // Neon Particles
-    const P = 30;
-    const pPos = new Float32Array(P * 3);
-    const pSpeed = new Float32Array(P);
-    for (let i = 0; i < P; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const r = 0.4 + Math.random() * 1.8;
-      pPos[i * 3] = Math.cos(a) * r;
-      pPos[i * 3 + 1] = Math.random() * 5;
-      pPos[i * 3 + 2] = Math.sin(a) * r;
-      pSpeed[i] = 0.2 + Math.random() * 0.4;
-    }
-    const pGeo = new T.BufferGeometry();
-    pGeo.setAttribute('position', new T.BufferAttribute(pPos, 3));
-    const particles = new T.Points(
-      pGeo,
-      new T.PointsMaterial({ color: 0x8fe3ff, size: 0.05, transparent: true, opacity: 0.8, depthWrite: false })
-    );
-    stand.add(particles);
-
-    const robotRoot = new T.Group();
-    stand.add(robotRoot);
-    let model = null;
-    let mixer = null;
-
-    function applyModel(gltf, sourceUrl) {
-      try {
-        model = gltf.scene;
-        let box = new T.Box3().setFromObject(model);
-        const size = box.getSize(new T.Vector3());
-        console.log('[MainMenu3D] Loaded ' + sourceUrl + ' box size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
-        const maxDim = Math.max(size.x, size.y, size.z, 0.0001);
-        const scaleFactor = 3.3 / (size.y > 0 ? size.y : maxDim);
-        model.scale.setScalar(scaleFactor);
-
-        box = new T.Box3().setFromObject(model);
-        const center = box.getCenter(new T.Vector3());
-        model.position.x -= center.x;
-        model.position.z -= center.z;
-        model.position.y -= box.min.y; // Feet sit flush on top of the podium disc
-        robotRoot.add(model);
-
-        if (gltf.animations && gltf.animations.length) {
-          mixer = new T.AnimationMixer(model);
-          const idle = gltf.animations.find(function (c) { return /idle/i.test(c.name); }) || gltf.animations[0];
-          const action = mixer.clipAction(idle);
-          if (T.LoopRepeat !== undefined) action.setLoop(T.LoopRepeat, Infinity);
-          action.clampWhenFinished = false;
-          action.play();
+        if (!T || !LoaderClass) {
+          console.warn('[MainMenu3D] Three.js or GLTFLoader not found, displaying fallback image.');
+          showModelError(new Error("GLB yuklanmadi"));
+          return;
         }
-      } catch (err) {
-        console.error('[MainMenu3D] Error applying model scene:', err);
-        showFallbackImage();
-      }
-    }
 
-    const loader = new LoaderClass();
-    loader.load(
-      MODEL_URL,
-      function (gltf) {
-        applyModel(gltf, MODEL_URL);
-      },
-      undefined,
-      function (err) {
-        console.warn('[MainMenu3D] Failed loading ' + MODEL_URL + ', trying fallback model: ' + FALLBACK_MODEL_URL, err);
-        loader.load(
-          FALLBACK_MODEL_URL,
-          function (gltf2) {
-            applyModel(gltf2, FALLBACK_MODEL_URL);
-          },
-          undefined,
-          function (err2) {
-            console.error('[MainMenu3D] Both GLB files failed, switching to robot.webp image fallback:', err2);
-            showFallbackImage();
+        let renderer;
+        try {
+          renderer = new T.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
+          renderer.debug.checkShaderErrors = false;
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.0));
+          renderer.setClearColor(0x000000, 0);
+          if (T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
+          if (T.ACESFilmicToneMapping) renderer.toneMapping = T.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.15;
+        } catch (e) {
+          console.error('[MainMenu3D] WebGL init error:', e);
+          showModelError(new Error("GLB yuklanmadi"));
+          return;
+        }
+
+        const scene = new T.Scene();
+        const camera = new T.PerspectiveCamera(38, 1, 0.1, 100);
+        camera.position.set(0, 1.95, 6.45);
+        camera.lookAt(0, 1.85, 0);
+
+        // Procedural Studio Reflection Map: Balanced industrial studio reflections
+        if (T.PMREMGenerator) {
+          try {
+            const pmrem = new T.PMREMGenerator(renderer);
+            const ec = document.createElement('canvas');
+            ec.width = 512; ec.height = 256;
+            const ectx = ec.getContext('2d');
+            ectx.fillStyle = '#141b26';
+            ectx.fillRect(0, 0, 512, 256);
+            // Overhead crisp studio softbox light strip (sharp edge glints, not giant white wash)
+            const gTop = ectx.createLinearGradient(0, 0, 0, 75);
+            gTop.addColorStop(0, '#ffffff');
+            gTop.addColorStop(0.3, '#94a3b8');
+            gTop.addColorStop(1, 'transparent');
+            ectx.fillStyle = gTop;
+            ectx.fillRect(100, 0, 312, 70);
+            // Subtle left rim softbox
+            const g1 = ectx.createRadialGradient(140, 70, 0, 140, 70, 90);
+            g1.addColorStop(0, '#cbd5e1');
+            g1.addColorStop(0.5, '#334155');
+            g1.addColorStop(1, 'transparent');
+            ectx.fillStyle = g1;
+            ectx.fillRect(0, 0, 512, 256);
+            // Subtle right rim softbox
+            const g2 = ectx.createRadialGradient(370, 75, 0, 370, 75, 90);
+            g2.addColorStop(0, '#cbd5e1');
+            g2.addColorStop(0.5, '#334155');
+            g2.addColorStop(1, 'transparent');
+            ectx.fillStyle = g2;
+            ectx.fillRect(0, 0, 512, 256);
+            // Studio floor horizon
+            const g3 = ectx.createLinearGradient(0, 140, 0, 256);
+            g3.addColorStop(0, '#334155');
+            g3.addColorStop(0.2, '#1a2230');
+            g3.addColorStop(1, '#0a0e14');
+            ectx.fillStyle = g3;
+            ectx.fillRect(0, 140, 512, 116);
+            const envTex = new T.CanvasTexture(ec);
+            envTex.mapping = T.EquirectangularReflectionMapping;
+            if (T.SRGBColorSpace) envTex.colorSpace = T.SRGBColorSpace;
+            const envRt = pmrem.fromEquirectangular(envTex);
+            scene.environment = envRt.texture;
+            envTex.dispose();
+            pmrem.dispose();
+          } catch (pe) {
+            console.warn('[MainMenu3D] PMREM error:', pe);
           }
+        }
+
+        // Authentic Decepticon Gunmetal Illumination (Balanced tone, zero chalky white wash)
+        scene.add(new T.AmbientLight(0x283548, 0.75));
+        scene.add(new T.HemisphereLight(0x607890, 0x18202a, 0.70));
+
+        // Front Key Light: Clean directional key highlighting armor contours
+        const key = new T.DirectionalLight(0xf0f4f8, 2.2);
+        key.position.set(2.2, 4.0, 4.2);
+        scene.add(key);
+
+        // Front-Left Fill Light: Soft atmospheric fill keeping left plates readable
+        const fill = new T.DirectionalLight(0x8294a6, 1.2);
+        fill.position.set(-3.0, 2.5, 4.0);
+        scene.add(fill);
+
+        // Lower Body & Leg Light: Soft bounce to reveal knees, shins & boots without blanching
+        const legLight = new T.DirectionalLight(0x708295, 1.0);
+        legLight.position.set(0.0, 0.4, 4.0);
+        scene.add(legLight);
+
+        // Back Rim Light: Cool ice-steel contour separation
+        const rim = new T.DirectionalLight(0x8ab4f8, 1.6);
+        rim.position.set(-3.5, 4.0, -3.5);
+        scene.add(rim);
+
+        // Overhead Studio Spotlight for focused helmet & shoulder definition
+        const spot = new T.SpotLight(0xffffff, 18, 16, 0.6, 0.7, 1.4);
+        spot.position.set(0, 7.2, 0.8);
+        spot.target.position.set(0, 1.7, 0);
+        scene.add(spot, spot.target);
+
+        // Cyber Hologram Platform (Neon Cyber-Podium)
+        const stand = new T.Group();
+        stand.position.x = 0.0;
+        scene.add(stand);
+
+        // Heavy dark metal cylinder base
+        const disc = new T.Mesh(
+          new T.CylinderGeometry(2.05, 2.2, 0.22, 64),
+          new T.MeshStandardMaterial({ color: 0x09101d, metalness: 0.9, roughness: 0.28 })
         );
-      }
-    );
+        disc.position.y = -0.11;
+        stand.add(disc);
 
-    function resize() {
-      if (!host) return;
-      const w = host.clientWidth || host.offsetWidth || (window.innerWidth ? Math.round(window.innerWidth * 0.4) : 400);
-      const h = host.clientHeight || host.offsetHeight || (window.innerHeight ? Math.round(window.innerHeight * 0.8) : 500);
-      if (!w || !h) return;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-    }
-    const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(resize) : null;
-    if (ro && host) ro.observe(host);
-    window.addEventListener('resize', resize);
-    resize();
+        // 3 Balanced Sci-Fi Rings (Natural desaturated cyber palette)
+        const ringOuter = new T.Mesh(
+          new T.RingGeometry(1.82, 1.96, 96),
+          new T.MeshBasicMaterial({ color: 0x38bdf8, side: T.DoubleSide, transparent: true, opacity: 0.70 })
+        );
+        ringOuter.rotation.x = -Math.PI / 2;
+        ringOuter.position.y = 0.005;
 
-    const clock = new T.Clock();
-    let raf = 0;
-    let running = false;
+        const ringMiddle = new T.Mesh(
+          new T.RingGeometry(1.38, 1.50, 96),
+          new T.MeshBasicMaterial({ color: 0x818cf8, side: T.DoubleSide, transparent: true, opacity: 0.60 })
+        );
+        ringMiddle.rotation.x = -Math.PI / 2;
+        ringMiddle.position.y = 0.008;
 
-    function frame() {
-      raf = requestAnimationFrame(frame);
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const t = clock.elapsedTime;
-      if (mixer) mixer.update(dt);
-      robotRoot.rotation.y += 0.004 * (dt * 60);
-      robotRoot.position.y = 0.04 + Math.sin(t * 1.4) * 0.05;
-      ringBlue.rotation.z += 0.004 * (dt * 60);
-      ringViolet.rotation.z -= 0.007 * (dt * 60);
-      const arr = pGeo.attributes.position.array;
-      for (let i = 0; i < P; i++) {
-        arr[i * 3 + 1] += pSpeed[i] * dt;
-        if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = 0;
-      }
-      pGeo.attributes.position.needsUpdate = true;
-      renderer.render(scene, camera);
-    }
+        const ringInner = new T.Mesh(
+          new T.RingGeometry(0.92, 1.02, 96),
+          new T.MeshBasicMaterial({ color: 0x7dd3fc, side: T.DoubleSide, transparent: true, opacity: 0.65 })
+        );
+        ringInner.rotation.x = -Math.PI / 2;
+        ringInner.position.y = 0.011;
+        stand.add(ringOuter, ringMiddle, ringInner);
 
-    function start() {
-      if (running) return;
-      running = true;
-      clock.start();
-      frame();
-    }
-    function stop() {
-      running = false;
-      cancelAnimationFrame(raf);
-    }
-    function dispose() {
-      stop();
-      if (ro) ro.disconnect();
-      window.removeEventListener('resize', resize);
-      scene.traverse(function (o) {
-        if (o.geometry) o.geometry.dispose();
-        if (o.material) {
-          const mats = Array.isArray(o.material) ? o.material : [o.material];
-          mats.forEach(function (m) {
-            for (const k in m) { if (m[k] && m[k].isTexture) m[k].dispose(); }
-            m.dispose();
+        // Floor Ground Glow Disc (Under Podium) - feathered into ambient hangar space
+        function makeRadialGlowTexture(colorStop0, colorStop1, colorStop2) {
+          const gc = document.createElement('canvas');
+          gc.width = 256; gc.height = 256;
+          const gctx = gc.getContext('2d');
+          const grad = gctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+          grad.addColorStop(0, colorStop0);
+          grad.addColorStop(0.35, colorStop1);
+          grad.addColorStop(0.70, colorStop2 || 'rgba(10, 25, 50, 0.04)');
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          gctx.fillStyle = grad;
+          gctx.fillRect(0, 0, 256, 256);
+          return new T.CanvasTexture(gc);
+        }
+
+        const floorGlowMesh = new T.Mesh(
+          new T.PlaneGeometry(6.6, 6.6),
+          new T.MeshBasicMaterial({
+            map: makeRadialGlowTexture('rgba(56, 189, 248, 0.40)', 'rgba(30, 64, 120, 0.16)', 'rgba(10, 25, 50, 0.04)'),
+            transparent: true,
+            opacity: 0.55,
+            blending: T.AdditiveBlending,
+            depthWrite: false
+          })
+        );
+        floorGlowMesh.rotation.x = -Math.PI / 2;
+        floorGlowMesh.position.y = -0.22;
+        stand.add(floorGlowMesh);
+
+        // Contact shadow directly beneath robot boots
+        const contactShadow = new T.Mesh(
+          new T.PlaneGeometry(2.4, 2.4),
+          new T.MeshBasicMaterial({
+            map: makeRadialGlowTexture('rgba(0,0,0,0.92)', 'rgba(0,0,0,0.35)', 'rgba(0,0,0,0.05)'),
+            transparent: true,
+            opacity: 0.85,
+            depthWrite: false
+          })
+        );
+        contactShadow.rotation.x = -Math.PI / 2;
+        contactShadow.position.y = 0.002;
+        stand.add(contactShadow);
+
+        // Vertical Light Shafts
+        function makeBeamTexture(color) {
+          const bc = document.createElement('canvas');
+          bc.width = 64; bc.height = 256;
+          const bctx = bc.getContext('2d');
+          const bgrad = bctx.createLinearGradient(0, 256, 0, 0);
+          bgrad.addColorStop(0, color);
+          bgrad.addColorStop(0.25, color);
+          bgrad.addColorStop(0.85, 'rgba(0,0,0,0)');
+          bgrad.addColorStop(1, 'rgba(0,0,0,0)');
+          bctx.fillStyle = bgrad;
+          bctx.fillRect(0, 0, 64, 256);
+          return new T.CanvasTexture(bc);
+        }
+
+        const beam1 = new T.Mesh(
+          new T.CylinderGeometry(0.7, 1.7, 7.5, 32, 1, true),
+          new T.MeshBasicMaterial({
+            map: makeBeamTexture('rgba(148, 190, 220, 0.10)'),
+            transparent: true,
+            opacity: 0.10,
+            side: T.DoubleSide,
+            depthWrite: false,
+            blending: T.AdditiveBlending
+          })
+        );
+        beam1.position.y = 3.6;
+        stand.add(beam1);
+
+        const beam2 = new T.Mesh(
+          new T.CylinderGeometry(0.5, 1.2, 8.0, 32, 1, true),
+          new T.MeshBasicMaterial({
+            map: makeBeamTexture('rgba(160, 150, 200, 0.08)'),
+            transparent: true,
+            opacity: 0.08,
+            side: T.DoubleSide,
+            depthWrite: false,
+            blending: T.AdditiveBlending
+          })
+        );
+        beam2.position.set(-0.5, 3.8, -0.4);
+        stand.add(beam2);
+
+        // Soft Circular Neon Floating Particles
+        function makeParticleTexture() {
+          const pc = document.createElement('canvas');
+          pc.width = 64; pc.height = 64;
+          const pctx = pc.getContext('2d');
+          const pgrad = pctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+          pgrad.addColorStop(0, '#ffffff');
+          pgrad.addColorStop(0.35, '#5ce8ff');
+          pgrad.addColorStop(0.75, 'rgba(0, 180, 255, 0.35)');
+          pgrad.addColorStop(1, 'rgba(0,0,0,0)');
+          pctx.fillStyle = pgrad;
+          pctx.fillRect(0, 0, 64, 64);
+          return new T.CanvasTexture(pc);
+        }
+
+        const P = 45;
+        const pPos = new Float32Array(P * 3);
+        const pSpeed = new Float32Array(P);
+        for (let i = 0; i < P; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const r = 0.4 + Math.random() * 2.8;
+          pPos[i * 3] = Math.cos(a) * r;
+          pPos[i * 3 + 1] = Math.random() * 5.5;
+          pPos[i * 3 + 2] = Math.sin(a) * r;
+          pSpeed[i] = 0.20 + Math.random() * 0.42;
+        }
+        const pGeo = new T.BufferGeometry();
+        pGeo.setAttribute('position', new T.BufferAttribute(pPos, 3));
+        const particles = new T.Points(
+          pGeo,
+          new T.PointsMaterial({
+            map: makeParticleTexture(),
+            size: 0.16,
+            transparent: true,
+            opacity: 0.85,
+            depthWrite: false,
+            blending: T.AdditiveBlending
+          })
+        );
+        stand.add(particles);
+
+        const robotRoot = new T.Group();
+        stand.add(robotRoot);
+        let model = null;
+        let mixer = null;
+
+        function applyModel(gltf, sourceUrl) {
+          try {
+            model = gltf.scene;
+
+            const maxAniso = (renderer.capabilities && typeof renderer.capabilities.getMaxAnisotropy === 'function')
+              ? renderer.capabilities.getMaxAnisotropy()
+              : 16;
+
+            // Traverse meshes: enable all components including transforming arm weapon (Bazooka), fix frustumCulled, tune PBR materials
+            model.traverse(function (child) {
+              if (child.isMesh || child.isSkinnedMesh) {
+                child.frustumCulled = false;
+                child.visible = true;
+                if (child.material) {
+                  // Maximize texture sharpness: Anisotropic filtering & Trilinear Mipmapping
+                  const mats = Array.isArray(child.material) ? child.material : [child.material];
+                  mats.forEach(function (m) {
+                    ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap'].forEach(function (k) {
+                      if (m[k] && m[k].isTexture) {
+                        m[k].anisotropy = maxAniso;
+                        m[k].minFilter = T.LinearMipmapLinearFilter;
+                        m[k].magFilter = T.LinearFilter;
+                        m[k].generateMipmaps = true;
+                        m[k].needsUpdate = true;
+                      }
+                    });
+                  });
+
+                  // Rich metallic reflection without overblowing into white
+                  child.material.envMapIntensity = 1.15;
+
+                  // Sharp, detailed normal mapping for armor plates, panel seams, rivets and hydraulics
+                  if (child.material.normalMap) {
+                    child.material.normalScale.set(1.4, 1.4);
+                  }
+
+                  // Authentic Decepticon dark gunmetal steel: metalness 0.55, roughness 0.42
+                  child.material.metalness = 0.55;
+                  child.material.roughness = 0.42;
+
+                  // Emissive textures: glowing red optics and Decepticon core
+                  if (child.material.emissiveMap) {
+                    child.material.emissive.setRGB(1, 1, 1);
+                    child.material.emissiveIntensity = 1.6;
+                  }
+                  if (child.material.name && /energon/i.test(child.material.name)) {
+                    child.material.emissive = new T.Color(0xdc2626);
+                    child.material.emissiveIntensity = 2.0;
+                  }
+                  if (child.material.name && /bazooka/i.test(child.material.name)) {
+                    // Arm Fusion Cannon / Bazooka energon glow
+                    if (child.material.emissiveMap) {
+                      child.material.emissive = new T.Color(0xef4444);
+                      child.material.emissiveIntensity = 2.2;
+                    }
+                  }
+                }
+              }
+            });
+
+            model.updateMatrixWorld(true);
+            let box = new T.Box3().setFromObject(model);
+            let size = box.getSize(new T.Vector3());
+            console.log('[MainMenu3D] GLB animatsiyalari:', (gltf.animations || []).map(function(a){ return a.name + " (" + a.duration.toFixed(2) + "s)"; }));
+            console.log('[MainMenu3D] Loaded ' + sourceUrl + ' intact box size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
+
+            // Target height: 3.55 units (Close-up, giant hero scale filling frame)
+            const targetHeight = 3.55;
+            const scaleFactor = targetHeight / (size.y > 0 ? size.y : 1.0);
+            model.scale.setScalar(scaleFactor);
+
+            model.updateMatrixWorld(true);
+            box = new T.Box3().setFromObject(model);
+            const center = box.getCenter(new T.Vector3());
+            model.position.x -= center.x;
+            model.position.z -= center.z;
+            model.position.y -= box.min.y; // Soles of boots sit flush on podium top (y = 0)
+            model.updateMatrixWorld(true);
+            robotRoot.add(model);
+            robotRoot.rotation.y = -Math.PI / 2; // Always faces directly forward at player/camera
+
+            if (gltf.animations && gltf.animations.length) {
+              mixer = new T.AnimationMixer(model);
+              const clip = gltf.animations[0];
+              const action = mixer.clipAction(clip);
+              if (T.LoopRepeat !== undefined) action.setLoop(T.LoopRepeat, Infinity);
+              action.clampWhenFinished = false;
+              action.play();
+            }
+
+            // Initialize In-Game Tactical 3D Hero
+            initHero3D(gltf);
+          } catch (err) {
+            console.error('[MainMenu3D] Error applying model scene:', err);
+            showModelError(new Error("GLB yuklanmadi"));
+          }
+        }
+
+        function parallelTraverse(a, b, callback) {
+          callback(a, b);
+          for (let i = 0; i < a.children.length; i++) {
+            parallelTraverse(a.children[i], b.children[i], callback);
+          }
+        }
+
+        function cloneModelWithBones(source) {
+          const sourceLookup = new Map();
+          const cloneLookup = new Map();
+          const clone = source.clone(true);
+
+          parallelTraverse(source, clone, function (sNode, cNode) {
+            sourceLookup.set(cNode, sNode);
+            cloneLookup.set(sNode, cNode);
+          });
+
+          clone.traverse(function (node) {
+            if (!node.isSkinnedMesh) return;
+            const sourceMesh = sourceLookup.get(node);
+            const sourceBones = sourceMesh.skeleton.bones;
+            node.skeleton = sourceMesh.skeleton.clone();
+            node.bindMatrix.copy(sourceMesh.bindMatrix);
+            node.skeleton.bones = sourceBones.map(function (b) {
+              return cloneLookup.get(b);
+            });
+            node.bind(node.skeleton, node.bindMatrix);
+          });
+          return clone;
+        }
+
+        function initHero3D(gltf) {
+          try {
+            if (!T || !gltf || !gltf.scene) return;
+            console.log('[Hero3D] Initializing In-Game Tactical 3D Hero...');
+
+            if (window.Hero3D && window.Hero3D.renderer && typeof window.Hero3D.renderer.dispose === 'function') {
+              try { window.Hero3D.renderer.dispose(); } catch (de) {}
+            }
+
+            const heroCanvas = document.createElement('canvas');
+            heroCanvas.id = 'hero3DCanvas';
+            heroCanvas.width = 200;
+            heroCanvas.height = 200;
+            heroCanvas.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:200px;height:200px;pointer-events:none;opacity:0;';
+            if (document.body && !document.getElementById('hero3DCanvas')) {
+              document.body.appendChild(heroCanvas);
+            }
+
+            let heroRenderer;
+            try {
+              heroRenderer = new T.WebGLRenderer({
+                canvas: heroCanvas,
+                alpha: true,
+                antialias: true,
+                preserveDrawingBuffer: true,
+                powerPreference: 'high-performance'
+              });
+              heroRenderer.debug.checkShaderErrors = false;
+              heroRenderer.setPixelRatio(1);
+              heroRenderer.setSize(200, 200, false);
+              heroRenderer.setClearColor(0x000000, 0);
+              if (T.SRGBColorSpace) heroRenderer.outputColorSpace = T.SRGBColorSpace;
+              if (T.ACESFilmicToneMapping) heroRenderer.toneMapping = T.ACESFilmicToneMapping;
+              heroRenderer.toneMappingExposure = 1.45;
+            } catch (wglErr) {
+              console.warn('[Hero3D] WebGLRenderer creation failed:', wglErr);
+              return;
+            }
+
+            const heroScene = new T.Scene();
+            // Tactical isometric camera looking down at hero at ~38 deg pitch
+            const heroCamera = new T.PerspectiveCamera(46, 1, 0.1, 50);
+            heroCamera.position.set(0, 3.4, 4.4);
+            heroCamera.lookAt(0, 1.1, 0);
+
+            // Procedural reflection environment for rich metallic armor sheen
+            if (T.PMREMGenerator) {
+              try {
+                const pmrem = new T.PMREMGenerator(heroRenderer);
+                const ec = document.createElement('canvas');
+                ec.width = 256; ec.height = 128;
+                const ectx = ec.getContext('2d');
+                ectx.fillStyle = '#182436';
+                ectx.fillRect(0, 0, 256, 128);
+                const gTop = ectx.createLinearGradient(0, 0, 0, 45);
+                gTop.addColorStop(0, '#6488af');
+                gTop.addColorStop(1, '#182436');
+                ectx.fillStyle = gTop;
+                ectx.fillRect(0, 0, 256, 45);
+                const envTex = new T.CanvasTexture(ec);
+                const envRT = pmrem.fromEquirectangular(envTex);
+                heroScene.environment = envRT.texture;
+                pmrem.dispose();
+              } catch (pe) {}
+            }
+
+            // Studio Lighting tailored for tactical clarity on dark battlefields:
+            heroScene.add(new T.AmbientLight(0x3a4b60, 1.8));
+            heroScene.add(new T.HemisphereLight(0x7090b0, 0x18202a, 1.2));
+
+            const heroKey = new T.DirectionalLight(0xffffff, 3.4);
+            heroKey.position.set(2.0, 5.0, 4.0);
+            heroScene.add(heroKey);
+
+            const heroFill = new T.DirectionalLight(0xa0b4c8, 2.0);
+            heroFill.position.set(-3.0, 3.0, 2.0);
+            heroScene.add(heroFill);
+
+            const heroRim = new T.DirectionalLight(0xc084fc, 3.2);
+            heroRim.position.set(0, 3.0, -4.0);
+            heroScene.add(heroRim);
+
+            const cannonLight = new T.PointLight(0xff2244, 1.5, 7);
+            cannonLight.position.set(0.9, 1.4, 0.9);
+            heroScene.add(cannonLight);
+
+            // Clone Megatron model with proper skeletal binding
+            const heroModel = cloneModelWithBones(gltf.scene);
+            heroModel.traverse(function (child) {
+              if (child.isMesh || child.isSkinnedMesh) {
+                child.frustumCulled = false;
+                child.visible = true;
+              }
+            });
+
+            // Reset transform to identity before computing raw unscaled bounding box
+            heroModel.position.set(0, 0, 0);
+            heroModel.rotation.set(0, 0, 0);
+            heroModel.scale.set(1, 1, 1);
+            heroModel.updateMatrixWorld(true);
+
+            let box = new T.Box3().setFromObject(heroModel);
+            let size = box.getSize(new T.Vector3());
+            const rawH = size.y > 0 ? size.y : 1.0;
+            // Larger commanding hero height: 2.45 units (enlarged from 2.05)
+            const targetHeight = 2.45;
+            const scaleFactor = targetHeight / rawH;
+            heroModel.scale.setScalar(scaleFactor);
+
+            heroModel.updateMatrixWorld(true);
+            box = new T.Box3().setFromObject(heroModel);
+            const center = box.getCenter(new T.Vector3());
+            heroModel.position.x = -center.x;
+            heroModel.position.z = -center.z;
+            const baseY = box.min.y;
+            heroModel.position.y = -baseY; // Soles of boots sit flush at y = 0
+            heroModel.updateMatrixWorld(true);
+
+            const heroRoot = new T.Group();
+            heroRoot.add(heroModel);
+            heroScene.add(heroRoot);
+
+            // Skeletal Animation Mixer
+            let heroMixer = null;
+            if (gltf.animations && gltf.animations.length) {
+              heroMixer = new T.AnimationMixer(heroModel);
+              const clip = gltf.animations[0];
+              const action = heroMixer.clipAction(clip);
+              if (T.LoopRepeat !== undefined) action.setLoop(T.LoopRepeat, Infinity);
+              action.clampWhenFinished = false;
+              action.play();
+            }
+
+            let currentAngle = 0;
+            let walkCycle = 0;
+            let shootRecoil = 0;
+
+            window.Hero3D = {
+              ready: true,
+              canvas: heroCanvas,
+              renderer: heroRenderer,
+              scene: heroScene,
+              camera: heroCamera,
+              root: heroRoot,
+              model: heroModel,
+              mixer: heroMixer,
+              cannonLight: cannonLight,
+              update: function (dt, isMoving, targetAngle, shootPower, isDashing, isUlting) {
+                // 1. Smooth robotic angular turning (realistic turntable inertia)
+                let diff = targetAngle - currentAngle;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                currentAngle += diff * Math.min(1.0, dt * 14.0);
+                heroRoot.rotation.y = -currentAngle;
+
+                // 2. Weapon shoot recoil kickback physics
+                if (shootPower > 0) shootRecoil = Math.max(shootRecoil, shootPower);
+                if (shootRecoil > 0) shootRecoil = Math.max(0, shootRecoil - dt * 5.5);
+
+                // 3. Movement kinematics & rich multi-state procedural animations
+                if (isMoving) {
+                  const walkSpeed = isDashing ? 18.0 : 11.0;
+                  walkCycle += dt * walkSpeed;
+                  const walkBob = Math.sin(walkCycle * 2.0) * 0.09;
+                  const walkSway = Math.cos(walkCycle) * 0.05;
+                  const runLean = isDashing ? 0.28 : 0.14;
+
+                  heroModel.position.y = -baseY + walkBob;
+                  heroModel.position.z = -shootRecoil * 0.22;
+                  heroModel.rotation.x = runLean - shootRecoil * 0.35;
+                  heroModel.rotation.z = walkSway;
+
+                  if (heroMixer) {
+                    heroMixer.update(dt * (isDashing ? 2.2 : 1.5));
+                  }
+                } else {
+                  // Idle menacing combat breathing & scanning stance
+                  walkCycle += dt * 2.2;
+                  const breath = Math.sin(walkCycle) * 0.035;
+                  heroModel.position.y = -baseY + breath;
+                  heroModel.position.z = -shootRecoil * 0.22;
+                  heroModel.rotation.x = -shootRecoil * 0.35;
+                  heroModel.rotation.z = Math.sin(walkCycle * 0.5) * 0.025;
+
+                  if (heroMixer) {
+                    heroMixer.update(dt * 0.5);
+                  }
+                }
+
+                // 4. Ultimate skill hover surge
+                if (isUlting) {
+                  heroModel.position.y += 0.35;
+                  cannonLight.color.setHex(0xc084fc);
+                } else {
+                  cannonLight.color.setHex(0xff2244);
+                }
+
+                // 5. Dynamic cannon lighting
+                cannonLight.intensity = (shootRecoil > 0) ? (shootRecoil * 18.0) : 1.2;
+              },
+              renderToCanvas: function () {
+                heroRenderer.render(heroScene, heroCamera);
+                return heroCanvas;
+              }
+            };
+            console.log('[Hero3D] In-Game Tactical 3D Hero ready! WebGL buffer: 200x200, Scale: 2.45h');
+          } catch (e) {
+            console.warn('[Hero3D] Error initializing Hero3D:', e);
+          }
+        }
+
+        const loader = new LoaderClass();
+
+        function loadViaNetwork() {
+          loader.load(
+            MODEL_URL,
+            function (gltf) {
+              applyModel(gltf, MODEL_URL);
+            },
+            undefined,
+            function (err) {
+              console.warn('[MainMenu3D] Failed loading ' + MODEL_URL + ', trying fallback model: ' + FALLBACK_MODEL_URL, err);
+              loader.load(
+                FALLBACK_MODEL_URL,
+                function (gltf2) {
+                  applyModel(gltf2, FALLBACK_MODEL_URL);
+                },
+                undefined,
+                function (err2) {
+                  console.error('[MainMenu3D] Both GLB files failed. Model yuklanmadi:', err2);
+                  showModelError(new Error("GLB yuklanmadi"));
+                }
+              );
+            }
+          );
+        }
+
+        function startLoading() {
+          try {
+            if (window.AndroidBridge && (typeof window.AndroidBridge.getMegatronModelBase64 === 'function' || typeof window.AndroidBridge.getModelBase64 === 'function')) {
+              let b64 = null;
+              if (typeof window.AndroidBridge.getMegatronModelBase64 === 'function') {
+                b64 = window.AndroidBridge.getMegatronModelBase64();
+              } else if (typeof window.AndroidBridge.getModelBase64 === 'function') {
+                b64 = window.AndroidBridge.getModelBase64('megatron.glb');
+              }
+              if (b64 && b64.length > 1000) {
+                console.log('[MainMenu3D] Loading megatron.glb via AndroidBridge Base64 (' + b64.length + ' chars)...');
+                const binaryString = atob(b64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                loader.parse(
+                  bytes.buffer,
+                  '',
+                  function (gltf) {
+                    console.log('[MainMenu3D] AndroidBridge base64 parsed successfully!');
+                    applyModel(gltf, 'AndroidBridge:megatron.glb');
+                  },
+                  function (parseErr) {
+                    console.warn('[MainMenu3D] AndroidBridge parse error, falling back to network:', parseErr);
+                    loadViaNetwork();
+                  }
+                );
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('[MainMenu3D] AndroidBridge load exception:', e);
+          }
+          loadViaNetwork();
+        }
+
+        startLoading();
+
+        function resize() {
+          const w = (canvas && canvas.clientWidth) ? canvas.clientWidth : (host && host.clientWidth ? host.clientWidth : (window.innerWidth ? Math.round(window.innerWidth * 0.55) : 400));
+          const h = (canvas && canvas.clientHeight) ? canvas.clientHeight : (host && host.clientHeight ? host.clientHeight : (window.innerHeight ? Math.round(window.innerHeight * 0.8) : 500));
+          if (!w || !h) return;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+
+          // Adaptive horizontal FOV compensation: guarantees full visibility of extended weapon tip on any screen
+          const targetAspect = 1.25;
+          const baseFovRad = 38 * Math.PI / 180;
+          if (camera.aspect < targetAspect) {
+            const hFov = 2 * Math.atan(Math.tan(baseFovRad / 2) * targetAspect);
+            camera.fov = 2 * Math.atan(Math.tan(hFov / 2) / camera.aspect) * (180 / Math.PI);
+          } else {
+            camera.fov = 38;
+          }
+          camera.updateProjectionMatrix();
+        }
+        const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(resize) : null;
+        if (ro && host) ro.observe(host);
+        if (ro && canvas) ro.observe(canvas);
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Interactive 360-degree Hand/Touch Drag Rotation for Megatron
+        const DEFAULT_ROT_Y = -Math.PI / 2;
+        let currentRotY = DEFAULT_ROT_Y;
+        let targetRotY = DEFAULT_ROT_Y;
+        let isDragging = false;
+        let lastPointerX = 0;
+        let dragVelocity = 0;
+        let hasDragged = false;
+        let lastTapTime = 0;
+
+        function handlePointerStart(clientX, pointerId) {
+          isDragging = true;
+          hasDragged = false;
+          lastPointerX = clientX;
+          dragVelocity = 0;
+          if (pointerId !== undefined && canvas.setPointerCapture) {
+            try { canvas.setPointerCapture(pointerId); } catch (_) {}
+          }
+        }
+
+        function handlePointerMove(clientX) {
+          if (!isDragging) return;
+          const dx = clientX - lastPointerX;
+          lastPointerX = clientX;
+          if (Math.abs(dx) > 1) hasDragged = true;
+          const sensitivity = 0.0075;
+          targetRotY += dx * sensitivity;
+          dragVelocity = dx * sensitivity;
+        }
+
+        function handlePointerEnd(pointerId) {
+          if (!isDragging) return;
+          isDragging = false;
+          if (pointerId !== undefined && canvas.releasePointerCapture) {
+            try { canvas.releasePointerCapture(pointerId); } catch (_) {}
+          }
+          if (!hasDragged) {
+            const now = Date.now();
+            if (now - lastTapTime < 350) {
+              targetRotY = DEFAULT_ROT_Y;
+              dragVelocity = 0;
+              lastTapTime = 0;
+              camera.position.set(0, 1.95, 6.45);
+            } else {
+              lastTapTime = now;
+            }
+          }
+        }
+
+        // Wheel zoom (Desktop/Mouse)
+        canvas.addEventListener('wheel', function (e) {
+          e.preventDefault();
+          const zoomDelta = e.deltaY * 0.004;
+          camera.position.z = Math.max(5.0, Math.min(8.5, camera.position.z + zoomDelta));
+        }, { passive: false });
+
+        // Touch pinch-to-zoom (Mobile)
+        let initialPinchDist = 0;
+        let initialCamZ = 6.45;
+
+        canvas.addEventListener('touchstart', function (e) {
+          if (e.touches.length === 2) {
+            isDragging = false;
+            initialPinchDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            initialCamZ = camera.position.z;
+          }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', function (e) {
+          if (e.touches.length === 2 && initialPinchDist > 0) {
+            const currentDist = Math.hypot(
+              e.touches[0].clientX - e.touches[1].clientX,
+              e.touches[0].clientY - e.touches[1].clientY
+            );
+            const factor = initialPinchDist / (currentDist || 1);
+            camera.position.z = Math.max(5.0, Math.min(8.5, initialCamZ * factor));
+          }
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', function (e) {
+          if (e.touches.length < 2) {
+            initialPinchDist = 0;
+          }
+        }, { passive: true });
+
+        if (window.PointerEvent) {
+          canvas.addEventListener('pointerdown', function (e) {
+            handlePointerStart(e.clientX, e.pointerId);
+          });
+          window.addEventListener('pointermove', function (e) {
+            handlePointerMove(e.clientX);
+          });
+          window.addEventListener('pointerup', function (e) {
+            handlePointerEnd(e.pointerId);
+          });
+          window.addEventListener('pointercancel', function (e) {
+            handlePointerEnd(e.pointerId);
+          });
+        } else {
+          canvas.addEventListener('touchstart', function (e) {
+            if (e.touches.length > 0) handlePointerStart(e.touches[0].clientX);
+          }, { passive: true });
+          window.addEventListener('touchmove', function (e) {
+            if (e.touches.length > 0) handlePointerMove(e.touches[0].clientX);
+          }, { passive: true });
+          window.addEventListener('touchend', function () {
+            handlePointerEnd();
+          });
+          window.addEventListener('touchcancel', function () {
+            handlePointerEnd();
+          });
+          canvas.addEventListener('mousedown', function (e) {
+            handlePointerStart(e.clientX);
+          });
+          window.addEventListener('mousemove', function (e) {
+            handlePointerMove(e.clientX);
+          });
+          window.addEventListener('mouseup', function () {
+            handlePointerEnd();
           });
         }
-      });
-      renderer.dispose();
-      if (typeof renderer.forceContextLoss === 'function') renderer.forceContextLoss();
-    }
 
-    document.addEventListener('visibilitychange', function () {
-      if (document.hidden) {
-        stop();
-      } else if (canvas && canvas.style.display !== 'none' && !canvas.hidden) {
+        const clock = new T.Clock();
+        let raf = 0;
+        let running = false;
+
+        function frame() {
+          raf = requestAnimationFrame(frame);
+          const dt = Math.min(clock.getDelta(), 0.05);
+          const dt60 = dt * 60;
+          const t = clock.elapsedTime;
+
+          // Slow counter-rotation of neon rings
+          ringOuter.rotation.z += 0.005 * dt60;
+          ringMiddle.rotation.z -= 0.008 * dt60;
+          ringInner.rotation.z += 0.004 * dt60;
+
+          // Subtle pulsation on neon rings
+          const pulse = 0.85 + 0.15 * Math.sin(t * 3.0);
+          ringOuter.material.opacity = pulse;
+          ringMiddle.material.opacity = 0.80 + 0.18 * Math.cos(t * 2.6);
+
+          // Update Megatron GLB skeletal animation smoothly
+          if (mixer) {
+            mixer.update(dt);
+          }
+
+          // Interactive 360-degree rotation with inertia and smooth lerp
+          if (!isDragging) {
+            dragVelocity *= 0.92;
+            if (Math.abs(dragVelocity) < 0.00005) dragVelocity = 0;
+            targetRotY += dragVelocity;
+          }
+          currentRotY += (targetRotY - currentRotY) * 0.15;
+          robotRoot.rotation.y = currentRotY;
+          robotRoot.position.x = 0;
+          robotRoot.position.y = 0;
+
+          // Ascending neon particles
+          const arr = pGeo.attributes.position.array;
+          for (let i = 0; i < P; i++) {
+            arr[i * 3 + 1] += pSpeed[i] * dt;
+            if (arr[i * 3 + 1] > 5.5) arr[i * 3 + 1] = 0;
+          }
+          pGeo.attributes.position.needsUpdate = true;
+          renderer.render(scene, camera);
+        }
+
+        function start() {
+          if (running) return;
+          running = true;
+          clock.start();
+          frame();
+        }
+        function stop() {
+          running = false;
+          cancelAnimationFrame(raf);
+        }
+        function dispose() {
+          stop();
+          if (ro) ro.disconnect();
+          window.removeEventListener('resize', resize);
+          scene.traverse(function (o) {
+            if (o.geometry) o.geometry.dispose();
+            if (o.material) {
+              const mats = Array.isArray(o.material) ? o.material : [o.material];
+              mats.forEach(function (m) {
+                for (const k in m) { if (m[k] && m[k].isTexture) m[k].dispose(); }
+                m.dispose();
+              });
+            }
+          });
+          renderer.dispose();
+          if (typeof renderer.forceContextLoss === 'function') renderer.forceContextLoss();
+        }
+
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) {
+            stop();
+          } else if (canvas && canvas.style.display !== 'none' && !canvas.hidden) {
+            start();
+          }
+        });
+
+        window.MainMenu3D = { start: start, stop: stop, dispose: dispose, renderer: renderer, scene: scene, camera: camera };
         start();
       }
-    });
 
-    window.MainMenu3D = { start: start, stop: stop, dispose: dispose, renderer: renderer, scene: scene, camera: camera };
-    start();
-  }
+      window.initMainMenu3D = initMainMenu3D;
 
-  window.initMainMenu3D = initMainMenu3D;
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMainMenu3D);
-  } else {
-    initMainMenu3D();
-  }
-})();
-</script>
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMainMenu3D);
+      } else {
+        initMainMenu3D();
+      }
+    })();
+  </script>
 </body>
 </html>

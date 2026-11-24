@@ -46,7 +46,7 @@
     },
     uz: {
       title: "TOWER DEFENSE: LAST GRID",
-      sub: "KIBERNETIK HIMOYА • 10 XARITA • 5 MINORA • 8 DUSHMAN • 3 BOSS",
+      sub: "KIBERNETIK HIMOYA • 10 XARITA • 5 MINORA • 8 DUSHMAN • 3 BOSS",
       campaign: "KAMPANIYA MISSIYALARI (10 XARITA)",
       sectorSelect: "XARITANI TANLASH",
       endless: "CHEKSIZ REJIM (∞ TO'LQIN)",
@@ -737,7 +737,60 @@
     flame() { this.shootFlame(); }
     railgun() { this.shootRailgun(); }
     laserShoot() { this.shootRailgun(); }
+    shootLaser() { this.laserShoot(); }
     bossRoar() { this.bossSiren(); }
+
+    megatronVoice(type = 'dash') {
+      if (!this.ctx || this.sfxMuted) return;
+      this.init();
+      const t = this.ctx.currentTime;
+      let f1 = 80, f2 = 120, dur = 0.45, filterMod = 600;
+
+      if (type === 'ult') {
+        f1 = 62; f2 = 93; dur = 0.75; filterMod = 1200;
+      } else if (type === 'dash') {
+        f1 = 110; f2 = 165; dur = 0.35; filterMod = 800;
+      } else if (type === 'cannon') {
+        f1 = 75; f2 = 112; dur = 0.55; filterMod = 950;
+      } else if (type === 'tank') {
+        f1 = 70; f2 = 105; dur = 0.60; filterMod = 700;
+      } else if (type === 'spawn') {
+        f1 = 85; f2 = 128; dur = 0.50; filterMod = 1100;
+      }
+
+      try {
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const vGain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc1.type = 'sawtooth';
+        osc2.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(f1, t);
+        osc1.frequency.exponentialRampToValueAtTime(Math.max(20, f1 * 0.75), t + dur);
+        osc2.frequency.setValueAtTime(f2, t);
+        osc2.frequency.exponentialRampToValueAtTime(Math.max(20, f2 * 0.75), t + dur);
+
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(filterMod, t);
+        filter.frequency.exponentialRampToValueAtTime(320, t + dur);
+        filter.Q.setValueAtTime(8.5, t);
+
+        vGain.gain.setValueAtTime(0.001, t);
+        vGain.gain.linearRampToValueAtTime(0.38, t + 0.05);
+        vGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(vGain);
+        vGain.connect(this.masterGain || this.ctx.destination);
+
+        osc1.start(t);
+        osc2.start(t);
+        osc1.stop(t + dur);
+        osc2.stop(t + dur);
+      } catch (e) {}
+    }
   }
 
   const rawAudio = new SoundSynth();
@@ -1137,6 +1190,8 @@
         haptics: localStorage.getItem('lg_haptics') !== 'false',
         screenFit: localStorage.getItem('lg_screen_fit') || 'FILL',
         fpsLimit: parseInt(localStorage.getItem('lg_fps_limit') || '60'),
+        screenShake: parseFloat(localStorage.getItem('lg_screen_shake') ?? '1.0'),
+        graphicsQuality: localStorage.getItem('lg_graphics_quality') || 'ULTRA',
         lang: localStorage.getItem('last_grid_lang') || 'uz'
       };
       this.showSettingsModal = false;
@@ -1234,7 +1289,7 @@
       this.aimingSkill = null;
       this.mousePos = { x: -100, y: -100 };
       this.hoverCell = null;
-      this.targetPriorities = ['FIRST', 'LAST', 'STRONGEST', 'NEAREST'];
+      this.targetPriorities = ['FIRST', 'LAST', 'STRONGEST', 'WEAKEST', 'FLYERS_FIRST', 'NEAREST'];
 
       this.editorWaypoints = [ {x:64, y:256}, {x:512, y:256}, {x:512, y:448}, {x:1152, y:448} ];
       this.nextUid = 1;
@@ -1636,14 +1691,14 @@
       const ctx = this.ctx;
       ctx.save();
       // Backdrop dimmer
-      ctx.fillStyle = "rgba(4, 7, 14, 0.90)";
+      ctx.fillStyle = "rgba(4, 7, 14, 0.92)";
       ctx.fillRect(0, 0, this.width, this.height);
 
-      const mx = 240;
-      const my = 40;
-      const mw = 800;
-      const mh = 640;
-      const cut = 12;
+      const mx = 180;
+      const my = 110;
+      const mw = 920;
+      const mh = 500;
+      const cut = 14;
 
       // Modal Background Frame
       ctx.beginPath();
@@ -1669,33 +1724,40 @@
 
       // Top Header
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 24px 'Segoe UI', monospace";
+      ctx.font = "900 23px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("⚙️ TIZIM VA O'YIN SOZLAMALARI (SETTINGS)", 640, my + 42);
+      ctx.fillText("⚙️ TIZIM VA O'YIN SOZLAMALARI (TACTICAL SETTINGS)", 640, my + 38);
 
       ctx.fillStyle = "#78909c";
       ctx.font = "bold 12px monospace";
-      ctx.fillText("BOSHQARUV • OVOZ • GRAFIKA • EKRAN MOSLASHUVI", 640, my + 66);
+      ctx.fillText("BOSHQARUV • OVOZ • GRAFIKA • SILKINISH • EKRAN MOSLASHUVI • TIL", 640, my + 58);
 
-      // Section 1: SFX Volume Slider
+      const col1X = mx + 30; // 210
+      const col2X = mx + 480; // 660
+
+      // Section Headers Row 1
       ctx.textAlign = "left";
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
-      ctx.fillText("🔊 SFX OVOZLAR:", mx + 40, my + 115);
+      ctx.fillText("🔊 OVOZ VA MUSIQA (AUDIO)", col1X, my + 94);
+      ctx.fillText("📱 EKRAN VA DISPLAY (DISPLAY)", col2X, my + 94);
 
-      const sfxTrackX = mx + 240;
-      const sfxTrackY = my + 104;
-      const trackW = 420;
+      // Row 1a: SFX Volume / Screen Fit (y: my + 105)
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px monospace";
+      ctx.fillText("SFX:", col1X, my + 127);
+
+      const sfxTrackX = col1X + 55;
+      const sfxTrackY = my + 116;
+      const trackW = 250;
       const trackH = 12;
 
-      // Track base
       ctx.fillStyle = "rgba(10, 16, 28, 0.95)";
       ctx.fillRect(sfxTrackX, sfxTrackY, trackW, trackH);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.2;
       ctx.strokeRect(sfxTrackX, sfxTrackY, trackW, trackH);
 
-      // Track fill
       const sfxFillW = Math.max(0, Math.min(trackW, trackW * this.settings.sfxVol));
       const sfxGrad = ctx.createLinearGradient(sfxTrackX, 0, sfxTrackX + sfxFillW, 0);
       sfxGrad.addColorStop(0, "#00b0ff");
@@ -1703,28 +1765,32 @@
       ctx.fillStyle = sfxGrad;
       ctx.fillRect(sfxTrackX + 1, sfxTrackY + 1, sfxFillW, trackH - 2);
 
-      // Thumb knob
       const sfxThumbX = sfxTrackX + sfxFillW;
       ctx.fillStyle = "#ffffff";
       ctx.shadowColor = "#00e5ff";
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 6;
       ctx.beginPath();
-      ctx.arc(sfxThumbX, sfxTrackY + trackH / 2, 9, 0, Math.PI * 2);
+      ctx.arc(sfxThumbX, sfxTrackY + trackH / 2, 8, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#00e5ff";
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Readout
-      this.drawCyberButton(mx + 680, my + 92, 80, 36, `${Math.round(this.settings.sfxVol * 100)}%`, this.settings.sfxVol > 0 ? "#00e5ff" : "#455a64", "", "", false);
+      this.drawCyberButton(col1X + 325, my + 105, 85, 34, `${Math.round(this.settings.sfxVol * 100)}%`, this.settings.sfxVol > 0 ? "#00e5ff" : "#455a64", "", "", false);
 
-      // Section 2: BGM Volume Slider
+      // Screen Fit Buttons (Row 1a Right)
+      const isFit = this.settings.screenFit === 'FIT';
+      this.drawCyberButton(col2X, my + 105, 200, 34, "FIT (16:9 NISBAT)", isFit ? "#00e5ff" : "#455a64", "STANDART 16:9", "", isFit);
+      this.drawCyberButton(col2X + 210, my + 105, 200, 34, "FILL (TO'LIQ EKRAN)", !isFit ? "#00e5ff" : "#455a64", "20:9 KENG EKRAN", "", !isFit);
+
+      // Row 1b: BGM Volume / CRT Scanline (y: my + 155)
       ctx.fillStyle = "#ffffff";
-      ctx.fillText("🎵 MUSIQA (BGM):", mx + 40, my + 175);
+      ctx.font = "bold 12px monospace";
+      ctx.fillText("BGM:", col1X, my + 177);
 
-      const bgmTrackX = mx + 240;
-      const bgmTrackY = my + 164;
+      const bgmTrackX = col1X + 55;
+      const bgmTrackY = my + 166;
 
       ctx.fillStyle = "rgba(10, 16, 28, 0.95)";
       ctx.fillRect(bgmTrackX, bgmTrackY, trackW, trackH);
@@ -1742,65 +1808,74 @@
       const bgmThumbX = bgmTrackX + bgmFillW;
       ctx.fillStyle = "#ffffff";
       ctx.shadowColor = "#00e676";
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 6;
       ctx.beginPath();
-      ctx.arc(bgmThumbX, bgmTrackY + trackH / 2, 9, 0, Math.PI * 2);
+      ctx.arc(bgmThumbX, bgmTrackY + trackH / 2, 8, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#00e676";
       ctx.lineWidth = 2;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      this.drawCyberButton(mx + 680, my + 152, 80, 36, `${Math.round(this.settings.bgmVol * 100)}%`, this.settings.bgmVol > 0 ? "#00e676" : "#455a64", "", "", false);
+      this.drawCyberButton(col1X + 325, my + 155, 85, 34, `${Math.round(this.settings.bgmVol * 100)}%`, this.settings.bgmVol > 0 ? "#00e676" : "#455a64", "", "", false);
 
-      // Section 3: Haptic Feedback
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("📳 TEBRANISH:", mx + 40, my + 235);
-      this.drawCyberButton(mx + 240, my + 212, 240, 36, "YONIQ 🟢 (HAPTICS)", this.settings.haptics ? "#00e676" : "#455a64", "", "", this.settings.haptics);
-      this.drawCyberButton(mx + 500, my + 212, 240, 36, "O'CHIQ 🔴 (OFF)", !this.settings.haptics ? "#ff1744" : "#455a64", "", "", !this.settings.haptics);
+      // CRT Scanline Buttons (Row 1b Right)
+      this.drawCyberButton(col2X, my + 155, 200, 34, "CRT SKAN-LINIYA", this.crtEnabled ? "#00e5ff" : "#455a64", "RETRO ARCHADE", "", this.crtEnabled);
+      this.drawCyberButton(col2X + 210, my + 155, 200, 34, "TOZA EKRAN (CLEAN)", !this.crtEnabled ? "#00e5ff" : "#455a64", "MAXSUS SHARPNESS", "", !this.crtEnabled);
 
-      // Section 4: Screen Fit Mode
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("📱 EKRAN REJIMI:", mx + 40, my + 295);
-      const isFit = this.settings.screenFit === 'FIT';
-      this.drawCyberButton(mx + 240, my + 272, 240, 36, "FIT (16:9 NISBAT)", isFit ? "#00e5ff" : "#455a64", "STANDART 16:9", "", isFit);
-      this.drawCyberButton(mx + 500, my + 272, 240, 36, "FILL (TO'LIQ EKRAN)", !isFit ? "#00e5ff" : "#455a64", "20:9 KENG EKRAN", "", !isFit);
+      // Section Headers Row 2
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("📳 TEBRANISH VA SILKINISH (HAPTICS & SHAKE)", col1X, my + 217);
+      ctx.fillText("⚡ UNUMDORLIK VA GRAFIKA (PERFORMANCE)", col2X, my + 217);
 
-      // Section 5: FPS Mode
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("⚡ FPS REJIMI:", mx + 40, my + 355);
+      // Row 2a: Haptics (Left) / FPS Mode (Right) (y: my + 230)
+      this.drawCyberButton(col1X, my + 230, 200, 34, "YONIQ 🟢 (HAPTICS)", this.settings.haptics ? "#00e676" : "#455a64", "VIBRATSIYA", "", this.settings.haptics);
+      this.drawCyberButton(col1X + 210, my + 230, 200, 34, "O'CHIQ 🔴 (OFF)", !this.settings.haptics ? "#ff1744" : "#455a64", "O'CHIRILGAN", "", !this.settings.haptics);
+
       const is60 = this.settings.fpsLimit === 60;
-      this.drawCyberButton(mx + 240, my + 332, 240, 36, "60 FPS (SILLIQ)", is60 ? "#ffd600" : "#455a64", "ULTRA 60 FPS", "", is60);
-      this.drawCyberButton(mx + 500, my + 332, 240, 36, "30 FPS (TEJAMKOR)", !is60 ? "#ffd600" : "#455a64", "BATAREYA TEJASH", "", !is60);
+      this.drawCyberButton(col2X, my + 230, 200, 34, "60 FPS (SILLIQ ⚡)", is60 ? "#ffd600" : "#455a64", "ULTRA 60 FPS", "", is60);
+      this.drawCyberButton(col2X + 210, my + 230, 200, 34, "30 FPS (TEJAMKOR 🍃)", !is60 ? "#ffd600" : "#455a64", "BATAREYA TEJASH", "", !is60);
 
-      // Section 6: Language
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("🌐 TIL (LANG):", mx + 40, my + 415);
-      this.drawCyberButton(mx + 240, my + 392, 160, 36, "🇺🇿 O'ZBEK", this.lang === 'uz' ? "#00e5ff" : "#455a64", "", "", this.lang === 'uz');
-      this.drawCyberButton(mx + 410, my + 392, 160, 36, "🇬🇧 ENGLISH", this.lang === 'en' ? "#00e5ff" : "#455a64", "", "", this.lang === 'en');
-      this.drawCyberButton(mx + 580, my + 392, 160, 36, "🇷🇺 РУССКИЙ", this.lang === 'ru' ? "#00e5ff" : "#455a64", "", "", this.lang === 'ru');
+      // Row 2b: Screen Shake (Left) / Graphics Quality (Right) (y: my + 280)
+      const curShake = (this.settings.screenShake !== undefined) ? this.settings.screenShake : 1.0;
+      this.drawCyberButton(col1X, my + 280, 130, 34, "100% ⚡", curShake >= 0.9 ? "#00e5ff" : "#455a64", "TO'LIQ", "", curShake >= 0.9);
+      this.drawCyberButton(col1X + 140, my + 280, 130, 34, "50% ⚖️", (curShake > 0.1 && curShake < 0.9) ? "#00e5ff" : "#455a64", "YARIM", "", (curShake > 0.1 && curShake < 0.9));
+      this.drawCyberButton(col1X + 280, my + 280, 130, 34, "0% 🔴", curShake <= 0.1 ? "#ff1744" : "#455a64", "O'CHIQ", "", curShake <= 0.1);
 
-      // Section 7: Retro CRT
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("📺 CRT SKAN-LINIYA:", mx + 40, my + 475);
-      this.drawCyberButton(mx + 240, my + 452, 240, 36, "YONIQ (CRT ON)", this.crtEnabled ? "#00e5ff" : "#455a64", "", "", this.crtEnabled);
-      this.drawCyberButton(mx + 500, my + 452, 240, 36, "O'CHIQ (CLEAN)", !this.crtEnabled ? "#00e5ff" : "#455a64", "", "", !this.crtEnabled);
+      const curGfx = this.settings.graphicsQuality || 'ULTRA';
+      this.drawCyberButton(col2X, my + 280, 130, 34, "ULTRA ⚡", curGfx === 'ULTRA' ? "#00e676" : "#455a64", "45 ZARRALAR", "", curGfx === 'ULTRA');
+      this.drawCyberButton(col2X + 140, my + 280, 130, 34, "O'RTA ⚖️", curGfx === 'MEDIUM' ? "#ffd600" : "#455a64", "24 ZARRALAR", "", curGfx === 'MEDIUM');
+      this.drawCyberButton(col2X + 280, my + 280, 130, 34, "TEJAMKOR 🍃", curGfx === 'LOW' ? "#00b0ff" : "#455a64", "12 ZARRALAR", "", curGfx === 'LOW');
 
-      // Bottom Row: Close/Save & Main Menu
-      this.drawCyberButton(mx + 60, my + 540, 320, 50, "← SAQLASH VA YOPISH", "#00e676", "APPLY & RESUME", "✔", true);
+      // Section Header Row 3: Language
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("🌐 INTERFEYS TILI (INTERFACE LANGUAGE)", 640, my + 340);
+
+      // Row 3: Language buttons centered
+      this.drawCyberButton(365, my + 355, 170, 36, "🇺🇿 O'ZBEK", this.lang === 'uz' ? "#00e5ff" : "#455a64", "STANDART", "", this.lang === 'uz');
+      this.drawCyberButton(555, my + 355, 170, 36, "🇬🇧 ENGLISH", this.lang === 'en' ? "#00e5ff" : "#455a64", "GLOBAL", "", this.lang === 'en');
+      this.drawCyberButton(745, my + 355, 170, 36, "🇷🇺 РУССКИЙ", this.lang === 'ru' ? "#00e5ff" : "#455a64", "КИРИЛЛИЦА", "", this.lang === 'ru');
+
+      // Bottom Row: Close/Save & Main Menu (y: my + 420)
+      this.drawCyberButton(col1X, my + 420, 410, 52, "← SAQLASH VA YOPISH", "#00e676", "APPLY & RESUME", "✔", true);
       const isIngame = (this.settingsReturnState === 'PLAYING' || this.settingsReturnState === 'PAUSED');
-      this.drawCyberButton(mx + 420, my + 540, 320, 50, isIngame ? "🚪 ASOSIY MENYUGA" : "ASOSIY MENYUDA QOLISH", "#ff1744", isIngame ? "JANGNI TUGATISH" : "ORQAGA", "←", false);
+      this.drawCyberButton(col2X, my + 420, 410, 52, isIngame ? "🚪 ASOSIY MENYUGA" : "ASOSIY MENYUDA QOLISH", "#ff1744", isIngame ? "JANGNI TUGATISH" : "ORQAGA", "←", false);
 
       ctx.restore();
     }
 
     handleSettingsClick(x, y) {
-      const mx = 240;
-      const my = 40;
+      const mx = 180;
+      const my = 110;
+      const col1X = mx + 30; // 210
+      const col2X = mx + 480; // 660
 
-      // Section 1: SFX Slider Click / Drag
-      if (y >= my + 88 && y <= my + 130 && x >= mx + 230 && x <= mx + 670) {
-        const pct = Math.max(0, Math.min(1.0, (x - (mx + 240)) / 420));
+      // Section 1a: SFX Slider Click / Drag (y: my + 100 to my + 145)
+      if (y >= my + 100 && y <= my + 145 && x >= col1X + 45 && x <= col1X + 315) {
+        const pct = Math.max(0, Math.min(1.0, (x - (col1X + 55)) / 250));
         this.settings.sfxVol = Math.round(pct * 20) / 20;
         localStorage.setItem('lg_sfx_vol', this.settings.sfxVol.toString());
         audio.sfxMuted = (this.settings.sfxVol === 0.0);
@@ -1808,7 +1883,7 @@
         this.vibrate(14);
         return;
       }
-      if (x >= mx + 680 && x <= mx + 760 && y >= my + 92 && y <= my + 128) {
+      if (x >= col1X + 325 && x <= col1X + 410 && y >= my + 105 && y <= my + 141) {
         this.settings.sfxVol = this.settings.sfxVol > 0 ? 0 : 0.7;
         localStorage.setItem('lg_sfx_vol', this.settings.sfxVol.toString());
         audio.sfxMuted = (this.settings.sfxVol === 0.0);
@@ -1817,9 +1892,28 @@
         return;
       }
 
-      // Section 2: BGM Slider Click / Drag
-      if (y >= my + 148 && y <= my + 190 && x >= mx + 230 && x <= mx + 670) {
-        const pct = Math.max(0, Math.min(1.0, (x - (mx + 240)) / 420));
+      // Section 1a Right: Screen Fit
+      if (y >= my + 105 && y <= my + 141) {
+        if (x >= col2X && x <= col2X + 200) {
+          this.settings.screenFit = 'FIT';
+          localStorage.setItem('lg_screen_fit', 'FIT');
+          this.resizeCanvas();
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= col2X + 210 && x <= col2X + 410) {
+          this.settings.screenFit = 'FILL';
+          localStorage.setItem('lg_screen_fit', 'FILL');
+          this.resizeCanvas();
+          audio.click();
+          this.vibrate(15);
+          return;
+        }
+      }
+
+      // Section 1b: BGM Slider Click / Drag (y: my + 150 to my + 195)
+      if (y >= my + 150 && y <= my + 195 && x >= col1X + 45 && x <= col1X + 315) {
+        const pct = Math.max(0, Math.min(1.0, (x - (col1X + 55)) / 250));
         this.settings.bgmVol = Math.round(pct * 20) / 20;
         localStorage.setItem('lg_bgm_vol', this.settings.bgmVol.toString());
         audio.bgmMuted = (this.settings.bgmVol === 0.0);
@@ -1829,7 +1923,7 @@
         this.vibrate(14);
         return;
       }
-      if (x >= mx + 680 && x <= mx + 760 && y >= my + 152 && y <= my + 188) {
+      if (x >= col1X + 325 && x <= col1X + 410 && y >= my + 155 && y <= my + 191) {
         this.settings.bgmVol = this.settings.bgmVol > 0 ? 0 : 0.7;
         localStorage.setItem('lg_bgm_vol', this.settings.bgmVol.toString());
         audio.bgmMuted = (this.settings.bgmVol === 0.0);
@@ -1840,83 +1934,15 @@
         return;
       }
 
-      // Section 3: Haptics
-      if (y >= my + 212 && y <= my + 248) {
-        if (x >= mx + 240 && x <= mx + 480) {
-          this.settings.haptics = true;
-          localStorage.setItem('lg_haptics', 'true');
-          this.vibrate(35);
-          audio.click();
-          return;
-        } else if (x >= mx + 500 && x <= mx + 740) {
-          this.settings.haptics = false;
-          localStorage.setItem('lg_haptics', 'false');
-          audio.click();
-          return;
-        }
-      }
-
-      // Section 4: Screen Fit
-      if (y >= my + 272 && y <= my + 308) {
-        if (x >= mx + 240 && x <= mx + 480) {
-          this.settings.screenFit = 'FIT';
-          localStorage.setItem('lg_screen_fit', 'FIT');
-          this.resizeCanvas();
-          audio.click();
-          this.vibrate(15);
-          return;
-        } else if (x >= mx + 500 && x <= mx + 740) {
-          this.settings.screenFit = 'FILL';
-          localStorage.setItem('lg_screen_fit', 'FILL');
-          this.resizeCanvas();
-          audio.click();
-          this.vibrate(15);
-          return;
-        }
-      }
-
-      // Section 5: FPS Mode
-      if (y >= my + 332 && y <= my + 368) {
-        if (x >= mx + 240 && x <= mx + 480) {
-          this.settings.fpsLimit = 60;
-          localStorage.setItem('lg_fps_limit', '60');
-          audio.click();
-          this.vibrate(15);
-          return;
-        } else if (x >= mx + 500 && x <= mx + 740) {
-          this.settings.fpsLimit = 30;
-          localStorage.setItem('lg_fps_limit', '30');
-          audio.click();
-          this.vibrate(15);
-          return;
-        }
-      }
-
-      // Section 6: Language
-      if (y >= my + 392 && y <= my + 428) {
-        const langs = ['uz', 'en', 'ru'];
-        for (let i = 0; i < 3; i++) {
-          const bx = mx + 240 + i * 170;
-          if (x >= bx && x <= bx + 160) {
-            this.lang = langs[i];
-            this.settings.lang = langs[i];
-            localStorage.setItem('last_grid_lang', langs[i]);
-            audio.click();
-            this.vibrate(15);
-            return;
-          }
-        }
-      }
-
-      // Section 7: CRT
-      if (y >= my + 452 && y <= my + 488) {
-        if (x >= mx + 240 && x <= mx + 480) {
+      // Section 1b Right: CRT Scanline
+      if (y >= my + 155 && y <= my + 191) {
+        if (x >= col2X && x <= col2X + 200) {
           this.crtEnabled = true;
           localStorage.setItem('lg_crt', 'true');
           audio.click();
           this.vibrate(15);
           return;
-        } else if (x >= mx + 500 && x <= mx + 740) {
+        } else if (x >= col2X + 210 && x <= col2X + 410) {
           this.crtEnabled = false;
           localStorage.setItem('lg_crt', 'false');
           audio.click();
@@ -1925,15 +1951,117 @@
         }
       }
 
-      // Bottom Row: Close/Save
-      if (y >= my + 540 && y <= my + 590) {
-        if (x >= mx + 60 && x <= mx + 380) {
+      // Section 2a: Haptics (Left) / FPS Mode (Right) (y: my + 230 to my + 266)
+      if (y >= my + 230 && y <= my + 266) {
+        if (x >= col1X && x <= col1X + 200) {
+          this.settings.haptics = true;
+          localStorage.setItem('lg_haptics', 'true');
+          this.vibrate(35);
+          audio.click();
+          return;
+        } else if (x >= col1X + 210 && x <= col1X + 410) {
+          this.settings.haptics = false;
+          localStorage.setItem('lg_haptics', 'false');
+          audio.click();
+          return;
+        }
+
+        if (x >= col2X && x <= col2X + 200) {
+          this.settings.fpsLimit = 60;
+          localStorage.setItem('lg_fps_limit', '60');
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= col2X + 210 && x <= col2X + 410) {
+          this.settings.fpsLimit = 30;
+          localStorage.setItem('lg_fps_limit', '30');
+          audio.click();
+          this.vibrate(15);
+          return;
+        }
+      }
+
+      // Section 2b: Screen Shake (Left) / Graphics Quality (Right) (y: my + 280 to my + 316)
+      if (y >= my + 280 && y <= my + 316) {
+        // Shake: 100%, 50%, 0%
+        if (x >= col1X && x <= col1X + 130) {
+          this.settings.screenShake = 1.0;
+          localStorage.setItem('lg_screen_shake', '1.0');
+          audio.click();
+          this.vibrate([20, 25]);
+          this.screenShake = 8;
+          return;
+        } else if (x >= col1X + 140 && x <= col1X + 270) {
+          this.settings.screenShake = 0.5;
+          localStorage.setItem('lg_screen_shake', '0.5');
+          audio.click();
+          this.vibrate(15);
+          this.screenShake = 4;
+          return;
+        } else if (x >= col1X + 280 && x <= col1X + 410) {
+          this.settings.screenShake = 0.0;
+          localStorage.setItem('lg_screen_shake', '0.0');
+          audio.click();
+          return;
+        }
+
+        // Graphics: ULTRA, MEDIUM, LOW
+        if (x >= col2X && x <= col2X + 130) {
+          this.settings.graphicsQuality = 'ULTRA';
+          localStorage.setItem('lg_graphics_quality', 'ULTRA');
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= col2X + 140 && x <= col2X + 270) {
+          this.settings.graphicsQuality = 'MEDIUM';
+          localStorage.setItem('lg_graphics_quality', 'MEDIUM');
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= col2X + 280 && x <= col2X + 410) {
+          this.settings.graphicsQuality = 'LOW';
+          localStorage.setItem('lg_graphics_quality', 'LOW');
+          audio.click();
+          this.vibrate(15);
+          return;
+        }
+      }
+
+      // Section 3: Language (Centered: 365, 555, 745; width 170 each; y: my + 355 to my + 391)
+      if (y >= my + 355 && y <= my + 391) {
+        if (x >= 365 && x <= 535) {
+          this.lang = 'uz';
+          this.settings.lang = 'uz';
+          localStorage.setItem('last_grid_lang', 'uz');
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= 555 && x <= 725) {
+          this.lang = 'en';
+          this.settings.lang = 'en';
+          localStorage.setItem('last_grid_lang', 'en');
+          audio.click();
+          this.vibrate(15);
+          return;
+        } else if (x >= 745 && x <= 915) {
+          this.lang = 'ru';
+          this.settings.lang = 'ru';
+          localStorage.setItem('last_grid_lang', 'ru');
+          audio.click();
+          this.vibrate(15);
+          return;
+        }
+      }
+
+      // Bottom Row: Close/Save & Main Menu (y: my + 420 to my + 472)
+      if (y >= my + 420 && y <= my + 472) {
+        if (x >= col1X && x <= col1X + 410) {
           this.showSettingsModal = false;
           if (this.state === 'MENU' && this.apexSystem) this.apexSystem.show();
           audio.click();
           this.vibrate(20);
           return;
-        } else if (x >= mx + 420 && x <= mx + 740) {
+        } else if (x >= col2X && x <= col2X + 410) {
           this.showSettingsModal = false;
           this.state = 'MENU';
           this.selectedTower = null;
@@ -1945,6 +2073,64 @@
           this.vibrate(25);
           return;
         }
+      }
+    }
+
+    exportSaveData() {
+      const backup = {};
+      const keys = [
+        'last_grid_save_v2', 'last_grid_player_name', 'last_grid_lang', 'lg_mech_skin_v42',
+        'lg_endless_wave', 'lg_custom_map', 'lg_difficulty', 'lg_sfx_vol', 'lg_bgm_vol',
+        'lg_haptics', 'lg_screen_fit', 'lg_fps_limit', 'lg_screen_shake', 'lg_graphics_quality', 'lg_crt'
+      ];
+      for (const k of keys) {
+        const val = localStorage.getItem(k);
+        if (val !== null) backup[k] = val;
+      }
+      const str = JSON.stringify(backup);
+      let copied = false;
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(str).then(() => {
+          this.addFloatingText("📋 NUSXA OLINDI (CLIPBOARD)!", 640, 300, "#00e676", 20);
+        }).catch(() => {});
+        copied = true;
+      }
+      if (!copied && typeof prompt !== 'undefined') {
+        prompt("O'YIN MA'LUMOTLARI ZAXIRASI (NUSXA OLING):", str);
+      }
+      this.addFloatingText("📤 ZAXIRA EKSPORT QILINDI!", 640, 330, "#00e5ff", 18);
+      audio.upgrade();
+      this.vibrate([30, 20, 50]);
+    }
+
+    importSaveData() {
+      if (typeof prompt === 'undefined') return;
+      const json = prompt("ZAXIRA JSON MA'LUMOTLARINI KIRITING:");
+      if (!json || json.trim().length === 0) return;
+      try {
+        const parsed = JSON.parse(json);
+        for (const k in parsed) {
+          localStorage.setItem(k, parsed[k]);
+        }
+        this.saveData = this.loadSave();
+        this.playerName = localStorage.getItem('last_grid_player_name') || 'CyberCommander';
+        this.lang = localStorage.getItem('last_grid_lang') || 'uz';
+        this.crtEnabled = localStorage.getItem('lg_crt') === 'true';
+        this.settings.screenShake = parseFloat(localStorage.getItem('lg_screen_shake') ?? '1.0');
+        this.settings.graphicsQuality = localStorage.getItem('lg_graphics_quality') || 'ULTRA';
+        this.settings.sfxVol = parseFloat(localStorage.getItem('lg_sfx_vol') || '1.0');
+        this.settings.bgmVol = parseFloat(localStorage.getItem('lg_bgm_vol') || '0.7');
+        this.settings.haptics = localStorage.getItem('lg_haptics') !== 'false';
+        this.settings.screenFit = localStorage.getItem('lg_screen_fit') || 'FILL';
+        this.settings.fpsLimit = parseInt(localStorage.getItem('lg_fps_limit') || '60');
+        this.resizeCanvas();
+        this.addFloatingText("✔ ZAXIRA MUVAFFAQIYATLI YUKLANDI!", 640, 300, "#00e676", 22);
+        audio.upgrade();
+        this.vibrate([50, 40, 70]);
+      } catch(e) {
+        this.addFloatingText("⚠️ XATO: NOTO'G'RI JSON FORMATI!", 640, 300, "#ff1744", 20);
+        audio.sell();
+        this.vibrate([60, 40, 60]);
       }
     }
 
@@ -2214,26 +2400,6 @@
                             (Math.hypot(pos.x - this.touchState.lastTapPos.x, pos.y - this.touchState.lastTapPos.y) < 45);
 
         if (this.state === 'PLAYING') {
-          // Floating Hero Ult Button (x: 1210, y: 540, radius: 45)
-          if (Math.hypot(pos.x - 1210, pos.y - 540) <= 45) {
-            e.preventDefault();
-            this.triggerHeroUlt();
-            this.vibrate([40, 25, 70]);
-            this.touchState.lastTapTime = now;
-            this.touchState.lastTapPos = pos;
-            return;
-          }
-          // Floating Wave / Speed Button (x: 1210, y: 450, radius: 36)
-          if (Math.hypot(pos.x - 1210, pos.y - 450) <= 36) {
-            e.preventDefault();
-            if (!this.waveActive) this.callNextWave();
-            else this.cycleSpeed();
-            this.vibrate(20);
-            this.touchState.lastTapTime = now;
-            this.touchState.lastTapPos = pos;
-            return;
-          }
-
           // Hero Double Tap
           const distToHero = Math.hypot(this.hero.x - pos.x, this.hero.y - pos.y);
           if (distToHero <= 45 && isDoubleTap) {
@@ -2393,7 +2559,7 @@
         if (this.touchState.dragging === 'TOWER_HOTBAR') {
           const gx = Math.floor(pos.x / 64);
           const gy = Math.floor(pos.y / 64);
-          if (this.isValidBuildCell(gx, gy) && pos.y >= 60 && pos.y < 620) {
+          if (this.isValidBuildCell(gx, gy, this.touchState.draggedTowerType) && pos.y >= 60 && pos.y < 620) {
             this.buildTower(this.touchState.draggedTowerType, gx, gy);
             this.vibrate([25, 30, 25]);
           }
@@ -2507,6 +2673,8 @@
         try { customData = JSON.parse(savedCustom); } catch(e) {}
       }
       const customWaypoints = (customData && customData.waypoints && customData.waypoints.length >= 2) ? customData.waypoints : this.editorWaypoints;
+      const customWaypoints2 = (customData && customData.waypoints2 && customData.waypoints2.length >= 2) ? customData.waypoints2 : (this.editorWaypoints2 && this.editorWaypoints2.length >= 2 ? this.editorWaypoints2 : null);
+      const customLanes = customWaypoints2 ? [customWaypoints, customWaypoints2] : [customWaypoints];
       const customBiome = (customData && customData.biome) ? customData.biome : (this.editorBiome || 'cyber');
       const customGold = (customData && customData.gold) ? customData.gold : (this.editorGold || 350);
       const customWaves = (customData && customData.waves) ? customData.waves : (this.editorWaves || 20);
@@ -2514,8 +2682,9 @@
       const map = (mode === 'CUSTOM') ? {
         id: "custom", name: "Maxsus Sektor",
         gold: customGold, hp: 20, wave_count: customWaves, modifier: "none", biome: customBiome,
-        lanes: [ customWaypoints ]
+        lanes: customLanes
       } : MAPS[mapIdx];
+      this.currentMapLanes = map.lanes;
 
       this.difficulty = localStorage.getItem('lg_difficulty') || 'NORMAL';
       const diffGoldMult = (this.difficulty === 'CASUAL') ? 1.25 : ((this.difficulty === 'HEROIC') ? 0.85 : 1.0);
@@ -2555,7 +2724,7 @@
       this.hero.currentUltCd = 0;
       this.hero.selected = false;
       this.hero.mode = 'BIPED';
-      this.hero.speed = 130;
+      this.hero.speed = 155;
       this.hero.siegeRecoil = 0;
       this.hero.siegeCooldown = 0;
       this.hero.shieldDome = null;
@@ -2597,6 +2766,10 @@
       this.redZoneCooldown = 35.0;
       const briefingList = RADIO_BRIEFINGS[this.lang] || RADIO_BRIEFINGS.uz;
       this.triggerRadioComm("HQ COMMANDER", briefingList[mapIdx] || briefingList[0], 5.5);
+      if (typeof audio !== 'undefined' && audio.megatronVoice) {
+        setTimeout(() => audio.megatronVoice('spawn'), 750);
+      }
+      this.addFloatingText("👑 MEGATRON: 'OBLITERATE THE GRID!'", 640, 240, "#ffd600", 20);
     }
 
     bakeMapLanes(map) {
@@ -2639,8 +2812,8 @@
     isPathCell(cellX, cellY) {
       const cx = cellX * 64 + 32;
       const cy = cellY * 64 + 32;
-      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
-      for (const lane of map.lanes) {
+      const lanes = (this.gameMode === 'CUSTOM') ? (this.currentMapLanes || [this.editorWaypoints]) : (MAPS[this.currentMapIndex] ? MAPS[this.currentMapIndex].lanes : [[{x:64, y:320}, {x:1216, y:320}]]);
+      for (const lane of lanes) {
         for (let i = 0; i < lane.length - 1; i++) {
           const p1 = lane[i];
           const p2 = lane[i + 1];
@@ -2659,9 +2832,13 @@
       return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
-        isValidBuildCell(gx, gy) {
+    isValidBuildCell(gx, gy, type = this.selectedBuildType) {
       if (gx < 0 || gx >= 20 || gy < 1 || gy >= 10) return false;
       const isPath = this.isPathCell(gx, gy);
+      if (type === 'barricade' || type === 'wall') {
+        const hasBarricade = this.barricades && this.barricades.some(b => Math.hypot(b.x - (gx * 64 + 32), b.y - (gy * 64 + 32)) < 32);
+        return isPath && !hasBarricade;
+      }
       const hasTower = this.towers.some(t => t.cellX === gx && t.cellY === gy);
       return !isPath && !hasTower;
     }
@@ -2674,9 +2851,7 @@
       const gx = Math.floor(this.mousePos.x / 64);
       const gy = Math.floor(this.mousePos.y / 64);
       if (gx >= 0 && gx < 20 && gy >= 1 && gy < 10) {
-        const isPath = this.isPathCell(gx, gy);
-        const hasTower = this.towers.some(t => t.cellX === gx && t.cellY === gy);
-        this.hoverCell = { gx, gy, valid: !isPath && !hasTower };
+        this.hoverCell = { gx, gy, valid: this.isValidBuildCell(gx, gy, this.selectedBuildType) };
       } else {
         this.hoverCell = null;
       }
@@ -2893,6 +3068,13 @@
           audio.click();
           return;
         }
+        // Fullscreen Toggle
+        if (x >= 1125 && x <= 1225 && y >= 14 && y <= 56) {
+          this.toggleFullscreen();
+          this.vibrate(20);
+          if (audio) audio.click();
+          return;
+        }
 
         // Claim Reward clicks
         const allList = this.getAchievementsList();
@@ -3069,6 +3251,12 @@
           audio.playBGMTrack('menu');
           return;
         }
+        if (x >= 1150 && x <= 1245 && y >= 15 && y <= 58) {
+          this.toggleFullscreen();
+          this.vibrate(20);
+          if (audio) audio.click();
+          return;
+        }
         if (x >= 580 && x <= 920 && y >= 18 && y <= 58) {
           const idx = Math.floor((x - 580) / 110);
           const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
@@ -3110,6 +3298,12 @@
           audio.playBGMTrack('menu');
           return;
         }
+        if (x >= 945 && x <= 1030 && y >= 14 && y <= 55) {
+          this.toggleFullscreen();
+          this.vibrate(20);
+          if (audio) audio.click();
+          return;
+        }
         if (x >= 400 && x <= 640 && y >= 615 && y <= 665) {
           this.fetchLiveScores();
           audio.click();
@@ -3142,7 +3336,7 @@
           // Continue Endless Survival Mode!
           this.gameMode = 'ENDLESS';
           this.maxWaves = 999;
-          this.wave = 31;
+          this.wave = this.wave + 1;
           this.waveActive = false;
           this.waveCountdown = 8;
           this.state = 'PLAYING';
@@ -3192,26 +3386,6 @@
           return;
         }
         return; // Click blocked by pause overlay
-      }
-
-      // Tutorial Skip Click
-      if (this.currentMapIndex === 0 && !localStorage.getItem('lg_tutorial_done') && x >= 1090 && x <= 1240 && y >= 15 && y <= 50) {
-        localStorage.setItem('lg_tutorial_done', 'true');
-        this.addFloatingText("TUTORIAL O'TKAZILDI", 640, 100, "#ffd600");
-        return;
-      }
-
-      // 1. Mobile Floating Thumb Buttons (⚡ ULT & ▶ WAVE/SPEED)
-      if (Math.hypot(x - 1210, y - 540) <= 45) {
-        this.triggerHeroUlt();
-        this.vibrate([40, 25, 70]);
-        return;
-      }
-      if (Math.hypot(x - 1210, y - 450) <= 36) {
-        if (!this.waveActive) this.callNextWave();
-        else this.cycleSpeed();
-        this.vibrate(20);
-        return;
       }
 
       // Radar Minimap Click / Tactical Waypoint Navigation
@@ -3276,8 +3450,11 @@
           this.hero.dashTimer = 0.45;
           this.spawnShockwave(this.hero.x, this.hero.y, 45, "#00e5ff");
           this.spawnShockwave(x, y, 35, "#ffd600");
-          this.addFloatingText("⚡ KINETIC DASH!", this.hero.x, this.hero.y - 25, "#00e5ff", 16);
-          if (audio) audio.shootPulse();
+          this.addFloatingText("⚡ 'DECEPTICONS, STRIKE!'", this.hero.x, this.hero.y - 25, "#00e5ff", 16);
+          if (typeof audio !== 'undefined') {
+            if (audio.megatronVoice) audio.megatronVoice('dash');
+            else if (audio.shootPulse) audio.shootPulse();
+          }
           this.vibrate([20, 20, 35]);
           return;
         }
@@ -3296,32 +3473,63 @@
         return;
       }
 
-      // 4. Top HUD Bar clicks
-      if (y >= 0 && y <= 60) {
-        if (x >= 440 && x <= 618) this.callNextWave();
-        else if (x >= 620 && x <= 718) this.cycleSpeed();
-        else if (x >= 720 && x <= 852) {
-          this.showSettingsModal = true;
-          this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
-          if (this.apexSystem) this.apexSystem.hide();
-          audio.click();
-        }
-        else if (x >= 855 && x <= 968) this.togglePause();
-        else if (x >= 970 && x <= 1090) {
-          this.state = 'PAUSED';
-          audio.modal();
-        }
-        else if (x >= 1092 && x <= 1265) {
-          this.start3DTPSMode();
-          return;
+      // 4. Interactive Floating Top HUD Islands
+      // Left Island: Base Core & Treasury (x: 14 to 300, y: 8 to 58)
+      if (x >= 14 && x <= 300 && y >= 8 && y <= 58) {
+        this.addFloatingText(`🛡️ BAZA: ${this.baseHp}/${this.maxBaseHp} | ⚡ ${this.gold}G`, 150, 75, "#00e5ff", 14);
+        if (audio) audio.click();
+        this.vibrate(15);
+        return;
+      }
+      // Center Island: Wave Telemetry & Wave Engage (x: 440 to 845, y: 8 to 58)
+      if (x >= 440 && x <= 845 && y >= 8 && y <= 58) {
+        if (!this.waveActive) {
+          this.callNextWave();
+          this.vibrate([20, 20]);
+        } else {
+          this.addFloatingText(`⚔️ JANGDA: ${this.enemies.length} DUSHMAN`, 640, 75, "#ff1744", 14);
+          if (audio) audio.click();
+          this.vibrate(15);
         }
         return;
       }
+      // Right Island: Tactical Controls (x: 994 to 1266, y: 8 to 58)
+      if (y >= 8 && y <= 58) {
+        if (x >= 994 && x <= 1052) {
+          // Fullscreen Toggle Capsule
+          this.toggleFullscreen();
+          this.vibrate(20);
+          if (audio) audio.click();
+          return;
+        } else if (x >= 1056 && x <= 1128) {
+          // Speed toggle
+          this.cycleSpeed();
+          this.vibrate(20);
+          return;
+        } else if (x >= 1130 && x <= 1196) {
+          // Settings modal
+          this.showSettingsModal = true;
+          this.settingsReturnState = (this.state === 'PAUSED' ? 'PAUSED' : 'PLAYING');
+          if (this.apexSystem) this.apexSystem.hide();
+          if (audio) audio.click();
+          this.vibrate(20);
+          return;
+        } else if (x >= 1198 && x <= 1266) {
+          // Tactical Pause
+          this.togglePause();
+          this.vibrate(25);
+          return;
+        }
+      }
 
       if (this.aimingSkill) {
-        this.executeSkill(this.aimingSkill, x, y);
-        this.aimingSkill = null;
-        return;
+        if (y >= 60 && y <= 620) {
+          this.executeSkill(this.aimingSkill, x, y);
+          this.aimingSkill = null;
+          return;
+        } else if (y > 620) {
+          this.aimingSkill = null;
+        }
       }
 
       // Airdrop Crate Tap / Click Looting
@@ -3456,7 +3664,7 @@
         this.hero.selected = false;
         this.radialBuildCell = null;
         this.vibrate(15);
-      } else if (this.selectedBuildType && this.isValidBuildCell(gx, gy)) {
+      } else if (this.selectedBuildType && this.isValidBuildCell(gx, gy, this.selectedBuildType)) {
         this.buildTower(this.selectedBuildType, gx, gy);
         this.selectedBuildType = null;
         this.radialBuildCell = null;
@@ -3498,9 +3706,13 @@
       const map = (this.gameMode === 'CUSTOM') ? { biome: "cyber" } : MAPS[this.currentMapIndex];
       const biome = (map && map.biome) ? map.biome : "cyber";
 
-      if (this.biomeParticles.length < 28) {
+      const q = (this.settings && this.settings.graphicsQuality) || 'ULTRA';
+      const maxCount = q === 'LOW' ? 12 : (q === 'MEDIUM' ? 24 : 45);
+
+      if (this.biomeParticles.length < maxCount) {
         if (biome === 'lava') {
           this.biomeParticles.push({
+            type: 'ember',
             x: Math.random() * this.width,
             y: 620 + Math.random() * 20,
             vx: (Math.random() - 0.5) * 20,
@@ -3512,6 +3724,7 @@
           });
         } else if (biome === 'cryo') {
           this.biomeParticles.push({
+            type: 'snow',
             x: Math.random() * this.width,
             y: 50 + Math.random() * 30,
             vx: 15 + Math.random() * 25,
@@ -3520,6 +3733,20 @@
             life: 3.0 + Math.random() * 3.0,
             maxLife: 6.0,
             color: Math.random() > 0.3 ? "#80deea" : "#ffffff"
+          });
+        } else {
+          // Cyber digital rain streaks & floating micro-sparks
+          this.biomeParticles.push({
+            type: 'cyber_rain',
+            x: Math.random() * this.width,
+            y: 55 + Math.random() * 30,
+            vx: (Math.random() - 0.5) * 16,
+            vy: 55 + Math.random() * 75,
+            len: 8 + Math.random() * 14,
+            size: 1.2 + Math.random() * 1.5,
+            life: 2.2 + Math.random() * 2.2,
+            maxLife: 4.4,
+            color: Math.random() > 0.35 ? "#00e5ff" : "#7c4dff"
           });
         }
       }
@@ -3536,15 +3763,24 @@
     }
 
     renderBiomeParticles(ctx, biome) {
-      if (!this.biomeParticles || biome === 'cyber') return;
+      if (!this.biomeParticles || this.biomeParticles.length === 0) return;
       ctx.save();
       for (const p of this.biomeParticles) {
         const alpha = Math.max(0, p.life / p.maxLife) * 0.7;
         ctx.fillStyle = p.color;
+        ctx.strokeStyle = p.color;
         ctx.globalAlpha = alpha;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        if (p.type === 'cyber_rain') {
+          ctx.lineWidth = p.size;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + p.vx * 0.08, p.y + (p.len || 10));
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
@@ -4109,43 +4345,54 @@
 
     toggleFullscreen() {
       try {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const isFS = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (!isFS) {
           const docEl = document.documentElement;
-          if (docEl.requestFullscreen) {
-            docEl.requestFullscreen().catch(() => {});
-          } else if (docEl.webkitRequestFullscreen) {
-            docEl.webkitRequestFullscreen();
-          }
-          if (this.addFloatingText) this.addFloatingText("⛶ FULLSCREEN FAOL", 640, 100, "#00e5ff", 18);
+          const rfs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+          if (rfs) rfs.call(docEl).catch(() => {});
+          if (this.addFloatingText) this.addFloatingText("⛶ TO'LIQ EKRAN FAOL", 640, 100, "#00e5ff", 18);
         } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-          }
+          const efs = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+          if (efs) efs.call(document).catch(() => {});
           if (this.addFloatingText) this.addFloatingText("WINDOWED REJIM", 640, 100, "#ffd600", 18);
         }
       } catch (err) {}
       setTimeout(() => this.resizeCanvas(), 120);
+      if (typeof this.updateFullscreenUI === 'function') this.updateFullscreenUI();
+    }
+
+    updateFullscreenUI() {
+      if (typeof document === 'undefined') return;
+      const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const btn = document.getElementById('web-fullscreen-btn');
+      if (btn) {
+        const enterIcon = btn.querySelector('.fs-icon-enter');
+        const exitIcon = btn.querySelector('.fs-icon-exit');
+        const label = btn.querySelector('.fs-label');
+        if (enterIcon) enterIcon.style.display = isFS ? 'none' : 'block';
+        if (exitIcon) exitIcon.style.display = isFS ? 'block' : 'none';
+        if (label) label.textContent = isFS ? 'CHIQISH' : 'FULL EKRAN';
+        btn.setAttribute('title', isFS ? "To'liq ekrandan chiqish (Esc / F)" : "To'liq ekranga o'tish (F)");
+      }
     }
 
     downloadApk() {
       if (typeof window !== 'undefined' && window.AndroidBridge) {
-        if (this.addFloatingText) this.addFloatingText("Siz Android APK dasiz (v4.1.0)!", 640, 360, "#00e676", 18);
+        if (this.addFloatingText) this.addFloatingText("Siz Android APK dasiz (v4.2.0)!", 640, 360, "#00e676", 18);
         return;
       }
       const isWeb = typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http');
       const url = (isWeb && window.location.hostname.includes('vercel'))
-        ? 'https://raw.githubusercontent.com/nematjanoovv-max/UI_UX_18_11_2026/main/TowerDefense_LastGrid_v4.1.0.apk'
-        : 'TowerDefense_LastGrid_v4.1.0.apk';
+        ? 'https://raw.githubusercontent.com/nematjanoovv-max/UI_UX_18_11_2026/main/TowerDefense_LastGrid_v4.2.0.apk'
+        : 'TowerDefense_LastGrid_v4.2.0.apk';
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'TowerDefense_LastGrid_v4.1.0.apk';
+      a.download = 'TowerDefense_LastGrid_v4.2.0.apk';
       a.target = '_blank';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      if (this.addFloatingText) this.addFloatingText("APK YUKLAB OLINMOQDA (v4.1.0)...", 640, 360, "#00e676", 18);
+      if (this.addFloatingText) this.addFloatingText("APK YUKLAB OLINMOQDA (v4.2.0)...", 640, 360, "#00e676", 18);
     }
 
     downloadOfflineZip() {
@@ -4290,10 +4537,128 @@
 
     selectAugment(card) {
       this.activeAugments.push(card.id);
-      this.addFloatingText(`AUGMENT ACTIVATED: ${card.title}!`, 640, 200, card.color, 24);
+      const title = this.getAugmentTitle(card);
+      const isUz = this.lang === 'uz';
+      const isRu = this.lang === 'ru';
+      const msg = isUz ? `AUGMENT FAOL: ${title}!` : (isRu ? `АУГМЕНТ АКТИВИРОВАН: ${title}!` : `AUGMENT ACTIVATED: ${title}!`);
+      this.addFloatingText(msg, 640, 200, card.color, 24);
       audio.victory();
       this.state = 'PLAYING';
       this.recalculateBeaconBuffs();
+    }
+
+    getAugmentTitle(c) {
+      if (!c) return "AUGMENT";
+      const id = c.id;
+      const lang = this.lang || 'uz';
+      const titles = {
+        bounty_hunter:        { uz: "KALLA OVCHISI",       ru: "ОХОТНИК ЗА ГОЛОВАМИ",  en: "BOUNTY HUNTER" },
+        shatter_frost:        { uz: "MUZ PARCHALASH",      ru: "РАСКОЛ ЛЬДА",          en: "SHATTER FROST" },
+        titan_slayer:         { uz: "TITAN QOTILI",        ru: "УБИЙЦА ТИТАНОВ",       en: "TITAN SLAYER" },
+        overclock_matrix:     { uz: "OVERKLOK MATRITSA",   ru: "МАТРИЦА РАЗГОНА",      en: "OVERCLOCK MATRIX" },
+        superconductors:      { uz: "O'TA O'TKAZGICHLAR",  ru: "СВЕРХПРОВОДНИКИ",      en: "SUPERCONDUCTORS" },
+        reactive_core:        { uz: "REAKTIV YADRO",       ru: "РЕАКТИВНОЕ ЯДРО",      en: "REACTIVE CORE" },
+        nanite_repair:        { uz: "NANIT TA'MIRLASH",    ru: "НАНИТНЫЙ РЕМОНТ",      en: "NANITE REPAIR" },
+        cluster_munitions:    { uz: "KASSETALI O'QLAR",    ru: "КАССЕТНЫЕ СНАРЯДЫ",    en: "CLUSTER MUNITIONS" },
+        hero_overdrive:       { uz: "MEX FORSAJI",         ru: "ФОРСАЖ МЕХА",          en: "HERO OVERDRIVE" },
+        plasma_inferno:       { uz: "PLAZMA JAHANNAMI",    ru: "ПЛАЗМЕННЫЙ АД",        en: "PLASMA INFERNO" },
+        tesla_overcharge:     { uz: "TESLA ZARYADI",       ru: "ПЕРЕЗАРЯД ТЕСЛЫ",      en: "TESLA OVERCHARGE" },
+        nanite_aegis:         { uz: "NANIT QALQONI",       ru: "НАНИТНЫЙ ЭГИС",        en: "NANITE AEGIS" },
+        siege_artillery_core: { uz: "QAMAL ARTILLERIYASI", ru: "ОСАДНАЯ АРТИЛЛЕРИЯ",   en: "SIEGE ARTILLERY" },
+        void_collector:       { uz: "FAZO YIG'UVCHISI",    ru: "СОБИРАТЕЛЬ БЕЗДНЫ",    en: "VOID COLLECTOR" },
+        chronos_overdrive:    { uz: "VAQT FORSAJI",        ru: "ХРОНО-ФОРСАЖ",         en: "CHRONOS OVERDRIVE" }
+      };
+      const t = titles[id];
+      if (t && t[lang]) return t[lang];
+      if (t && t.en) return t.en;
+      return c.title || "AUGMENT";
+    }
+
+    getAugmentDesc(c) {
+      if (!c) return "";
+      const id = c.id;
+      const lang = this.lang || 'uz';
+      const descs = {
+        bounty_hunter: {
+          uz: "Dushmanlarni yo'q qilishdan +30% ko'p oltin, lekin dushmanlar +10% tezlashadi.",
+          ru: "+30% золота за уничтожение врагов, но враги движутся на +10% быстрее.",
+          en: "+30% Gold bounty from all kills, but enemies move +10% faster."
+        },
+        shatter_frost: {
+          uz: "Muzlagan yoki sekinlashgan dushmanlarga barcha minoralar +80% ko'p zarar beradi.",
+          ru: "Все башни наносят +80% доп. урона по замедленным и замороженным врагам.",
+          en: "All towers deal +80% bonus damage to slowed/frozen hostiles."
+        },
+        titan_slayer: {
+          uz: "Barcha minoralar Bosslar va og'ir Titanlarga +45% qo'shimcha zarar beradi.",
+          ru: "Все башни наносят +45% доп. урона по Боссам и тяжёлым Титанам.",
+          en: "All towers deal +45% extra damage to Bosses and heavy Brutes."
+        },
+        overclock_matrix: {
+          uz: "Barcha ittifoqchi minoralarning otish tezligini doimiy ravishda +20% ga oshiradi.",
+          ru: "Постоянно увеличивает скорость атаки всех дружественных башен на +20%.",
+          en: "Permanently increases all friendly towers' fire rate by +20%."
+        },
+        superconductors: {
+          uz: "Railgun va Pulse hujumlari yaqin atrofdagi 2 ta nishonga elektr zanjirini uzatadi.",
+          ru: "Атаки Рельсотрона и Импульса пускают цепные молнии по 2 соседним целям.",
+          en: "Railgun and Pulse attacks chain electric sparks to 2 nearby targets."
+        },
+        reactive_core: {
+          uz: "Baza yadrosi o'tkazib yuborilgan zararning 50% ini maydon bo'ylab EMP to'lqini bilan qaytaradi.",
+          ru: "Базовое Ядро отражает 50% урона обратно в виде кругового ЭМИ-оглушения.",
+          en: "Base Core reflects 50% leak damage back as an area EMP stun."
+        },
+        nanite_repair: {
+          uz: "Har bir to'lqin yakunlanganda baza yadrosi avtomatik ravishda +2 HP tiklaydi.",
+          ru: "В конце каждой волны Ядро базы автоматически восстанавливает +2 ОЗ.",
+          en: "Base Core automatically repairs +2 HP at the end of each wave."
+        },
+        cluster_munitions: {
+          uz: "Mortar artilleriyasi portlash radiusi va zarari +35% ga oshiriladi.",
+          ru: "Радиус взрыва и урон миномётной артиллерии увеличены на +35%.",
+          en: "Mortar splash explosion radius and damage increased by +35%."
+        },
+        hero_overdrive: {
+          uz: "Jangovar Mex Robot yaqin jangda +60% kuchliroq zarba beradi va +25% tezlashadi.",
+          ru: "Боевой Мех наносит +60% урона в ближнем бою и движется на +25% быстрее.",
+          en: "Field Hero Champion gains +60% melee damage and moves +25% faster."
+        },
+        plasma_inferno: {
+          uz: "Olov va Tesla hujumlari yaqin atrofdagi dushmanlarga zanjirli yonish beradi (+45% DoT).",
+          ru: "Атаки огнемёта и Теслы поджигают соседних врагов (+45% период. урона).",
+          en: "Flame & Tesla attacks cause burning to chain to nearby enemies (+45% DoT)."
+        },
+        tesla_overcharge: {
+          uz: "Tesla +3 ta ortiqcha nishonga uradi, EMP to'lqini 2.5x uzoqroq karaxt qiladi.",
+          ru: "Катушка Тесла бьёт по +3 целям, а ЭМИ-взрывы оглушают в 2.5 раза дольше.",
+          en: "Tesla Coil arcs to +3 extra targets, and EMP shockwaves inflict 2.5x stun."
+        },
+        nanite_aegis: {
+          uz: "Qalqon gumbazi +500 HP oladi va yutilgan zararning 50% ini raketalar bilan qaytaradi.",
+          ru: "Купол щита получает +500 ОЗ и отражает 50% урона самонаводящимися ракетами.",
+          en: "Shield Dome gains +500 HP and reflects 50% absorbed damage back as homing bolts."
+        },
+        siege_artillery_core: {
+          uz: "Tank rejimidagi zarba radiusi +60% oshadi va yerda olovli kraterlar qoldiradi.",
+          ru: "Режим Танка наносит +60% радиусного урона и оставляет горящие кратеры.",
+          en: "Siege Tank mode deals +60% explosion splash damage and creates burning craters."
+        },
+        void_collector: {
+          uz: "Har 5 dushman o'limi uchun +3 oltin beriladi va Mech Ult 2x tezroq zaryadlanadi.",
+          ru: "Каждые 5 убитых врагов дают +3 золота, а Ульта Меха заряжается в 2 раза быстрее.",
+          en: "Slain hostiles award +3 gold per 5 kills and charge Mech Ult 2x faster."
+        },
+        chronos_overdrive: {
+          uz: "Mex harakati +30% tezlashadi va barcha super qobiliyatlar 35% tezroq tiklanadi.",
+          ru: "Скорость Меха +30%, а все супер-навыки восстанавливаются на 35% быстрее.",
+          en: "Mech movement speed +30%, and all skill cooldowns recharge 35% quicker."
+        }
+      };
+      const d = descs[id];
+      if (d && d[lang]) return d[lang];
+      if (d && d.en) return d.en;
+      return c.desc || "";
     }
 
     hasAugment(id) {
@@ -4307,10 +4672,11 @@
         return;
       }
       this.hero.currentUltCd = this.hero.ultCd;
-      this.hero.ultActiveTime = 0.6;
+      this.hero.ultActiveTime = 0.9;
       audio.heroSlash();
-      this.screenShake = 9;
-      this.spawnShockwave(this.hero.x, this.hero.y, 160, "#00e5ff");
+      if (typeof audio !== 'undefined' && audio.megatronVoice) audio.megatronVoice('ult');
+      this.screenShake = 12;
+      this.spawnShockwave(this.hero.x, this.hero.y, 180, "#c084fc");
 
       // 400 damage in 160px radius
       for (const e of this.enemies) {
@@ -4318,7 +4684,7 @@
           this.applyDamage(e, 400, 'HERO');
         }
       }
-      this.addFloatingText("CYBER-SLASH WAVE!", this.hero.x, this.hero.y - 28, "#00e5ff", 22);
+      this.addFloatingText("🔥 'CRUSH AND DESTROY!'", this.hero.x, this.hero.y - 28, "#ff1744", 22);
     }
 
     toggleHeroTransform() {
@@ -4329,19 +4695,21 @@
         h.siegeCooldown = 0.5;
         h.siegeRecoil = 0;
         audio.mechTransform();
+        if (typeof audio !== 'undefined' && audio.megatronVoice) audio.megatronVoice('tank');
         this.screenShake = 6;
         this.spawnShockwave(h.x, h.y, 65, "#ffd600");
-        this.addFloatingText("🚜 SIEGE TANK (+50% ZIRH • 120MM GAUBITSA)", h.x, h.y - 32, "#ffd600", 17);
-        this.triggerRadioComm("APEX-01 AI", "TRANSFORMATSIYA: SIEGE TANK REJIMI FAOL! 120mm gaubitsa va og'ir zirh ishga tushdi!", 4.0);
+        this.addFloatingText("🚜 'TRANSFORM & CONQUER!'", h.x, h.y - 32, "#ffd600", 17);
+        this.triggerRadioComm("MEGATRON", "TRANSFORMATSIYA: HEAVY TANK REJIMI! 120mm gaubitsa va og'ir zirh faol!", 4.0);
         this.vibrate([40, 30, 80]);
       } else {
         h.mode = 'BIPED';
         h.speed = 130;
         audio.mechTransform();
+        if (typeof audio !== 'undefined' && audio.megatronVoice) audio.megatronVoice('biped');
         this.screenShake = 4;
         this.spawnShockwave(h.x, h.y, 50, "#00e5ff");
-        this.addFloatingText("🤖 ROBOT REJIMI (130 TEZLIK • PLAZMA KATANA)", h.x, h.y - 32, "#00e5ff", 17);
-        this.triggerRadioComm("APEX-01 AI", "TRANSFORMATSIYA: ASSAULT ROBOT REJIMI! Yuqori manyovr va katana faol!", 4.0);
+        this.addFloatingText("🤖 MEGATRON ROBOT REJIMI (130 TEZLIK • ENERGIYA KATANA)", h.x, h.y - 32, "#00e5ff", 17);
+        this.triggerRadioComm("MEGATRON", "TRANSFORMATSIYA: WARLORD ROBOT REJIMI! Manyovr va Arm Cannon faol!", 4.0);
         this.vibrate([30, 20, 60]);
       }
     }
@@ -4483,11 +4851,32 @@
 
     buildTower(type, gx, gy) {
       const def = TOWER_DEFS[type];
+      if (!def) return;
       if (this.gold < def.cost) {
         this.addFloatingText(this.t("notEnoughGold"), gx * 64 + 32, gy * 64, "#ff1744");
         return;
       }
       this.gold -= def.cost;
+
+      if (type === 'barricade' || type === 'wall') {
+        const bar = {
+          id: this.nextUid++,
+          x: gx * 64 + 32,
+          y: gy * 64 + 32,
+          hp: 400,
+          maxHp: 400,
+          type: 'reinforced',
+          broken: false
+        };
+        this.barricades.push(bar);
+        audio.upgrade();
+        this.spawnShockwave(bar.x, bar.y, 45, "#ffd600");
+        this.addFloatingText(`-${def.cost}g (TO'SIQ)`, bar.x, bar.y, "#ffd600");
+        this.selectedTower = null;
+        this.selectedBuildType = null;
+        return;
+      }
+
       const tower = {
         uid: this.nextUid++,
         type: type,
@@ -4569,7 +4958,17 @@
       if (!this.selectedTower) return;
       const idx = this.targetPriorities.indexOf(this.selectedTower.priority);
       this.selectedTower.priority = this.targetPriorities[(idx + 1) % this.targetPriorities.length];
-      this.addFloatingText(this.selectedTower.priority, this.selectedTower.x, this.selectedTower.y - 20, "#00e5ff");
+      const prioLabels = {
+        'FIRST': "1-CHI",
+        'LAST': "SO'NGGI",
+        'STRONGEST': "KUCHLI",
+        'WEAKEST': "KUCHSIZ",
+        'FLYERS_FIRST': "UCHUVCHI",
+        'NEAREST': "YAQIN"
+      };
+      const label = prioLabels[this.selectedTower.priority] || this.selectedTower.priority;
+      this.addFloatingText(`🎯 ${label}`, this.selectedTower.x, this.selectedTower.y - 20, "#00e5ff", 16);
+      if (typeof audio !== 'undefined' && audio.click) audio.click();
     }
 
     cycleSpeed() {
@@ -4795,6 +5194,12 @@
       if (this.floatingTexts.length > 30) this.floatingTexts.splice(0, this.floatingTexts.length - 30);
       if (this.groundHazards.length > 15) this.groundHazards.splice(0, this.groundHazards.length - 15);
       if (this.projectiles.length > 150) this.projectiles.splice(0, this.projectiles.length - 150);
+      if (this.muzzleFlashes && this.muzzleFlashes.length > 40) this.muzzleFlashes.splice(0, this.muzzleFlashes.length - 40);
+      if (this.flyingCoins && this.flyingCoins.length > 50) this.flyingCoins.splice(0, this.flyingCoins.length - 50);
+      if (this.upgradePillars && this.upgradePillars.length > 10) this.upgradePillars.splice(0, this.upgradePillars.length - 10);
+      if (this.airdrops && this.airdrops.length > 8) this.airdrops.splice(0, this.airdrops.length - 8);
+      if (this.redZones && this.redZones.length > 5) this.redZones.splice(0, this.redZones.length - 5);
+      if (this.combatFeed && this.combatFeed.length > 8) this.combatFeed.splice(0, this.combatFeed.length - 8);
 
       if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - 20 * dt);
 
@@ -5258,7 +5663,7 @@
       const overclockMult = (this.skills.overclock.activeTime > 0) ? 1.6 : 1.0;
       const endlessOverdrive = (this.gameMode === 'ENDLESS' && this.wave > 20) ? (1 + (this.wave - 20) * 0.04) : 1.0;
       for (const t of this.towers) {
-        if (t.type === 'beacon') continue;
+        if (t.type === 'beacon' || t.type === 'wall' || t.type === 'barricade') continue;
         const def = TOWER_DEFS[t.type];
         const currentSpec = t.branch ? def.branches[t.branch] : def.tiers[t.tier - 1];
         const mapFog = (map.modifier === 'fog') ? 0.85 : 1.0;
@@ -5330,6 +5735,20 @@
                 this.applyDamage(e, p.damage * falloff, 'EXPLOSIVE', null, 'hero');
               }
             }
+            this.projectiles.splice(i, 1);
+          }
+        } else if (p.type === 'fusion_blast') {
+          if (p.target && this.enemies.includes(p.target)) {
+            const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+            p.x += Math.cos(angle) * p.speed * dt;
+            p.y += Math.sin(angle) * p.speed * dt;
+            if (Math.hypot(p.target.x - p.x, p.target.y - p.y) < 18) {
+              this.applyDamage(p.target, p.damage, 'ENERGY', null, 'hero');
+              this.spawnShockwave(p.x, p.y, 25, "#ef4444");
+              this.particles.push({ x: p.x, y: p.y, vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60, color: "#ff1744", size: 4, life: 0.3, maxLife: 0.3 });
+              this.projectiles.splice(i, 1);
+            }
+          } else {
             this.projectiles.splice(i, 1);
           }
         } else if (p.type === 'missile') {
@@ -5433,6 +5852,7 @@
       if (h.slashAnim > 0) h.slashAnim = Math.max(0, h.slashAnim - dt);
       if (h.dashTimer > 0) h.dashTimer = Math.max(0, h.dashTimer - dt);
       if (h.siegeRecoil > 0) h.siegeRecoil = Math.max(0, h.siegeRecoil - dt * 4.5);
+      if (h.shootFlash > 0) h.shootFlash = Math.max(0, h.shootFlash - dt * 4.5);
 
       // Energy Shield Dome decay
       if (h.shieldDome) {
@@ -5463,6 +5883,26 @@
             vy: -Math.sin(h.angle) * 15 + (Math.random() * 6 - 3),
             color: "rgba(100, 116, 139, 0.35)", size: 3, growth: 7, life: 0.35, maxLife: 0.35
           });
+        }
+
+        // Back-mounted Cybertronian Booster Jets (Megatron 3D)
+        const isHero3DMoving = (this.selectedMechSkin === 'MEGATRON' && h.mode !== 'SIEGE' && typeof window !== 'undefined' && window.Hero3D && window.Hero3D.ready);
+        if (isHero3DMoving) {
+          const bAngle = (h.angle || 0) + Math.PI;
+          const pDist = 18;
+          for (let side of [-1, 1]) {
+            const bx = h.x + Math.cos(bAngle) * pDist + Math.cos(bAngle + Math.PI/2) * (side * 9);
+            const by = h.y + Math.sin(bAngle) * pDist + Math.sin(bAngle + Math.PI/2) * (side * 9);
+            this.particles.push({
+              x: bx, y: by,
+              vx: Math.cos(bAngle) * (h.dashTimer > 0 ? 110 : 45) + (Math.random() - 0.5) * 16,
+              vy: Math.sin(bAngle) * (h.dashTimer > 0 ? 110 : 45) + (Math.random() - 0.5) * 16,
+              color: (Math.random() > 0.35) ? "#c084fc" : "#e879f9",
+              size: (h.dashTimer > 0) ? (5 + Math.random() * 3) : (3 + Math.random() * 2),
+              life: (h.dashTimer > 0) ? 0.22 : 0.14,
+              maxLife: (h.dashTimer > 0) ? 0.22 : 0.14
+            });
+          }
         }
 
         // Thruster sparks
@@ -5528,22 +5968,53 @@
           }
         }
       } else {
-        // BIPED MODE: In-Combat Melee Plasma Katana (Range: 50px)
-        h.atkCooldown -= dt;
+        // BIPED MODE: Fusion Cannon Artillery & Plasma Melee Combat
+        h.atkCooldown = Math.max(0, (h.atkCooldown || 0) - dt);
+        let bestTarget = null;
+        let minDist = 220; // 220px Fusion Cannon range
         for (const e of this.enemies) {
-          if (Math.hypot(e.x - h.x, e.y - h.y) <= 50) {
+          if (e.phased) continue;
+          const d = Math.hypot(e.x - h.x, e.y - h.y);
+          if (d <= minDist) {
             inCombat = true;
-            h.angle = Math.atan2(e.y - h.y, e.x - h.x);
-            if (h.atkCooldown <= 0) {
-              h.atkCooldown = 1.0 / h.atkRate;
-              h.slashAnim = 0.22;
+            minDist = d;
+            bestTarget = e;
+          }
+        }
+
+        if (bestTarget) {
+          h.angle = Math.atan2(bestTarget.y - h.y, bestTarget.x - h.x);
+          if (h.atkCooldown <= 0) {
+            h.atkCooldown = 1.0 / (h.atkRate || 1.8);
+            if (minDist <= 55) {
+              // Close-range Melee Strike (Greatsword Cleave)
+              h.slashAnim = 0.35;
               audio.heroSlash();
-              this.vibrate(18);
-              const dmg = h.atkDmg * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
-              this.applyDamage(e, dmg, 'HERO', null, 'hero');
-              this.particles.push({ x: e.x, y: e.y, vx: 0, vy: -30, color: "#ffd600", size: 5, life: 0.35, maxLife: 0.35 });
+              this.vibrate(22);
+              const dmg = (h.atkDmg || 40) * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0);
+              this.applyDamage(bestTarget, dmg, 'HERO', null, 'hero');
+              this.particles.push({ x: bestTarget.x, y: bestTarget.y, vx: 0, vy: -30, color: "#ef4444", size: 6, life: 0.35, maxLife: 0.35 });
+            } else {
+              // Medium-range Arm Fusion Cannon Artillery Blast
+              h.shootFlash = 1.0;
+              audio.shootLaser();
+              if (typeof audio !== 'undefined' && audio.megatronVoice && Math.random() < 0.15) {
+                audio.megatronVoice('cannon');
+              }
+              this.vibrate(16);
+              this.spawnMuzzleFlash(h.x + Math.cos(h.angle) * 36, h.y + Math.sin(h.angle) * 36, h.angle, 34, "#ff1744");
+              this.spawnMuzzleSmoke(h.x + Math.cos(h.angle) * 36, h.y + Math.sin(h.angle) * 36, h.angle, "rgba(220, 38, 38, 0.45)");
+              this.spawnSpentCasing(h.x, h.y, h.angle);
+              this.projectiles.push({
+                type: 'fusion_blast',
+                x: h.x + Math.cos(h.angle) * 36,
+                y: h.y + Math.sin(h.angle) * 36,
+                speed: 780,
+                target: bestTarget,
+                damage: (h.atkDmg || 40) * (this.hasAugment("hero_overdrive") ? 1.6 : 1.0),
+                isHeroProj: true
+              });
             }
-            break;
           }
         }
       }
@@ -5640,10 +6111,22 @@
       if (candidates.length === 0) return [];
       candidates.sort((a, b) => {
         let diff = 0;
-        if (tower.priority === 'FIRST') diff = b.enemy.progress - a.enemy.progress;
-        else if (tower.priority === 'LAST') diff = a.enemy.progress - b.enemy.progress;
-        else if (tower.priority === 'STRONGEST') diff = (b.enemy.hp + b.enemy.shield) - (a.enemy.hp + a.enemy.shield);
-        else if (tower.priority === 'NEAREST') diff = a.dist - b.dist;
+        if (tower.priority === 'FIRST') {
+          diff = b.enemy.progress - a.enemy.progress;
+        } else if (tower.priority === 'LAST') {
+          diff = a.enemy.progress - b.enemy.progress;
+        } else if (tower.priority === 'STRONGEST') {
+          diff = (b.enemy.hp + b.enemy.shield) - (a.enemy.hp + a.enemy.shield);
+        } else if (tower.priority === 'WEAKEST') {
+          diff = (a.enemy.hp + a.enemy.shield) - (b.enemy.hp + b.enemy.shield);
+        } else if (tower.priority === 'FLYERS_FIRST') {
+          const aFly = a.enemy.isFlyer ? 1 : 0;
+          const bFly = b.enemy.isFlyer ? 1 : 0;
+          diff = bFly - aFly;
+          if (diff === 0) diff = b.enemy.progress - a.enemy.progress;
+        } else if (tower.priority === 'NEAREST') {
+          diff = a.dist - b.dist;
+        }
         return diff !== 0 ? diff : (a.enemy.uid - b.enemy.uid);
       });
       return candidates.map(c => c.enemy);
@@ -6194,8 +6677,9 @@
       this.ctx.setTransform(sx, 0, 0, sy, 0, 0);
 
       if (this.screenShake > 0) {
-        const shakeX = (Math.random() * 2 - 1) * this.screenShake;
-        const shakeY = (Math.random() * 2 - 1) * this.screenShake;
+        const shakeMult = (this.settings && this.settings.screenShake !== undefined) ? this.settings.screenShake : 1.0;
+        const shakeX = (Math.random() * 2 - 1) * this.screenShake * shakeMult;
+        const shakeY = (Math.random() * 2 - 1) * this.screenShake * shakeMult;
         this.ctx.translate(shakeX, shakeY);
       }
 
@@ -6403,7 +6887,9 @@
       this.drawCyberButton(t.x - 115, t.y - 18, 75, 36, "SOTISH", "#ff1744", `+${refund}g`, "🗑️", false);
 
       // Right Priority Button
-      this.drawCyberButton(t.x + 40, t.y - 18, 75, 36, t.priority.slice(0, 6), "#7c4dff", "NISHON", "🎯", false);
+      const prioLabels = { 'FIRST': "1-CHI", 'LAST': "SO'NGGI", 'STRONGEST': "KUCHLI", 'WEAKEST': "KUCHSIZ", 'FLYERS_FIRST': "UCHUVCHI", 'NEAREST': "YAQIN" };
+      const pLabel = prioLabels[t.priority] || t.priority;
+      this.drawCyberButton(t.x + 40, t.y - 18, 75, 36, pLabel, "#7c4dff", "NISHON", "🎯", false);
 
       // Bottom Close Button
       this.drawCyberButton(t.x - 35, t.y + 40, 70, 28, "YOPISH", "#90a4ae", "", "✕", false);
@@ -6534,12 +7020,12 @@
     }
 
     renderLanes() {
-      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
+      const lanes = (this.gameMode === 'CUSTOM') ? (this.currentMapLanes || [this.editorWaypoints]) : (MAPS[this.currentMapIndex] ? MAPS[this.currentMapIndex].lanes : []);
       const ctx = this.ctx;
       const time = performance.now() * 0.003;
       const pbr = this.pbrPatterns || {};
 
-      for (const lane of map.lanes) {
+      for (const lane of lanes) {
         if (!lane || lane.length < 2) continue;
 
         // 1. Reinforced Trench Roadway (Dark Heavy Composite Base)
@@ -6595,7 +7081,7 @@
       }
 
       // Holographic Quantum Warp Gate at Spawn
-      for (const lane of map.lanes) {
+      for (const lane of lanes) {
         if (!lane || lane.length < 2) continue;
         const sp = lane[0];
         ctx.save();
@@ -6733,8 +7219,8 @@
 
     renderUnitShadows() {
       const ctx = this.ctx;
-      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
-      const base = map.lanes[0][map.lanes[0].length - 1];
+      const lanes = (this.gameMode === 'CUSTOM') ? (this.currentMapLanes || [this.editorWaypoints]) : (MAPS[this.currentMapIndex] ? MAPS[this.currentMapIndex].lanes : []);
+      const base = lanes[0] ? lanes[0][lanes[0].length - 1] : { x: 1152, y: 448 };
 
       // 1. Base Core Heavy Contact Shadow
       const baseShadowGrad = ctx.createRadialGradient(base.x + 4, base.y + 8, 10, base.x + 4, base.y + 8, 48);
@@ -6795,8 +7281,8 @@
     }
 
     renderBaseCore() {
-      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
-      const base = map.lanes[0][map.lanes[0].length - 1];
+      const lanes = (this.gameMode === 'CUSTOM') ? (this.currentMapLanes || [this.editorWaypoints]) : (MAPS[this.currentMapIndex] ? MAPS[this.currentMapIndex].lanes : []);
+      const base = lanes[0] ? lanes[0][lanes[0].length - 1] : { x: 1152, y: 448 };
       const time = performance.now() * 0.002;
       const ctx = this.ctx;
       const hpPct = Math.max(0, this.baseHp / this.maxBaseHp);
@@ -7206,6 +7692,36 @@
       ctx.ellipse(0, 3, rx, ry, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
+    }
+
+    drawFootstepContactShadow(ctx, x, y, rx, ry, alpha = 0.55) {
+      ctx.save();
+      const shGrad = ctx.createRadialGradient(x, y, 1, x, y, Math.max(rx, ry));
+      shGrad.addColorStop(0, `rgba(0, 0, 0, ${alpha})`);
+      shGrad.addColorStop(0.5, `rgba(0, 0, 0, ${(alpha * 0.45).toFixed(2)})`);
+      shGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = shGrad;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    spawnFootstepImpact(x, y, angle) {
+      for (let i = 0; i < 4; i++) {
+        this.particles.push({
+          x: x + (Math.random() * 8 - 4),
+          y: y + (Math.random() * 8 - 4),
+          vx: (Math.random() * 16 - 8),
+          vy: (Math.random() * 16 - 8),
+          color: (Math.random() > 0.6) ? "rgba(192, 132, 252, 0.45)" : "rgba(100, 116, 139, 0.40)",
+          size: 2.8,
+          growth: 4.5,
+          life: 0.26,
+          maxLife: 0.26
+        });
+      }
+      this.spawnFootprint(x, y, angle, false);
     }
 
     renderHeroMegatronBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath) {
@@ -7629,9 +8145,35 @@
       ctx.save();
       ctx.translate(h.x, h.y);
 
-      // Contact Ambient Occlusion Ground Shadow (Soft Multi-Stop)
-      const shadowStretch = 1.0 + Math.sin(h.walkAnim || 0) * 0.08;
-      this.drawUnitContactShadow(ctx, (h.mode === 'SIEGE' ? 36 : 26) * shadowStretch, (h.mode === 'SIEGE' ? 22 : 16) * shadowStretch, 0.65);
+      const activeSkin = this.selectedMechSkin || 'MEGATRON';
+      const isHero3D = (activeSkin === 'MEGATRON' && h.mode !== 'SIEGE' && typeof window !== 'undefined' && window.Hero3D && window.Hero3D.ready);
+      const isMoving = (Math.hypot(h.targetX - h.x, h.targetY - h.y) > 4);
+
+      // Contact Ambient Occlusion Ground Shadows
+      if (isHero3D) {
+        const footData = (typeof window.Hero3D.getFootData === 'function') ? window.Hero3D.getFootData() : { lPlant: 0.5, rPlant: 0.5 };
+        const lP = (footData && typeof footData.lPlant === 'number') ? footData.lPlant : 0.5;
+        const rP = (footData && typeof footData.rPlant === 'number') ? footData.rPlant : 0.5;
+
+        // Core soft pelvic contact shadow
+        this.drawUnitContactShadow(ctx, 32, 18, 0.55);
+
+        // Dual Dynamic Footstep Shadows (under Left and Right boots)
+        const lStride = Math.sin(h.walkAnim || 0) * 14;
+        this.drawFootstepContactShadow(ctx, -14, lStride, 12 + (1 - lP) * 4, 7 + (1 - lP) * 2, 0.22 + lP * 0.55);
+        this.drawFootstepContactShadow(ctx, 14, -lStride, 12 + (1 - rP) * 4, 7 + (1 - rP) * 2, 0.22 + rP * 0.55);
+
+        // Footstep impact effect on ground contact
+        if (footData && footData.justStepped && isMoving) {
+          const stepOffset = (footData.justStepped === 'L') ? -14 : 14;
+          const stepX = h.x + Math.cos((h.angle || 0) + Math.PI/2) * stepOffset;
+          const stepY = h.y + Math.sin((h.angle || 0) + Math.PI/2) * stepOffset;
+          this.spawnFootstepImpact(stepX, stepY, h.angle || 0);
+        }
+      } else {
+        const shadowStretch = 1.0 + Math.sin(h.walkAnim || 0) * 0.08;
+        this.drawUnitContactShadow(ctx, (h.mode === 'SIEGE' ? 42 : 36) * shadowStretch, (h.mode === 'SIEGE' ? 26 : 22) * shadowStretch, 0.7);
+      }
 
       // Ultimate Holographic Mandala Blade Storm
       if (h.ultActiveTime > 0) {
@@ -7652,7 +8194,7 @@
         ctx.strokeStyle = (this.selectedMechSkin === 'MEGATRON') ? "#c084fc" : "#ffd600";
         ctx.lineWidth = 2.5;
         ctx.setLineDash([8, 4]);
-        ctx.beginPath(); ctx.arc(0, 0, 36, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, (this.selectedMechSkin === 'MEGATRON' && h.mode !== 'SIEGE') ? 44 : 36, 0, Math.PI * 2); ctx.stroke();
         ctx.setLineDash([]);
       }
 
@@ -7665,11 +8207,55 @@
       const idleBreath = Math.sin(performance.now() * 0.003) * 0.8;
       const tNow = performance.now();
       const pbr = this.pbrPatterns || {};
-      const activeSkin = this.selectedMechSkin || 'MEGATRON';
 
       if (activeSkin === 'MEGATRON') {
-        if (h.mode === 'SIEGE') this.renderHeroMegatronTank(ctx, h, pbr, walk, tNow);
-        else this.renderHeroMegatronBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
+        if (h.mode === 'SIEGE') {
+          this.renderHeroMegatronTank(ctx, h, pbr, walk, tNow);
+        } else if (typeof window !== 'undefined' && window.Hero3D && window.Hero3D.ready) {
+          // Unrotate 2D context so 3D model maintains upright tactical perspective
+          ctx.rotate(-ang);
+
+          const isDashing = (h.dashTimer > 0);
+          const isUlting = (h.ultActiveTime > 0);
+          const isSlashing = (h.slashAnim > 0);
+          const shootFlash = (h.shootFlash || 0);
+          const dashMult = isDashing ? 2.4 : 1.0;
+          const currentSpd = isMoving ? (h.speed * (this.hasAugment("hero_overdrive") ? 1.25 : 1.0) * (this.hasAugment("chronos_overdrive") ? 1.30 : 1.0) * dashMult) : 0;
+          window.Hero3D.update(this.lastDt || 0.016, isMoving, ang, shootFlash, isDashing, isUlting, currentSpd, isSlashing);
+          const hero3DImg = window.Hero3D.renderToCanvas();
+
+          // Mighty Hero 3D tactical unit: 120x120 pixels (Super-Sampled SSAA from 200x200 WebGL buffer)
+          // Pivot: (-60, -82) aligns boots directly with ground contact shadow at (0, 0)
+          ctx.drawImage(hero3DImg, -60, -82, 120, 120);
+
+          // Dark Energon Blade Gauntlet Melee Slash FX (180 deg energetic arc)
+          if (isSlashing) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(192, 132, 252, 0.95)";
+            ctx.lineWidth = 5;
+            ctx.shadowColor = "#c084fc";
+            ctx.shadowBlur = 18;
+            const sweepProg = Math.max(0, Math.min(1.0, (0.35 - h.slashAnim) / 0.35));
+            const arcStart = -Math.PI * 0.45 + sweepProg * Math.PI * 0.35;
+            const arcEnd = arcStart + Math.PI * 0.75;
+            ctx.beginPath();
+            ctx.arc(0, 0, 46, arcStart, arcEnd);
+            ctx.stroke();
+
+            // Inner hot white cutting laser
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 43, arcStart + 0.08, arcEnd - 0.08);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Restore rotation for floating health bar
+          ctx.rotate(ang);
+        } else {
+          this.renderHeroMegatronBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
+        }
       } else if (activeSkin === 'OPTIMUS') {
         if (h.mode === 'SIEGE') this.renderHeroOptimusTruck(ctx, h, pbr, walk, tNow);
         else this.renderHeroOptimusBiped(ctx, h, pbr, walk, walkCycle, walkCos, tNow, idleBreath);
@@ -7683,9 +8269,9 @@
 
       // Floating Tactical Health & Energy Bar
       ctx.rotate(-ang);
-      const barW = 34;
+      const barW = 38;
       const bx = -barW / 2;
-      const by = -36;
+      const by = isHero3D ? -68 : -36;
 
       if (h.shieldDome && h.shieldDome.timer > 0) {
         const shPct = Math.max(0, h.shieldDome.hp / h.shieldDome.maxHp);
@@ -8390,6 +8976,26 @@
           this.ctx.fillStyle = "#ffffff";
           this.ctx.fillRect(2, -1.5, 4, 3);
           this.ctx.restore();
+        } else if (p.type === 'fusion_blast') {
+          // Cybertronian Dark Energon Heavy Plasma Bolt
+          const pAngle = p.target ? Math.atan2(p.target.y - p.y, p.target.x - p.x) : 0;
+          this.ctx.save();
+          this.ctx.translate(p.x, p.y);
+          this.ctx.rotate(pAngle);
+
+          // Fiery crimson/purple plasma wake
+          this.ctx.fillStyle = "rgba(239, 68, 68, 0.45)";
+          this.ctx.fillRect(-14, -4, 14, 8);
+
+          // High-energy Dark Energon core
+          this.ctx.fillStyle = "#ef4444";
+          this.ctx.fillRect(-6, -3, 16, 6);
+
+          // White-hot plasma dart
+          this.ctx.fillStyle = "#ffffff";
+          this.ctx.fillRect(-2, -1.5, 12, 3);
+
+          this.ctx.restore();
         } else if (p.type === 'missile') {
           // Micro-Missile with Rocket Exhaust Flame
           this.ctx.save();
@@ -8427,8 +9033,8 @@
 
     renderDynamicLightingLayer() {
       const ctx = this.ctx;
-      const map = (this.gameMode === 'CUSTOM') ? { lanes: [this.editorWaypoints] } : MAPS[this.currentMapIndex];
-      const base = map.lanes[0][map.lanes[0].length - 1];
+      const lanes = (this.gameMode === 'CUSTOM') ? (this.currentMapLanes || [this.editorWaypoints]) : (MAPS[this.currentMapIndex] ? MAPS[this.currentMapIndex].lanes : []);
+      const base = lanes[0] ? lanes[0][lanes[0].length - 1] : { x: 1152, y: 448 };
       const time = performance.now() * 0.002;
 
       ctx.save();
@@ -8502,6 +9108,15 @@
           ctx.fillStyle = mLight;
           ctx.beginPath();
           ctx.arc(p.x, p.y, 26, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.type === 'fusion_blast') {
+          const fbLight = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, 30);
+          fbLight.addColorStop(0, "rgba(255, 60, 60, 0.95)");
+          fbLight.addColorStop(0.5, "rgba(220, 38, 38, 0.45)");
+          fbLight.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = fbLight;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -8946,76 +9561,64 @@
     }
 
     renderMobileFloatingButtons() {
-      const ctx = this.ctx;
-
-      // 1. Floating Hero Ult Thumb Action Button (Bottom Right)
-      const isUltReady = this.hero.currentUltCd <= 0;
-      const ux = 1210;
-      const uy = 540;
-      const ur = 36;
-
-      ctx.save();
-      ctx.fillStyle = isUltReady ? "#1c355e" : "#131a29";
-      ctx.beginPath();
-      ctx.arc(ux, uy, ur, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = isUltReady ? "#ffd600" : "#455a64";
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      if (isUltReady) {
-        ctx.strokeStyle = "rgba(255, 214, 0, 0.4)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(ux, uy, ur + 4, 0, Math.PI * 2);
-        ctx.stroke();
-      } else {
-        // Cooldown sweep arc
-        const pct = this.hero.currentUltCd / this.hero.ultCd;
-        ctx.fillStyle = "rgba(255, 23, 68, 0.35)";
-        ctx.beginPath();
-        ctx.moveTo(ux, uy);
-        ctx.arc(ux, uy, ur, -Math.PI / 2, -Math.PI / 2 + pct * Math.PI * 2);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      ctx.fillStyle = isUltReady ? "#ffd600" : "#90a4ae";
-      ctx.font = "bold 13px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("⚡ ULT", ux, uy + 4);
-      if (!isUltReady) {
-        ctx.fillStyle = "#ff1744";
-        ctx.font = "bold 10px monospace";
-        ctx.fillText(`${Math.ceil(this.hero.currentUltCd)}s`, ux, uy + 17);
-      }
-      ctx.restore();
-
-      // 2. Floating Wave / Speed Thumb Action Button (Bottom Right, above Ult)
-      const wx = 1210;
-      const wy = 450;
-      const wr = 30;
-
-      ctx.save();
-      ctx.fillStyle = this.waveActive ? "#162b47" : "#00e5ff";
-      ctx.beginPath();
-      ctx.arc(wx, wy, wr, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#00e5ff";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = this.waveActive ? "#00e5ff" : "#05070d";
-      ctx.font = "bold 11px monospace";
-      ctx.textAlign = "center";
-      if (!this.waveActive) {
-        ctx.fillText("▶ START", wx, wy + 4);
-      } else {
-        ctx.fillText(`${this.speed}x SPD`, wx, wy + 4);
-      }
-      ctx.restore();
+      // Battlefield clarity: Floating mobile circles removed to keep arena unobstructed
     }
 
+    renderCyberIslandFrame(x, y, w, h, borderColor = "rgba(0, 229, 255, 0.5)", glowColor = "rgba(0, 229, 255, 0.25)") {
+      const ctx = this.ctx;
+      const cut = 8;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x + cut, y);
+      ctx.lineTo(x + w - cut, y);
+      ctx.lineTo(x + w, y + cut);
+      ctx.lineTo(x + w, y + h - cut);
+      ctx.lineTo(x + w - cut, y + h);
+      ctx.lineTo(x + cut, y + h);
+      ctx.lineTo(x, y + h - cut);
+      ctx.lineTo(x, y + cut);
+      ctx.closePath();
+
+      // Frosted Glassmorphism gradient
+      const grad = ctx.createLinearGradient(x, y, x, y + h);
+      grad.addColorStop(0, "rgba(10, 20, 36, 0.90)");
+      grad.addColorStop(0.5, "rgba(6, 12, 22, 0.94)");
+      grad.addColorStop(1, "rgba(3, 7, 14, 0.97)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Ambient glow and border
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Top specular glass highlight
+      ctx.save();
+      ctx.clip();
+      const spec = ctx.createLinearGradient(x, y, x, y + h * 0.45);
+      spec.addColorStop(0, "rgba(255, 255, 255, 0.16)");
+      spec.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+      ctx.fillStyle = spec;
+      ctx.fillRect(x, y, w, h * 0.45);
+
+      // Sci-fi corner brackets
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 2.0;
+      // top-left
+      ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + cut); ctx.lineTo(x + cut, y); ctx.lineTo(x + 12, y); ctx.stroke();
+      // top-right
+      ctx.beginPath(); ctx.moveTo(x + w - 12, y); ctx.lineTo(x + w - cut, y); ctx.lineTo(x + w, y + cut); ctx.lineTo(x + w, y + 10); ctx.stroke();
+      // bottom-left
+      ctx.beginPath(); ctx.moveTo(x, y + h - 10); ctx.lineTo(x, y + h - cut); ctx.lineTo(x + cut, y + h); ctx.lineTo(x + 12, y + h); ctx.stroke();
+      // bottom-right
+      ctx.beginPath(); ctx.moveTo(x + w - 12, y + h); ctx.lineTo(x + w - cut, y + h); ctx.lineTo(x + w, y + h - cut); ctx.lineTo(x + w, y + h - 10); ctx.stroke();
+
+      ctx.restore();
+      ctx.restore();
+    }
 
     addCombatFeed(tag, text, col = "#00e5ff", icon = "⚡") {
       if (!this.combatFeed) this.combatFeed = [];
@@ -9050,83 +9653,139 @@
 
     renderTopHUD() {
       const ctx = this.ctx;
-      // Frosted Glassmorphism Top Bar
-      const topGrad = ctx.createLinearGradient(0, 0, 0, 60);
-      topGrad.addColorStop(0, "rgba(12, 20, 36, 0.98)");
-      topGrad.addColorStop(1, "rgba(6, 11, 20, 0.95)");
-      ctx.fillStyle = topGrad;
-      ctx.fillRect(0, 0, this.width, 60);
+      const t = this.uiTime || 0;
 
-      // Glowing Neon Bottom Border
-      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, 60);
-      ctx.lineTo(this.width, 60);
-      ctx.stroke();
+      // ==========================================
+      // ISLAND 1: COMMAND CORE & ENERGY (LEFT)
+      // ==========================================
+      // ISLAND 1: COMMAND CORE & ENERGY (LEFT)
+      // ==========================================
+      const i1x = 14, i1y = 10, i1w = 286, i1h = 46;
+      this.renderCyberIslandFrame(i1x, i1y, i1w, i1h, "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
 
       // Core Health Meter with Segmented Armor Pips
+      ctx.save();
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "bold 12px monospace";
+      ctx.font = "bold 12px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`⬢ ${this.t("core").toUpperCase()}: ${this.baseHp}/${this.maxBaseHp}`, 16, 22);
+      ctx.fillText(`🛡️ BAZA: ${this.baseHp}/${this.maxBaseHp}`, i1x + 12, i1y + 17);
 
       const hpPct = Math.max(0, this.baseHp / this.maxBaseHp);
-      const barW = 125;
+      const barW = 120;
       const pips = 10;
       ctx.fillStyle = "rgba(10, 18, 30, 0.9)";
-      ctx.fillRect(16, 30, barW, 14);
+      ctx.fillRect(i1x + 12, i1y + 25, barW, 13);
       ctx.strokeStyle = "#37474f";
       ctx.lineWidth = 1;
-      ctx.strokeRect(16, 30, barW, 14);
+      ctx.strokeRect(i1x + 12, i1y + 25, barW, 13);
 
       const fillPips = Math.round(hpPct * pips);
       const pipW = (barW - 4 - (pips - 1) * 2) / pips;
       for (let p = 0; p < pips; p++) {
-        const px = 18 + p * (pipW + 2);
+        const px = i1x + 14 + p * (pipW + 2);
         if (p < fillPips) {
           ctx.fillStyle = hpPct > 0.4 ? "#00e5ff" : (hpPct > 0.2 ? "#ffd600" : "#ff1744");
         } else {
-          ctx.fillStyle = "rgba(40, 55, 75, 0.4)";
+          ctx.fillStyle = "rgba(40, 55, 75, 0.35)";
         }
-        ctx.fillRect(px, 32, pipW, 10);
+        ctx.fillRect(px, i1y + 27, pipW, 9);
       }
 
-      // Currency / Tactical Gold
+      // Vertical Divider inside Island 1 (x: 162)
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(i1x + 148, i1y + 8);
+      ctx.lineTo(i1x + 148, i1y + 38);
+      ctx.stroke();
+
+      // Energy Credits / Tactical Gold (Starts at x: 174)
       ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 16px monospace";
-      ctx.fillText(`⚡ ${this.gold}G`, 155, 36);
+      ctx.font = "900 16px 'Segoe UI', monospace";
+      ctx.textAlign = "left";
+      ctx.shadowColor = "rgba(255, 214, 0, 0.5)";
+      ctx.shadowBlur = 6;
+      ctx.fillText(`⚡ ${this.gold}G`, i1x + 160, i1y + 25);
+      ctx.shadowBlur = 0;
 
-      // Score
-      ctx.fillStyle = "#90a4ae";
-      ctx.font = "11px monospace";
-      ctx.fillText(`PTS: ${this.score}`, 240, 36);
+      ctx.fillStyle = "#78909c";
+      ctx.font = "bold 9px monospace";
+      const goldSub = (this.lang === 'ru') ? "КРЕДИТЫ" : ((this.lang === 'en') ? "CREDITS" : "KREDITLAR");
+      ctx.fillText(goldSub, i1x + 162, i1y + 38);
+      ctx.restore();
 
-      // Wave Meter
+
+      // ==========================================
+      // ISLAND 2: TACTICAL WAVE DISPATCHER (CENTER)
+      // ==========================================
+      const i2x = 440, i2y = 10, i2w = 400, i2h = 46;
+      const isWaveActive = this.waveActive;
+      const borderCol2 = isWaveActive ? "rgba(255, 23, 68, 0.55)" : "rgba(0, 230, 118, 0.45)";
+      const glowCol2 = isWaveActive ? "rgba(255, 23, 68, 0.25)" : "rgba(0, 230, 118, 0.2)";
+      this.renderCyberIslandFrame(i2x, i2y, i2w, i2h, borderCol2, glowCol2);
+
+      // Left Wave Badge
+      ctx.save();
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 14px monospace";
+      ctx.font = "900 13px 'Segoe UI', monospace";
       const maxWStr = (this.maxWaves > 50) ? "∞" : this.maxWaves;
-      ctx.fillText(`WAVE ${this.wave}/${maxWStr}`, 380, 36);
+      const waveWord = (this.lang === 'ru') ? "ВОЛНА" : ((this.lang === 'uz') ? "TO'LQIN" : "WAVE");
+      ctx.fillText(`${waveWord} ${this.wave}/${maxWStr}`, i2x + 60, i2y + 22);
 
-      // Start / Wave Action Cyber Button
-      const isWaveActive = this.waveActive;
-      const waveLabel = isWaveActive ? `⚔ JANGDA (${this.enemies.length})` : `▶ JANG [${Math.ceil(this.waveCountdown)}s]`;
-      this.drawCyberButton(450, 10, 160, 40, waveLabel, isWaveActive ? "#ff1744" : "#00e676", isWaveActive ? "HOSTILES IN BOUND" : "ENGAGE WAVE", "", !isWaveActive);
+      ctx.fillStyle = "#00e5ff";
+      ctx.font = "bold 9px monospace";
+      const sectorWord = (this.lang === 'ru') ? "СЕКТОР" : "SEKTOR";
+      ctx.fillText(`${sectorWord} ${this.currentMapIndex + 1}`, i2x + 60, i2y + 36);
+      ctx.restore();
 
-      // Mode & Map Name displayed cleanly above action button
-      ctx.fillStyle = "#546e7a";
-      ctx.font = "9px monospace";
-      ctx.textAlign = "left";
-      const mapName = (this.gameMode === 'CUSTOM') ? "CUSTOM MAP" : MAPS[this.currentMapIndex].name.toUpperCase();
-      ctx.fillText(`${mapName}`, 240, 48);
+      // Vertical Divider inside Island 2
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(i2x + 120, i2y + 8);
+      ctx.lineTo(i2x + 120, i2y + 38);
+      ctx.stroke();
 
-      // Ergonomic Wide Action Cyber Buttons
-      this.drawCyberButton(625, 9, 90, 42, `${this.speed}x SPEED`, this.speed > 1 ? "#ffd600" : "#00e5ff", "TEMPO", "⏩", this.speed > 1);
-      this.drawCyberButton(725, 9, 125, 42, "SOZLAMALAR", "#00e5ff", "SETTINGS", "⚙️", false);
-      this.drawCyberButton(860, 9, 105, 42, this.state === 'PAUSED' ? "DAVOM" : "PAUZA", this.state === 'PAUSED' ? "#ffd600" : "#00e5ff", "PAUSE", "⏸", false);
-      this.drawCyberButton(975, 9, 110, 42, "← MENYU", "#ff1744", "ABORT", "🚪", false);
-      this.drawCyberButton(1095, 9, 165, 42, "🕹️ 3D PILOT", "#e040fb", "TPS BATTLE", "🎮", false);
+      // Right Interactive Wave Engage Button
+      const waveLabel = isWaveActive ?
+        ((this.lang === 'ru') ? `⚔ В БОЮ (${this.enemies.length})` : ((this.lang === 'uz') ? `⚔ JANGDA (${this.enemies.length})` : `⚔ IN BATTLE (${this.enemies.length})`)) :
+        ((this.lang === 'ru') ? `▶ СТАРТ [${Math.ceil(this.waveCountdown)}s]` : ((this.lang === 'uz') ? `▶ JANG [${Math.ceil(this.waveCountdown)}s]` : `▶ WAVE [${Math.ceil(this.waveCountdown)}s]`));
+
+      const waveSub = isWaveActive ?
+        ((this.lang === 'ru') ? "АТАКА ВРАГОВ" : ((this.lang === 'uz') ? "DUSHMANLAR HUJUMI" : "HOSTILES INBOUND")) :
+        ((this.lang === 'ru') ? "НАЧАТЬ ВОЛНУ" : ((this.lang === 'uz') ? "TO'LQINNI BOSHLASH" : "ENGAGE NEXT WAVE"));
+
+      const waveColor = isWaveActive ? "#ff1744" : "#00e676";
+      this.drawCyberButton(i2x + 126, i2y + 4, 268, 38, waveLabel, waveColor, waveSub, "", !isWaveActive);
+
+
+      // ==========================================
+      // ISLAND 3: TACTICAL CONTROL CONSOLE (RIGHT)
+      // ==========================================
+      // Standalone Fullscreen Toggle Capsule for Web Players (x: 994, y: 10, w: 56, h: 46)
+      const isFS = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+      this.renderCyberIslandFrame(994, 10, 56, 46, isFS ? "rgba(255, 214, 0, 0.45)" : "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
+      this.drawCyberButton(998, 14, 48, 38, isFS ? "CHIQ" : "FULL", isFS ? "#ffd600" : "#00e5ff", "", "⛶", isFS);
+
+      const i3x = 1056, i3y = 10, i3w = 210, i3h = 46;
+      this.renderCyberIslandFrame(i3x, i3y, i3w, i3h, "rgba(0, 229, 255, 0.45)", "rgba(0, 229, 255, 0.2)");
+
+      // 1. Tempo / Speed Capsule (Single bold centered line, no squishing)
+      const isHighSpeed = this.speed > 1;
+      const speedIcon = this.speed > 2 ? "🔥" : (this.speed > 1 ? "⚡" : "⏩");
+      this.drawCyberButton(i3x + 6, i3y + 4, 64, 38, `${this.speed}x`, isHighSpeed ? "#ffd600" : "#00e5ff", "", speedIcon, isHighSpeed);
+
+      // 2. Settings Capsule (Single bold centered line)
+      const sozWord = (this.lang === 'ru') ? "НАСТР" : ((this.lang === 'uz') ? "SOZ" : "SET");
+      this.drawCyberButton(i3x + 74, i3y + 4, 64, 38, sozWord, "#00e5ff", "", "⚙️", false);
+
+      // 3. Pause Capsule (Single bold centered line)
+      const isPaused = (this.state === 'PAUSED');
+      const pauseLabel = isPaused ?
+        ((this.lang === 'ru') ? "ПУСК" : ((this.lang === 'uz') ? "DAVOM" : "PLAY")) :
+        ((this.lang === 'ru') ? "ПАУЗА" : ((this.lang === 'uz') ? "PAUZA" : "PAUSE"));
+      this.drawCyberButton(i3x + 142, i3y + 4, 62, 38, pauseLabel, isPaused ? "#ffd600" : "#00e5ff", "", isPaused ? "▶" : "⏸", isPaused);
     }
 
     renderMiniButton(x, y, w, h, text, color = "#00e5ff") {
@@ -9398,31 +10057,31 @@
         }
       } else {
         // Crisp Centered Compact Layout with Auto-fitting for Grid and Action Buttons
-        const titleY = hasSub ? by + bh * 0.42 : by + bh * 0.5 + 4;
+        const titleY = hasSub ? by + Math.floor(bh * 0.38) : by + Math.floor(bh * 0.5) + 4;
 
         ctx.fillStyle = (isHighlighted || isHovered) ? "#ffffff" : color;
-        let fontSize = Math.min(13, Math.max(9, Math.floor(bh * 0.32)));
+        let fontSize = hasSub ? Math.min(12, Math.max(8.5, Math.floor(bh * 0.28))) : Math.min(14, Math.max(9, Math.floor(bh * 0.34)));
         ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
         ctx.textAlign = "center";
         const fullTitle = icon ? `${icon} ${text}` : text;
         const maxW = bw - 12;
         let textW = ctx.measureText ? ctx.measureText(fullTitle).width : 60;
         if (textW > maxW && maxW > 0) {
-          fontSize = Math.max(8.5, Math.floor(fontSize * (maxW / textW)));
+          fontSize = Math.max(8, Math.floor(fontSize * (maxW / textW)));
           ctx.font = `bold ${fontSize}px 'Segoe UI', monospace`;
         }
         ctx.fillText(fullTitle, bx + bw / 2, titleY);
 
         if (hasSub) {
           ctx.fillStyle = (isHighlighted || isHovered) ? "#cfd8dc" : "#78909c";
-          let subFontSize = Math.min(9.5, Math.max(7.5, Math.floor(bh * 0.22)));
+          let subFontSize = Math.min(9, Math.max(7, Math.floor(bh * 0.20)));
           ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
           let subW = ctx.measureText ? ctx.measureText(subtext).width : 50;
           if (subW > maxW && maxW > 0) {
-            subFontSize = Math.max(7, Math.floor(subFontSize * (maxW / subW)));
+            subFontSize = Math.max(6.5, Math.floor(subFontSize * (maxW / subW)));
             ctx.font = `bold ${subFontSize}px 'Segoe UI', monospace`;
           }
-          ctx.fillText(subtext, bx + bw / 2, by + bh * 0.78);
+          ctx.fillText(subtext, bx + bw / 2, by + Math.floor(bh * 0.76));
         }
       }
 
@@ -9692,7 +10351,9 @@
         const isAiming = (this.aimingSkill === k);
         const color = isAiming ? "#ffeb3b" : (isReady ? meta.color : "#37474f");
 
-        this.renderAbilitySlot(sx, 628, 40, 78, meta.icon, meta.label, meta.sub, color, isReady || isAiming, s.currentCd / s.cd);
+        const isCooldown = (s.currentCd > 0);
+        const subDisplay = isCooldown ? `${Math.ceil(s.currentCd)}s` : meta.sub;
+        this.renderAbilitySlot(sx, 628, 40, 78, meta.icon, meta.label, subDisplay, color, isReady || isAiming, s.currentCd / s.cd);
 
         // Active Aiming Highlight Ring
         if (isAiming) {
@@ -9703,16 +10364,6 @@
           ctx.shadowBlur = 8;
           ctx.strokeRect(sx, 628, 40, 78);
           ctx.restore();
-        }
-
-        // Active Cooldown Countdown Text
-        if (s.currentCd > 0) {
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 11px monospace";
-          ctx.textAlign = "center";
-          ctx.shadowColor = "rgba(0,0,0,0.9)";
-          ctx.shadowBlur = 4;
-          ctx.fillText(`${Math.ceil(s.currentCd)}s`, sx + 20, 696);
         }
       }
 
@@ -9771,7 +10422,9 @@
         this.drawCyberButton(795, 630, 115, 72, `SOTISH`, "#ff1744", `+${refund}g QAYTARISH`, "🗑️", true);
 
         // Priority button
-        this.drawCyberButton(920, 630, 120, 72, `NISHON`, "#00e5ff", t.priority.toUpperCase(), "🎯", false);
+        const prioLabels = { 'FIRST': "1-CHI", 'LAST': "SO'NGGI", 'STRONGEST': "KUCHLI", 'WEAKEST': "KUCHSIZ", 'FLYERS_FIRST': "UCHUVCHI", 'NEAREST': "YAQIN" };
+        const pLabel = prioLabels[t.priority] || t.priority;
+        this.drawCyberButton(920, 630, 120, 72, pLabel, "#00e5ff", "NISHON TARTIBI", "🎯", false);
 
         // Close button
         this.drawCyberButton(1050, 630, 52, 72, "✕", "#90a4ae", "YOPISH", "", false);
@@ -9915,6 +10568,10 @@
       const curPage = this.achievementsPage || 0;
       this.renderMiniButton(860, 14, 120, 42, "◀ 1-SAHIFA", curPage === 0 ? "#ffd600" : "#78909c");
       this.renderMiniButton(990, 14, 120, 42, "2-SAHIFA ▶", curPage === 1 ? "#ffd600" : "#78909c");
+
+      // Fullscreen Toggle in Achievements
+      const isFSAch = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+      this.renderMiniButton(1130, 14, 85, 42, isFSAch ? "CHIQ" : "⛶ FULL", isFSAch ? "#ffd600" : "#00e5ff");
 
       // Achievement Cards (10 per page, 2 columns x 5 rows)
       const pageList = allList.slice(curPage * 10, curPage * 10 + 10);
@@ -10063,25 +10720,30 @@
       }
 
       // Title & Subtitle Header
+      const isUz = this.lang === 'uz';
+      const isRu = this.lang === 'ru';
+
       ctx.save();
       ctx.shadowColor = "rgba(255, 214, 0, 0.8)";
       ctx.shadowBlur = 18;
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffd600";
       ctx.font = "900 32px 'Segoe UI', monospace";
-      ctx.fillText("⚡ KIBER-AUGMENT VA TAKTIK PROTOKOL TANLOVI", 640, 85);
+      const headerTitle = isUz ? "⚡ KIBER-AUGMENT VA TAKTIK PROTOKOL TANLOVI" : (isRu ? "⚡ КИБЕР-АУГМЕНТЫ И ТАКТИЧЕСКИЕ ПРОТОКОЛЫ" : "⚡ CYBER-AUGMENT & TACTICAL PROTOCOL DRAFT");
+      ctx.fillText(headerTitle, 640, 85);
       ctx.restore();
 
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("Jang davomida bazani kuchaytiruvchi 1 ta kiber-karta yoki taktik modulni tanlang", 640, 122);
+      const headerSubtitle = isUz ? "Jang davomida bazani kuchaytiruvchi 1 ta kiber-karta yoki taktik modulni tanlang" : (isRu ? "Выберите 1 кибер-карту или тактический модуль для усиления базы" : "Select 1 cyber-card or tactical module to amplify battlefield defenses");
+      ctx.fillText(headerSubtitle, 640, 122);
 
       // Rarity Tier Profiles
       const tiers = [
-        { label: "▲ RARE PROTOCOL ▲", color: "#00e5ff", glow: "rgba(0, 229, 255, 0.6)" },
-        { label: "◆ EPIC AUGMENT ◆", color: "#d500f9", glow: "rgba(213, 0, 249, 0.6)" },
-        { label: "★ LEGENDARY APEX ★", color: "#ffd600", glow: "rgba(255, 214, 0, 0.7)" }
+        { label: isUz ? "▲ NODIR PROTOKOL ▲" : (isRu ? "▲ РЕДКИЙ ПРОТОКОЛ ▲" : "▲ RARE PROTOCOL ▲"), color: "#00e5ff", glow: "rgba(0, 229, 255, 0.6)" },
+        { label: isUz ? "◆ EPIK AUGMENT ◆" : (isRu ? "◆ ЭПИЧЕСКИЙ АУГМЕНТ ◆" : "◆ EPIC AUGMENT ◆"), color: "#d500f9", glow: "rgba(213, 0, 249, 0.6)" },
+        { label: isUz ? "★ AFSONAVIY APEX ★" : (isRu ? "★ ЛЕГЕНДАРНЫЙ АПЕКС ★" : "★ LEGENDARY APEX ★"), color: "#ffd600", glow: "rgba(255, 214, 0, 0.7)" }
       ];
 
       for (let i = 0; i < this.draftCards.length; i++) {
@@ -10151,10 +10813,18 @@
         ctx.textAlign = "center";
         ctx.fillText(c.icon || "⚡", cx + cw / 2, cy + 120);
 
-        // Title
+        // Title with overflow auto-fitting
         ctx.fillStyle = tier.color;
-        ctx.font = "bold 18px 'Segoe UI', monospace";
-        ctx.fillText(c.title || "AUGMENT", cx + cw / 2, cy + 190);
+        let titleFont = 18;
+        ctx.font = `bold ${titleFont}px 'Segoe UI', monospace`;
+        ctx.textAlign = "center";
+        const titleText = this.getAugmentTitle(c);
+        let titleW = ctx.measureText ? ctx.measureText(titleText).width : 100;
+        if (titleW > cw - 40 && cw > 40) {
+          titleFont = Math.max(12, Math.floor(titleFont * ((cw - 40) / titleW)));
+          ctx.font = `bold ${titleFont}px 'Segoe UI', monospace`;
+        }
+        ctx.fillText(titleText, cx + cw / 2, cy + 190);
 
         // Divider
         ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
@@ -10164,13 +10834,16 @@
         ctx.lineTo(cx + cw - 30, cy + 208);
         ctx.stroke();
 
-        // Multi-line Description
+        // Multi-line Description (Centered with clean 24px margins, guaranteed 0 overflow)
         ctx.fillStyle = "#cbd5e1";
         ctx.font = "13px 'Segoe UI', monospace";
-        this.wrapText(c.desc || "", cx + 24, cy + 236, cw - 48, 20);
+        const descText = this.getAugmentDesc(c);
+        this.wrapText(descText, cx + cw / 2, cy + 236, cw - 48, 20, "center");
 
         // Pulsing Selection Button
-        this.drawCyberButton(cx + 20, cy + 345, cw - 40, 52, "TANLASH VA FAOL QILISH", tier.color, "ACTIVATE PROTOCOL", "⚡", true);
+        const btnMain = isUz ? "TANLASH VA FAOL QILISH" : (isRu ? "ВЫБРАТЬ И АКТИВИРОВАТЬ" : "SELECT & ACTIVATE");
+        const btnSub = isUz ? "PROTOKOLNI YOQISH" : (isRu ? "АКТИВИРОВАТЬ ПРОТОКОЛ" : "ACTIVATE PROTOCOL");
+        this.drawCyberButton(cx + 20, cy + 345, cw - 40, 52, btnMain, tier.color, btnSub, "⚡", true);
       }
     }
 
@@ -12367,6 +13040,10 @@ getCodexDatabase() {
         ctx.fillText(d, dx + 52, 42);
       });
 
+      // Fullscreen Toggle Capsule in Map Select
+      const isFSMap = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+      this.renderMiniButton(1160, 20, 80, 34, isFSMap ? "CHIQ" : "⛶ FULL", isFSMap ? "#ffd600" : "#00e5ff");
+
       // 4. 10 Sector Cards
       for (let i = 0; i < MAPS.length; i++) {
         const m = MAPS[i];
@@ -12815,6 +13492,10 @@ getCodexDatabase() {
 
       this.renderMiniButton(1040, 14, 200, 38, `👤 NIK: ${this.playerName}`, "#ffd600");
 
+      // Fullscreen Toggle in Leaderboard
+      const isFSLB = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
+      this.renderMiniButton(950, 14, 75, 38, isFSLB ? "CHIQ" : "⛶ FULL", isFSLB ? "#ffd600" : "#00e5ff");
+
       // Commander Personal Best Banner (x: 40, y: 75, w: 1200, h: 48)
       const bx = 40, by = 75, bw = 1200, bh = 48;
       ctx.fillStyle = "rgba(14, 26, 48, 0.88)";
@@ -12934,21 +13615,29 @@ getCodexDatabase() {
       this.drawCyberButton(920, 605, 230, 56, "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
     }
 
-    wrapText(text, x, y, maxWidth, lineHeight) {
-      const words = text.split(' ');
+    wrapText(text, x, y, maxWidth, lineHeight, align = "left") {
+      if (!text) return;
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.textAlign = align;
+      const words = String(text).split(' ');
       let line = '';
+      let curY = y;
       for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + ' ';
-        const metrics = this.ctx.measureText(testLine);
+        const metrics = ctx.measureText(testLine);
         if (metrics.width > maxWidth && n > 0) {
-          this.ctx.fillText(line, x, y);
+          ctx.fillText(line.trim(), x, curY);
           line = words[n] + ' ';
-          y += lineHeight;
+          curY += lineHeight;
         } else {
           line = testLine;
         }
       }
-      this.ctx.fillText(line, x, y);
+      if (line.trim().length > 0) {
+        ctx.fillText(line.trim(), x, curY);
+      }
+      ctx.restore();
     }
 
     renderPauseModal() {
@@ -13066,7 +13755,7 @@ getCodexDatabase() {
       ctx.fillStyle = "#cfd8dc";
       ctx.font = "bold 13px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("OPERATSIYA MUVAFFAQIShIYATLI YAKUNLANDI • BAZA YADROSI XAVFSIZ", 640, 196);
+      ctx.fillText("OPERATSIYA MUVAFFAQIYATLI YAKUNLANDI • BAZA YADROSI XAVFSIZ", 640, 196);
 
       // 4 Telemetry Pods (y: 215, h: 62)
       const podW = 175;
@@ -13263,7 +13952,7 @@ getCodexDatabase() {
       const advice = (this.wave >= 20) ?
         "Titan Bosslarning qalin zirhini teshish uchun Railgun va Flame minoralari kombinatsiyasidan foydalaning!" :
         "Tezkor dushmanlarni to'xtatish uchun Cryo sekinlatgichlari va Tesla elektr zanjirlarini erta quring.";
-      ctx.fillText(advice, mx + 55, 335);
+      this.wrapText(advice, mx + 55, 335, mw - 110, 16, "left");
 
       // Action Buttons
       this.drawCyberButton(340, 410, 180, 52, this.t("retry"), isEndless ? "#e040fb" : "#ff1744", "RESTART SECTOR", "🔄", true);
@@ -13563,9 +14252,13 @@ getCodexDatabase() {
         pt.life -= dt;
         if (pt.life <= 0) t.particles.splice(i, 1);
       }
+      if (t.particles && t.particles.length > 100) t.particles.splice(0, t.particles.length - 100);
+      if (t.bullets && t.bullets.length > 80) t.bullets.splice(0, t.bullets.length - 80);
     }
 
     shoot3DTPS() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const t = this.tps3D;
       const p = t.player;
       if (p.isReloading || p.fireCd > 0) return;
@@ -13603,6 +14296,8 @@ getCodexDatabase() {
     }
 
     fire3DMissiles() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const t = this.tps3D;
       const p = t.player;
       if (p.missileCd > 0) return;
@@ -13634,6 +14329,8 @@ getCodexDatabase() {
     }
 
     fire3DEMP() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const t = this.tps3D;
       const p = t.player;
       if (p.empCd > 0) return;
@@ -13660,6 +14357,8 @@ getCodexDatabase() {
     }
 
     toggle3DMechMode() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const p = this.tps3D.player;
       p.mode = (p.mode === 'SIEGE') ? 'BIPED' : 'SIEGE';
       p.speed = (p.mode === 'SIEGE') ? 8.0 : 14.0;
@@ -13672,6 +14371,8 @@ getCodexDatabase() {
     }
 
     reload3DTPS() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const p = this.tps3D.player;
       if (p.isReloading || p.ammo === p.maxAmmo || p.reserveAmmo <= 0) return;
       p.isReloading = true;
@@ -13680,6 +14381,8 @@ getCodexDatabase() {
     }
 
     place3DTower() {
+      if (!this.tps3D) this.start3DTPSMode();
+      if (!this.tps3D || !this.tps3D.player) return;
       const t = this.tps3D;
       const p = t.player;
       const tx = p.x + Math.sin(p.yaw) * 4.5;
@@ -14280,9 +14983,21 @@ getCodexDatabase() {
 
   window.LastGridEngine = LastGridEngine;
 
-  window.addEventListener('DOMContentLoaded', () => {
+  function bootGame() {
+    if (window.lastGridEngine) return;
     window.lastGridEngine = new LastGridEngine();
-    if ('serviceWorker' in navigator) {
+    if (typeof window !== 'undefined' && (window.AndroidBridge || (window.location && window.location.protocol === 'file:'))) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let reg of regs) reg.unregister();
+        }).catch(() => {});
+      }
+      if ('caches' in window) {
+        caches.keys().then(keys => {
+          for (let k of keys) caches.delete(k);
+        }).catch(() => {});
+      }
+    } else if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
@@ -14313,6 +15028,14 @@ getCodexDatabase() {
     ['touchstart', 'touchend', 'pointerdown', 'click', 'keydown'].forEach(evt => {
       window.addEventListener(evt, unlockAudioPipeline, { passive: true });
     });
-  });
+  }
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootGame);
+    } else {
+      bootGame();
+    }
+  }
 
 })();

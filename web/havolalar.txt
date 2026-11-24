@@ -1,0 +1,31 @@
+================================================================================
+LOYIHA NOMI:
+Tower Defense: Last Grid & APEX-01 Transformer Mech Studio
+Versiya: v4.2.0 (Clean Cyber Deck, 3D Megatron & Web Fullscreen Reliz)
+Sana: 2026-11-24
+================================================================================
+
+1. VERCEL LIVE (BRAUZERDA O'YNACH UCHUN ASOSIY WEB HAVOLA):
+👉 https://last-grid-td.vercel.app
+
+2. ANDROID APK (TELEFONGA O'RNATISH UCHUN):
+https://last-grid-td.vercel.app/TowerDefense_LastGrid_v4.2.0.apk
+Qisqa universal havola:
+https://last-grid-td.vercel.app/last-grid.apk
+
+3. GITHUB REPOZITORIY HAVOLASI:
+https://github.com/nematjanoovv-max/UI_UX_18_11_2026
+
+4. 3D APEX-01 TRANSFORMER MECH STUDIYA (360°):
+https://last-grid-td.vercel.app/preview_character
+
+5. TO'LIQ OFLAYN O'YIN PAKETI (ZIP):
+https://last-grid-td.vercel.app/last-grid-offline-v2.zip
+
+================================================================================
+ASOSIY IMKONIYATLAR (v4.2.0):
+- 🌐 To'liq ekran (Fullscreen) rejimi — bitta tugma bilan polniy ekran qamrab olinadi.
+- 🤖 Yangi 3D Megatron kiber-dekoratsiya va silliq skeletal animatsiyalar.
+- 🎮 10 ta sektor, 5 ta minora, 8 dushman turi, 3D Mex roboti va real vaqtli tahlil tizimi.
+- 📲 PWA & Offline kesh — internet uzilganda ham o'yin to'xtovsiz ishlaydi.
+================================================================================

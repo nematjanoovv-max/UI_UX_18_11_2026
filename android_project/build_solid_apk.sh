@@ -38,9 +38,9 @@ ecj -encoding UTF-8 -cp "$ANDROID_JAR" -d "$DIR/build/classes" \
 echo "=== 5. Generating Dalvik Executable (classes.dex) ==="
 dx --dex --output="$DIR/build/classes.dex" "$DIR/build/classes"
 
-echo "=== 6. Packaging APK with resources and assets (uncompressed 3D models & audio) ==="
+echo "=== 6. Packaging APK with resources and assets ==="
 cd "$DIR"
-aapt package -f -M AndroidManifest.xml -S res -A assets -I "$ANDROID_JAR" -0 mp3 -0 wav -F "$DIR/build/app-unsigned.apk"
+aapt package -f -M AndroidManifest.xml -S res -A assets -I "$ANDROID_JAR" -0 mp3 -0 wav -0 wasm -0 pck -0 webp -0 woff2 -0 woff -F "$DIR/build/app-unsigned.apk"
 
 echo "=== 7. Adding classes.dex into APK ==="
 cd "$DIR/build"
@@ -83,11 +83,10 @@ echo "=== 11. Verifying Signature Schemes ==="
 apksigner verify --verbose "$FINAL_APK"
 
 echo "=== 12. Copying to aliases and web distributions ==="
-cp "$FINAL_APK" "$ROOT_DIR/TowerDefense_LastGrid_v4.1.0.apk"
 cp "$FINAL_APK" "$ROOT_DIR/last-grid.apk"
 mkdir -p "$ROOT_DIR/web"
 cp "$FINAL_APK" "$ROOT_DIR/web/"
-cp "$FINAL_APK" "$ROOT_DIR/web/TowerDefense_LastGrid_v4.1.0.apk"
+cp "$FINAL_APK" "$ROOT_DIR/web/TowerDefense_LastGrid_v4.2.0.apk"
 cp "$FINAL_APK" "$ROOT_DIR/web/last-grid.apk"
 
 echo "=== 13. Cleaning build cache ==="
