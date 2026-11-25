@@ -58,7 +58,49 @@
       heroUlt: "CYBER-SLASH (ULT)",
       analyticsTitle: "TACTICAL COMBAT ANALYTICS",
       draftTitle: "TACTICAL AUGMENT DRAFT",
-      draftSub: "SELECT 1 PROTOCOL PERK TO ACTIVATE"
+      draftSub: "SELECT 1 PROTOCOL PERK TO ACTIVATE",
+      paused: "TACTICAL PAUSE",
+      pauseDesc: "Combat halted. Select an option to resume or abort mission:",
+      resume: "RESUME COMBAT",
+      settings: "SETTINGS",
+      abort: "MAIN MENU",
+      confirmAbortTitle: "⚠️ ABORT MISSION?",
+      confirmAbortDesc: "Current battle progress and wave will be lost. Are you sure you want to return to headquarters?",
+      confirmYes: "EXIT TO HQ",
+      confirmNo: "STAY IN BATTLE",
+      tacticalSectors: "TACTICAL SECTORS",
+      campaignStars: "CAMPAIGN",
+      enterBattle: "ENTER BATTLE",
+      secured: "✔ SECURED",
+      hostile: "⚠ HOSTILE",
+      customLevel: "CUSTOM MAP",
+      playCustom: "PLAY CUSTOM",
+      editMap: "EDIT MAP",
+      achievementsTitle: "CYBER ACHIEVEMENTS",
+      achievementsEarned: "ACHIEVED",
+      achievementsClaimed: "CLAIMED",
+      page1: "PAGE 1",
+      page2: "PAGE 2",
+      claim: "CLAIM",
+      claimed: "CLAIMED",
+      leaderboardTitle: "APEX HALL OF FAME",
+      activeCommander: "ACTIVE COMMANDER",
+      rank: "RANK",
+      commander: "COMMANDER / HANDLE",
+      sector: "SECTOR",
+      score: "SCORE",
+      tier: "RANK TIER",
+      syncScores: "SYNC SCORES",
+      editHandle: "EDIT HANDLE",
+      noScores: "No leaderboard records yet. Tap sync to refresh!",
+      settingsTitle: "TACTICAL SETTINGS",
+      settingsSub: "CONTROLS • AUDIO • GRAPHICS • HAPTICS • DISPLAY • LANGUAGE",
+      audioTitle: "AUDIO & SOUND",
+      displayTitle: "DISPLAY & SCREEN",
+      hapticsTitle: "HAPTICS & SHAKE",
+      perfTitle: "PERFORMANCE & GFX",
+      langTitle: "INTERFACE LANGUAGE",
+      saveAndClose: "APPLY & CLOSE"
     },
     uz: {
       title: "TOWER DEFENSE: LAST GRID",
@@ -93,7 +135,49 @@
       heroUlt: "QAHRAMON ZARBASI (ULT)",
       analyticsTitle: "JANG TAHLILI VA DPS GRAFIKLARI",
       draftTitle: "TAKTIK KARTA TANLOVI",
-      draftSub: "FAOL QILISH UCHUN 1 TA PROTOKOLNI TANLANG"
+      draftSub: "FAOL QILISH UCHUN 1 TA PROTOKOLNI TANLANG",
+      paused: "TAKTIK PAUZA",
+      pauseDesc: "Jang to'xtatildi. Qaytish yoki menyuga chiqish uchun tugmani bosing:",
+      resume: "DAVOM ETISH",
+      settings: "SOZLAMALAR",
+      abort: "ASOSIY MENYUGA",
+      confirmAbortTitle: "⚠️ JANGNI TO'XTATISH?",
+      confirmAbortDesc: "Joriy jang progressi va to'lqin saqlanmaydi. Haqiqatan ham asosiy menyuga qaytmoqchimisiz?",
+      confirmYes: "HA, CHIQISH",
+      confirmNo: "YO'Q, QOLISH",
+      tacticalSectors: "TAKTIK SEKTORLAR",
+      campaignStars: "KAMPANIYA",
+      enterBattle: "JANGGA KIRISH",
+      secured: "✔ OCHILGAN",
+      hostile: "⚠ BLOKDA",
+      customLevel: "SHAXSIY XARITA",
+      playCustom: "MAXSUS O'YIN",
+      editMap: "TAHRIRLASH",
+      achievementsTitle: "KIBER-YUTUQLAR ZALI",
+      achievementsEarned: "ERISHILDI",
+      achievementsClaimed: "MUKOFOTLANDI",
+      page1: "1-SAHIFA",
+      page2: "2-SAHIFA",
+      claim: "OLISH",
+      claimed: "ERISHILDI",
+      leaderboardTitle: "APEX REYTINGLAR ZALI",
+      activeCommander: "FAOL KOMANDIR",
+      rank: "O'RIN",
+      commander: "KOMANDIR / HANDLE",
+      sector: "SEKTOR",
+      score: "TAKTIK BALL",
+      tier: "UNVON TIER",
+      syncScores: "YANGILASH",
+      editHandle: "NIKNI O'ZGARTIR",
+      noScores: "Hozircha reyting ma'lumotlari mavjud emas. Yangilash tugmasini bosing!",
+      settingsTitle: "TIZIM VA O'YIN SOZLAMALARI",
+      settingsSub: "BOSHQARUV • OVOZ • GRAFIKA • SILKINISH • EKRAN MOSLASHUVI • TIL",
+      audioTitle: "OVOZ VA MUSIQA",
+      displayTitle: "EKRAN VA DISPLAY",
+      hapticsTitle: "TEBRANISH VA SILKINISH",
+      perfTitle: "UNUMDORLIK VA GRAFIKA",
+      langTitle: "INTERFEYS TILI",
+      saveAndClose: "SAQLASH VA YOPISH"
     },
     ru: {
       title: "TOWER DEFENSE: LAST GRID",
@@ -128,7 +212,49 @@
       heroUlt: "СУПЕР УДАР ГЕРОЯ",
       analyticsTitle: "БОЕВАЯ АНАЛИТИКА И ГРАФИКИ DPS",
       draftTitle: "ВЫБОР ТАКТИЧЕСКИХ КАРТ",
-      draftSub: "ВЫБЕРИТЕ 1 ПРОТОКОЛ ДЛЯ АКТИВАЦИИ"
+      draftSub: "ВЫБЕРИТЕ 1 ПРОТОКОЛ ДЛЯ АКТИВАЦИИ",
+      paused: "ТАКТИЧЕСКАЯ ПАУЗА",
+      pauseDesc: "Бой приостановлен. Выберите действие для продолжения или выхода:",
+      resume: "ПРОДОЛЖИТЬ",
+      settings: "НАСТРОЙКИ",
+      abort: "В ГЛАВНОЕ МЕНЮ",
+      confirmAbortTitle: "⚠️ ПРЕРВАТЬ МИССИЮ?",
+      confirmAbortDesc: "Текущий прогресс боя и волна будут сброшены. Вы уверены, что хотите выйти в меню?",
+      confirmYes: "ДА, ВЫЙТИ",
+      confirmNo: "НЕТ, ОСТАТЬСЯ",
+      tacticalSectors: "ТАКТИЧЕСКИЕ СЕКТОРЫ",
+      campaignStars: "КАМПАНИЯ",
+      enterBattle: "В БОЙ",
+      secured: "✔ ОТКРЫТ",
+      hostile: "⚠ БЛОК",
+      customLevel: "СВОЯ КАРТА",
+      playCustom: "ИГРАТЬ КАРТУ",
+      editMap: "РЕДАКТИРОВАТЬ",
+      achievementsTitle: "ЗАЛ КИБЕР-ДОСТИЖЕНИЙ",
+      achievementsEarned: "ПОЛУЧЕНО",
+      achievementsClaimed: "НАГРАЖДЕНО",
+      page1: "СТРАНИЦА 1",
+      page2: "СТРАНИЦА 2",
+      claim: "ЗАБРАТЬ",
+      claimed: "ПОЛУЧЕНО",
+      leaderboardTitle: "ЗАЛ СЛАВЫ APEX",
+      activeCommander: "АКТИВНЫЙ КОМАНДИР",
+      rank: "МЕСТО",
+      commander: "КОМАНДИР / НИК",
+      sector: "СЕКТОР",
+      score: "ОЧКИ",
+      tier: "РАНГ",
+      syncScores: "ОБНОВИТЬ",
+      editHandle: "СМЕНИТЬ НИК",
+      noScores: "Пока нет записей. Нажмите 'Обновить' для загрузки!",
+      settingsTitle: "НАСТРОЙКИ СИСТЕМЫ И ИГРЫ",
+      settingsSub: "УПРАВЛЕНИЕ • ЗВУК • ГРАФИКА • ВИБРАЦИЯ • ЭКРАН • ЯЗЫК",
+      audioTitle: "ЗВУК И МУЗЫКА",
+      displayTitle: "ЭКРАН И ДИСПЛЕЙ",
+      hapticsTitle: "ВИБРАЦИЯ И ТРЯСКА",
+      perfTitle: "ПРОИЗВОДИТЕЛЬНОСТЬ",
+      langTitle: "ЯЗЫК ИНТЕРФЕЙСА",
+      saveAndClose: "СОХРАНИТЬ И ЗАКРЫТЬ"
     }
   };
 
@@ -1652,15 +1778,16 @@
         audio.modal();
         return;
       }
-      // 9. If in PAUSED state -> safely return to MENU!
+      // 8.5. If showAbortConfirm -> close abort dialog
+      if (this.showAbortConfirm) {
+        this.showAbortConfirm = false;
+        audio.click();
+        return;
+      }
+      // 9. If in PAUSED state -> safely resume combat
       if (this.state === 'PAUSED') {
-        this.state = 'MENU';
-        this.selectedTower = null;
-        this.selectedBuildType = null;
-        this.radialBuildCell = null;
-        if (this.apexSystem) this.apexSystem.show();
-        audio.playBGMTrack('menu');
-        audio.sell();
+        this.state = 'PLAYING';
+        audio.modal();
         return;
       }
       // 10. If in MENU -> double tap back to exit application
@@ -1735,11 +1862,11 @@
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 23px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("⚙️ TIZIM VA O'YIN SOZLAMALARI (TACTICAL SETTINGS)", 640, my + 38);
+      ctx.fillText("⚙️ " + (this.t('settingsTitle') || "TIZIM VA O'YIN SOZLAMALARI"), 640, my + 38);
 
       ctx.fillStyle = "#78909c";
       ctx.font = "bold 12px monospace";
-      ctx.fillText("BOSHQARUV • OVOZ • GRAFIKA • SILKINISH • EKRAN MOSLASHUVI • TIL", 640, my + 58);
+      ctx.fillText(this.t('settingsSub') || "BOSHQARUV • OVOZ • GRAFIKA • SILKINISH • EKRAN MOSLASHUVI • TIL", 640, my + 58);
 
       const col1X = mx + 30; // 210
       const col2X = mx + 480; // 660
@@ -1748,8 +1875,8 @@
       ctx.textAlign = "left";
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
-      ctx.fillText("🔊 OVOZ VA MUSIQA (AUDIO)", col1X, my + 94);
-      ctx.fillText("📱 EKRAN VA DISPLAY (DISPLAY)", col2X, my + 94);
+      ctx.fillText("🔊 " + (this.t('audioTitle') || "OVOZ VA MUSIQA"), col1X, my + 94);
+      ctx.fillText("📱 " + (this.t('displayTitle') || "EKRAN VA DISPLAY"), col2X, my + 94);
 
       // Row 1a: SFX Volume / Screen Fit (y: my + 105)
       ctx.fillStyle = "#ffffff";
@@ -1835,8 +1962,8 @@
       // Section Headers Row 2
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
-      ctx.fillText("📳 TEBRANISH VA SILKINISH (HAPTICS & SHAKE)", col1X, my + 217);
-      ctx.fillText("⚡ UNUMDORLIK VA GRAFIKA (PERFORMANCE)", col2X, my + 217);
+      ctx.fillText("📳 " + (this.t('hapticsTitle') || "TEBRANISH VA SILKINISH"), col1X, my + 217);
+      ctx.fillText("⚡ " + (this.t('perfTitle') || "UNUMDORLIK VA GRAFIKA"), col2X, my + 217);
 
       // Row 2a: Haptics (Left) / FPS Mode (Right) (y: my + 230)
       this.drawCyberButton(col1X, my + 230, 200, 34, "YONIQ 🟢 (HAPTICS)", this.settings.haptics ? "#00e676" : "#455a64", "VIBRATSIYA", "", this.settings.haptics);
@@ -1861,7 +1988,7 @@
       ctx.textAlign = "center";
       ctx.fillStyle = "#00e5ff";
       ctx.font = "bold 13px monospace";
-      ctx.fillText("🌐 INTERFEYS TILI (INTERFACE LANGUAGE)", 640, my + 340);
+      ctx.fillText("🌐 " + (this.t('langTitle') || "INTERFEYS TILI"), 640, my + 340);
 
       // Row 3: Language buttons centered
       this.drawCyberButton(365, my + 355, 170, 36, "🇺🇿 O'ZBEK", this.lang === 'uz' ? "#00e5ff" : "#455a64", "STANDART", "", this.lang === 'uz');
@@ -1869,9 +1996,9 @@
       this.drawCyberButton(745, my + 355, 170, 36, "🇷🇺 РУССКИЙ", this.lang === 'ru' ? "#00e5ff" : "#455a64", "КИРИЛЛИЦА", "", this.lang === 'ru');
 
       // Bottom Row: Close/Save & Main Menu (y: my + 420)
-      this.drawCyberButton(col1X, my + 420, 410, 52, "← SAQLASH VA YOPISH", "#00e676", "APPLY & RESUME", "✔", true);
+      this.drawCyberButton(col1X, my + 420, 410, 52, "← " + (this.t('saveAndClose') || "SAQLASH VA YOPISH"), "#00e676", "APPLY & RESUME", "✔", true);
       const isIngame = (this.settingsReturnState === 'PLAYING' || this.settingsReturnState === 'PAUSED');
-      this.drawCyberButton(col2X, my + 420, 410, 52, isIngame ? "🚪 ASOSIY MENYUGA" : "ASOSIY MENYUDA QOLISH", "#ff1744", isIngame ? "JANGNI TUGATISH" : "ORQAGA", "←", false);
+      this.drawCyberButton(col2X, my + 420, 410, 52, isIngame ? ("🚪 " + (this.t('abort') || "ASOSIY MENYUGA")) : ("← " + (this.t('mainMenu') || "ASOSIY MENYU")), "#ff1744", isIngame ? "ABORT MISSION" : "ORQAGA", "←", false);
 
       ctx.restore();
     }
@@ -2071,6 +2198,15 @@
           this.vibrate(20);
           return;
         } else if (x >= col2X && x <= col2X + 410) {
+          const isIngame = (this.settingsReturnState === 'PLAYING' || this.settingsReturnState === 'PAUSED');
+          if (isIngame) {
+            this.showSettingsModal = false;
+            this.state = 'PAUSED';
+            this.showAbortConfirm = true;
+            audio.click();
+            this.vibrate(20);
+            return;
+          }
           this.showSettingsModal = false;
           this.state = 'MENU';
           this.selectedTower = null;
@@ -3368,6 +3504,31 @@
 
       // Handle Tactic Pause Modal Clicks (Davom etish, Sozlamalar, Chiqish)
       if (this.state === 'PAUSED') {
+        if (this.showAbortConfirm) {
+          const cx = 380, cy = 215;
+          // Yes Button: Exit to main menu (cx + 35 = 415 to 625, cy + 185 = 400 to 452)
+          if (x >= cx + 35 && x <= cx + 35 + 210 && y >= cy + 185 && y <= cy + 185 + 52) {
+            this.showAbortConfirm = false;
+            this.state = 'MENU';
+            this.selectedTower = null;
+            this.selectedBuildType = null;
+            this.radialBuildCell = null;
+            if (this.apexSystem) this.apexSystem.show();
+            audio.playBGMTrack('menu');
+            audio.sell();
+            this.vibrate(25);
+            return;
+          }
+          // No Button: Cancel and stay in battle (cx + 275 = 655 to 865, cy + 185 = 400 to 452)
+          if (x >= cx + 275 && x <= cx + 275 + 210 && y >= cy + 185 && y <= cy + 185 + 52) {
+            this.showAbortConfirm = false;
+            audio.click();
+            this.vibrate(15);
+            return;
+          }
+          return; // Block all background pause clicks while abort dialog is visible
+        }
+
         // Button 1: Davom Etish (Resume Combat: 440, 340, 400, 50)
         if (x >= 440 && x <= 840 && y >= 340 && y <= 390) {
           this.state = 'PLAYING';
@@ -3384,16 +3545,11 @@
           this.vibrate(15);
           return;
         }
-        // Button 3: Asosiy Menyuga Qaytish (440, 470, 400, 50)
+        // Button 3: Asosiy Menyuga Qaytish (440, 470, 400, 50) -> Prompts Abort Confirmation
         if (x >= 440 && x <= 840 && y >= 470 && y <= 520) {
-          this.state = 'MENU';
-          this.selectedTower = null;
-          this.selectedBuildType = null;
-          this.radialBuildCell = null;
-          if (this.apexSystem) this.apexSystem.show();
-          audio.playBGMTrack('menu');
-          audio.sell();
-          this.vibrate(25);
+          this.showAbortConfirm = true;
+          audio.click();
+          this.vibrate(20);
           return;
         }
         return; // Click blocked by pause overlay
@@ -4479,6 +4635,11 @@
         }
         // 4. Clear
         if (x >= 360 && x <= 455) {
+          if (this.editorWaypoints && this.editorWaypoints.length > 2) {
+            if (typeof confirm !== 'undefined' && !confirm("Haqiqatan ham chizilgan barcha yo'l nuqtalarini tozalashni xohlaysizmi?")) {
+              return;
+            }
+          }
           this.editorWaypoints = [{ x: 64, y: 320 }];
           this.addFloatingText("XARITA TOZALANDI!", 640, 200, "#ff1744", 20);
           audio.sell();
@@ -10607,7 +10768,7 @@
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(0, 66); ctx.lineTo(this.width, 66); ctx.stroke();
 
-      this.renderMiniButton(24, 13, 125, 40, "← MENYU", "#00e5ff");
+      this.renderMiniButton(24, 13, 125, 40, "← " + (this.t('mainMenu') || "MENYU"), "#00e5ff");
 
       const allList = this.getAchievementsList();
       const doneCount = allList.filter(a => a.isDone).length;
@@ -10619,18 +10780,18 @@
       ctx.fillStyle = "#ffd600";
       ctx.font = "900 21px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("🏆 KIBER-YUTUQLAR ZALI (CYBER ACHIEVEMENTS)", 495, 34);
+      ctx.fillText("🏆 " + (this.t('achievementsTitle') || "KIBER-YUTUQLAR ZALI"), 495, 34);
       ctx.restore();
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`ERISHILDI: ${doneCount}/20  |  MUKOFOTLANDI: ${claimedCount}/20  |  KIBER-OLTIN: ${this.gold}G`, 495, 54);
+      ctx.fillText(`${this.t('achievementsEarned') || "ERISHILDI"}: ${doneCount}/20  |  ${this.t('achievementsClaimed') || "MUKOFOTLANDI"}: ${claimedCount}/20  |  KIBER-OLTIN: ${this.gold}G`, 495, 54);
 
       // Pagination Buttons
       const curPage = this.achievementsPage || 0;
-      this.renderMiniButton(845, 13, 115, 40, "◀ 1-SAHIFA", curPage === 0 ? "#ffd600" : "#78909c");
-      this.renderMiniButton(970, 13, 115, 40, "2-SAHIFA ▶", curPage === 1 ? "#ffd600" : "#78909c");
+      this.renderMiniButton(845, 13, 115, 40, "◀ " + (this.t('page1') || "1-SAHIFA"), curPage === 0 ? "#ffd600" : "#78909c");
+      this.renderMiniButton(970, 13, 115, 40, (this.t('page2') || "2-SAHIFA") + " ▶", curPage === 1 ? "#ffd600" : "#78909c");
 
       // Fullscreen Toggle in Achievements (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
@@ -10739,7 +10900,7 @@
           ctx.fillStyle = "#00e676";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("✅ ERISHILDI", bx + bw / 2, by + 26);
+          ctx.fillText("✅ " + (this.t('claimed') || "ERISHILDI"), bx + bw / 2, by + 26);
         } else if (item.isDone) {
           const pulse = (Math.sin(performance.now() * 0.006) + 1) * 0.5;
           ctx.fillStyle = `rgba(255, 214, 0, ${0.2 + pulse * 0.25})`;
@@ -10752,7 +10913,7 @@
           ctx.fillStyle = "#ffd600";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`🎁 +${item.reward}G OLISH`, bx + bw / 2, by + 26);
+          ctx.fillText(`🎁 +${item.reward}G ` + (this.t('claim') || "OLISH"), bx + bw / 2, by + 26);
         } else {
           ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
           ctx.beginPath();
@@ -13071,14 +13232,14 @@ getCodexDatabase() {
       ctx.lineWidth = 1.5;
       ctx.strokeRect(0, 0, this.width, 64);
 
-      this.renderMiniButton(24, 14, 110, 36, "← MENYU", "#ff1744");
+      this.renderMiniButton(24, 14, 110, 36, "← " + (this.t('mainMenu') || "MENYU"), "#ff1744");
 
       ctx.textAlign = "left";
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 18px 'Segoe UI', monospace";
       ctx.shadowColor = "#00e5ff";
       ctx.shadowBlur = 10;
-      ctx.fillText("🗺️ TAKTIK SEKTORLAR", 150, 38);
+      ctx.fillText("🗺️ " + (this.t('tacticalSectors') || "TAKTIK SEKTORLAR"), 150, 38);
       ctx.shadowBlur = 0;
 
       // Difficulty Selector Pill (CASUAL / NORMAL / HEROIC)
@@ -13118,7 +13279,7 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 13px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`★ KAMPANIYA: ${totalStars} / 30`, 855, 38);
+      ctx.fillText(`★ ${this.t('campaignStars') || "KAMPANIYA"}: ${totalStars} / 30`, 855, 38);
 
       // Fullscreen Toggle Capsule in Map Select (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
@@ -13182,7 +13343,7 @@ getCodexDatabase() {
         ctx.fillStyle = isCompleted ? "#00e676" : "#ff5252";
         ctx.font = "900 9px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(isCompleted ? "✔ SECURED" : "⚠ HOSTILE", x + 178, y + 20);
+        ctx.fillText(isCompleted ? (this.t('secured') || "✔ SECURED") : (this.t('hostile') || "⚠ HOSTILE"), x + 178, y + 20);
 
         // Line 2: Map Name (full width up to 206px)
         ctx.fillStyle = "#ffffff";
@@ -13248,7 +13409,7 @@ getCodexDatabase() {
         ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 12, y + 156);
 
         // Line 6: Launch Battle Button
-        this.drawCyberButton(x + 10, y + 170, 210, 44, "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
+        this.drawCyberButton(x + 10, y + 170, 210, 44, this.t('enterBattle') || "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
 
         ctx.restore();
       }
@@ -13277,15 +13438,15 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 16px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("🛠️ SHAXSIY XARITA (CUSTOM LEVEL MUHARRIRI)", cx + 24, cy + 32);
+      ctx.fillText("🛠️ " + (this.t('customLevel') || "SHAXSIY XARITA"), cx + 24, cy + 32);
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "12px monospace";
       ctx.fillText(`Nuqtalar: ${cWaypoints.length} ta  |  Biom: ${cBiome.toUpperCase()}  |  Boshlang'ich Oltin: ${cGold}G  |  To'lqinlar: ${cWaves}`, cx + 24, cy + 58);
       ctx.fillText("Xarita muharririda o'zingiz chizgan maxsus xaritani darhol sinab ko'ring yoki qayta tahrirlang!", cx + 24, cy + 82);
 
-      this.drawCyberButton(cx + 780, cy + 32, 220, 70, "▶ MAXSUS O'YIN", "#00e676", "PLAY CUSTOM", "🚀", true);
-      this.drawCyberButton(cx + 1020, cy + 32, 160, 70, "✏️ TAHRIRLASH", "#00e5ff", "EDIT MAP", "🛠️", false);
+      this.drawCyberButton(cx + 780, cy + 32, 220, 70, "▶ " + (this.t('playCustom') || "MAXSUS O'YIN"), "#00e676", "PLAY CUSTOM", "🚀", true);
+      this.drawCyberButton(cx + 1020, cy + 32, 160, 70, "✏️ " + (this.t('editMap') || "TAHRIRLASH"), "#00e5ff", "EDIT MAP", "🛠️", false);
       ctx.restore();
     }
 
@@ -13563,7 +13724,7 @@ getCodexDatabase() {
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(0, 65); ctx.lineTo(this.width, 65); ctx.stroke();
 
-      this.renderMiniButton(24, 14, 125, 38, "← MENYU", "#00e5ff");
+      this.renderMiniButton(24, 14, 125, 38, "← " + (this.t('mainMenu') || "MENYU"), "#00e5ff");
 
       ctx.save();
       ctx.shadowColor = "rgba(255, 214, 0, 0.8)";
@@ -13571,7 +13732,7 @@ getCodexDatabase() {
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffd600";
       ctx.font = "900 22px 'Segoe UI', monospace";
-      ctx.fillText("🏅 APEX REYTINGLAR ZALI (HALL OF FAME)", 575, 34);
+      ctx.fillText("🏅 " + (this.t('leaderboardTitle') || "APEX REYTINGLAR ZALI"), 575, 34);
       ctx.restore();
 
       ctx.fillStyle = "#94a3b8";
@@ -13581,7 +13742,7 @@ getCodexDatabase() {
 
       // Nickname Button with length protection
       const nLabel = (this.playerName && this.playerName.length > 10) ? this.playerName.slice(0, 9) + '..' : (this.playerName || "COMMANDER");
-      this.renderMiniButton(1040, 14, 215, 38, `👤 NIK: ${nLabel}`, "#ffd600");
+      this.renderMiniButton(1040, 14, 215, 38, `👤 ${this.t('commander') || "NIK"}: ${nLabel}`, "#ffd600");
 
       // Fullscreen Toggle in Leaderboard (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
@@ -13602,7 +13763,7 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`🎖️ FAOL KOMANDIR: ${this.playerName}`, bx + 20, by + 28);
+      ctx.fillText(`🎖️ ${this.t('activeCommander') || "FAOL KOMANDIR"}: ${this.playerName}`, bx + 20, by + 28);
 
       const bestScore = (this.saveData && this.saveData.leaderboard && this.saveData.leaderboard[0]) ? this.saveData.leaderboard[0].score : 1000;
       const bestWave = (this.saveData && this.saveData.maxWave) || 1;
@@ -13621,12 +13782,12 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("O'RIN", 55, 148);
-      ctx.fillText("KOMANDIR / HANDLE", 175, 148);
-      ctx.fillText("SEKTOR", 485, 148);
-      ctx.fillText("TO'LQIN", 715, 148);
-      ctx.fillText("TAKTIK BALL", 885, 148);
-      ctx.fillText("UNVON TIER", 1065, 148);
+      ctx.fillText(this.t('rank') || "O'RIN", 55, 148);
+      ctx.fillText(this.t('commander') || "KOMANDIR / HANDLE", 175, 148);
+      ctx.fillText(this.t('sector') || "SEKTOR", 485, 148);
+      ctx.fillText(this.t('wave') || "TO'LQIN", 715, 148);
+      ctx.fillText(this.t('score') || "TAKTIK BALL", 885, 148);
+      ctx.fillText(this.t('tier') || "UNVON TIER", 1065, 148);
 
       // Leaderboard Rows
       const rows = (this.saveData && this.saveData.leaderboard) ? this.saveData.leaderboard.slice(0, 10) : [];
@@ -13634,7 +13795,7 @@ getCodexDatabase() {
         ctx.fillStyle = "#64748b";
         ctx.font = "bold 13px monospace";
         ctx.textAlign = "center";
-        ctx.fillText("Hozircha reyting ma'lumotlari mavjud emas. Yangilash tugmasini bosing!", 640, 240);
+        ctx.fillText(this.t('noScores') || "Hozircha reyting ma'lumotlari mavjud emas. Yangilash tugmasini bosing!", 640, 240);
       }
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
@@ -13708,10 +13869,10 @@ getCodexDatabase() {
       }
 
       // Bottom Control Action Bar (y: 600, h: 56)
-      this.drawCyberButton(120, 600, 240, 56, "BOSH MENYU", "#00e5ff", "MAIN MENU", "◀", false);
-      this.drawCyberButton(380, 600, 240, 56, "YANGILASH", "#00e676", "SYNC SCORES", "🔄", true);
-      this.drawCyberButton(640, 600, 240, 56, "NIKNI O'ZGARTIR", "#ffd600", "EDIT HANDLE", "✏️", false);
-      this.drawCyberButton(900, 600, 250, 56, "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
+      this.drawCyberButton(120, 600, 240, 56, "← " + (this.t('mainMenu') || "BOSH MENYU"), "#00e5ff", "MAIN MENU", "◀", false);
+      this.drawCyberButton(380, 600, 240, 56, this.t('syncScores') || "YANGILASH", "#00e676", "SYNC SCORES", "🔄", true);
+      this.drawCyberButton(640, 600, 240, 56, this.t('editHandle') || "NIKNI O'ZGARTIR", "#ffd600", "EDIT HANDLE", "✏️", false);
+      this.drawCyberButton(900, 600, 250, 56, this.t('enterBattle') || "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
     }
 
     wrapText(text, x, y, maxWidth, lineHeight, align = "left", maxLines = 0) {
@@ -13759,17 +13920,49 @@ getCodexDatabase() {
       ctx.fillStyle = "#00e5ff";
       ctx.font = "900 42px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("TAKTIK PAUZA", 640, 270);
+      ctx.fillText(this.t('paused') || "TAKTIK PAUZA", 640, 270);
       ctx.restore();
 
       ctx.fillStyle = "#b0bec5";
       ctx.font = "14px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("Jang to'xtatildi. Qaytish yoki menyuga chiqish uchun tugmani bosing:", 640, 320);
+      ctx.fillText(this.t('pauseDesc') || "Jang to'xtatildi. Qaytish yoki menyuga chiqish uchun tugmani bosing:", 640, 320);
 
-      this.drawCyberButton(440, 340, 400, 50, "DAVOM ETISH", "#00e676", "RESUME COMBAT", "▶", true);
-      this.drawCyberButton(440, 405, 400, 50, "SOZLAMALAR", "#00e5ff", "AUDIO & SCREEN SETTINGS", "⚙️", false);
-      this.drawCyberButton(440, 470, 400, 50, "ASOSIY MENYUGA", "#ff1744", "ABORT MISSION", "←", false);
+      this.drawCyberButton(440, 340, 400, 50, this.t('resume') || "DAVOM ETISH", "#00e676", "RESUME COMBAT", "▶", true);
+      this.drawCyberButton(440, 405, 400, 50, this.t('settings') || "SOZLAMALAR", "#00e5ff", "AUDIO & SCREEN SETTINGS", "⚙️", false);
+      this.drawCyberButton(440, 470, 400, 50, this.t('abort') || "ASOSIY MENYUGA", "#ff1744", "ABORT MISSION", "←", false);
+
+      // Surrender / Abort Mission Confirmation Overlay
+      if (this.showAbortConfirm) {
+        ctx.fillStyle = "rgba(2, 4, 10, 0.88)";
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        const cx = 380, cy = 215, cw = 520, ch = 270;
+        ctx.save();
+        ctx.fillStyle = "rgba(12, 20, 36, 0.98)";
+        ctx.beginPath();
+        ctx.roundRect(cx, cy, cw, ch, 12);
+        ctx.fill();
+        ctx.strokeStyle = "#ff1744";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(255, 23, 68, 0.6)";
+        ctx.shadowBlur = 16;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "#ff1744";
+        ctx.font = "900 22px 'Segoe UI', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(this.t('confirmAbortTitle') || "⚠️ JANGNI TO'XTATISH?", cx + cw / 2, cy + 48);
+
+        ctx.fillStyle = "#cfd8dc";
+        ctx.font = "14px 'Segoe UI', monospace";
+        this.wrapText(this.t('confirmAbortDesc') || "Joriy jang progressi va to'lqin saqlanmaydi. Haqiqatan ham asosiy menyuga qaytmoqchimisiz?", cx + cw / 2, cy + 90, 460, 20, "center", 3);
+        ctx.restore();
+
+        this.drawCyberButton(cx + 35, cy + 185, 210, 52, this.t('confirmYes') || "HA, CHIQISH", "#ff1744", "ABORT", "✖", false);
+        this.drawCyberButton(cx + 275, cy + 185, 210, 52, this.t('confirmNo') || "YO'Q, QOLISH", "#00e676", "STAY", "✔", true);
+      }
     }
 
     renderVictoryModal() {

@@ -396,6 +396,13 @@
     <main class="stage">
       <section class="hero">
         <canvas id="robotCanvas"></canvas>
+        <div id="robotLoader" style="display:none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); flex-direction: column; align-items: center; justify-content: center; z-index: 6; pointer-events: none; gap: 8px;">
+          <div style="font-family: 'Segoe UI', monospace; font-size: 11px; font-weight: 900; color: #00e5ff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);">MEGATRON 3D MODEL YUKLANMOQDA...</div>
+          <div style="width: 180px; height: 6px; background: rgba(10, 20, 36, 0.85); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 3px; overflow: hidden; position: relative;">
+            <div id="robotProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00b0ff, #00e5ff); box-shadow: 0 0 10px #00e5ff; transition: width 0.15s ease;"></div>
+          </div>
+          <div id="robotProgressText" style="font-family: monospace; font-size: 10px; color: #94a3b8;">0%</div>
+        </div>
         <div id="robotError" style="display:none; color: #ef4444; font-family: monospace; font-size: 13px; letter-spacing: 0.1em; text-align: center; text-shadow: 0 0 8px rgba(239,68,68,0.6); pointer-events: none; z-index: 5;">⚠️ MODEL YUKLANMADI</div>
       </section>
       <section class="modes">
@@ -570,6 +577,8 @@
 
       function showModelError(err) {
         console.error('[MainMenu3D] MODEL YUKLANMADI:', err);
+        const ldr = document.getElementById('robotLoader');
+        if (ldr) ldr.style.display = 'none';
         const fb = document.getElementById('robotError');
         if (fb) fb.style.display = 'block';
       }
@@ -857,6 +866,8 @@
 
         function applyModel(gltf, sourceUrl) {
           try {
+            const ldr = document.getElementById('robotLoader');
+            if (ldr) ldr.style.display = 'none';
             model = gltf.scene;
 
             const maxAniso = (renderer.capabilities && typeof renderer.capabilities.getMaxAnisotropy === 'function')
@@ -1354,12 +1365,23 @@
         const loader = new LoaderClass();
 
         function loadViaNetwork() {
+          const ldr = document.getElementById('robotLoader');
+          if (ldr) ldr.style.display = 'flex';
+          const onProgress = function (xhr) {
+            if (xhr && xhr.lengthComputable && xhr.total > 0) {
+              const percent = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+              const pBar = document.getElementById('robotProgressBar');
+              const pTxt = document.getElementById('robotProgressText');
+              if (pBar) pBar.style.width = percent + '%';
+              if (pTxt) pTxt.textContent = percent + '% (' + (xhr.loaded / (1024 * 1024)).toFixed(1) + 'MB)';
+            }
+          };
           loader.load(
             MODEL_URL,
             function (gltf) {
               applyModel(gltf, MODEL_URL);
             },
-            undefined,
+            onProgress,
             function (err) {
               console.warn('[MainMenu3D] Failed loading ' + MODEL_URL + ', trying fallback model: ' + FALLBACK_MODEL_URL, err);
               loader.load(
@@ -1367,7 +1389,7 @@
                 function (gltf2) {
                   applyModel(gltf2, FALLBACK_MODEL_URL);
                 },
-                undefined,
+                onProgress,
                 function (err2) {
                   console.error('[MainMenu3D] Both GLB files failed. Model yuklanmadi:', err2);
                   showModelError(new Error("GLB yuklanmadi"));
@@ -1708,6 +1730,17 @@
     window.addEventListener('pointerdown', unlockWebAudio, { once: true });
     window.addEventListener('keydown', unlockWebAudio, { once: true });
     window.addEventListener('touchstart', unlockWebAudio, { once: true });
+
+    // iOS Safari / Tab Switch / Lock Screen Auto-Resume
+    const resumeAudioOnWake = () => {
+      if (window.audio && window.audio.ctx && window.audio.ctx.state === 'suspended') {
+        window.audio.ctx.resume().catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) resumeAudioOnWake();
+    });
+    window.addEventListener('focus', resumeAudioOnWake);
   </script>
 
   <!-- Portrait Rotation Prompt Overlay -->
