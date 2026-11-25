@@ -657,29 +657,8 @@
     voiceRadio(text, sampleKey) {
       if (this.sfxMuted) return;
       this.radioChirp();
-      if (sampleKey && this.playSample(sampleKey, 0.95)) {
-        return;
-      }
-      // On mobile or Android WebView, speechSynthesis can deadlock or freeze the rendering thread
-      const isMobileOrAndroid = typeof navigator !== 'undefined' && (/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || '') || (typeof window !== 'undefined' && !!window.AndroidBridge));
-      if (isMobileOrAndroid) {
-        return; // Military chirp is already sounded, avoiding mobile TTS thread hang
-      }
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-          const cleanText = (text || "").replace(/[^\w\s.,!?:-]/gi, ' ').trim();
-          if (cleanText) {
-            const u = new SpeechSynthesisUtterance(cleanText);
-            u.pitch = 0.85;
-            u.rate = 1.08;
-            u.volume = 0.85;
-            const voices = window.speechSynthesis.getVoices();
-            const v = voices.find(x => x.lang.startsWith('en') && (x.name.includes('Google') || x.name.includes('Natural') || x.name.includes('Robot')));
-            if (v) u.voice = v;
-            window.speechSynthesis.speak(u);
-          }
-        } catch(e) {}
+        try { window.speechSynthesis.cancel(); } catch(e) {}
       }
     }
     defeat() {
@@ -2701,7 +2680,6 @@
       try {
         const biome = (map && map.biome) ? map.biome : 'cyber';
         audio.playBGMTrack(biome);
-        setTimeout(() => audio.playSample('hq_online', 0.8), 600);
       } catch(e) {}
 
       this.activeAugments = [];
@@ -5124,7 +5102,6 @@
         this.screenShake = 20;
         audio.bossSiren();
         audio.playBGMTrack('boss');
-        audio.playSample('hq_boss', 0.85);
         this.vibrate([150, 80, 150, 80, 350]);
         this.bossAlert = {
           name: def.name.toUpperCase(),
