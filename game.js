@@ -7,6 +7,22 @@
 (function() {
   'use strict';
 
+  // Universal Canvas roundRect Polyfill for Older Android WebViews & Legacy Browsers
+  if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii) {
+      if (!radii) radii = 0;
+      let r = Array.isArray(radii) ? (radii[0] || 0) : Number(radii) || 0;
+      r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+      this.moveTo(x + r, y);
+      this.arcTo(x + w, y, x + w, y + h, r);
+      this.arcTo(x + w, y + h, x, y + h, r);
+      this.arcTo(x, y + h, x, y, r);
+      this.arcTo(x, y, x + w, y, r);
+      this.closePath();
+      return this;
+    };
+  }
+
   // --- MULTILINGUAL LOCALIZATION (EN, UZ, RU) ---
   const I18N = {
     en: {
