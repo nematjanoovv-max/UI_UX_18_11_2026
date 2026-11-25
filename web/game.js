@@ -1160,6 +1160,20 @@
     constructor() {
       this.canvas = document.getElementById('game-canvas');
       this.ctx = this.canvas.getContext('2d');
+      if (this.ctx && !this.ctx.roundRect) {
+        this.ctx.roundRect = function(x, y, w, h, radii) {
+          if (!radii) radii = 0;
+          let r = Array.isArray(radii) ? (radii[0] || 0) : Number(radii) || 0;
+          r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+          this.moveTo(x + r, y);
+          this.arcTo(x + w, y, x + w, y + h, r);
+          this.arcTo(x + w, y + h, x, y + h, r);
+          this.arcTo(x, y + h, x, y, r);
+          this.arcTo(x, y, x + w, y, r);
+          this.closePath();
+          return this;
+        };
+      }
       this.width = 1280;
       this.height = 720;
       this.MAPS = MAPS;
@@ -6777,6 +6791,14 @@
       return this.toggleLang();
     }
 
+    setLanguage(lang) {
+      if (['uz', 'en', 'ru'].includes(lang)) {
+        this.lang = lang;
+        try { localStorage.setItem('last_grid_lang', lang); } catch(e){}
+      }
+      return this.lang;
+    }
+
     loadBackgroundImages() {
       this.bgImages = {};
       const list = {
@@ -7563,7 +7585,11 @@
       ctx.fillStyle = pattern || "#1e293b";
       if (radius > 0) {
         ctx.beginPath();
-        ctx.roundRect(x, y, w, h, radius);
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(x, y, w, h, radius);
+        } else {
+          ctx.rect(x, y, w, h);
+        }
         ctx.fill();
       } else {
         ctx.fillRect(x, y, w, h);
