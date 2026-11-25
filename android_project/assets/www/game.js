@@ -3058,26 +3058,26 @@
 
       if (this.state === 'ACHIEVEMENTS') {
         // Back Button
-        if (x >= 30 && x <= 160 && y >= 14 && y <= 56) {
+        if (x >= 20 && x <= 160 && y >= 10 && y <= 58) {
           this.state = 'MENU';
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
           return;
         }
         // Prev Page
-        if (x >= 860 && x <= 980 && y >= 14 && y <= 56) {
+        if (x >= 840 && x <= 965 && y >= 10 && y <= 58) {
           this.achievementsPage = 0;
           audio.click();
           return;
         }
         // Next Page
-        if (x >= 990 && x <= 1110 && y >= 14 && y <= 56) {
+        if (x >= 965 && x <= 1095 && y >= 10 && y <= 58) {
           this.achievementsPage = 1;
           audio.click();
           return;
         }
         // Fullscreen Toggle
-        if (x >= 1125 && x <= 1225 && y >= 14 && y <= 56) {
+        if (x >= 1115 && x <= 1225 && y >= 10 && y <= 58) {
           this.toggleFullscreen();
           this.vibrate(20);
           if (audio) audio.click();
@@ -3091,11 +3091,11 @@
           const item = pageList[i];
           const col = i % 2;
           const row = Math.floor(i / 2);
-          const cx = 150 + col * 485;
-          const cy = 105 + row * 102;
-          const bx = cx + 330;
-          const by = cy + 28;
-          if (x >= bx && x <= bx + 125 && y >= by && y <= by + 40) {
+          const cx = 135 + col * 520;
+          const cy = 94 + row * 102;
+          const bx = cx + 358;
+          const by = cy + 24;
+          if (x >= bx && x <= bx + 122 && y >= by && y <= by + 44) {
             if (item.isDone && !item.isClaimed) {
               this.saveData.achievements = this.saveData.achievements || {};
               this.saveData.achievements[item.id] = true;
@@ -3253,20 +3253,20 @@
       }
 
       if (this.state === 'MAP_SELECT') {
-        if (y >= 10 && y <= 65 && x >= 20 && x <= 180) {
+        if (y >= 10 && y <= 55 && x >= 20 && x <= 145) {
           this.state = 'MENU';
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
           return;
         }
-        if (x >= 1150 && x <= 1245 && y >= 15 && y <= 58) {
+        if (x >= 1135 && x <= 1255 && y >= 10 && y <= 55) {
           this.toggleFullscreen();
           this.vibrate(20);
           if (audio) audio.click();
           return;
         }
-        if (x >= 580 && x <= 920 && y >= 18 && y <= 58) {
-          const idx = Math.floor((x - 580) / 110);
+        if (x >= 420 && x <= 730 && y >= 14 && y <= 52) {
+          const idx = Math.floor((x - 420) / 103);
           const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
           if (diffs[idx]) {
             this.difficulty = diffs[idx];
@@ -3279,19 +3279,19 @@
         for (let i = 0; i < 10; i++) {
           const col = i % 5;
           const row = Math.floor(i / 5);
-          const mx = 40 + col * 242;
-          const my = 75 + row * 245;
+          const mx = 32 + col * 244;
+          const my = 74 + row * 240;
           if (x >= mx && x <= mx + 230 && y >= my && y <= my + 230) {
             this.startMission(i, 'CAMPAIGN');
             return;
           }
         }
-        if (y >= 565 && y <= 700) {
-          if (x >= 820 && x <= 1040) {
+        if (y >= 560 && y <= 700) {
+          if (x >= 800 && x <= 1040) {
             this.startMission(0, 'CUSTOM');
             return;
           }
-          if (x >= 1060 && x <= 1220) {
+          if (x >= 1045 && x <= 1215) {
             this.state = 'EDITOR';
             return;
           }
@@ -3300,33 +3300,36 @@
       }
 
       if (this.state === 'LEADERBOARD') {
-        if ((y >= 15 && y <= 55 && x >= 30 && x <= 160) || (x >= 140 && x <= 380 && y >= 615 && y <= 665)) {
+        if ((y >= 10 && y <= 55 && x >= 20 && x <= 155) || (x >= 120 && x <= 360 && y >= 600 && y <= 665)) {
           this.state = 'MENU';
           if (this.apexSystem) this.apexSystem.show();
           audio.playBGMTrack('menu');
           return;
         }
-        if (x >= 945 && x <= 1030 && y >= 14 && y <= 55) {
+        if (x >= 935 && x <= 1030 && y >= 10 && y <= 55) {
           this.toggleFullscreen();
           this.vibrate(20);
           if (audio) audio.click();
           return;
         }
-        if (x >= 400 && x <= 640 && y >= 615 && y <= 665) {
+        if (x >= 380 && x <= 620 && y >= 600 && y <= 665) {
           this.fetchLiveScores();
           audio.click();
           this.addFloatingText("REYTINGLAR YANGILANDI!", 640, 200, "#00e5ff", 20);
           return;
         }
-        if ((x > 1050 && x < 1240 && y > 15 && y < 55) || (x >= 660 && x <= 900 && y >= 615 && y <= 665)) {
+        if ((x > 1035 && x < 1255 && y > 10 && y < 55) || (x >= 640 && x <= 880 && y >= 600 && y <= 665)) {
           const newName = prompt("Enter CyberCommander handle:", this.playerName);
           if (newName && newName.trim()) {
             this.playerName = newName.trim().substring(0, 18);
             localStorage.setItem('last_grid_player_name', this.playerName);
+            this.saveProgress(this.currentMapId || 'training_grid', 0, 0, 1);
+            audio.victory();
+            this.vibrate([20, 20, 30]);
           }
           return;
         }
-        if (x >= 920 && x <= 1160 && y >= 615 && y <= 665) {
+        if (x >= 900 && x <= 1160 && y >= 600 && y <= 665) {
           this.state = 'MAP_SELECT';
           audio.click();
           return;
@@ -10544,25 +10547,25 @@
 
       const raw = [
         { id: "first_blood", icon: "🩸", title: "ILK QON (FIRST BLOOD)", desc: "1 ta dushmanni yo'q qiling", cur: kills, req: 1, rew: 100 },
-        { id: "wave_10", icon: "🛡️", title: "10-TO'LQIN POSBONI", desc: "10-to'lqin hujumini muvaffaqiyatli qaytaring", cur: wave, req: 10, rew: 250 },
-        { id: "wave_25", icon: "⚔️", title: "25-TO'LQIN APEX", desc: "25-to'lqin bosqichiga yetib boring", cur: wave, req: 25, rew: 500 },
-        { id: "wave_50", icon: "👑", title: "50-TO'LQIN AFSONASI", desc: "50-to'lqin cheksiz hujumini yengib o'ting", cur: wave, req: 50, rew: 1000 },
-        { id: "kill_100", icon: "💀", title: "100 TA KIBER-QOTIL", desc: "Jami 100 ta dushman bo'linmasini yo'q qiling", cur: kills, req: 100, rew: 300 },
-        { id: "kill_500", icon: "☠️", title: "500 TA TITOR-TOZALOVCHI", desc: "500 ta kiber-dushman agregatini yo'q qiling", cur: kills, req: 500, rew: 800 },
-        { id: "gold_magnate", icon: "💰", title: "KIBER-MAGNAT", desc: "2000 oltin (G) jamg'aring yoki sarflang", cur: gold, req: 2000, rew: 350 },
-        { id: "gold_tycoon", icon: "💎", title: "GALAKTIK SARMOYADOR", desc: "5000 oltin (G) kapitaliga ega bo'ling", cur: gold, req: 5000, rew: 750 },
-        { id: "pulse_master", icon: "⚡", title: "PULSE OVERLOAD", desc: "Pulse lazer minoralari orqali 10,000 zarba bering", cur: pulseDmg, req: 10000, rew: 400 },
-        { id: "mortar_barrage", icon: "💥", title: "PLAZMA BOMBARDIMONI", desc: "Mortar artilleriyasi orqali 15,000 zarar bering", cur: mortarDmg, req: 15000, rew: 450 },
-        { id: "cryo_freeze", icon: "❄️", title: "ABSOLYUT NO'L (CRYO)", desc: "Cryo muzlatish orqali 8,000 zarar yetkazing", cur: cryoDmg, req: 8000, rew: 350 },
-        { id: "railgun_sniper", icon: "🎯", title: "GIPER-IMPULS MERGANI", desc: "Railgun quroli orqali 12,000 zarar bering", cur: railgunDmg, req: 12000, rew: 500 },
+        { id: "wave_10", icon: "🛡️", title: "10-TO'LQIN POSBONI", desc: "10-to'lqin hujumini qaytaring", cur: wave, req: 10, rew: 250 },
+        { id: "wave_25", icon: "⚔️", title: "25-TO'LQIN APEX", desc: "25-to'lqin bosqichiga yeting", cur: wave, req: 25, rew: 500 },
+        { id: "wave_50", icon: "👑", title: "50-TO'LQIN AFSONASI", desc: "50-to'lqin hujumini yengib o'ting", cur: wave, req: 50, rew: 1000 },
+        { id: "kill_100", icon: "💀", title: "100 TA KIBER-QOTIL", desc: "100 ta dushmanni yo'q qiling", cur: kills, req: 100, rew: 300 },
+        { id: "kill_500", icon: "☠️", title: "500 TA TITAN-TOZALOVCHI", desc: "500 ta kiber-dushmanni yo'q qiling", cur: kills, req: 500, rew: 800 },
+        { id: "gold_magnate", icon: "💰", title: "KIBER-MAGNAT", desc: "2,000 oltin (G) to'plang", cur: gold, req: 2000, rew: 350 },
+        { id: "gold_tycoon", icon: "💎", title: "GALAKTIK SARMOYADOR", desc: "5,000 oltin (G) kapitaliga ega bo'ling", cur: gold, req: 5000, rew: 750 },
+        { id: "pulse_master", icon: "⚡", title: "PULSE OVERLOAD", desc: "Pulse lazeri orqali 10,000 zarar bering", cur: pulseDmg, req: 10000, rew: 400 },
+        { id: "mortar_barrage", icon: "💥", title: "PLAZMA BOMBARDIMONI", desc: "Mortar to'pi orqali 15,000 zarar bering", cur: mortarDmg, req: 15000, rew: 450 },
+        { id: "cryo_freeze", icon: "❄️", title: "ABSOLYUT NO'L (CRYO)", desc: "Cryo muzlatish orqali 8,000 zarar bering", cur: cryoDmg, req: 8000, rew: 350 },
+        { id: "railgun_sniper", icon: "🎯", title: "GIPER-IMPULS MERGANI", desc: "Railgun orqali 12,000 zarar yetkazing", cur: railgunDmg, req: 12000, rew: 500 },
         { id: "hero_veteran", icon: "🤖", title: "MEX-PILOT VETERAN", desc: "Mex Robotini 5-darajaga ko'taring", cur: heroLvl, req: 5, rew: 350 },
         { id: "hero_apex", icon: "🌟", title: "APEX MEX-TITAN", desc: "Mex Robotini 10-darajaga yetkazing", cur: heroLvl, req: 10, rew: 700 },
         { id: "hero_rampage", icon: "🔥", title: "MEX QAHRAMONLIK HUJUMI", desc: "Mex qurollari orqali 10,000 zarar bering", cur: heroDmg, req: 10000, rew: 450 },
-        { id: "commander_strike", icon: "☄️", title: "KOMANDIR ORBITAL ZARBASI", desc: "Super-qobiliyatlar orqali 5,000 zarar yetkazing", cur: skillDmg, req: 5000, rew: 400 },
-        { id: "architect_defense", icon: "🏗️", title: "MUDOFAA ARXITEKTORI", desc: "Maydonga bir vaqtda 8 ta minora o'rnating", cur: towerCount, req: 8, rew: 300 },
-        { id: "augment_collector", icon: "🃏", title: "KIBER-AUGMENT MASTER", desc: "Jang davomida kamida 3 ta augment tanlang", cur: activeCards, req: 3, rew: 350 },
-        { id: "custom_designer", icon: "🛠️", title: "XARITA MUHANDISI", desc: "Xarita muharririda shaxsiy xaritani yarating", cur: hasCustom ? 1 : 0, req: 1, rew: 300 },
-        { id: "galactic_conqueror", icon: "🌌", title: "GALAKTIK G'OLIB", desc: "Barcha 5 ta kampaniya sektorini zabt eting", cur: sectorWins, req: 5, rew: 1500 }
+        { id: "commander_strike", icon: "☄️", title: "ORBITAL ZARBA", desc: "Super-zarba orqali 5,000 zarar bering", cur: skillDmg, req: 5000, rew: 400 },
+        { id: "architect_defense", icon: "🏗️", title: "MUDOFAA ARXITEKTORI", desc: "Maydonga 8 ta minora o'rnating", cur: towerCount, req: 8, rew: 300 },
+        { id: "augment_collector", icon: "🃏", title: "KIBER-AUGMENT MASTER", desc: "Jangda 3 ta augment perk tanlang", cur: activeCards, req: 3, rew: 350 },
+        { id: "custom_designer", icon: "🛠️", title: "XARITA MUHANDISI", desc: "Shaxsiy daraja xaritasini yarating", cur: hasCustom ? 1 : 0, req: 1, rew: 300 },
+        { id: "galactic_conqueror", icon: "🌌", title: "GALAKTIK G'OLIB", desc: "Barcha 10 ta sektorni zabt eting", cur: sectorWins, req: 10, rew: 1500 }
       ];
 
       return raw.map(item => ({
@@ -10599,12 +10602,12 @@
 
       // Top Header Navigation Bar
       ctx.fillStyle = "rgba(10, 18, 34, 0.95)";
-      ctx.fillRect(0, 0, this.width, 68);
+      ctx.fillRect(0, 0, this.width, 66);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(0, 68); ctx.lineTo(this.width, 68); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 66); ctx.lineTo(this.width, 66); ctx.stroke();
 
-      this.renderMiniButton(30, 14, 130, 42, "← BOSH MENYU", "#00e5ff");
+      this.renderMiniButton(24, 13, 125, 40, "← MENYU", "#00e5ff");
 
       const allList = this.getAchievementsList();
       const doneCount = allList.filter(a => a.isDone).length;
@@ -10614,25 +10617,25 @@
       ctx.shadowColor = "rgba(255, 214, 0, 0.8)";
       ctx.shadowBlur = 12;
       ctx.fillStyle = "#ffd600";
-      ctx.font = "900 24px 'Segoe UI', monospace";
+      ctx.font = "900 21px 'Segoe UI', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("🏆 KIBER-YUTUQLAR ZALI (CYBER ACHIEVEMENTS)", 520, 38);
+      ctx.fillText("🏆 KIBER-YUTUQLAR ZALI (CYBER ACHIEVEMENTS)", 495, 34);
       ctx.restore();
 
       ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 12px monospace";
+      ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`ERISHILDI: ${doneCount}/20  |  MUKOFOTLANDI: ${claimedCount}/20  |  KIBER-OLTIN: ${this.gold}G`, 520, 58);
+      ctx.fillText(`ERISHILDI: ${doneCount}/20  |  MUKOFOTLANDI: ${claimedCount}/20  |  KIBER-OLTIN: ${this.gold}G`, 495, 54);
 
       // Pagination Buttons
       const curPage = this.achievementsPage || 0;
-      this.renderMiniButton(860, 14, 120, 42, "◀ 1-SAHIFA", curPage === 0 ? "#ffd600" : "#78909c");
-      this.renderMiniButton(990, 14, 120, 42, "2-SAHIFA ▶", curPage === 1 ? "#ffd600" : "#78909c");
+      this.renderMiniButton(845, 13, 115, 40, "◀ 1-SAHIFA", curPage === 0 ? "#ffd600" : "#78909c");
+      this.renderMiniButton(970, 13, 115, 40, "2-SAHIFA ▶", curPage === 1 ? "#ffd600" : "#78909c");
 
       // Fullscreen Toggle in Achievements (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
         const isFSAch = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-        this.renderMiniButton(1130, 14, 85, 42, isFSAch ? "CHIQ" : "⛶ FULL", isFSAch ? "#ffd600" : "#00e5ff");
+        this.renderMiniButton(1120, 13, 90, 40, isFSAch ? "CHIQ" : "⛶ FULL", isFSAch ? "#ffd600" : "#00e5ff");
       }
 
       // Achievement Cards (10 per page, 2 columns x 5 rows)
@@ -10641,10 +10644,10 @@
         const item = pageList[i];
         const col = i % 2;
         const row = Math.floor(i / 2);
-        const cx = 150 + col * 485;
-        const cy = 105 + row * 102;
-        const cw = 465;
-        const ch = 90;
+        const cx = 135 + col * 520;
+        const cy = 94 + row * 102;
+        const cw = 490;
+        const ch = 92;
 
         ctx.save();
         // Glassmorphic Card Container
@@ -10660,13 +10663,13 @@
         // Icon Box
         ctx.fillStyle = item.isDone ? "rgba(255, 214, 0, 0.15)" : "rgba(0, 229, 255, 0.08)";
         ctx.beginPath();
-        ctx.roundRect(cx + 10, cy + 10, 68, 70, 6);
+        ctx.roundRect(cx + 10, cy + 10, 68, 72, 6);
         ctx.fill();
         ctx.strokeStyle = item.isDone ? "#ffd600" : "rgba(0, 229, 255, 0.3)";
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        ctx.font = "32px monospace";
+        ctx.font = "30px monospace";
         ctx.textAlign = "center";
         ctx.fillText(item.icon, cx + 44, cy + 55);
 
@@ -10674,17 +10677,25 @@
         ctx.textAlign = "left";
         ctx.fillStyle = item.isClaimed ? "#90a4ae" : (item.isDone ? "#ffd600" : "#00e5ff");
         ctx.font = "bold 13px 'Segoe UI', monospace";
-        ctx.fillText(item.title, cx + 88, cy + 26);
+        ctx.fillText(item.title, cx + 86, cy + 25);
 
         ctx.fillStyle = "#94a3b8";
         ctx.font = "11px 'Segoe UI', monospace";
-        ctx.fillText(item.desc, cx + 88, cy + 44);
+        const maxDescW = 260;
+        let dText = item.desc;
+        if (ctx.measureText(dText).width > maxDescW) {
+          while (dText.length > 5 && ctx.measureText(dText + '...').width > maxDescW) {
+            dText = dText.slice(0, -1);
+          }
+          dText += '...';
+        }
+        ctx.fillText(dText, cx + 86, cy + 43);
 
         // Progress Bar
-        const barX = cx + 88;
-        const barY = cy + 56;
-        const barW = 230;
-        const barH = 14;
+        const barX = cx + 86;
+        const barY = cy + 55;
+        const barW = 260;
+        const barH = 15;
         ctx.fillStyle = "rgba(4, 8, 16, 0.9)";
         ctx.beginPath();
         ctx.roundRect(barX, barY, barW, barH, 4);
@@ -10710,13 +10721,13 @@
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 9px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(`${item.current.toLocaleString()} / ${item.target.toLocaleString()} (${pct}%)`, barX + barW / 2, barY + 11);
+        ctx.fillText(`${item.current.toLocaleString()} / ${item.target.toLocaleString()} (${pct}%)`, barX + barW / 2, barY + 11.5);
 
         // Claim Button or Status Tag
-        const bx = cx + 330;
-        const by = cy + 28;
-        const bw = 125;
-        const bh = 40;
+        const bx = cx + 358;
+        const by = cy + 24;
+        const bw = 122;
+        const bh = 44;
 
         if (item.isClaimed) {
           ctx.fillStyle = "rgba(0, 230, 118, 0.15)";
@@ -10728,7 +10739,7 @@
           ctx.fillStyle = "#00e676";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText("✅ ERISHILDI", bx + bw / 2, by + 24);
+          ctx.fillText("✅ ERISHILDI", bx + bw / 2, by + 26);
         } else if (item.isDone) {
           const pulse = (Math.sin(performance.now() * 0.006) + 1) * 0.5;
           ctx.fillStyle = `rgba(255, 214, 0, ${0.2 + pulse * 0.25})`;
@@ -10741,7 +10752,7 @@
           ctx.fillStyle = "#ffd600";
           ctx.font = "bold 11px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`🎁 +${item.reward}G OLISH`, bx + bw / 2, by + 24);
+          ctx.fillText(`🎁 +${item.reward}G OLISH`, bx + bw / 2, by + 26);
         } else {
           ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
           ctx.beginPath();
@@ -10752,7 +10763,7 @@
           ctx.fillStyle = "#78909c";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
-          ctx.fillText(`🔒 +${item.reward}G`, bx + bw / 2, by + 24);
+          ctx.fillText(`🔒 +${item.reward}G`, bx + bw / 2, by + 26);
         }
 
         ctx.restore();
@@ -13038,12 +13049,12 @@ getCodexDatabase() {
 
       for (let i = 0; i < MAPS.length - 1; i++) {
         const c1 = i % 5, r1 = Math.floor(i / 5);
-        const x1 = 40 + c1 * 242 + 115;
-        const y1 = 75 + r1 * 245 + 115;
+        const x1 = 32 + c1 * 244 + 115;
+        const y1 = 74 + r1 * 240 + 115;
 
         const c2 = (i + 1) % 5, r2 = Math.floor((i + 1) / 5);
-        const x2 = 40 + c2 * 242 + 115;
-        const y2 = 75 + r2 * 245 + 115;
+        const x2 = 32 + c2 * 244 + 115;
+        const y2 = 74 + r2 * 240 + 115;
 
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -13055,28 +13066,20 @@ getCodexDatabase() {
 
       // 3. Top Header Bar
       ctx.fillStyle = "rgba(8, 14, 26, 0.94)";
-      ctx.fillRect(0, 0, this.width, 68);
+      ctx.fillRect(0, 0, this.width, 64);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.35)";
       ctx.lineWidth = 1.5;
-      ctx.strokeRect(0, 0, this.width, 68);
+      ctx.strokeRect(0, 0, this.width, 64);
 
-      this.renderMiniButton(40, 20, 110, 36, "← MENYU", "#ff1744");
+      this.renderMiniButton(24, 14, 110, 36, "← MENYU", "#ff1744");
 
       ctx.textAlign = "left";
       ctx.fillStyle = "#00e5ff";
-      ctx.font = "900 22px 'Segoe UI', monospace";
+      ctx.font = "900 18px 'Segoe UI', monospace";
       ctx.shadowColor = "#00e5ff";
       ctx.shadowBlur = 10;
-      ctx.fillText("🗺️ TAKTIK SEKTORLAR VA GALA-MUDOFAA", 170, 44);
+      ctx.fillText("🗺️ TAKTIK SEKTORLAR", 150, 38);
       ctx.shadowBlur = 0;
-
-      // Total campaign stars display
-      let totalStars = 0;
-      for (const m of MAPS) totalStars += (this.saveData.stars[m.id] || 0);
-      ctx.fillStyle = "#ffd600";
-      ctx.font = "bold 14px monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`KAMPANIYA: ${totalStars} / 30 ★`, 1240, 44);
 
       // Difficulty Selector Pill (CASUAL / NORMAL / HEROIC)
       const diffs = ['CASUAL', 'NORMAL', 'HEROIC'];
@@ -13084,37 +13087,52 @@ getCodexDatabase() {
       ctx.strokeStyle = "#00e5ff";
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(580, 20, 335, 34, 6);
+      ctx.roundRect(420, 14, 310, 36, 6);
       ctx.fill();
       ctx.stroke();
       diffs.forEach((d, idx) => {
-        const dx = 584 + idx * 110;
+        const dx = 424 + idx * 102;
         const isCur = this.difficulty === d;
         if (isCur) {
           ctx.fillStyle = "#00e5ff";
           ctx.beginPath();
-          ctx.roundRect(dx, 23, 105, 28, 4);
+          ctx.roundRect(dx, 17, 98, 30, 4);
           ctx.fill();
         }
         ctx.fillStyle = isCur ? "#030712" : "#94a3b8";
-        ctx.font = "900 12px monospace";
+        ctx.font = "900 11px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(d, dx + 52, 42);
+        ctx.fillText(d, dx + 49, 37);
       });
+
+      // Total campaign stars pill capsule
+      let totalStars = 0;
+      for (const m of MAPS) totalStars += (this.saveData.stars[m.id] || 0);
+      ctx.fillStyle = "rgba(255, 214, 0, 0.12)";
+      ctx.strokeStyle = "#ffd600";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(750, 14, 210, 36, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffd600";
+      ctx.font = "bold 13px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`★ KAMPANIYA: ${totalStars} / 30`, 855, 38);
 
       // Fullscreen Toggle Capsule in Map Select (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
         const isFSMap = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-        this.renderMiniButton(1160, 20, 80, 34, isFSMap ? "CHIQ" : "⛶ FULL", isFSMap ? "#ffd600" : "#00e5ff");
+        this.renderMiniButton(1140, 14, 110, 36, isFSMap ? "CHIQ" : "⛶ FULL", isFSMap ? "#ffd600" : "#00e5ff");
       }
 
-      // 4. 10 Sector Cards
+      // 4. 10 Sector Cards (2 rows of 5)
       for (let i = 0; i < MAPS.length; i++) {
         const m = MAPS[i];
         const col = i % 5;
         const row = Math.floor(i / 5);
-        const x = 40 + col * 242;
-        const y = 75 + row * 245;
+        const x = 32 + col * 244;
+        const y = 74 + row * 240;
         const starsEarned = this.saveData.stars[m.id] || 0;
         const isCompleted = starsEarned > 0;
 
@@ -13146,16 +13164,16 @@ getCodexDatabase() {
         ctx.fillStyle = isCompleted ? "#00e676" : "#00e5ff";
         ctx.fillRect(x, y + cut, 4, 30);
 
-        // Header: Sector Number & Name
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 13px 'Segoe UI', monospace";
+        // Line 1: Sector Number (left) & Status Pill (right)
+        ctx.fillStyle = "#00e5ff";
+        ctx.font = "900 11px monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`0${i + 1}. ${m.name.toUpperCase()}`, x + 14, y + 24);
+        ctx.fillText(`0${i + 1}. SEKTOR`, x + 12, y + 21);
 
         // Status Pill Badge (SECURED vs HOSTILE)
         ctx.fillStyle = isCompleted ? "rgba(0, 230, 118, 0.18)" : "rgba(255, 23, 68, 0.18)";
         ctx.beginPath();
-        ctx.roundRect(x + 130, y + 10, 90, 18, 4);
+        ctx.roundRect(x + 138, y + 8, 80, 18, 4);
         ctx.fill();
         ctx.strokeStyle = isCompleted ? "#00e676" : "#ff1744";
         ctx.lineWidth = 1;
@@ -13164,13 +13182,19 @@ getCodexDatabase() {
         ctx.fillStyle = isCompleted ? "#00e676" : "#ff5252";
         ctx.font = "900 9px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(isCompleted ? "✔ SECURED" : "⚠ HOSTILE", x + 175, y + 22);
+        ctx.fillText(isCompleted ? "✔ SECURED" : "⚠ HOSTILE", x + 178, y + 20);
+
+        // Line 2: Map Name (full width up to 206px)
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 12px 'Segoe UI', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(m.name.toUpperCase(), x + 12, y + 40);
 
         // Mini Waypoint Lane Preview Box inside card
-        const prevX = x + 14;
-        const prevY = y + 36;
-        const prevW = 202;
-        const prevH = 46;
+        const prevX = x + 12;
+        const prevY = y + 48;
+        const prevW = 206;
+        const prevH = 44;
         ctx.fillStyle = "rgba(4, 8, 16, 0.85)";
         ctx.beginPath();
         ctx.roundRect(prevX, prevY, prevW, prevH, 4);
@@ -13198,37 +13222,38 @@ getCodexDatabase() {
           ctx.restore();
         }
 
-        // Biome and Wave Telemetry
+        // Line 3: Biome and Wave Telemetry
         ctx.textAlign = "left";
         const biomeTag = (m.biome === 'lava') ? "🌋 LAVA" : (m.biome === 'cryo' ? "❄️ CRYO" : "⚡ CYBER");
         const biomeColor = (m.biome === 'lava') ? "#ff5722" : (m.biome === 'cryo' ? "#80deea" : "#00e5ff");
         ctx.fillStyle = biomeColor;
         ctx.font = "bold 10px monospace";
-        ctx.fillText(biomeTag, x + 14, y + 100);
+        ctx.fillText(biomeTag, x + 12, y + 106);
 
         ctx.fillStyle = "#90a4ae";
         ctx.font = "bold 10px monospace";
         ctx.textAlign = "right";
-        ctx.fillText(`WAVES: ${m.wave_count}`, x + 216, y + 100);
+        ctx.fillText(`WAVES: ${m.wave_count}`, x + 218, y + 106);
 
-        // Description
+        // Line 4: Description (clamped to max 2 lines with 206px width)
         ctx.textAlign = "left";
         ctx.fillStyle = "#b0bec5";
         ctx.font = "10px 'Segoe UI', monospace";
-        this.wrapText(m.desc, x + 14, y + 116, 202, 14);
+        this.wrapText(m.desc, x + 12, y + 122, 206, 14, "left", 2);
 
-        // 3-Star Campaign Rating
+        // Line 5: 3-Star Campaign Rating
         ctx.fillStyle = "#ffd600";
-        ctx.font = "bold 13px monospace";
+        ctx.font = "bold 12px monospace";
         const starStr = "★".repeat(starsEarned) + "☆".repeat(3 - starsEarned);
-        ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 14, y + 162);
+        ctx.fillText(`${starStr} (${starsEarned}/3)`, x + 12, y + 156);
 
-        this.drawCyberButton(x + 12, y + 176, 206, 42, "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
+        // Line 6: Launch Battle Button
+        this.drawCyberButton(x + 10, y + 170, 210, 44, "JANGGA KIRISH", isCompleted ? "#00e676" : "#00e5ff", `SECTOR 0${i + 1}`, "▶", true);
 
         ctx.restore();
       }
 
-      // 11. Custom Created Map Card (y: 565, w: 1200, h: 135)
+      // 11. Custom Created Map Card (y: 560, w: 1206, h: 135)
       const savedCustom = localStorage.getItem('lg_custom_map');
       let customData = null;
       if (savedCustom) {
@@ -13239,7 +13264,7 @@ getCodexDatabase() {
       const cGold = (customData && customData.gold) ? customData.gold : (this.editorGold || 350);
       const cWaves = (customData && customData.waves) ? customData.waves : (this.editorWaves || 20);
 
-      const cx = 40, cy = 565, cw = 1200, ch = 135;
+      const cx = 32, cy = 560, cw = 1206, ch = 135;
       ctx.save();
       ctx.fillStyle = "rgba(12, 22, 38, 0.95)";
       ctx.beginPath();
@@ -13252,7 +13277,7 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 16px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText("🛠️ SHAXSIY XARITA (CUSTOM LEVEL)", cx + 24, cy + 32);
+      ctx.fillText("🛠️ SHAXSIY XARITA (CUSTOM LEVEL MUHARRIRI)", cx + 24, cy + 32);
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "12px monospace";
@@ -13538,32 +13563,34 @@ getCodexDatabase() {
       ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.moveTo(0, 65); ctx.lineTo(this.width, 65); ctx.stroke();
 
-      this.renderMiniButton(30, 14, 130, 38, "← BOSH MENYU", "#00e5ff");
+      this.renderMiniButton(24, 14, 125, 38, "← MENYU", "#00e5ff");
 
       ctx.save();
       ctx.shadowColor = "rgba(255, 214, 0, 0.8)";
       ctx.shadowBlur = 14;
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffd600";
-      ctx.font = "900 24px 'Segoe UI', monospace";
-      ctx.fillText("🏅 APEX REYTINGLAR ZALI (HALL OF FAME)", 640, 36);
+      ctx.font = "900 22px 'Segoe UI', monospace";
+      ctx.fillText("🏅 APEX REYTINGLAR ZALI (HALL OF FAME)", 575, 34);
       ctx.restore();
 
       ctx.fillStyle = "#94a3b8";
       ctx.font = "bold 11px monospace";
       ctx.textAlign = "center";
-      ctx.fillText("GLOBAL TACTICAL COMMANDER STANDINGS & COMBAT RECORDS", 640, 54);
+      ctx.fillText("GLOBAL TACTICAL COMMANDER STANDINGS & COMBAT RECORDS", 575, 52);
 
-      this.renderMiniButton(1040, 14, 200, 38, `👤 NIK: ${this.playerName}`, "#ffd600");
+      // Nickname Button with length protection
+      const nLabel = (this.playerName && this.playerName.length > 10) ? this.playerName.slice(0, 9) + '..' : (this.playerName || "COMMANDER");
+      this.renderMiniButton(1040, 14, 215, 38, `👤 NIK: ${nLabel}`, "#ffd600");
 
       // Fullscreen Toggle in Leaderboard (Web only)
       if (typeof window !== 'undefined' && !window.AndroidBridge) {
         const isFSLB = typeof document !== 'undefined' && !!(document.fullscreenElement || document.webkitFullscreenElement);
-        this.renderMiniButton(950, 14, 75, 38, isFSLB ? "CHIQ" : "⛶ FULL", isFSLB ? "#ffd600" : "#00e5ff");
+        this.renderMiniButton(940, 14, 85, 38, isFSLB ? "CHIQ" : "⛶ FULL", isFSLB ? "#ffd600" : "#00e5ff");
       }
 
-      // Commander Personal Best Banner (x: 40, y: 75, w: 1200, h: 48)
-      const bx = 40, by = 75, bw = 1200, bh = 48;
+      // Commander Personal Best Banner (x: 35, y: 72, w: 1210, h: 46)
+      const bx = 35, by = 72, bw = 1210, bh = 46;
       ctx.fillStyle = "rgba(14, 26, 48, 0.88)";
       ctx.beginPath();
       ctx.roundRect(bx, by, bw, bh, 6);
@@ -13575,37 +13602,43 @@ getCodexDatabase() {
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 13px 'Segoe UI', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`🎖️ FAOL KOMANDIR: ${this.playerName}`, bx + 20, by + 30);
+      ctx.fillText(`🎖️ FAOL KOMANDIR: ${this.playerName}`, bx + 20, by + 28);
 
       const bestScore = (this.saveData && this.saveData.leaderboard && this.saveData.leaderboard[0]) ? this.saveData.leaderboard[0].score : 1000;
       const bestWave = (this.saveData && this.saveData.maxWave) || 1;
       ctx.fillStyle = "#94a3b8";
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "right";
-      ctx.fillText(`MAKSIMAL TO'LQIN: Wave ${bestWave}  |  ENG YUQORI NATIJA: ${bestScore.toLocaleString()} PTS  |  DARAXT: APEX GENERAL ⭐⭐⭐`, bx + bw - 20, by + 30);
+      ctx.fillText(`MAKSIMAL TO'LQIN: Wave ${bestWave}  |  ENG YUQORI NATIJA: ${bestScore.toLocaleString()} PTS  |  DARAXT: APEX GENERAL ⭐⭐⭐`, bx + bw - 20, by + 28);
 
-      // Table Header (x: 40, y: 132, w: 1200, h: 36)
+      // Table Header (x: 35, y: 126, w: 1210, h: 34)
       ctx.fillStyle = "rgba(18, 32, 56, 0.95)";
-      ctx.fillRect(40, 132, 1200, 36);
+      ctx.fillRect(35, 126, 1210, 34);
       ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
       ctx.lineWidth = 1;
-      ctx.strokeRect(40, 132, 1200, 36);
+      ctx.strokeRect(35, 126, 1210, 34);
 
       ctx.fillStyle = "#ffd600";
       ctx.font = "bold 12px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("O'RIN", 60, 155);
-      ctx.fillText("KOMANDIR / HANDLE", 150, 155);
-      ctx.fillText("SEKTOR", 460, 155);
-      ctx.fillText("TO'LQIN", 700, 155);
-      ctx.fillText("TAKTIK BALL", 900, 155);
-      ctx.fillText("UNVON TIER", 1080, 155);
+      ctx.fillText("O'RIN", 55, 148);
+      ctx.fillText("KOMANDIR / HANDLE", 175, 148);
+      ctx.fillText("SEKTOR", 485, 148);
+      ctx.fillText("TO'LQIN", 715, 148);
+      ctx.fillText("TAKTIK BALL", 885, 148);
+      ctx.fillText("UNVON TIER", 1065, 148);
 
       // Leaderboard Rows
       const rows = (this.saveData && this.saveData.leaderboard) ? this.saveData.leaderboard.slice(0, 10) : [];
+      if (rows.length === 0) {
+        ctx.fillStyle = "#64748b";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("Hozircha reyting ma'lumotlari mavjud emas. Yangilash tugmasini bosing!", 640, 240);
+      }
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        const ry = 174 + i * 42;
+        const ry = 166 + i * 42;
         const isSelf = r.player_name === this.playerName;
 
         // Row background
@@ -13621,7 +13654,7 @@ getCodexDatabase() {
           ctx.fillStyle = (i % 2 === 0) ? "rgba(10, 18, 32, 0.65)" : "rgba(16, 28, 48, 0.4)";
         }
 
-        ctx.fillRect(40, ry, 1200, 38);
+        ctx.fillRect(35, ry, 1210, 38);
 
         // Rank Badge / Trophy
         let rankColor = "#cfd8dc";
@@ -13652,36 +13685,36 @@ getCodexDatabase() {
         ctx.fillStyle = rankColor;
         ctx.font = "bold 12px monospace";
         ctx.textAlign = "left";
-        ctx.fillText(rankLabel, 60, ry + 24);
+        ctx.fillText(rankLabel, 55, ry + 24);
 
         ctx.fillStyle = isSelf ? "#00e5ff" : (i === 0 ? "#ffd600" : "#ffffff");
         ctx.font = isSelf ? "bold 13px monospace" : "13px monospace";
-        ctx.fillText(r.player_name + (isSelf ? " (SIZ)" : ""), 150, ry + 24);
+        ctx.fillText(r.player_name + (isSelf ? " (SIZ)" : ""), 175, ry + 24);
 
         ctx.fillStyle = "#81d4fa";
         ctx.font = "12px monospace";
-        ctx.fillText(r.map_id.toUpperCase(), 460, ry + 24);
+        ctx.fillText((r.map_id || "").toUpperCase(), 485, ry + 24);
 
         ctx.fillStyle = "#a7ffeb";
-        ctx.fillText(`Wave ${r.wave_reached}`, 700, ry + 24);
+        ctx.fillText(`Wave ${r.wave_reached}`, 715, ry + 24);
 
         ctx.fillStyle = "#ffd600";
         ctx.font = "bold 13px monospace";
-        ctx.fillText(`${(r.score || 0).toLocaleString()} PTS`, 900, ry + 24);
+        ctx.fillText(`${(r.score || 0).toLocaleString()} PTS`, 885, ry + 24);
 
         ctx.fillStyle = tierColor;
         ctx.font = "bold 11px monospace";
-        ctx.fillText(tierLabel, 1080, ry + 24);
+        ctx.fillText(tierLabel, 1065, ry + 24);
       }
 
-      // Bottom Control Action Bar (y: 605, h: 56)
-      this.drawCyberButton(140, 605, 230, 56, "BOSH MENYU", "#00e5ff", "MAIN MENU", "◀", false);
-      this.drawCyberButton(400, 605, 230, 56, "YANGILASH", "#00e676", "SYNC SCORES", "🔄", true);
-      this.drawCyberButton(660, 605, 230, 56, "NIKNI O'ZGARTIR", "#ffd600", "EDIT HANDLE", "✏️", false);
-      this.drawCyberButton(920, 605, 230, 56, "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
+      // Bottom Control Action Bar (y: 600, h: 56)
+      this.drawCyberButton(120, 600, 240, 56, "BOSH MENYU", "#00e5ff", "MAIN MENU", "◀", false);
+      this.drawCyberButton(380, 600, 240, 56, "YANGILASH", "#00e676", "SYNC SCORES", "🔄", true);
+      this.drawCyberButton(640, 600, 240, 56, "NIKNI O'ZGARTIR", "#ffd600", "EDIT HANDLE", "✏️", false);
+      this.drawCyberButton(900, 600, 250, 56, "JANGGA KIRISH", "#ff1744", "LAUNCH BATTLE", "🚀", true);
     }
 
-    wrapText(text, x, y, maxWidth, lineHeight, align = "left") {
+    wrapText(text, x, y, maxWidth, lineHeight, align = "left", maxLines = 0) {
       if (!text) return;
       const ctx = this.ctx;
       ctx.save();
@@ -13689,10 +13722,19 @@ getCodexDatabase() {
       const words = String(text).split(' ');
       let line = '';
       let curY = y;
+      let lineCount = 0;
       for (let n = 0; n < words.length; n++) {
         const testLine = line + words[n] + ' ';
         const metrics = ctx.measureText(testLine);
         if (metrics.width > maxWidth && n > 0) {
+          lineCount++;
+          if (maxLines > 0 && lineCount >= maxLines) {
+            let trLine = line.trim();
+            if (n < words.length) trLine += '...';
+            ctx.fillText(trLine, x, curY);
+            ctx.restore();
+            return;
+          }
           ctx.fillText(line.trim(), x, curY);
           line = words[n] + ' ';
           curY += lineHeight;
